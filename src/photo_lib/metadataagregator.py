@@ -228,47 +228,6 @@ def double_key_wrapper(date_key: str, time_key: str, start_pattern: str = None):
 
 class MetadataAggregator:
     ethp: exiftool.ExifToolHelper
-    # to_parse: list = ["File:FileModifyDate",
-    #                   "File:FileAccessDate",
-    #                   "File:FileInodeChangeDate",
-    #                   "EXIF:ModifyDate",
-    #                   "EXIF:DateTimeOriginal",
-    #                   "EXIF:CreateDate",
-    #                   "Composite:SubSecCreateDate",
-    #                   "Composite:SubSecDateTimeOriginal",
-    #                   "XMP:DateCreated",
-    #                   "Composite:SubSecModifyDate",
-    #                   "Composite:DateTimeCreated",
-    #                   "Composite:DigitalCreationDateTime",
-    #                   "IPTC:DateCreated",
-    #                   "IPTC:TimeCreated",
-    #                   "IPTC:DigitalCreationTime",
-    #                   "IPTC:DigitalCreationDate",
-    #                   "XMP:DateTimeOriginal",
-    #                   "PNG:CreationTime",
-    #                   "QuickTime:CreateDate",
-    #                   "QuickTime:ModifyDate",
-    #                   "QuickTime:TrackCreateDate",
-    #                   "QuickTime:TrackModifyDate",
-    #                   "QuickTime:MediaCreateDate",
-    #                   "QuickTime:MediaModifyDate",
-    #                   "QuickTime:ContentCreateDate",
-    #                   "XMP:DateTimeDigitized",
-    #                   "PNG:ModifyDate",
-    #                   "PNG:Datecreate",
-    #                   "PNG:Datemodify",
-    #                   "QuickTime:CreationDate",
-    #                   "QuickTime:ContentCreateDate-un",
-    #                   "QuickTime:CreationDate-deu-CH",
-    #                   "QuickTime:AppleProappsIngestDateDescription-deu-CH",
-    #                   "QuickTime:AppleProappsIngestDateDescription",
-    #                   "QuickTime:ContentCreateDate-deu"
-    #                   ]
-    # # 45 + 3
-
-    # XMP:Date: 2020:01:12 07:30:15PM %Y:%m:%d %I:%M:%S%p
-    # QuickTime:DateAcquired: 2018:10:03 05:28:48
-    # QuickTime:DateTimeOriginal: 2019:11:20 07:50:51Z
 
     func_collection = [
         func_wrapper("File:FileModifyDate", ":: ::z"),
@@ -309,60 +268,11 @@ class MetadataAggregator:
         func_wrapper("QuickTime:DateTimeOriginal", ":: ::Z")
     ]
 
-    # func_lookup: dict = {
-    # "File:FileModifyDate": parse_file,
-    # "File:FileAccessDate": parse_file,
-    # "File:FileInodeChangeDate": parse_file,
-    # "EXIF:ModifyDate": parse_exif,
-    # "EXIF:DateTimeOriginal": parse_exif,
-    # "EXIF:CreateDate": parse_exif,
-    # "Composite:SubSecCreateDate": parse_subsec,
-    # "Composite:SubSecCreateDate": dummy_func,
-    # "Composite:SubSecDateTimeOriginal": parse_subsec,
-    # "Composite:SubSecDateTimeOriginal": dummy_func,
-    # "XMP:DateCreated": parse_subsec,
-    # "XMP:DateCreated": parse_exif,
-    # "XMP:DateCreated": dummy_func,
-    # "Composite:SubSecModifyDate": dummy_func,
-    # "Composite:SubSecModifyDate": parse_subsec,
-    # "Composite:DateTimeCreated": parse_exif,
-    # "Composite:DigitalCreationDateTime": parse_exif,
-    # "IPTC:DateCreated": decorator(double_assembly, "IPTC:DateCreated", "IPTC:TimeCreated"),
-    # "IPTC:TimeCreated": decorator(double_assembly, "IPTC:DateCreated", "IPTC:TimeCreated"),
-    # "IPTC:DigitalCreationTime": decorator(double_assembly, "IPTC:DigitalCreationDate", "IPTC:DigitalCreationTime"),
-    # "IPTC:DigitalCreationDate": decorator(double_assembly, "IPTC:DigitalCreationDate", "IPTC:DigitalCreationTime"),
-    # "XMP:DateTimeOriginal": parse_file,
-    # "XMP:DateTimeOriginal": parse_xmpdatetimeoriginal,
-    # "XMP:DateTimeOriginal": dummy_func,
-    # "PNG:CreationTime": parse_exif,
-    # "QuickTime:CreateDate": parse_exif,
-    # "QuickTime:ModifyDate": parse_exif,
-    # "QuickTime:TrackCreateDate": parse_exif,
-    # "QuickTime:TrackModifyDate": parse_exif,
-    # "QuickTime:MediaCreateDate": parse_exif,
-    # "QuickTime:MediaModifyDate": parse_exif,
-    # "QuickTime:ContentCreateDate": parse_exif,
-    # "XMP:DateTimeDigitized": parse_file,
-    # "XMP:DateTimeDigitized": parse_xmpdatetimeoriginal,
-    # "XMP:DateTimeDigitized": dummy_func,
-    # "PNG:ModifyDate": parse_exif,
-    # "PNG:Datecreate": parse_tplus,
-    # "PNG:Datemodify": parse_tplus,
-    # "QuickTime:CreationDate": parse_exif,
-    # "QuickTime:ContentCreateDate-un": parse_exif,
-    # "QuickTime:CreationDate-deu-CH": parse_exif,
-    # "QuickTime:AppleProappsIngestDateDescription-deu-CH": parse_quicktime,
-    # "QuickTime:AppleProappsIngestDateDescription": parse_quicktime,
-    # "QuickTime:ContentCreateDate-deu": parse_exif,
-
-    # }
-
     # add more methodology for parsing. class or function
-
-    def __init__(self, exiftool_path: str = None) -> FileMetaData:
+    def __init__(self, exiftool_path: str = None):
         self.ethp = exiftool.ExifToolHelper(executable=exiftool_path)
 
-    def process_file(self, path: str):
+    def process_file(self, path: str) -> FileMetaData:
         f_hash = hash_file(path)
 
         cur_date: datetime.datetime = None
