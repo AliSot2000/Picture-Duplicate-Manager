@@ -4,7 +4,7 @@ import datetime
 import os
 import hashlib
 from dataclasses import dataclass
-from tagsnshit import known  # find
+from .tagsnshit import known  # find
 
 
 def anti_utc(dt_str: str, fmt_str: str):
@@ -227,6 +227,7 @@ def double_key_wrapper(date_key: str, time_key: str, start_pattern: str = None):
 
 class MetadataAggregator:
     ethp: exiftool.ExifToolHelper
+    det_new_ks: bool
 
     func_collection = [
         func_wrapper("File:FileModifyDate", ":: ::z"),
@@ -268,8 +269,9 @@ class MetadataAggregator:
     ]
 
     # add more methodology for parsing. class or function
-    def __init__(self, exiftool_path: str = None):
+    def __init__(self, exiftool_path: str = None, detect_new_keys: bool = False):
         self.ethp = exiftool.ExifToolHelper(executable=exiftool_path)
+        self.det_new_ks = detect_new_keys
 
     def process_file(self, path: str) -> FileMetaData:
         f_hash = hash_file(path)
@@ -283,14 +285,15 @@ class MetadataAggregator:
 
         keys = []
 
-        for key in metadata.keys():
-            if "XMP:DocumentAncestors" in key:
-                continue
-            if key not in known:
-                # fix this issue
-                print(f"{key}: {metadata[key]}")
-                keys.append(key)
-                not_known = True
+        if self.det_new_ks:
+            for key in metadata.keys():
+                if "XMP:DocumentAncestors" in key:
+                    continue
+                if key not in known:
+                    # fix this issue
+                    print(f"{key}: {metadata[key]}")
+                    keys.append(key)
+                    not_known = True
 
         for f in self.func_collection:
             res, key = f(metadata)
@@ -312,9 +315,6 @@ class MetadataAggregator:
                 exit(200)
             else:
                 exit(300)
-
-        name = cur_date.strftime("%Y-%m-%d %H.%M.%S")
-        name += os.path.splitext(path)[1]
 
         verify = False
         if cur_tag[0:4] == "File":
