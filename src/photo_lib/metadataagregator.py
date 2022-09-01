@@ -30,7 +30,6 @@ class FileMetaData:
     metadata: dict
     naming_tag: str  # which is a key in the metadata dict
     file_hash: str
-    new_name: str
     datetime_object: datetime.datetime
     verify: bool = False
 
@@ -326,7 +325,6 @@ class MetadataAggregator:
                                metadata=metadata,
                                naming_tag=cur_tag,
                                file_hash=f_hash,
-                               new_name=name,
                                datetime_object=cur_date,
                                verify=verify
                                )
