@@ -158,6 +158,7 @@ class PhotoDb:
                              "org_fname TEXT NOT NULL, "
                              "org_fpath TEXT NOT NULL, "
                              "metadata TEXT NOT NULL, "
+                             "google_fotos_metadata TEXT,"
                              "naming_tag TEXT, "
                              "file_hash TEXT, "
                              "new_name TEXT UNIQUE , "
@@ -172,6 +173,7 @@ class PhotoDb:
                          "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
                          " org_fname TEXT,"
                          " metadata TEXT,"
+                         " google_fotos_metadata TEXT,"
                          " hash TEXT, "
                          " successor INTEGER NOT NULL)")
 
@@ -206,6 +208,7 @@ class PhotoDb:
                          f" org_fname TEXT NOT NULL, "
                          f" org_fpath TEXT NOT NULL, "
                          f" metadata TEXT, "
+                         f"google_fotos_metadata TEXT,"
                          f" file_hash TEXT, "
                          f" new_name TEXT,"
                          f" imported INTEGER DEFAULT 0 CHECK ({temp_table_name}.imported >= 0 AND {temp_table_name}.imported < 2),"
@@ -305,14 +308,25 @@ class PhotoDb:
 
     def __handle_preset(self, table: str, file_metadata: FileMetaData, new_file_name: str, msg: str,
                         present_file_name: str, update_key: int):
-        self.cur.execute(f"UPDATE {table} "
-                         f"SET metadata = '{json.dumps(file_metadata.metadata)}', "
-                         f"file_hash = '{file_metadata.file_hash}', "
-                         f"new_name = '{new_file_name}', "
-                         f"imported = 0, "
-                         f"processed=1, "
-                         f"message = '{msg}', "
-                         f"hash_based_duplicate = '{present_file_name}' WHERE key = {update_key}")
+        if file_metadata.google_fotos_metadata is None:
+            self.cur.execute(f"UPDATE {table} "
+                             f"SET metadata = '{self.__dict_to_b64(file_metadata.metadata)}', "
+                             f"file_hash = '{file_metadata.file_hash}', "
+                             f"new_name = '{new_file_name}', "
+                             f"imported = 0, "
+                             f"processed=1, "
+                             f"message = '{msg}', "
+                             f"hash_based_duplicate = '{present_file_name}' WHERE key = {update_key}")
+        else:
+            self.cur.execute(f"UPDATE {table} "
+                             f"SET metadata = '{self.__dict_to_b64(file_metadata.metadata)}', "
+                             f"file_hash = '{file_metadata.file_hash}', "
+                             f"new_name = '{new_file_name}', "
+                             f"imported = 0, "
+                             f"processed=1, "
+                             f"message = '{msg}', "
+                             f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
+                             f"hash_based_duplicate = '{present_file_name}' WHERE key = {update_key}")
         self.con.commit()
 
     def __handle_import(self, fmd: FileMetaData, new_file_name: str, table: str, msg: str, update_key: int):
@@ -335,23 +349,45 @@ class PhotoDb:
                      dst=self.__path_from_datetime(fmd.datetime_object, new_file_name),
                      follow_symlinks=True)
 
-        # create entry in images database
-        self.cur.execute("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
-                         "file_hash, new_name, datetime, present, verify) "
-                         f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
-                         f"'{json.dumps(fmd.metadata)}', '{fmd.naming_tag}', "
-                         f"'{fmd.file_hash}', '{new_file_name}',"
-                         f"'{self.__datetime_conv(fmd.datetime_object)}',"
-                         f"1, {0 if fmd.verify else 1})")
+        if fmd.google_fotos_metadata is None:
+            # create entry in images database
+            self.cur.execute("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
+                             "file_hash, new_name, datetime, present, verify) "
+                             f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
+                             f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
+                             f"'{fmd.file_hash}', '{new_file_name}',"
+                             f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
+                             f"1, {1 if fmd.verify else 0})")
 
-        # create entry in temporary database
-        self.cur.execute(f"UPDATE {table} "
-                         f"SET metadata = '{json.dumps(fmd.metadata)}', "
-                         f"file_hash = '{fmd.file_hash}', "
-                         f"new_name = '{new_file_name}', "
-                         f"imported = 1, "
-                         f"processed = 1, "
-                         f"message = '{msg}' WHERE key = {update_key}")
+            # create entry in temporary database
+            self.cur.execute(f"UPDATE {table} "
+                             f"SET metadata = '{self.__dict_to_b64(fmd.metadata)}', "
+                             f"file_hash = '{fmd.file_hash}', "
+                             f"new_name = '{new_file_name}', "
+                             f"imported = 1, "
+                             f"processed = 1, "
+                             f"message = '{msg}' WHERE key = {update_key}")
+        else:
+            # create entry in images database
+            self.cur.execute("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
+                             "file_hash, new_name, datetime, present, verify,google_fotos_metadata ) "
+                             f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
+                             f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
+                             f"'{fmd.file_hash}', '{new_file_name}',"
+                             f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
+                             f"1, {1 if fmd.verify else 0},"
+                             f"'{self.__dict_to_b64(fmd.google_fotos_metadata)}')")
+
+            # create entry in temporary database
+            self.cur.execute(f"UPDATE {table} "
+                             f"SET metadata = '{self.__dict_to_b64(fmd.metadata)}', "
+                             f"file_hash = '{fmd.file_hash}', "
+                             f"new_name = '{new_file_name}', "
+                             f"imported = 1, "
+                             f"processed = 1, "
+                             f"google_fotos_metadata = '{self.__dict_to_b64(fmd.google_fotos_metadata)}', "
+                             f"message = '{msg}' WHERE key = {update_key}")
+
         self.con.commit()
 
     def determine_import(self, file_metadata: FileMetaData, new_name: str) -> tuple:
