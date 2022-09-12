@@ -32,6 +32,7 @@ class FileMetaData:
     file_hash: str
     datetime_object: datetime.datetime
     verify: bool = False
+    google_fotos_metadata: dict = None
 
 
 def general_parser(dt_str: str, preferred: str = None, retry: bool = True):
@@ -276,6 +277,7 @@ class MetadataAggregator:
     def process_file(self, path: str) -> FileMetaData:
         f_hash = hash_file(path)
 
+        content = None
         cur_date: datetime.datetime = None
         cur_tag: str = ""
 
@@ -284,6 +286,11 @@ class MetadataAggregator:
         not_parsed = False
 
         keys = []
+
+        # try to load google fotos metadata
+        if os.path.exists(f"{path}.json"):
+            with open(f"{path}.json", "r") as gfjf:
+                content = json.load(gfjf)
 
         if self.det_new_ks:
             for key in metadata.keys():
@@ -326,6 +333,8 @@ class MetadataAggregator:
                                naming_tag=cur_tag,
                                file_hash=f_hash,
                                datetime_object=cur_date,
-                               verify=verify
+                               verify=verify,
+                               google_fotos_metadata=content
                                )
+
         return ret_obj
