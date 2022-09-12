@@ -3,6 +3,7 @@ import filecmp
 import os
 import sqlite3
 import json
+import base64
 
 from docutils.nodes import emphasis
 
@@ -71,6 +72,9 @@ class PhotoDb:
     # UTILITY CONVERTERS
     # ------------------------------------------------------------------------------------------------------------------
 
+    def __folder_from_datetime(self, dt_obj: datetime.datetime):
+        return os.path.join(self.root_dir, f"{dt_obj.year}", f"{dt_obj.month:02}", f"{dt_obj.day:02}")
+
     def __path_from_datetime(self, dt_obj: datetime.datetime, file_name: str):
         return os.path.join(self.root_dir, f"{dt_obj.year}", f"{dt_obj.month}", f"{dt_obj.day}", file_name)
 
@@ -84,6 +88,22 @@ class PhotoDb:
 
     def __string_to_datetime(self, dt_str: str):
         return datetime.datetime.strptime(dt_str, self.__datetime_format)
+
+    @staticmethod
+    def __dict_to_b64(metadata: dict):
+        json_string = json.dumps(metadata)
+        json_bytes = json_string.encode("utf-8")
+        b64_bytes = base64.b64encode(json_bytes)
+        b64_string = b64_bytes.decode("ascii")
+        return b64_string
+
+    @staticmethod
+    def __b64_to_dict(b64_str: str):
+        b64_bytes = b64_str.encode("ascii")
+        json_bytes = base64.b64decode(b64_bytes)
+        json_str = json_bytes.decode("utf-8")
+        meta_dict = json.loads(json_str)
+        return meta_dict
 
     # ------------------------------------------------------------------------------------------------------------------
     # INIT
