@@ -76,10 +76,13 @@ class PhotoDb:
         return os.path.join(self.root_dir, f"{dt_obj.year}", f"{dt_obj.month:02}", f"{dt_obj.day:02}")
 
     def __path_from_datetime(self, dt_obj: datetime.datetime, file_name: str):
-        return os.path.join(self.root_dir, f"{dt_obj.year}", f"{dt_obj.month}", f"{dt_obj.day}", file_name)
+        return os.path.join(self.__folder_from_datetime(dt_obj), file_name)
 
-    def __datetime_conv(self, dt_obj: datetime.datetime):
+    def __datetime_to_db_str(self, dt_obj: datetime.datetime):
         return dt_obj.strftime(self.__datetime_format)
+
+    def __db_str_to_datetime(self, dt_str: str):
+        return datetime.datetime.strptime(dt_str, self.__datetime_format)
 
     def __file_name_generator(self, dt_obj: datetime.datetime, old_fname: str, index: int = 0):
         base = dt_obj.strftime(self.__datetime_format)
