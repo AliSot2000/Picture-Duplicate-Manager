@@ -262,7 +262,8 @@ class PhotoDb:
                 f_index = 1
                 search = True
                 while search and f_index < 1000:
-                    imported_file_name = self.__file_name_generator(file_metadata.datetime_object, file_metadata.org_fname, f_index)
+                    imported_file_name = self.__file_name_generator(file_metadata.datetime_object,
+                                                                    file_metadata.org_fname, f_index)
 
                     # should be imported?
                     should_import, message, successor = self.determine_import(file_metadata, imported_file_name)
@@ -330,14 +331,9 @@ class PhotoDb:
         self.con.commit()
 
     def __handle_import(self, fmd: FileMetaData, new_file_name: str, table: str, msg: str, update_key: int):
-        dir = os.path.join(self.root_dir,
-                           f"{fmd.datetime_object.year}",
-                           f"{fmd.datetime_object.month}",
-                           f"{fmd.datetime_object.day}")
-
-        if not os.path.exists(dir):
+        if not os.path.exists(self.__folder_from_datetime(fmd.datetime_object)):
             # create subdirectory
-            os.makedirs(dir)
+            os.makedirs(self.__folder_from_datetime(fmd.datetime_object))
 
         if os.path.exists(self.__path_from_datetime(fmd.datetime_object, new_file_name)):
             raise Exception(f"File Exists already; "
@@ -438,7 +434,7 @@ class PhotoDb:
 
         # If filesize of one hash is smaller, import anyway and prommpt user to check
         for m in matches:
-            metadict = json.loads(m[0])
+            metadict = self.__b64_to_dict(m[0])
             fsize = metadict["File:FileSize"]
 
             if fsize < file_metadata.metadata["File:FileSize"]:
@@ -449,7 +445,10 @@ class PhotoDb:
 
     def __create_import_table(self, folder_path: str) -> str:
         table_name = os.path.basename(folder_path)
-        table_name = table_name.replace("-", "_")
+        table_name = table_name.replace("-", "_ds_").replace(" ", "_sp_").replace(".", "_d_")
+        if table_name[0].isdigit():
+            table_name = "t" + table_name
+        print(table_name)
         name_extension = -1
 
         try:
