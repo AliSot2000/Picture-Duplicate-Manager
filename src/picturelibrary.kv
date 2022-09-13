@@ -1,0 +1,61 @@
+#:kivy 2.1.0
+
+
+<ComparePane>:
+    image: img
+    label: lb
+
+    canvas:
+        Color:
+            rgb: (0.5, 1.0, 0.5)
+        Rectangle:
+            size: self.size
+
+    StackLayout:
+        pos: self.parent.pos
+        orientation: "lr-tb"
+        size: self.parent.size
+        pad: 5
+
+        Image:
+            id: img
+            pos: 10, 10
+            allow_stretch: False
+            # size: self.width - 20, self.height - 20
+
+        Label:
+            id: lb
+            text: str(self.parent.parent.metadata)
+
+<Dummy>:
+    img_a: ima
+    img_b: imb
+    img_c: imc
+
+    canvas:
+        Color:
+            rgb: (0.5, 1.0, 0.9)
+        Rectangle:
+            size: root.size
+
+    # Image:
+    #     pos: root.center_x - self.width/2, root.center_y - self.height/2
+    #     size: root.size
+    #     source: root.sourceB
+    #     allow_stretch: False
+
+    ComparePane:
+        id: ima
+        pos: root.width / root.num_of_sources * self.index ,0
+        size: root.size[0] / 3, root.height
+
+    ComparePane:
+        id: imb
+        pos: root.width / root.num_of_sources * 1 ,0
+        size: root.size[0] / 3, root.height
+
+    ComparePane:
+        id: imc
+        pos: root.width / root.num_of_sources * 2 ,0
+        size: root.size[0] / 3, root.height
+        # size_hint_y_max = root.height
