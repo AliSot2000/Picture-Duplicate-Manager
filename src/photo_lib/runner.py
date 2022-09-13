@@ -194,7 +194,7 @@ class PhotoDb:
         #                  "file_hash TEXT, "
         #                  "new_name TEXT)")
 
-    def import_folder(self, folder_path: str, al_fl: Set[str] = None, import_not_used: bool = False):
+    def import_folder(self, folder_path: str, al_fl: Set[str] = None, ignore_deleted: bool = False):
         folder_path = os.path.abspath(folder_path.rstrip("/"))
         temp_table_name = self.__create_import_table(folder_path)
 
