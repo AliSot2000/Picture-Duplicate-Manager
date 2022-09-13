@@ -284,7 +284,7 @@ class PhotoDb:
 
                     # if should_import is 2
                     f_index += 1
-                    print(message)
+                    print(f"{message}: {imported_file_name}")
 
         return temp_table_name
 
