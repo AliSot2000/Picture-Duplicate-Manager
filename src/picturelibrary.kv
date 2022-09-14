@@ -1,50 +1,57 @@
 #:kivy 2.1.0
 
 <ComparePane>:
-    # image: img
-    l_ofname: lofn
-    l_ofpath: lofp
-    l_naming_tag: lnt
-    l_new_name: lnt
-    l_metadata: lmd
-
-    Label:
-        pos: -50, 0
-        text: "Test"
+    # Label:
+    #     pos: -50, 0
+    #     text: "Test"
 
     StackLayout:
         padding: 10, 10, 10, 10
         spacing: 5, 5
-        pos: 0, root.height
+        pos: 0, 0
         orientation: 'tb-lr'
-        # size: root.size
+        size: root.size
+
+        Label:
+            text: "Holla"
+        Label:
+            text: "Bolla"
+        Label:
+            text: "Trolla"
 
         # Image:
-            # id: img
-            # source: self.parent.parent.image_path
-            # size: self.parent.parent.size
+        #     source: "/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2162.JPG"
+        # Image:
+        #     source: "/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2158.JPG"
+        # Image:
+        #     source: "/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2162.JPG"
 
-        Label:
-            id: lofn
-            # text: self.parent.parent.org_fname
-            text: str(self.parent.parent.org_fname)
-
-        Label:
-            id: lofp
-            text: str(self.parent.parent.org_fpath)
-
-        Label:
-            id: lnt
-            text: str(self.parent.parent.naming_tag)
-
-        Label:
-            id: lnt
-            text: str(self.parent.parent.new_name)
-
-        Label:
-            id: lmd
-            text: str(self.parent.parent.metadata)
-            # text_size: cm(6), cm(50)
+        # Image:
+        #     # id: img
+        #     # source: self.parent.parent.image_path
+        #     # size: self.parent.parent.size
+#
+        # Label:
+        #     id: lofn
+        #     # text: self.parent.parent.org_fname
+        #     text: str(self.parent.parent.org_fname)
+#
+        # Label:
+        #     id: lofp
+        #     text: str(self.parent.parent.org_fpath)
+#
+        # Label:
+        #     id: lnt
+        #     text: str(self.parent.parent.naming_tag)
+#
+        # Label:
+        #     id: lnt
+        #     text: str(self.parent.parent.new_name)
+#
+        # Label:
+        #     id: lmd
+        #     text: str(self.parent.parent.metadata)
+        #     # text_size: cm(6), cm(50)
 
 
 
@@ -61,11 +68,3 @@
         id: compare1
         pos: root.pos
         size: root.size
-
-    Label:
-        outline_color: 1, 1, 1
-        color: 0, 0, 1.0
-
-
-        pos: 500, 0
-        text: "I have a very long text such that I should possibly see a diffeerence"
