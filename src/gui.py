@@ -80,6 +80,10 @@ XMP:UserComment: Screenshot
 XMP:XMPToolkit: XMP Core 5.4.0""")
 
 
+class GFComparePane(ComparePane):
+    l_google_fotos_metadata = ObjectProperty(None)
+
+    google_fotos_metadata = StringProperty("")
 
 class Dummy(Widget):
     # sourceA = StringProperty()
@@ -91,7 +95,7 @@ class Dummy(Widget):
     # img_a = ObjectProperty(None)
     # img_b = ObjectProperty(None)
     # img_c = ObjectProperty(None)
-    img = ObjectProperty(None)
+    comp = ObjectProperty(None)
 
     def test(self, delta):
         print("Shit is being done")
@@ -112,7 +116,7 @@ class Dummy(Widget):
 class PictureLibrary(App):
     def build(self):
         d = Dummy()
-        d.some_shit()
+        # d.some_shit()
         d.test(1)
         Clock.schedule_interval(d.test, 2.0)
         return d

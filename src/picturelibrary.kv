@@ -1,61 +1,71 @@
 #:kivy 2.1.0
 
-
 <ComparePane>:
-    image: img
-    label: lb
+    # image: img
+    l_ofname: lofn
+    l_ofpath: lofp
+    l_naming_tag: lnt
+    l_new_name: lnt
+    l_metadata: lmd
 
-    canvas:
-        Color:
-            rgb: (0.5, 1.0, 0.5)
-        Rectangle:
-            size: self.size
+    Label:
+        pos: -50, 0
+        text: "Test"
 
     StackLayout:
-        pos: self.parent.pos
-        orientation: "lr-tb"
-        size: self.parent.size
-        pad: 5
+        padding: 10, 10, 10, 10
+        spacing: 5, 5
+        pos: 0, root.height
+        orientation: 'tb-lr'
+        # size: root.size
 
-        Image:
-            id: img
-            pos: 10, 10
-            allow_stretch: False
-            # size: self.width - 20, self.height - 20
+        # Image:
+            # id: img
+            # source: self.parent.parent.image_path
+            # size: self.parent.parent.size
 
         Label:
-            id: lb
+            id: lofn
+            # text: self.parent.parent.org_fname
+            text: str(self.parent.parent.org_fname)
+
+        Label:
+            id: lofp
+            text: str(self.parent.parent.org_fpath)
+
+        Label:
+            id: lnt
+            text: str(self.parent.parent.naming_tag)
+
+        Label:
+            id: lnt
+            text: str(self.parent.parent.new_name)
+
+        Label:
+            id: lmd
             text: str(self.parent.parent.metadata)
+            # text_size: cm(6), cm(50)
+
+
 
 <Dummy>:
-    img_a: ima
-    img_b: imb
-    img_c: imc
+    comp: compare1
 
-    canvas:
-        Color:
-            rgb: (0.5, 1.0, 0.9)
-        Rectangle:
-            size: root.size
-
-    # Image:
-    #     pos: root.center_x - self.width/2, root.center_y - self.height/2
-    #     size: root.size
-    #     source: root.sourceB
-    #     allow_stretch: False
+    # canvas:
+     #    Color:
+      #       rgb: (0.0, 0.3, 0.0)
+       #  Rectangle:
+        #     size: self.size
 
     ComparePane:
-        id: ima
-        pos: root.width / root.num_of_sources * self.index ,0
-        size: root.size[0] / 3, root.height
+        id: compare1
+        pos: root.pos
+        size: root.size
 
-    ComparePane:
-        id: imb
-        pos: root.width / root.num_of_sources * 1 ,0
-        size: root.size[0] / 3, root.height
+    Label:
+        outline_color: 1, 1, 1
+        color: 0, 0, 1.0
 
-    ComparePane:
-        id: imc
-        pos: root.width / root.num_of_sources * 2 ,0
-        size: root.size[0] / 3, root.height
-        # size_hint_y_max = root.height
+
+        pos: 500, 0
+        text: "I have a very long text such that I should possibly see a diffeerence"
