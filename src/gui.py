@@ -2,37 +2,11 @@ from kivy.app import App
 from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.properties import StringProperty, NumericProperty, ObjectProperty, BooleanProperty
+from kivy.uix.scrollview import ScrollView
 from kivy.clock import Clock
+from kivy.core.window import Window
+from kivy.uix.floatlayout import FloatLayout
 import os
-
-
-smaple_string = """
-Composite:ImageSize: 2048 1536
-Composite:Megapixels: 3.145728
-ExifTool:ExifToolVersion: 12.44
-File:Directory: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018
-File:FileAccessDate: 2022:09:12 18:34:46+02:00
-File:FileInodeChangeDate: 2022:09:12 17:11:13+02:00
-File:FileModifyDate: 2018:04:01 02:43:30+02:00
-File:FileName: IMG_2130.PNG
-File:FilePermissions: 100777
-File:FileSize: 1912870
-File:FileType: PNG
-File:FileTypeExtension: PNG
-File:MIMEType: image/png
-PNG:BitDepth: 8
-PNG:ColorType: 2
-PNG:Compression: 0
-PNG:Filter: 0
-PNG:ImageHeight: 1536
-PNG:ImageWidth: 2048
-PNG:Interlace: 0
-PNG:SRGBRendering: 0
-SourceFile: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018/IMG_2130.PNG
-XMP:DateCreated: 2018:04:01 02:43:29
-XMP:UserComment: Screenshot
-XMP:XMPToolkit: XMP Core 5.4.0    
-"""
 
 
 class ComparePane(Widget):
@@ -80,11 +54,6 @@ XMP:UserComment: Screenshot
 XMP:XMPToolkit: XMP Core 5.4.0""")
 
 
-class GFComparePane(ComparePane):
-    l_google_fotos_metadata = ObjectProperty(None)
-
-    google_fotos_metadata = StringProperty("")
-
 class Dummy(Widget):
     # sourceA = StringProperty()
     # sourceB = StringProperty()
@@ -95,7 +64,7 @@ class Dummy(Widget):
     # img_a = ObjectProperty(None)
     # img_b = ObjectProperty(None)
     # img_c = ObjectProperty(None)
-    comp = ObjectProperty(None)
+    # comp = ObjectProperty(None)
 
     def test(self, delta):
         print("Shit is being done")
@@ -113,13 +82,20 @@ class Dummy(Widget):
     #     self.img_c.index = 2
 
 
+class MyFloat(FloatLayout):
+    pass
+
+
 class PictureLibrary(App):
     def build(self):
-        d = Dummy()
+        # d = Dummy()
+
         # d.some_shit()
-        d.test(1)
-        Clock.schedule_interval(d.test, 2.0)
-        return d
+        # d.test(1)
+        # Clock.schedule_interval(d.test, 2.0)
+        # root.add_widget(d)
+        mf = MyFloat()
+        return mf
 
 
 if __name__ == "__main__":
