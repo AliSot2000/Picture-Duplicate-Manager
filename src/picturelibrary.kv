@@ -101,3 +101,40 @@
 
             Widget:
                 size_hint_y: 0.3
+
+    ModalView:
+        auto_dismiss: True
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        height: 100
+        width: 300
+        size_hint: None, None
+
+        BoxLayout:
+            size_hint: 1.0, 1.0
+            orientation: 'vertical'
+
+            GridLayout:
+                cols: 2
+                rows:
+
+                Label:
+                    text: 'Tag'
+                    size_hint_y: 0.5
+
+                TextInput:
+                    test: "enter tag"
+                    size_hint_y: 0.5
+
+                Label:
+                    text: 'Custom Value'
+                    size_hint_y: 0.5
+
+                TextInput:
+                    test: "enter custom datetime"
+                    size_hint_y: 0.5
+
+            Button:
+                text: "Close menu"
+                on_press: self.parent.parent.dismiss()
+
+

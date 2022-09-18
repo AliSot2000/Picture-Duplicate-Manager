@@ -164,7 +164,9 @@ class PhotoDb:
                              "new_name TEXT UNIQUE , "
                              "datetime TEXT, "
                              "present INTEGER DEFAULT 1 CHECK (images.present >= 0 AND images.present < 2), "
-                             "verify INTEGER DEFAULT 0 CHECK (images.verify >= 0 AND images.verify < 2))")
+                             "verify INTEGER DEFAULT 0 CHECK (images.verify >= 0 AND images.verify < 2,"
+                             "original_google_metadata INTEGER DEFAULT 1 "
+                             "CHECK (images.original_google_metadata >= 0 AND images.original_google_metadata < 2)))")
         except sqlite3.OperationalError as e:
             print("*** You still try to initialize the database. Do not set init arg when instantiating class ***")
             raise e
@@ -226,6 +228,9 @@ class PhotoDb:
         # set the not allowed files processed for the moment...
         # self.cur.execute(f"UPDATE {temp_table_name} SET processed = 1 WHERE allowed = 0")
         for i in range(number_of_files):
+            if i % 100 == 0:
+                print(i)
+
             self.cur.execute(
                 f"SELECT org_fname, org_fpath, key FROM {temp_table_name} WHERE allowed = 1 AND processed = 0")
             cur_file = self.cur.fetchone()
@@ -328,6 +333,13 @@ class PhotoDb:
                              f"message = '{msg}', "
                              f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
                              f"hash_based_duplicate = '{present_file_name}' WHERE key = {update_key}")
+
+            self.cur.execute(f"SELECT key FROM images WHERE new_name is '{new_file_name}'")
+            res = self.cur.fetchone()
+
+            self.cur.execute(f"UPDATE images SET "
+                             f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
+                             f"original_google_metadata = 0")
         self.con.commit()
 
     def __handle_import(self, fmd: FileMetaData, new_file_name: str, table: str, msg: str, update_key: int):
@@ -469,5 +481,160 @@ class PhotoDb:
 
         raise Exception("Couldn't create import table, to many matching names")
 
+    def find_hash_based_duplicates(self):
+        self.cur.execute("SELECT *, COUNT(key) FROM images GROUP BY file_hash HAVING COUNT(key) > 1")
 
+        results = self.cur.fetchall()
 
+        duplicates = []
+
+        for row in results:
+            duplicates.append({
+                "key": row[0],
+                "org_fname": row[1],
+                "org_fpath": row[2],
+                "metadata": row[3],
+                "naming_tag": row[4],
+                "file_hash": row[5],
+                "new_name": row[6],
+                "datetime": row[7],
+                "present": row[8],
+                "verify": row[9],
+                "google_fotos_metadata": row[10],
+                "count": row[11]
+            })
+
+        return duplicates
+
+    def find_hash_in_pictures(self, hash_str: str) -> list:
+        self.cur.execute(f"SELECT * FROM images WHERE file_hash = '{hash_str}'")
+
+        results = self.cur.fetchall()
+
+        duplicates = []
+
+        for row in results:
+            duplicates.append({
+                "key": row[0],
+                "org_fname": row[1],
+                "org_fpath": row[2],
+                "metadata": row[3],
+                "naming_tag": row[4],
+                "file_hash": row[5],
+                "new_name": row[6],
+                "datetime": row[7],
+                "present": row[8],
+                "verify": row[9],
+                "google_fotos_metadata": row[10],
+            })
+
+        return duplicates
+
+    def hash_bin_dups(self, dryrun: bool = True):
+        hash_matches = self.find_hash_based_duplicates()
+
+        # iterate over list and search for files which match binary
+        for row in hash_matches:
+            matching_hashes = self.find_hash_in_pictures(row["file_hash"])
+
+            first_file = self.__path_from_datetime(self.__db_str_to_datetime(matching_hashes[0]["datetime"]),
+                                                   matching_hashes[0]["new_name"])
+
+            # only matching to first image:
+            for i in range(1, len(matching_hashes)):
+                current_file = self.__path_from_datetime(self.__db_str_to_datetime(matching_hashes[i]["datetime"]),
+                                                         matching_hashes[i]["new_name"])
+
+                if not filecmp.cmp(first_file, current_file, shallow=False):
+                    print(f"{first_file} and {current_file} have matching hashes but not matching binary data")
+                else:
+                    if matching_hashes[0]['naming_tag'] == matching_hashes[i]['naming_tag']:
+                        print(f"{matching_hashes[0]['new_name']} and {matching_hashes[i]['new_name']} match binary")
+                    else:
+                        print(
+                            f"{matching_hashes[0]['new_name']} named {matching_hashes[0]['naming_tag']} and {matching_hashes[i]['new_name']} named {matching_hashes[0]['naming_tag']}  match binary")
+
+                if not dryrun:
+                    # here would be the deletion and shit.
+                    pass
+
+    def mark_duplicate(self, o_image_id: int, d_image_id: int, delete: bool = False):
+
+        # verify original is not a duplicate itself
+        self.cur.execute(f"SELECT successor FROM replaced WHERE key is {o_image_id}")
+        result = self.cur.fetchone()
+
+        if result is not None:
+            raise DuplicateChainingError(f"Original is duplicate itself, successor of original is {result[0]}")
+
+        # get data from original
+        self.cur.execute(
+            f"SELECT key, org_fname, metadata, google_fotos_metadata, hash, datetime, new_name FROM images "
+            f"WHERE key is {d_image_id}")
+        data = self.cur.fetchall()
+
+        # would violate SQL but just put it in here because I might be stupid
+        assert len(data) == 1
+
+        # insert duplicate into replaced table
+        self.cur.execute(f"INSERT INTO replaced "
+                         f"(key, org_fname, metadata, google_fotos_metadata, hash, successor) "
+                         f"VALUES "
+                         f"({data[0][0]}, {data[0][1]}, {data[0][2]}, {data[0][3]}, {data[0][4]}, {o_image_id})")
+
+        self.con.commit()
+
+        if delete:
+            fp = self.__path_from_datetime(self.__db_str_to_datetime(data[0][5]), data[0][5])
+
+            os.remove(fp)
+
+    def bulk_duplicate_marking(self, processing_list: list):
+        for f in processing_list:
+            self.mark_duplicate(o_image_id=f["o_image_id"], d_image_id=f["d_image_id"], delete=f["delete"])
+
+    def get_image_info(self, key: int = None, filename: str = None):
+        if key is None and filename is None:
+            raise ValueError("Key or Filename must be provided")
+
+        if key is not None:
+            self.cur.execute(f"SELECT key, org_fname , org_fpath, metadata, google_fotos_metadata, naming_tag, "
+                             f"file_hash, new_name , datetime, present, verify FROM images WHERE key is {key}")
+
+            res = self.cur.fetchone()
+
+            if res is not None:
+                return {"key": res[0],
+                        "org_fname": res[1],
+                        "org_fpath": res[2],
+                        "metadata": self.__b64_to_dict(res[3]),
+                        "naming_tag": res[4],
+                        "file_hash": res[5],
+                        "new_name": res[6],
+                        "datetime": self.__db_str_to_datetime(res[7]),
+                        "present": res[8],
+                        "verify": res[9],
+                        "google_fotos_metadata": self.__b64_to_dict(res[10])}
+
+            return None
+
+        else:
+            self.cur.execute(f"SELECT key, org_fname , org_fpath, metadata, google_fotos_metadata, naming_tag, "
+                             f"file_hash, new_name , datetime, present, verify FROM images WHERE new_name = '{filename}'")
+
+            res = self.cur.fetchone()
+
+            if res is not None:
+                return {"key": res[0],
+                        "org_fname": res[1],
+                        "org_fpath": res[2],
+                        "metadata": self.__b64_to_dict(res[3]),
+                        "naming_tag": res[4],
+                        "file_hash": res[5],
+                        "new_name": res[6],
+                        "datetime": self.__db_str_to_datetime(res[7]),
+                        "present": res[8],
+                        "verify": res[9],
+                        "google_fotos_metadata": self.__b64_to_dict(res[10])}
+
+            return None
