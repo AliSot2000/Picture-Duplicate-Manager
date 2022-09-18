@@ -6,6 +6,8 @@ from kivy.uix.scrollview import ScrollView
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 import os
 
 
@@ -80,6 +82,17 @@ class Dummy(Widget):
     #     self.img_a.index = 0
     #     self.img_b.index = 1
     #     self.img_c.index = 2
+
+
+class MyGrid(GridLayout):
+    def __init__(self, **kwargs):
+        super(MyGrid, self).__init__(**kwargs)
+        self.bind(minimum_width=self.setter('width'))
+
+class MyBox(BoxLayout):
+    def __init__(self, **kwargs):
+        super(MyBox, self).__init__(**kwargs)
+        self.bind(minimum_width=self.setter('width'))
 
 
 class MyFloat(FloatLayout):
