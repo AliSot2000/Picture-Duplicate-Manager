@@ -11,6 +11,12 @@ from kivy.uix.gridlayout import GridLayout
 import os
 
 
+class ScrollLabel(ScrollView):
+    lbl = ObjectProperty(None)
+    text = StringProperty("example content")
+
+
+
 class ComparePane(Widget):
     image = ObjectProperty(None)
     set_original = ObjectProperty(None)
@@ -28,32 +34,7 @@ class ComparePane(Widget):
     naming_tag = StringProperty("Create Date")
     new_name = StringProperty("2018-06-03 22.44.11_000.jpg")
     bin_comp = BooleanProperty(True)
-    metadata = StringProperty("""
-Composite:ImageSize: 2048 1536
-Composite:Megapixels: 3.145728
-ExifTool:ExifToolVersion: 12.44
-File:Directory: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018
-File:FileAccessDate: 2022:09:12 18:34:46+02:00
-File:FileInodeChangeDate: 2022:09:12 17:11:13+02:00
-File:FileModifyDate: 2018:04:01 02:43:30+02:00
-File:FileName: IMG_2130.PNG
-File:FilePermissions: 100777
-File:FileSize: 1912870
-File:FileType: PNG
-File:FileTypeExtension: PNG
-File:MIMEType: image/png
-PNG:BitDepth: 8
-PNG:ColorType: 2
-PNG:Compression: 0
-PNG:Filter: 0
-PNG:ImageHeight: 1536
-PNG:ImageWidth: 2048
-PNG:Interlace: 0
-PNG:SRGBRendering: 0
-SourceFile: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018/IMG_2130.PNG
-XMP:DateCreated: 2018:04:01 02:43:29
-XMP:UserComment: Screenshot
-XMP:XMPToolkit: XMP Core 5.4.0""")
+    metadata = StringProperty("""Composite:ImageSize: 2048 1536\nComposite:Megapixels: 3.145728\nExifTool:ExifToolVersion: 12.44\nFile:Directory: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018\nFile:FileAccessDate: 2022:09:12 18:34:46+02:00\nFile:FileInodeChangeDate: 2022:09:12 17:11:13+02:00\nFile:FileModifyDate: 2018:04:01 02:43:30+02:00\nFile:FileName: IMG_2130.PNG\nFile:FilePermissions: 100777\nFile:FileSize: 1912870\nFile:FileType: PNG\nFile:FileTypeExtension: PNG\nFile:MIMEType: image/png\nPNG:BitDepth: 8\nPNG:ColorType: 2\nPNG:Compression: 0\nPNG:Filter: 0\nPNG:ImageHeight: 1536\nPNG:ImageWidth: 2048\nPNG:Interlace: 0\nPNG:SRGBRendering: 0\nSourceFile: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018/IMG_2130.PNG\nXMP:DateCreated: 2018:04:01 02:43:29\nXMP:UserComment: Screenshot\nXMP:XMPToolkit: XMP Core 5.4.0""")
 
 
 class Dummy(Widget):
@@ -88,6 +69,7 @@ class MyGrid(GridLayout):
     def __init__(self, **kwargs):
         super(MyGrid, self).__init__(**kwargs)
         self.bind(minimum_width=self.setter('width'))
+
 
 class MyBox(BoxLayout):
     def __init__(self, **kwargs):

@@ -1,140 +1,102 @@
 #:kivy 2.1.0
 
-<MyFloat>:
+<ScrollLabel>:
+    lbl: lab
 
+    Label:
+        id: lab
+        text: self.parent.text
+        font_size: 18
+        text_size: None, None
+        size_hint_x: None
+        size_hint_y: None
+        width: self.texture_size[0]
+        height: self.texture_size[1]
+
+<ComparePane>:
+    canvas:
+        Color:
+            rgb: (0.2, 0.2, 0.2)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    GridLayout:
+        pos: self.parent.pos
+        spacing: 10
+        padding: 10
+        size: self.parent.size
+        cols: 1
+
+        Image:
+            size_hint_x: 1.0
+            size_hint_y: None
+            height: self.width / self.image_ratio
+            source: "/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2162.JPG"
+
+        ScrollLabel:
+            size_hint: 1.0, None
+            height: 30
+            text: "IMG_2162.JPG"
+
+        ScrollLabel:
+            size_hint: 1.0, None
+            height: 30
+            text: "/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/"
+            multiline: True
+
+        ScrollLabel:
+            size_hint: 1.0, None
+            height: 30
+            text: "Create Date"
+
+
+        ScrollLabel:
+            size_hint: 1.0, None
+            height: 30
+            text: "2018-06-03 22.44.11_000.jpg"
+
+
+        ScrollLabel:
+            size_hint_x: 1.0
+            multiline: True
+            text: "Composite:ImageSize: 2048 1536\nComposite:Megapixels: 3.145728\nExifTool:ExifToolVersion: 12.44\nFile:Directory: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018\nFile:FileAccessDate: 2022:09:12 18:34:46+02:00\nFile:FileInodeChangeDate: 2022:09:12 17:11:13+02:00\nFile:FileModifyDate: 2018:04:01 02:43:30+02:00\nFile:FileName: IMG_2130.PNG\nFile:FilePermissions: 100777\nFile:FileSize: 1912870\nFile:FileType: PNG\nFile:FileTypeExtension: PNG\nFile:MIMEType: image/png\nPNG:BitDepth: 8\nPNG:ColorType: 2\nPNG:Compression: 0\nPNG:Filter: 0\nPNG:ImageHeight: 1536\nPNG:ImageWidth: 2048\nPNG:Interlace: 0\nPNG:SRGBRendering: 0\nSourceFile: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018/IMG_2130.PNG\nXMP:DateCreated: 2018:04:01 02:43:29\nXMP:UserComment: Screenshot\nXMP:XMPToolkit: XMP Core 5.4.0"
+
+
+
+
+<MyFloat>:
     ScrollView:
-        do_scroll_y: False
+        do_scroll_y: True
         do_scroll_x: True
 
         MyBox:
             orientation: 'vertical'
             size_hint_x: None
-            width: 1600
-
-            Widget:
-                size_hint_y: 0.3
-
 
             MyGrid:
                 rows: 1
-                size_hint: None, 0.4
+                size_hint: None, 1.0
 
-                Button:
-                    text: 'Example'
+                ComparePane:
                     size_hint_x: None
-                    width: 100
+                    width: 400
+                    size_hint_y: 1.0
 
-                Button:
-                    text: 'Example'
+                ComparePane:
                     size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
-
-                Button:
-                    text: 'Example'
-                    size_hint_x: None
-                    width: 100
+                    width: 400
+                    size_hint_y: 1.0
 
             Widget:
-                size_hint_y: 0.3
-
-    ModalView:
-        auto_dismiss: True
-        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-        height: 100
-        width: 300
-        size_hint: None, None
-
-        BoxLayout:
-            size_hint: 1.0, 1.0
-            orientation: 'vertical'
-
-            GridLayout:
-                cols: 2
-                rows:
-
-                Label:
-                    text: 'Tag'
-                    size_hint_y: 0.5
-
-                TextInput:
-                    test: "enter tag"
-                    size_hint_y: 0.5
-
-                Label:
-                    text: 'Custom Value'
-                    size_hint_y: 0.5
-
-                TextInput:
-                    test: "enter custom datetime"
-                    size_hint_y: 0.5
-
-            Button:
-                text: "Close menu"
-                on_press: self.parent.parent.dismiss()
+                size_hint_x: None
+                size_hint_y: None
+                height: 20
+    Button:
+        pos_hint: {'bottom': 1.0, 'right': 1.0}
+        text: "done"
+        size_hint_y: None
+        size_hint_x: None
+        size: 100, 20
 
 
