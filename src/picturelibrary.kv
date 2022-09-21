@@ -13,6 +13,34 @@
         width: self.texture_size[0]
         height: self.texture_size[1]
 
+<MetadataScrollLabel>:
+    lbl: lab
+    # effect_cls: "ScrollEffect"
+
+    Label:
+        id: lab
+        text: self.parent.text
+        font_size: 18
+        text_size: None, None
+        size_hint_x: None
+        size_hint_y: None
+        width: self.texture_size[0]
+        height: self.texture_size[1]
+
+<PathScrollLabel>:
+    lbl: lab
+    # effect_cls: "ScrollEffect"
+
+    Label:
+        id: lab
+        text: self.parent.text
+        font_size: 18
+        text_size: None, None
+        size_hint_x: None
+        size_hint_y: None
+        width: self.texture_size[0]
+        height: self.texture_size[1]
+
 <ComparePane>:
 
     image: img
@@ -53,7 +81,7 @@
             height: 25
             do_scroll_y: False
 
-        ScrollLabel:
+        PathScrollLabel:
             id: label_original_file_path
             size_hint: 1.0, None
             height: 25
@@ -93,12 +121,20 @@
                 id: dlt_btn
                 size_hint: 1.0, None
                 height: 30
-                text: "Mark Delete"
+                text: "Keep"
                 background_normal: ''
-                background_color: 1.0, 0.5, 0.5, 1.0
+                background_color: 0.2, 0.6, 0.2
+                on_press: self.parent.parent.parent.set_button_color()
+
+            ToggleButton:
+                id: origin_btn
+                group: "origin"
+                text: "main"
+                size_hint: 1.0, None
+                height: 30
 
 
-        ScrollLabel:
+        MetadataScrollLabel:
             id: label_metadata
             size_hint_x: 1.0
             multiline: True
@@ -137,6 +173,7 @@
                 size_hint_x: None
                 size_hint_y: None
                 height: 40
+
     Button:
         pos_hint: {'bottom': 1.0, 'right': 1.0}
         text: "done"
@@ -145,6 +182,24 @@
         size_hint_x: None
         size: 100, 40
 
+    BoxLayout:
+        orientation: 'horizontal'
+        pos_hint: {'bottom': 1.0, 'left': 1.0}
+
+        Button:
+            text: "Load first"
+            font_size: 18
+            size_hint_y: None
+            size_hint_x: None
+            size: 100, 40
+
+        Label:
+            font_size: 18
+            size_hint_y: None
+            size_hint_x: None
+            height:  40
+            width:  self.texture_size[0]+40
+            text: "Set 1 of 100"
 
 <SetDateModal>:
     tagLabel: naming_tag
@@ -160,42 +215,50 @@
     width: 500
     auto_dismiss: True
 
-    GridLayout:
-        cols: 2
-        Label:
-            id: naming_tag
-            text: "Source Tag"
-            font_size: 18
+    canvas:
+        Color:
+            rgb: (0.0, 0.0, 0.0)
+        Rectangle:
+            pos: self.pos[0], self.pos[1]
+            size: self.size[0], self.size[1]
 
-        CustomDateTag:
-            multiline: False
-            id: naming_tag_input
-            font_size: 18
+    # GridLayout:
+    cols: 2
+    Label:
+        id: naming_tag
+        text: "Source Tag"
+        font_size: 18
 
-        Label:
-            id: datetime_label
-            text: "Custom Datetime"
-            font_size: 18
+    CustomDateTag:
+        multiline: False
+        id: naming_tag_input
+        font_size: 18
 
-        TextInput:
-            id: datetime_input
-            hint_text: "YYYY-MM-DD HH.MM.SS"
-            font_size: 18
-            disabled: True
+    Label:
+        id: datetime_label
+        text: "Custom Datetime"
+        font_size: 18
 
-        Button:
-            id: cls_btn
-            text: "time out"
-            disabled: False
-            size_hint_y: None
-            height: self.texture_size[1] + 40
-            on_press: self.parent.parent.dismiss()
+    TextInput:
+        id: datetime_input
+        hint_text: "YYYY-MM-DD HH.MM.SS"
+        font_size: 18
+        disabled: True
 
-        Button:
-            id: apl_btn
-            text: "get this shit over with"
-            size_hint_y: None
-            height: self.texture_size[1] + 40
+    Button:
+        id: cls_btn
+        text: "Don't Apply"
+        disabled: False
+        size_hint_y: None
+        height: self.texture_size[1] + 40
+        on_press: self.parent.close()
+
+    Button:
+        id: apl_btn
+        text: "Apply New Source Tag"
+        size_hint_y: None
+        height: self.texture_size[1] + 40
+        on_press: self.parent.apply_close()
 
 
 
