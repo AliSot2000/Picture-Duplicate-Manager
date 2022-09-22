@@ -8,12 +8,23 @@ from .tagsnshit import known  # find
 
 
 def anti_utc(dt_str: str, fmt_str: str):
+    """
+    Merge UTC into the datetime.
+    :param dt_str:
+    :param fmt_str:
+    :return:
+    """
     dt_obj = datetime.datetime.strptime(dt_str, fmt_str)
     unaware = datetime.datetime.strptime(dt_obj.strftime("%Y-%m-%d %H:%M:%S"), "%Y-%m-%d %H:%M:%S")
     return unaware + dt_obj.utcoffset()
 
 
 def hash_file(path):
+    """
+    Hashes a file with sha256
+    :param path: file_path to hash
+    :return:
+    """
     sha256_hash = hashlib.sha256()
     with open(path, "rb") as f:
         # Read and update hash string value in blocks of 4K
@@ -226,48 +237,94 @@ def double_key_wrapper(date_key: str, time_key: str, start_pattern: str = None):
     return new_func
 
 
+key_lookup_dir = {
+    "File:FileModifyDate": func_wrapper("File:FileModifyDate", ":: ::z"),
+    "File:FileAccessDate": func_wrapper("File:FileAccessDate", ":: ::z"),
+    "File:FileInodeChangeDate": func_wrapper("File:FileInodeChangeDate", ":: ::z"),
+    "EXIF:ModifyDate": func_wrapper("EXIF:ModifyDate", ":: ::z"),
+    "EXIF:DateTimeOriginal": func_wrapper("EXIF:DateTimeOriginal", ":: ::z"),
+    "EXIF:CreateDate": func_wrapper("EXIF:CreateDate", ":: ::z"),
+    "Composite:SubSecCreateDate": func_wrapper("Composite:SubSecCreateDate", ":: ::.f"),
+    "Composite:SubSecDateTimeOriginal": func_wrapper("Composite:SubSecDateTimeOriginal", ":: ::.f"),
+    "XMP:DateCreated": func_wrapper("XMP:DateCreated", ":: ::.f"),
+    "Composite:SubSecModifyDate": func_wrapper("Composite:SubSecModifyDate", ":: ::.f"),
+    "Composite:DateTimeCreated": func_wrapper("Composite:DateTimeCreated", ":: ::z"),
+    "Composite:DigitalCreationDateTime": func_wrapper("Composite:DigitalCreationDateTime", ":: ::z"),
+    "IPTC:DateCreated": double_key_wrapper("IPTC:DateCreated", "IPTC:TimeCreated", ":: ::z"),
+    "IPTC:DigitalCreationDate": double_key_wrapper("IPTC:DigitalCreationDate", "IPTC:DigitalCreationTime", ":: ::z"),
+    "IPTC:TimeCreated": double_key_wrapper("IPTC:DateCreated", "IPTC:TimeCreated", ":: ::z"),
+    "IPTC:DigitalCreationTime": double_key_wrapper("IPTC:DigitalCreationDate", "IPTC:DigitalCreationTime", ":: ::z"),
+    "XMP:DateTimeOriginal": func_wrapper("XMP:DateTimeOriginal", ":: :z"),
+    "XMP:DateTimeDigitized": func_wrapper("XMP:DateTimeDigitized", ":: :z"),
+    "PNG:CreationTime": func_wrapper("PNG:CreationTime", ":: ::z"),
+    "QuickTime:CreateDate": func_wrapper("QuickTime:CreateDate", ":: ::z"),
+    "QuickTime:ModifyDate": func_wrapper("QuickTime:ModifyDate", ":: ::z"),
+    "QuickTime:TrackCreateDate": func_wrapper("QuickTime:TrackCreateDate", ":: ::z"),
+    "QuickTime:TrackModifyDate": func_wrapper("QuickTime:TrackModifyDate", ":: ::z"),
+    "QuickTime:MediaCreateDate": func_wrapper("QuickTime:MediaCreateDate", ":: ::z"),
+    "QuickTime:MediaModifyDate": func_wrapper("QuickTime:MediaModifyDate", ":: ::z"),
+    "QuickTime:ContentCreateDate": func_wrapper("QuickTime:ContentCreateDate", ":: ::z"),
+    "PNG:ModifyDate": func_wrapper("PNG:ModifyDate", ":: ::z"),
+    "PNG:Datecreate": func_wrapper("PNG:Datecreate", "--T::z"),
+    "PNG:Datemodify": func_wrapper("PNG:Datemodify", "--T::z"),
+    "QuickTime:CreationDate": func_wrapper("QuickTime:CreationDate", ":: ::z"),
+    "QuickTime:ContentCreateDate-un": func_wrapper("QuickTime:ContentCreateDate-un", ":: ::z"),
+    "QuickTime:CreationDate-deu-CH": func_wrapper("QuickTime:CreationDate-deu-CH", ":: ::z"),
+    "QuickTime:AppleProappsIngestDateDescription-deu-CH": func_wrapper(
+        "QuickTime:AppleProappsIngestDateDescription-deu-CH", ":: :: z"),
+    "QuickTime:AppleProappsIngestDateDescription": func_wrapper("QuickTime:AppleProappsIngestDateDescription",
+                                                                ":: :: z"),
+    "QuickTime:ContentCreateDate-deu": func_wrapper("QuickTime:ContentCreateDate-deu", ":: ::z"),
+    "XMP:Date": func_wrapper("XMP:Date", ":: ::pm"),
+    "QuickTime:DateAcquired": func_wrapper("QuickTime:DateAcquired", ":: ::"),
+    "QuickTime:DateTimeOriginal": func_wrapper("QuickTime:DateTimeOriginal", ":: ::Z")
+}
+
+wrapper_collection = [
+    func_wrapper("File:FileModifyDate", ":: ::z"),
+    func_wrapper("File:FileAccessDate", ":: ::z"),
+    func_wrapper("File:FileInodeChangeDate", ":: ::z"),
+    func_wrapper("EXIF:ModifyDate", ":: ::z"),
+    func_wrapper("EXIF:DateTimeOriginal", ":: ::z"),
+    func_wrapper("EXIF:CreateDate", ":: ::z"),
+    func_wrapper("Composite:SubSecCreateDate", ":: ::.f"),
+    func_wrapper("Composite:SubSecDateTimeOriginal", ":: ::.f"),
+    func_wrapper("XMP:DateCreated", ":: ::.f"),
+    func_wrapper("Composite:SubSecModifyDate", ":: ::.f"),
+    func_wrapper("Composite:DateTimeCreated", ":: ::z"),
+    func_wrapper("Composite:DigitalCreationDateTime", ":: ::z"),
+    double_key_wrapper("IPTC:DateCreated", "IPTC:TimeCreated", ":: ::z"),
+    double_key_wrapper("IPTC:DigitalCreationDate", "IPTC:DigitalCreationTime", ":: ::z"),
+    func_wrapper("XMP:DateTimeOriginal", ":: :z"),
+    func_wrapper("XMP:DateTimeDigitized", ":: :z"),
+    func_wrapper("PNG:CreationTime", ":: ::z"),
+    func_wrapper("QuickTime:CreateDate", ":: ::z"),
+    func_wrapper("QuickTime:ModifyDate", ":: ::z"),
+    func_wrapper("QuickTime:TrackCreateDate", ":: ::z"),
+    func_wrapper("QuickTime:TrackModifyDate", ":: ::z"),
+    func_wrapper("QuickTime:MediaCreateDate", ":: ::z"),
+    func_wrapper("QuickTime:MediaModifyDate", ":: ::z"),
+    func_wrapper("QuickTime:ContentCreateDate", ":: ::z"),
+    func_wrapper("PNG:ModifyDate", ":: ::z"),
+    func_wrapper("PNG:Datecreate", "--T::z"),
+    func_wrapper("PNG:Datemodify", "--T::z"),
+    func_wrapper("QuickTime:CreationDate", ":: ::z"),
+    func_wrapper("QuickTime:ContentCreateDate-un", ":: ::z"),
+    func_wrapper("QuickTime:CreationDate-deu-CH", ":: ::z"),
+    func_wrapper("QuickTime:AppleProappsIngestDateDescription-deu-CH", ":: :: z"),
+    func_wrapper("QuickTime:AppleProappsIngestDateDescription", ":: :: z"),
+    func_wrapper("QuickTime:ContentCreateDate-deu", ":: ::z"),
+    func_wrapper("XMP:Date", ":: ::pm"),
+    func_wrapper("QuickTime:DateAcquired", ":: ::"),
+    func_wrapper("QuickTime:DateTimeOriginal", ":: ::Z")
+]
+
+
 class MetadataAggregator:
     ethp: exiftool.ExifToolHelper
     det_new_ks: bool
 
-    func_collection = [
-        func_wrapper("File:FileModifyDate", ":: ::z"),
-        func_wrapper("File:FileAccessDate", ":: ::z"),
-        func_wrapper("File:FileInodeChangeDate", ":: ::z"),
-        func_wrapper("EXIF:ModifyDate", ":: ::z"),
-        func_wrapper("EXIF:DateTimeOriginal", ":: ::z"),
-        func_wrapper("EXIF:CreateDate", ":: ::z"),
-        func_wrapper("Composite:SubSecCreateDate", ":: ::.f"),
-        func_wrapper("Composite:SubSecDateTimeOriginal", ":: ::.f"),
-        func_wrapper("XMP:DateCreated", ":: ::.f"),
-        func_wrapper("Composite:SubSecModifyDate", ":: ::.f"),
-        func_wrapper("Composite:DateTimeCreated", ":: ::z"),
-        func_wrapper("Composite:DigitalCreationDateTime", ":: ::z"),
-        double_key_wrapper("IPTC:DateCreated", "IPTC:TimeCreated", ":: ::z"),
-        double_key_wrapper("IPTC:DigitalCreationDate", "IPTC:DigitalCreationTime", ":: ::z"),
-        func_wrapper("XMP:DateTimeOriginal", ":: :z"),
-        func_wrapper("XMP:DateTimeDigitized", ":: :z"),
-        func_wrapper("PNG:CreationTime", ":: ::z"),
-        func_wrapper("QuickTime:CreateDate", ":: ::z"),
-        func_wrapper("QuickTime:ModifyDate", ":: ::z"),
-        func_wrapper("QuickTime:TrackCreateDate", ":: ::z"),
-        func_wrapper("QuickTime:TrackModifyDate", ":: ::z"),
-        func_wrapper("QuickTime:MediaCreateDate", ":: ::z"),
-        func_wrapper("QuickTime:MediaModifyDate", ":: ::z"),
-        func_wrapper("QuickTime:ContentCreateDate", ":: ::z"),
-        func_wrapper("PNG:ModifyDate", ":: ::z"),
-        func_wrapper("PNG:Datecreate", "--T::z"),
-        func_wrapper("PNG:Datemodify", "--T::z"),
-        func_wrapper("QuickTime:CreationDate", ":: ::z"),
-        func_wrapper("QuickTime:ContentCreateDate-un", ":: ::z"),
-        func_wrapper("QuickTime:CreationDate-deu-CH", ":: ::z"),
-        func_wrapper("QuickTime:AppleProappsIngestDateDescription-deu-CH", ":: :: z"),
-        func_wrapper("QuickTime:AppleProappsIngestDateDescription", ":: :: z"),
-        func_wrapper("QuickTime:ContentCreateDate-deu", ":: ::z"),
-        func_wrapper("XMP:Date", ":: ::pm"),
-        func_wrapper("QuickTime:DateAcquired", ":: ::"),
-        func_wrapper("QuickTime:DateTimeOriginal", ":: ::Z")
-    ]
+    func_collection = wrapper_collection
 
     # add more methodology for parsing. class or function
     def __init__(self, exiftool_path: str = None, detect_new_keys: bool = False):
