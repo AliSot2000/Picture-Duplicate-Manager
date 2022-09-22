@@ -6,11 +6,29 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.modalview import ModalView
 from kivy.clock import Clock
 from kivy.core.window import Window
+from kivy.uix.popup import Popup
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 import os
+from dataclasses import dataclass
+import datetime
+# from .metadataagregator import key_lookup_dir
+from kivy.uix.label import Label
+
+
+@dataclass
+class DatabaseEntry:
+    key: int
+    org_fname: str
+    org_fpath: str
+    metadata: dict
+    google_fotos_metadata: dict
+    naming_tag: str
+    file_hash: str
+    new_name: str
+    datetime: str
 
 
 class ScrollLabel(ScrollView):
@@ -58,6 +76,10 @@ class ComparePane(Widget):
     l_naming_tag = ObjectProperty(None)
     l_new_name = ObjectProperty(None)
     l_metadata = ObjectProperty(None)
+
+    database_entry: DatabaseEntry
+    modified: bool = False
+    delete: bool = False
 
     image_path = StringProperty("/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2162.JPG")
     org_fname = StringProperty("IMG_2162.JPG")
@@ -120,13 +142,15 @@ class MyBox(BoxLayout):
 class MyFloat(FloatLayout):
     compareGrid = ObjectProperty(None)
     filenameModal = None
+    errorModal = None
 
     dup_fp: str
 
     def __init__(self, source_fp: str, **kwargs):
         super(MyFloat, self).__init__(**kwargs)
         self.dup_fp = source_fp
-        self.filenameModal = SetDateModal(self)
+        self.errorModal = ErrorPopup()
+        self.filenameModal = SetDateModal(self, self.errorModal)
 
     def load_(self):
         pass
@@ -151,10 +175,12 @@ class SetDateModal(ModalView):
 
     caller: ComparePane = None
     float_sibling: MyFloat
+    # error_popup: NewDatetimeError
 
-    def __init__(self, float_sibling, **kwargs):
+    def __init__(self, float_sibling, error_popup, **kwargs):
         super(SetDateModal, self).__init__(**kwargs)
         self.float_sibling = float_sibling
+        self.error_popup = error_popup
         self.bind(on_dismiss=self.close)
 
     def text_content(self, *args, **kwargs):
@@ -189,7 +215,67 @@ class SetDateModal(ModalView):
         :return:
         """
         print("Need to update value in ComparePane")
+
+        target_key = self.ids.naming_tag_input
+        text: str = self.customDateTag.text
+        text = text.strip().capitalize()
+
+        self.error_popup.open()
+
+        # parse custom
+        if text == "Custom":
+            try:
+                new_datetime = datetime.datetime.strptime(self.ids.datetime_input.text, "%Y-%m-%d %H.%M.%S")
+            except Exception as e:
+                # TODO: Error Popup
+                print(e)
+
+        else:
+            self.error_popup.open()
+            # parse_func = None # key_lookup_dir.get(target_key)
+            #
+            # if parse_func is None:
+            #     # TODO Error Popup
+            #     print("Image doesn't have corresponding metadata tag")
+
+            # new_datetime = parse_func(self.caller.database_entry.metadata)
+
+        # set all the shit
+        print("DO stuff")
+
         self.dismiss()  # resets caller already
+
+
+class TracebackWidget(Label):
+    pass
+
+
+class ErrorPopup(Popup):
+    error_msg = StringProperty("This is an error")
+    traceback_string = StringProperty("Asldfasdfj\naaöslkdfjöalsdkjfö\naöldfjaölfkjaöfj\n")
+    tbw: TracebackWidget = None
+    
+    def __init__(self, **kwargs):
+        super(ErrorPopup, self).__init__(**kwargs)
+
+    def show_traceback(self):
+        l: BoxLayout = self.ids.layout
+
+        self.tbw = TracebackWidget()
+        self.tbw.text = self.traceback_string
+
+        l.add_widget(self.tbw)
+
+    def hide_traceback(self):
+        l: BoxLayout = self.ids.layout
+        l.remove_widget(self.tbw)
+
+    def trigger_traceback(self, **kwargs):
+        if self.ids.show_btn.state == "down":
+            self.show_traceback()
+            return
+
+        self.hide_traceback()
 
 
 class PictureLibrary(App):
