@@ -21,7 +21,7 @@ class ScrollLabel(ScrollView):
         super(ScrollLabel, self).__init__(**kwargs)
         self.bind(on_scroll_stop=self.update_compare_pane)
 
-    def update_compare_pane(self, *args,  **kwargs):
+    def update_compare_pane(self, *args, **kwargs):
         self.parent.parent.update_scroll_metadata(x=self.scroll_x, y=self.scroll_y)
 
 
@@ -33,7 +33,7 @@ class MetadataScrollLabel(ScrollView):
         super(MetadataScrollLabel, self).__init__(**kwargs)
         self.bind(on_scroll_stop=self.update_compare_pane)
 
-    def update_compare_pane(self, *args,  **kwargs):
+    def update_compare_pane(self, *args, **kwargs):
         self.parent.parent.update_scroll_metadata(x=self.scroll_x, y=self.scroll_y)
 
 
@@ -45,7 +45,7 @@ class PathScrollLabel(ScrollView):
         super(PathScrollLabel, self).__init__(**kwargs)
         self.bind(on_scroll_stop=self.update_compare_pane)
 
-    def update_compare_pane(self, *args,  **kwargs):
+    def update_compare_pane(self, *args, **kwargs):
         self.parent.parent.update_scroll_path(x=self.scroll_x)
 
 
@@ -65,7 +65,8 @@ class ComparePane(Widget):
     naming_tag = StringProperty("Create Date")
     new_name = StringProperty("2018-06-03 22.44.11_000.jpg")
     bin_comp = BooleanProperty(True)
-    metadata = StringProperty("""Composite:ImageSize: 2048 1536\nComposite:Megapixels: 3.145728\nExifTool:ExifToolVersion: 12.44\nFile:Directory: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018\nFile:FileAccessDate: 2022:09:12 18:34:46+02:00\nFile:FileInodeChangeDate: 2022:09:12 17:11:13+02:00\nFile:FileModifyDate: 2018:04:01 02:43:30+02:00\nFile:FileName: IMG_2130.PNG\nFile:FilePermissions: 100777\nFile:FileSize: 1912870\nFile:FileType: PNG\nFile:FileTypeExtension: PNG\nFile:MIMEType: image/png\nPNG:BitDepth: 8\nPNG:ColorType: 2\nPNG:Compression: 0\nPNG:Filter: 0\nPNG:ImageHeight: 1536\nPNG:ImageWidth: 2048\nPNG:Interlace: 0\nPNG:SRGBRendering: 0\nSourceFile: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018/IMG_2130.PNG\nXMP:DateCreated: 2018:04:01 02:43:29\nXMP:UserComment: Screenshot\nXMP:XMPToolkit: XMP Core 5.4.0""")
+    metadata = StringProperty(
+        """Composite:ImageSize: 2048 1536\nComposite:Megapixels: 3.145728\nExifTool:ExifToolVersion: 12.44\nFile:Directory: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018\nFile:FileAccessDate: 2022:09:12 18:34:46+02:00\nFile:FileInodeChangeDate: 2022:09:12 17:11:13+02:00\nFile:FileModifyDate: 2018:04:01 02:43:30+02:00\nFile:FileName: IMG_2130.PNG\nFile:FilePermissions: 100777\nFile:FileSize: 1912870\nFile:FileType: PNG\nFile:FileTypeExtension: PNG\nFile:MIMEType: image/png\nPNG:BitDepth: 8\nPNG:ColorType: 2\nPNG:Compression: 0\nPNG:Filter: 0\nPNG:ImageHeight: 1536\nPNG:ImageWidth: 2048\nPNG:Interlace: 0\nPNG:SRGBRendering: 0\nSourceFile: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018/IMG_2130.PNG\nXMP:DateCreated: 2018:04:01 02:43:29\nXMP:UserComment: Screenshot\nXMP:XMPToolkit: XMP Core 5.4.0""")
 
     def update_scroll_metadata(self, *args, x: float, y: float, **kwargs):
         self.parent.update_scroll_meta(x=x, y=y)
@@ -90,7 +91,7 @@ class MyGrid(GridLayout):
         super(MyGrid, self).__init__(**kwargs)
         self.bind(minimum_width=self.setter('width'))
 
-    def update_scroll_meta(self, *args, x: float, y: float,  **kwargs):
+    def update_scroll_meta(self, *args, x: float, y: float, **kwargs):
         """
         Updates the scroll value of all meta_data labels to the same value
         :param args: just for safety
@@ -121,21 +122,18 @@ class MyFloat(FloatLayout):
     filenameModal = None
 
     dup_fp: str
+
     def __init__(self, source_fp: str, **kwargs):
         super(MyFloat, self).__init__(**kwargs)
         self.dup_fp = source_fp
+        self.filenameModal = SetDateModal(self)
 
     def load_(self):
         pass
 
     def open_modal(self, t_id):
-        fm = SetDateModal(target_id=t_id)
-        self.filenameModal = fm
-        self.add_widget(fm)
-
-    def close_modal(self):
-        self.remove_widget(self.filenameModal)
-        self.filenameModal = None
+        self.filenameModal.caller = t_id
+        self.filenameModal.open()
 
 
 class CustomDateTag(TextInput):
@@ -147,19 +145,17 @@ class CustomDateTag(TextInput):
         self.parent.parent.text_content()
 
 
-class SetDateModal(GridLayout):
-    tagLabel = ObjectProperty(None)
+class SetDateModal(ModalView):
     customDateTag = ObjectProperty(None)
-    customDateTime = ObjectProperty(None)
     customDateTimeInput = ObjectProperty(None)
 
-    caller = ObjectProperty(None)
+    caller: ComparePane = None
+    float_sibling: MyFloat
 
-    modify_id: str
-
-    def __init__(self, target_id, **kwargs):
+    def __init__(self, float_sibling, **kwargs):
         super(SetDateModal, self).__init__(**kwargs)
-        self.caller = ObjectProperty(target_id)
+        self.float_sibling = float_sibling
+        self.bind(on_dismiss=self.close)
 
     def text_content(self, *args, **kwargs):
         """
@@ -179,12 +175,12 @@ class SetDateModal(GridLayout):
             print("Set to true")
             print(self.customDateTimeInput.disabled)
 
-    def close(self):
+    def close(self, *args, **kwargs):
         """
         Closes the modal by removing the widget from the parent
         :return:
         """
-        self.parent.close_modal()
+        self.caller = None
 
     def apply_close(self):
         """
@@ -193,7 +189,7 @@ class SetDateModal(GridLayout):
         :return:
         """
         print("Need to update value in ComparePane")
-        self.parent.close_modal()
+        self.dismiss()  # resets caller already
 
 
 class PictureLibrary(App):

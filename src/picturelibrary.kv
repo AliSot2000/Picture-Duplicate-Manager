@@ -201,13 +201,11 @@
             width:  self.texture_size[0]+40
             text: "Set 1 of 100"
 
+
 <SetDateModal>:
-    tagLabel: naming_tag
+    id: ChangeDateModal
     customDateTag: naming_tag_input
-    customDateTime: datetime_label
     customDateTimeInput: datetime_input
-    closeBtn: cls_btn
-    applyBtn: apl_btn
 
     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
     size_hint: None, None
@@ -215,50 +213,52 @@
     width: 500
     auto_dismiss: True
 
-    canvas:
-        Color:
-            rgb: (0.0, 0.0, 0.0)
-        Rectangle:
-            pos: self.pos[0], self.pos[1]
-            size: self.size[0], self.size[1]
+    # canvas:
+    #     Color:
+    #         rgb: (0.0, 0.0, 0.0)
+    #     Rectangle:
+    #         pos: self.pos[0], self.pos[1]
+    #         size: self.size[0], self.size[1]
 
-    # GridLayout:
-    cols: 2
-    Label:
-        id: naming_tag
-        text: "Source Tag"
-        font_size: 18
+    GridLayout:
+        cols: 2
+        Label:
+            id: naming_tag
+            text: "Source Tag"
+            font_size: 18
 
-    CustomDateTag:
-        multiline: False
-        id: naming_tag_input
-        font_size: 18
+        CustomDateTag:
+            multiline: False
+            id: naming_tag_input
+            font_size: 18
 
-    Label:
-        id: datetime_label
-        text: "Custom Datetime"
-        font_size: 18
+        Label:
+            id: datetime_label
+            text: "Custom Datetime"
+            font_size: 18
 
-    TextInput:
-        id: datetime_input
-        hint_text: "YYYY-MM-DD HH.MM.SS"
-        font_size: 18
-        disabled: True
+        TextInput:
+            id: datetime_input
+            hint_text: "YYYY-MM-DD HH.MM.SS"
+            font_size: 18
+            disabled: True
 
-    Button:
-        id: cls_btn
-        text: "Don't Apply"
-        disabled: False
-        size_hint_y: None
-        height: self.texture_size[1] + 40
-        on_press: self.parent.close()
+        Button:
+            id: cls_btn
+            text: "Don't Apply"
+            disabled: False
+            size_hint_y: None
+            height: self.texture_size[1] + 40
+            on_press: self.parent.parent.dismiss()
 
-    Button:
-        id: apl_btn
-        text: "Apply New Source Tag"
-        size_hint_y: None
-        height: self.texture_size[1] + 40
-        on_press: self.parent.apply_close()
+        Button:
+            id: apl_btn
+            text: "Apply New Source Tag"
+            size_hint_y: None
+            height: self.texture_size[1] + 40
+            # on_press: self.parent.parent.apply_close()
+            on_press: self.parent.parent.apply_close()
+
 
 
 
