@@ -126,6 +126,13 @@ class PhotoDb:
         meta_dict = json.loads(json_str)
         return meta_dict
 
+    def __thumbnail_name(self, ext: str, key: int):
+        thumbnail_name = f"thumb_{key}{ext}"
+        return os.path.join(self.thumbnail_dir, thumbnail_name)
+
+    def __trash_path(self, file_name: str):
+        return os.path.join(self.trash_dir, file_name)
+
     # ------------------------------------------------------------------------------------------------------------------
     # INIT
     # ------------------------------------------------------------------------------------------------------------------
