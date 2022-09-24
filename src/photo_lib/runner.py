@@ -193,7 +193,7 @@ class PhotoDb:
                          " org_fname TEXT,"
                          " metadata TEXT,"
                          " google_fotos_metadata TEXT,"
-                         " hash TEXT, "
+                         " file_hash TEXT, "
                          " successor INTEGER NOT NULL)")
 
         self.cur.execute("CREATE TABLE import_tables "
@@ -201,17 +201,21 @@ class PhotoDb:
                          " root_path TEXT NOT NULL, "
                          " import_table_name TEXT UNIQUE NOT NULL) ")
 
-        self.con.commit()
-
         # Todo: Think about trash -> once removed images not reimported?
-        # self.cur.execute("CREATE TABLE trashed "
-        #                  "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
-        #                  "org_fname TEXT NOT NULL, "
-        #                  "org_fpath TEXT NOT NULL, "
-        #                  "metadata TEXT NOT NULL, "
-        #                  "naming_tag TEXT, "
-        #                  "file_hash TEXT, "
-        #                  "new_name TEXT)")
+        self.cur.execute("CREATE TABLE trash "
+                         "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
+                         "org_fname TEXT NOT NULL, "
+                         "org_fpath TEXT NOT NULL, "
+                         "metadata TEXT NOT NULL, "
+                         "google_fotos_metadata TEXT,"
+                         "naming_tag TEXT, "
+                         "file_hash TEXT, "
+                         "new_name TEXT UNIQUE , "
+                         "datetime TEXT, "
+                         "original_google_metadata INTEGER DEFAULT 1 "
+                         "CHECK (images.original_google_metadata >= 0 AND images.original_google_metadata < 2)))")
+
+        self.con.commit()
 
     def import_folder(self, folder_path: str, al_fl: Set[str] = None, ignore_deleted: bool = False):
         folder_path = os.path.abspath(folder_path.rstrip("/"))
