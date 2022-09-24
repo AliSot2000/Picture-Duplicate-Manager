@@ -47,6 +47,8 @@ def rec_list(root_path):
 class PhotoDb:
     root_dir: str
     img_db: str
+    thumbnail_dir: str
+    trash_dir: str
 
     # database
     cur: sqlite3.Cursor = None
@@ -62,6 +64,8 @@ class PhotoDb:
 
         if os.path.exists(root_dir):
             self.root_dir = root_dir
+            self.thumbnail_dir = os.path.join(root_dir, ".thumbnails")
+            self.trash_dir = os.path.join(root_dir, ".trash")
         else:
             raise ValueError(f"{root_dir} doesn't exist")
 
@@ -70,6 +74,12 @@ class PhotoDb:
         else:
             # db default path
             self.img_db = os.path.join(self.root_dir, ".photos.db")
+
+        if not os.path.exists(self.thumbnail_dir):
+            os.mkdir(self.thumbnail_dir)
+
+        if not os.path.exists(self.trash_dir):
+            os.mkdir(self.trash_dir)
 
         self.__connect()
 
