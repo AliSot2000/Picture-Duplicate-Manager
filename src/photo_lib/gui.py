@@ -1,7 +1,6 @@
 from kivy.app import App
-from kivy.uix.image import Image
 from kivy.uix.widget import Widget
-from kivy.properties import StringProperty, NumericProperty, ObjectProperty, BooleanProperty
+from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.modalview import ModalView
 from kivy.clock import Clock
@@ -14,9 +13,10 @@ from kivy.uix.textinput import TextInput
 import os
 from dataclasses import dataclass
 import datetime
-# from .metadataagregator import key_lookup_dir
+from .metadataagregator import key_lookup_dir
 from kivy.uix.label import Label
-
+import traceback
+import time
 
 @dataclass
 class DatabaseEntry:
@@ -139,18 +139,38 @@ class MyBox(BoxLayout):
         self.bind(minimum_width=self.setter('width'))
 
 
+class CompareScroller(ScrollView):
+    pass
+
+
 class MyFloat(FloatLayout):
-    compareGrid = ObjectProperty(None)
     filenameModal = None
     errorModal = None
+    db_selector_widget = None
 
-    dup_fp: str
+    dup_fp: str = None
 
-    def __init__(self, source_fp: str, **kwargs):
+    cps: CompareScroller
+
+    def __init__(self, fp: str = None, **kwargs):
         super(MyFloat, self).__init__(**kwargs)
-        self.dup_fp = source_fp
+        self.dup_fp = fp
+
         self.errorModal = ErrorPopup()
         self.filenameModal = SetDateModal(self, self.errorModal)
+        self.db_selector_widget = DatabaseSelector(self)
+        self.cps = CompareScroller()
+
+        self.add_widget(self.cps, index=-1)
+
+        if self.dup_fp is None:
+            self.db_selector_widget.open()
+
+    def remove_scroller(self):
+        self.remove_widget(self.cps)
+
+    def add_scroller(self):
+        self.add_widget(self.cps, index=-1)
 
     def load_(self):
         pass
@@ -182,6 +202,7 @@ class SetDateModal(ModalView):
         self.float_sibling = float_sibling
         self.error_popup = error_popup
         self.bind(on_dismiss=self.close)
+        self.bind(on_open=self.load_current_tag)
 
     def text_content(self, *args, **kwargs):
         """
@@ -201,12 +222,16 @@ class SetDateModal(ModalView):
             print("Set to true")
             print(self.customDateTimeInput.disabled)
 
+    def load_current_tag(self, *_args, **kwargs):
+        pass
+
     def close(self, *args, **kwargs):
         """
-        Closes the modal by removing the widget from the parent
+        Called when Close is called. Remove caller attribute and clear customDateTimeInput's text.
         :return:
         """
         self.caller = None
+        self.customDateTimeInput.text = ""
 
     def apply_close(self):
         """
@@ -220,25 +245,27 @@ class SetDateModal(ModalView):
         text: str = self.customDateTag.text
         text = text.strip().capitalize()
 
-        self.error_popup.open()
-
         # parse custom
         if text == "Custom":
             try:
                 new_datetime = datetime.datetime.strptime(self.ids.datetime_input.text, "%Y-%m-%d %H.%M.%S")
             except Exception as e:
-                # TODO: Error Popup
-                print(e)
+                self.error_popup.error_msg = f"Exception while parsing custom datetime:\n {e}"
+                self.error_popup.traceback_string = traceback.format_exc()
+                self.error_popup.open()
+                self.dismiss()
+                return
 
         else:
-            self.error_popup.open()
-            # parse_func = None # key_lookup_dir.get(target_key)
-            #
-            # if parse_func is None:
-            #     # TODO Error Popup
-            #     print("Image doesn't have corresponding metadata tag")
+            parse_func = key_lookup_dir.get(target_key)
 
-            # new_datetime = parse_func(self.caller.database_entry.metadata)
+            if parse_func is None:
+                self.error_popup.error_msg = f"No Parsing function found for given Tag."
+                self.error_popup.traceback_string = traceback.format_exc()
+                self.error_popup.open()
+                self.dismiss()
+
+            new_datetime = parse_func(self.caller.database_entry.metadata)
 
         # set all the shit
         print("DO stuff")
@@ -251,8 +278,8 @@ class TracebackWidget(Label):
 
 
 class ErrorPopup(Popup):
-    error_msg = StringProperty("This is an error")
-    traceback_string = StringProperty("Asldfasdfj\naaöslkdfjöalsdkjfö\naöldfjaölfkjaöfj\n")
+    error_msg = StringProperty("")
+    traceback_string = StringProperty("")
     tbw: TracebackWidget = None
     
     def __init__(self, **kwargs):
@@ -278,12 +305,35 @@ class ErrorPopup(Popup):
         self.hide_traceback()
 
 
+class DatabaseSelector(Popup):
+    fc = ObjectProperty(None)
+
+    compareFloat: MyFloat
+
+    def __init__(self, comp_flt: MyFloat, **kwargs):
+        super(DatabaseSelector, self).__init__(**kwargs)
+        self.compareFloat = comp_flt
+        self.bind(on_dismiss=self.try_close)
+        self.bind(on_open=self.hide_scroll)
+
+    def hide_scroll(self, *args, **kwargs):
+        self.compareFloat.remove_scroller()
+
+    def try_close(self, *args, **kwargs):
+        self.compareFloat.add_scroller()
+        if self.compareFloat.dup_fp is None:
+            self.open()
+
+    def apply_db(self):
+        if os.path.exists(os.path.join(self.fc.path, ".photos.db")):
+            self.compareFloat.dup_fp = self.fc.path
+            self.dismiss()
+        else:
+            self.ids.status.text = "No .photos.db file present. This is not a PhotoLibrary"
+
+
 class PictureLibrary(App):
     def build(self):
-        mf = MyFloat("asdf")
-        # Clock.schedule_interval(mf.comparegrid.action, 2.0)
+        mf = MyFloat()
         return mf
 
-
-if __name__ == "__main__":
-    PictureLibrary().run()
