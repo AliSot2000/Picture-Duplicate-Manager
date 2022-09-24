@@ -786,3 +786,13 @@ class PhotoDb:
 
         self.cur.execute(f"DELETE FROM images WHERE key = {key}")
         self.con.commit()
+
+    def img_ana_dup_search(self, level: str, procs: int = 16):
+        """
+        Perform default difpy search. Level determines the level at which the fotos are compared. The higher the level,
+        the longer the comparison. O(n²)
+        :param level: possible: all, year, month, day
+        :param procs: number of pararllel processes
+        :return:
+        """
+        pass
