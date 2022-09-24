@@ -615,10 +615,21 @@ class PhotoDb:
 
         self.con.commit()
 
-        if delete:
-            fp = self.__path_from_datetime(self.__db_str_to_datetime(data[0][5]), data[0][5])
+        src = self.__path_from_datetime(self.__db_str_to_datetime(data[0][5]), data[0][5])
 
-            os.remove(fp)
+        if not delete:
+            # might be redundant.
+            self.create_img_thumbnail(data[0][0])
+
+            # move file
+            dst = self.__trash_path(data[0][5])
+
+            if os.path.exists(dst):
+                raise ValueError("Image exists in trash already?")
+
+            os.rename(src, dst)
+        else:
+            os.remove(src)
 
     def bulk_duplicate_marking(self, processing_list: list):
         for f in processing_list:
