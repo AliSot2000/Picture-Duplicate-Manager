@@ -65,9 +65,11 @@ def general_parser(dt_str: str, preferred: str = None, retry: bool = True):
 
 
     :param dt_str:
-    :param preferred:
+    :param preferred: pattern string
     :param retry:
     :return:
+    :raises ValueError if the String didn't match any patterns
+    :raise ValueError if the Parsing failed.
     """
 
     # format YYYY:MM:DD HH:MM:SS+HH:MM
@@ -203,13 +205,15 @@ def general_parser(dt_str: str, preferred: str = None, retry: bool = True):
                 if retry:
                     return general_parser(dt_str)
                 return None
+            # if preferred is none, just try the next parser and see if it works.
 
     if preferred is not None:
-        return None
+        # return None
+        raise ValueError(f"No valid preferred string given {preferred}, see doc string")
     else:
         if dt_str == "0000:00:00 00:00:00":
             return None
-        raise ValueError(f"No matching date time parsing string {dt_str}")
+        raise ValueError(f"No matching date time parsing string found for {dt_str}")
 
 
 def func_wrapper(key: str, start_pattern: str = None, ):
