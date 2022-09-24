@@ -504,6 +504,10 @@ class PhotoDb:
         raise Exception("Couldn't create import table, to many matching names")
 
     def find_hash_based_duplicates(self):
+        """
+        Finds all hashes that occur more than once and provides one full image each.
+        :return:
+        """
         self.cur.execute("SELECT *, COUNT(key) FROM images GROUP BY file_hash HAVING COUNT(key) > 1")
 
         results = self.cur.fetchall()
@@ -529,6 +533,11 @@ class PhotoDb:
         return duplicates
 
     def find_hash_in_pictures(self, hash_str: str) -> list:
+        """
+        Returns a list of all images with identical hash
+        :param hash_str:
+        :return:
+        """
         self.cur.execute(f"SELECT * FROM images WHERE file_hash = '{hash_str}'")
 
         results = self.cur.fetchall()
