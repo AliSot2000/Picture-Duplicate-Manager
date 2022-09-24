@@ -4,9 +4,8 @@ import os
 import sqlite3
 import json
 import base64
-
-from docutils.nodes import emphasis
-
+import cv2
+import numpy as np
 from .metadataagregator import MetadataAggregator, FileMetaData
 import shutil
 from typing import Set
@@ -661,3 +660,109 @@ class PhotoDb:
                         "google_fotos_metadata": self.__b64_to_dict(res[10])}
 
             return None
+
+    def create_img_thumbnail(self, key: int = None, fname: str = None, max_pixel: int = 512, overwrite: bool = False):
+        # both none
+        if key is None and fname is None:
+            raise ValueError("Key or fname must be provided")
+        elif key is None:
+            self.cur.execute(f"SELECT key, new_name, datetime FROM images WHERE new_name IS '{fname}'")
+            results = self.cur.fetchall()
+
+            if len(results) > 1:
+                raise ValueError("Corrupted Database - multiple images with identical name")
+
+        # key provided -> overrules a secondary fname
+        else:
+            self.cur.execute(f"SELECT key, new_name, datetime FROM images WHERE key = {key}")
+            results = self.cur.fetchall()
+
+            if len(results) > 1:
+                raise ValueError("Corrupted Database - multiple images with identical name")
+
+        img_dt = self.__db_str_to_datetime(results[0][2])
+        img_key = results[0][0]
+        img_fname = results[0][1]
+
+        img_fpath = self.__path_from_datetime(img_dt, img_fname)
+
+        # don't create a thumbnail if it already exists.
+        if os.path.exists(self.__thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key)) and not overwrite:
+            return
+
+        # load image from disk
+        img = cv2.imread(img_fpath, 1)
+
+        # determine which axis is larger
+        max_pix = max(img.shape[0], img.shape[1])
+
+        # calculate new size
+        if max_pix == img.shape[0]:
+            py = max_pixel
+            px = int(max_pixel / max_pix * img.shape[1])
+        else:
+            px = max_pixel
+            py = int(max_pixel / max_pix * img.shape[0])
+
+        # resize image to new size
+        img_half = cv2.resize(img, dsize=(px, py))
+
+        # store image
+        cv2.imwrite(self.__thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key), img_half)
+
+    def image_to_trash(self, key: int = None, fname: str = None):
+        # both none
+        if key is None and fname is None:
+            raise ValueError("Key or fname must be provided")
+        elif key is None:
+            self.cur.execute(
+                f"SELECT key, org_fname, org_fpath, metadata, google_fotos_metadata, naming_tag, file_hash,"
+                f" new_name, datetime, original_google_metadata FROM images WHERE new_name IS '{fname}'")
+            results = self.cur.fetchall()
+
+            if len(results) > 1:
+                raise ValueError("Corrupted Database - multiple images with identical name")
+
+        # key provided -> overrules a secondary fname
+        else:
+            self.cur.execute(
+                f"SELECT key, org_fname, org_fpath, metadata, google_fotos_metadata, naming_tag, file_hash,"
+                f" new_name, datetime, original_google_metadata FROM images WHERE key = {key}")
+            results = self.cur.fetchall()
+
+            if len(results) > 1:
+                raise ValueError("Corrupted Database - multiple images with identical key")
+
+        key = results[0][0]
+        org_fname = results[0][1]
+        org_fpath = results[0][2]
+        metadata = results[0][3]
+        google_fotos_metadata = results[0][4]
+        naming_tag = results[0][5]
+        file_hash = results[0][6]
+        new_name = results[0][7]
+        datetime = results[0][8]
+        original_google_metadata = results[0][9]
+
+        # make sure thumbnail exists
+        self.create_img_thumbnail(key=key)
+
+        # move file
+        src = self.__path_from_datetime(self.__db_str_to_datetime(datetime), new_name)
+        dst = self.__trash_path(new_name)
+
+        if os.path.exists(dst):
+            raise ValueError("Image exists in trash already?")
+
+        os.rename(src, dst)
+
+        # create entries in databases
+        self.cur.execute("INSERT into trash "
+                         "(key, org_fname, org_fpath, metadata, google_fotos_metadata, naming_tag, file_hash,"
+                         f" new_name, datetime, original_google_metadata) "
+                         "VALUES "
+                         f"({key}, '{org_fname}', '{org_fpath}', '{metadata}', '{google_fotos_metadata}', "
+                         f"'{naming_tag}', '{file_hash}', '{new_name}', '{datetime}', {original_google_metadata})")
+
+        self.cur.execute(f"DELETE FROM images WHERE key = {key}")
+        self.con.commit()
