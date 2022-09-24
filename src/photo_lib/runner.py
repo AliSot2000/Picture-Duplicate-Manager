@@ -188,6 +188,8 @@ class PhotoDb:
             print("*** You still try to initialize the database. Do not set init arg when instantiating class ***")
             raise e
 
+        # naming_tag, new_name, datetime from images table, drop path info because not needed anymore,
+        # TODO: Database needs a new replaced table
         self.cur.execute("CREATE TABLE replaced "
                          "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
                          " org_fname TEXT,"
