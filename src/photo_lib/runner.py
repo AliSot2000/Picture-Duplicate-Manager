@@ -4,12 +4,18 @@ import os
 import sqlite3
 import json
 import base64
+import time
+
 import cv2
-import numpy as np
 from .metadataagregator import MetadataAggregator, FileMetaData
 import shutil
-from typing import Set
+from typing import Set, Union
 import warnings
+from dataclasses import dataclass
+from difPy.dif import dif
+from _queue import Empty
+from multiprocessing import Queue, Process, Pipe, Lock
+from multiprocessing.connection import Connection
 
 
 class RareOccurrence(Warning):
@@ -26,6 +32,19 @@ class DuplicateChainingError(Exception):
 
     def __str__(self):
         return repr(self.message)
+
+
+@dataclass
+class DatabaseEntry:
+    key: int
+    org_fname: str
+    org_fpath: str
+    metadata: dict
+    google_fotos_metadata: dict
+    naming_tag: str
+    file_hash: str
+    new_name: str
+    datetime: datetime.datetime
 
 
 def rec_list(root_path):
@@ -58,6 +77,8 @@ class PhotoDb:
     __mda: MetadataAggregator = None
 
     __datetime_format = "%Y-%m-%d %H.%M.%S"
+
+    proc_handles: list = []
 
     def __init__(self, root_dir: str, db_path: str = None, init: bool = False):
 
@@ -132,6 +153,20 @@ class PhotoDb:
     def __trash_path(self, file_name: str):
         return os.path.join(self.trash_dir, file_name)
 
+    def duplicate_table_exists(self) -> bool:
+        self.cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='duplicates'")
+        dups = self.cur.fetchone()
+        return dups is not None
+
+    def create_duplicates_table(self):
+        self.cur.execute("CREATE TABLE duplicates ("
+                         "key INTEGER PRIMARY KEY AUTOINCREMENT,"
+                         "match_type TEXT,"
+                         "matched_keys TEXT)")
+
+    def delete_duplicates_table(self):
+        self.cur.execute("DROP TABLE IF EXISTS duplicates")
+
     # ------------------------------------------------------------------------------------------------------------------
     # INIT
     # ------------------------------------------------------------------------------------------------------------------
@@ -142,6 +177,9 @@ class PhotoDb:
 
     @mda.setter
     def mda(self, value):
+        if not type(value) is MetadataAggregator:
+            raise ValueError("MetadataAggregator Object required for mda property")
+
         self.__mda = value
 
     def __connect(self):
@@ -214,7 +252,7 @@ class PhotoDb:
                          "new_name TEXT UNIQUE , "
                          "datetime TEXT, "
                          "original_google_metadata INTEGER DEFAULT 1 "
-                         "CHECK (images.original_google_metadata >= 0 AND images.original_google_metadata < 2)))")
+                         "CHECK (trash.original_google_metadata >= 0 AND trash.original_google_metadata < 2))")
 
         self.con.commit()
 
@@ -503,7 +541,7 @@ class PhotoDb:
 
         raise Exception("Couldn't create import table, to many matching names")
 
-    def find_hash_based_duplicates(self):
+    def find_hash_based_duplicates(self, only_key: bool = True):
         """
         Finds all hashes that occur more than once and provides one full image each.
         :return:
@@ -514,28 +552,32 @@ class PhotoDb:
 
         duplicates = []
 
-        for row in results:
-            duplicates.append({
-                "key": row[0],
-                "org_fname": row[1],
-                "org_fpath": row[2],
-                "metadata": row[3],
-                "naming_tag": row[4],
-                "file_hash": row[5],
-                "new_name": row[6],
-                "datetime": row[7],
-                "present": row[8],
-                "verify": row[9],
-                "google_fotos_metadata": row[10],
-                "count": row[11]
-            })
+        if not only_key:
+            for row in results:
+                duplicates.append({
+                    "key": row[0],
+                    "org_fname": row[1],
+                    "org_fpath": row[2],
+                    "metadata": row[3],
+                    "naming_tag": row[4],
+                    "file_hash": row[5],
+                    "new_name": row[6],
+                    "datetime": row[7],
+                    "present": row[8],
+                    "verify": row[9],
+                    "google_fotos_metadata": row[10],
+                    "count": row[11]
+                })
 
-        return duplicates
+            return duplicates
 
-    def find_hash_in_pictures(self, hash_str: str) -> list:
+        return [row[0] for row in results]
+
+    def find_hash_in_pictures(self, hash_str: str, only_key: bool = True) -> list:
         """
         Returns a list of all images with identical hash
-        :param hash_str:
+        :param only_key: only returns a list of the keys with the same hash, not entire rows
+        :param hash_str: hash to search for
         :return:
         """
         self.cur.execute(f"SELECT * FROM images WHERE file_hash = '{hash_str}'")
@@ -544,50 +586,54 @@ class PhotoDb:
 
         duplicates = []
 
-        for row in results:
-            duplicates.append({
-                "key": row[0],
-                "org_fname": row[1],
-                "org_fpath": row[2],
-                "metadata": row[3],
-                "naming_tag": row[4],
-                "file_hash": row[5],
-                "new_name": row[6],
-                "datetime": row[7],
-                "present": row[8],
-                "verify": row[9],
-                "google_fotos_metadata": row[10],
-            })
+        if not only_key:
+            for row in results:
+                duplicates.append({
+                    "key": row[0],
+                    "org_fname": row[1],
+                    "org_fpath": row[2],
+                    "metadata": row[3],
+                    "naming_tag": row[4],
+                    "file_hash": row[5],
+                    "new_name": row[6],
+                    "datetime": row[7],
+                    "present": row[8],
+                    "verify": row[9],
+                    "google_fotos_metadata": row[10],
+                })
 
-        return duplicates
+            return duplicates
 
-    def hash_bin_dups(self, dryrun: bool = True):
-        hash_matches = self.find_hash_based_duplicates()
+        # only list keys
+        return [row[0] for row in results]
 
-        # iterate over list and search for files which match binary
-        for row in hash_matches:
-            matching_hashes = self.find_hash_in_pictures(row["file_hash"])
-
-            first_file = self.__path_from_datetime(self.__db_str_to_datetime(matching_hashes[0]["datetime"]),
-                                                   matching_hashes[0]["new_name"])
-
-            # only matching to first image:
-            for i in range(1, len(matching_hashes)):
-                current_file = self.__path_from_datetime(self.__db_str_to_datetime(matching_hashes[i]["datetime"]),
-                                                         matching_hashes[i]["new_name"])
-
-                if not filecmp.cmp(first_file, current_file, shallow=False):
-                    print(f"{first_file} and {current_file} have matching hashes but not matching binary data")
-                else:
-                    if matching_hashes[0]['naming_tag'] == matching_hashes[i]['naming_tag']:
-                        print(f"{matching_hashes[0]['new_name']} and {matching_hashes[i]['new_name']} match binary")
-                    else:
-                        print(
-                            f"{matching_hashes[0]['new_name']} named {matching_hashes[0]['naming_tag']} and {matching_hashes[i]['new_name']} named {matching_hashes[0]['naming_tag']}  match binary")
-
-                if not dryrun:
-                    # here would be the deletion and shit.
-                    pass
+    # def hash_bin_dups(self, dryrun: bool = True):
+    #     hash_matches = self.find_hash_based_duplicates()
+    #
+    #     # iterate over list and search for files which match binary
+    #     for row in hash_matches:
+    #         matching_hashes = self.find_hash_in_pictures(row["file_hash"])
+    #
+    #         first_file = self.__path_from_datetime(self.__db_str_to_datetime(matching_hashes[0]["datetime"]),
+    #                                                matching_hashes[0]["new_name"])
+    #
+    #         # only matching to first image:
+    #         for i in range(1, len(matching_hashes)):
+    #             current_file = self.__path_from_datetime(self.__db_str_to_datetime(matching_hashes[i]["datetime"]),
+    #                                                      matching_hashes[i]["new_name"])
+    #
+    #             if not filecmp.cmp(first_file, current_file, shallow=False):
+    #                 print(f"{first_file} and {current_file} have matching hashes but not matching binary data")
+    #             else:
+    #                 if matching_hashes[0]['naming_tag'] == matching_hashes[i]['naming_tag']:
+    #                     print(f"{matching_hashes[0]['new_name']} and {matching_hashes[i]['new_name']} match binary")
+    #                 else:
+    #                     print(
+    #                         f"{matching_hashes[0]['new_name']} named {matching_hashes[0]['naming_tag']} and {matching_hashes[i]['new_name']} named {matching_hashes[0]['naming_tag']}  match binary")
+    #
+    #             if not dryrun:
+    #                 # here would be the deletion and shit.
+    #                 pass
 
     def mark_duplicate(self, o_image_id: int, d_image_id: int, delete: bool = False):
 
@@ -635,7 +681,7 @@ class PhotoDb:
         for f in processing_list:
             self.mark_duplicate(o_image_id=f["o_image_id"], d_image_id=f["d_image_id"], delete=f["delete"])
 
-    def get_image_info(self, key: int = None, filename: str = None):
+    def gui_get_image(self, key: int = None, filename: str = None):
         if key is None and filename is None:
             raise ValueError("Key or Filename must be provided")
 
@@ -643,43 +689,25 @@ class PhotoDb:
             self.cur.execute(f"SELECT key, org_fname , org_fpath, metadata, google_fotos_metadata, naming_tag, "
                              f"file_hash, new_name , datetime, present, verify FROM images WHERE key is {key}")
 
-            res = self.cur.fetchone()
-
-            if res is not None:
-                return {"key": res[0],
-                        "org_fname": res[1],
-                        "org_fpath": res[2],
-                        "metadata": self.__b64_to_dict(res[3]),
-                        "naming_tag": res[4],
-                        "file_hash": res[5],
-                        "new_name": res[6],
-                        "datetime": self.__db_str_to_datetime(res[7]),
-                        "present": res[8],
-                        "verify": res[9],
-                        "google_fotos_metadata": self.__b64_to_dict(res[10])}
-
-            return None
-
         else:
             self.cur.execute(f"SELECT key, org_fname , org_fpath, metadata, google_fotos_metadata, naming_tag, "
                              f"file_hash, new_name , datetime, present, verify FROM images WHERE new_name = '{filename}'")
 
-            res = self.cur.fetchone()
+        res = self.cur.fetchone()
 
-            if res is not None:
-                return {"key": res[0],
-                        "org_fname": res[1],
-                        "org_fpath": res[2],
-                        "metadata": self.__b64_to_dict(res[3]),
-                        "naming_tag": res[4],
-                        "file_hash": res[5],
-                        "new_name": res[6],
-                        "datetime": self.__db_str_to_datetime(res[7]),
-                        "present": res[8],
-                        "verify": res[9],
-                        "google_fotos_metadata": self.__b64_to_dict(res[10])}
+        if res is not None:
+            return DatabaseEntry(
+                key=res[0],
+                org_fname=res[1],
+                org_fpath=res[2],
+                metadata=self.__b64_to_dict(res[3]),
+                naming_tag=res[4],
+                file_hash=res[5],
+                new_name=res[6],
+                datetime=self.__db_str_to_datetime(res[7]),
+                google_fotos_metadata=self.__b64_to_dict(res[10]))
 
-            return None
+        return None
 
     def create_img_thumbnail(self, key: int = None, fname: str = None, max_pixel: int = 512, overwrite: bool = False):
         # both none
@@ -787,12 +815,221 @@ class PhotoDb:
         self.cur.execute(f"DELETE FROM images WHERE key = {key}")
         self.con.commit()
 
-    def img_ana_dup_search(self, level: str, procs: int = 16):
+    def img_ana_dup_search(self, level: str, procs: int = 16, overwrite: bool = False):
         """
         Perform default difpy search. Level determines the level at which the fotos are compared. The higher the level,
         the longer the comparison. O(n²)
+        :param overwrite: Will drop an existing duplicates table if detected
         :param level: possible: all, year, month, day
-        :param procs: number of pararllel processes
+        :param procs: number of parallel processes
         :return:
         """
-        pass
+
+        if level not in ("all", "year", "month", "day"):
+            raise ValueError("Not supported search level")
+
+        if self.duplicate_table_exists():
+
+            # on not overwrite, return already
+            if not overwrite:
+                return False, "Duplicates Table exist."
+
+            # otherwise drop table
+            self.delete_duplicates_table()
+
+        self.create_duplicates_table()
+
+        if level == "all":
+           raise NotImplementedError("This function is not implemented since it requires a rewrite of difpy")
+
+        elif level == "year":
+            dirs = self.limited_dir_rec_list(path=self.root_dir, nor=0)
+
+        elif level == "month":
+            dirs = self.limited_dir_rec_list(path=self.root_dir, nor=1)
+
+        # day
+        else:
+            dirs = self.limited_dir_rec_list(path=self.root_dir, nor=2)
+
+        # remove thumbnail and trash directory
+        while self.thumbnail_dir in dirs:
+            dirs.remove(self.thumbnail_dir)
+
+        while self.trash_dir in dirs:
+            dirs.remove(self.thumbnail_dir)
+
+        task_queue = Queue()
+        [task_queue.put(directory) for directory in dirs]
+        result_queue = Queue()
+        init_size = len(dirs)
+
+        def difpy_process(task: Queue, results: Queue, id: int):
+            timeout = 10
+            while timeout > 0:
+                try:
+                    task_dir = task.get(block=False)
+                    print(f"{id:02}: processing {task_dir}")
+                    timeout = 10
+                except Empty:
+                    timeout -= 1
+                    time.sleep(1)
+                    continue
+
+                duplicates = dif(directory_A=task_dir, show_progress=False, show_output=False)
+                results.put(duplicates.result)
+
+        self.proc_handles = []
+
+        for i in range(procs):
+            p = Process(target=difpy_process, args=(task_queue, result_queue, i))
+            p.start()
+            self.proc_handles.append(p)
+
+        pipe_out, pipe_in = Pipe()
+
+        p = Process(target=self.result_processor, args=(init_size, result_queue, pipe_in, level))
+        p.start()
+        self.proc_handles.append(p)
+        return True, pipe_out
+
+    def file_name_to_key(self, file_name: str):
+        self.cur.execute(f"SELECT key FROM images WHERE new_name = '{file_name}'")
+        res = self.cur.fetchall()
+
+        # if len(res) > 1:
+        #     print("\n\n\n\n\n\n\n")
+        #     print(res)
+        #
+        # if len(res) == 0:
+        #     print("\n\n\n\n\n\n\n")
+        #     print(f"File name is: {file_name}")
+        assert len(res) == 1
+
+        return res[0][0]
+
+    def result_processor(self, initial_size: int, result: Queue, pipe_in: Connection, info: str):
+        count = 0
+        pipe_in.send((0, initial_size))
+
+        while count != initial_size:
+            results: dict = result.get()
+            count += 1
+
+            # iterate through results
+            for val in results.values():
+                keys = [self.file_name_to_key(val['filename'])]
+
+                # iterate through duplicates of single result
+                for d in val["duplicates"]:
+                    keys.append(self.file_name_to_key(os.path.basename(d)))
+
+                self.cur.execute(f"INSERT INTO duplicates (match_type, matched_keys) "
+                                 f"VALUES ('{info}', '{json.dumps(keys)}')")
+            self.con.commit()
+            pipe_in.send((count, initial_size))
+
+        pipe_in.send("DONE")
+        pipe_in.close()
+
+    def duplicates_from_hash(self, overwrite: bool = False) -> tuple:
+        """
+        Populates the duplicates table based on duplicates detected by identical hash
+        :param overwrite: do not ask if existing duplicate computations should be preserved.
+        :return:
+        """
+        msg = ""
+        if self.duplicate_table_exists():
+
+            # on not overwrite, return already
+            if not overwrite:
+                return False, "Duplicates Table exist."
+
+            # otherwise drop table
+            self.delete_duplicates_table()
+            msg = "Dropped table; "
+
+        self.create_duplicates_table()
+
+        duplicates = self.find_hash_based_duplicates(only_key=True)
+
+        for d in duplicates:
+            matching_keys = self.find_hash_in_pictures(d[0], only_key=True)
+
+            self.cur.execute(f"INSERT INTO duplicates (match_type, matched_keys) "
+                             f"VALUES ('hash', '{json.dumps(matching_keys)}')")
+
+        self.con.commit()
+        return True, msg + f"Successfully found {len(duplicates)} duplicates"
+
+    def get_duplicate_entry(self):
+        """
+        Returns one entry from the duplicates table
+        :return:
+        """
+        self.cur.execute("SELECT matched_keys FROM duplicates")
+        key_str = self.cur.fetchone()
+
+        if key_str is None:
+            return False, []
+
+        keys = json.loads(key_str)
+        img_attribs = []
+
+        for k in keys:
+            img_attribs.append(self.gui_get_image(key=k))
+
+        return True, img_attribs
+
+    def limited_dir_rec_list(self, path: str, nor: int, results: list = None) -> Union[None, list]:
+        """
+        Lists all leafs of the folder tree at a certain level. Level is indicated with nor. A list can be provided for
+        the results as an argument, then the function returns None or if it is left empty, a list is returned.
+
+        ----------------------------------------------------------------------------------------------------------------
+
+        if you have:
+
+        foo/
+            bar/
+                ...
+            baz/
+                ...
+
+        lar/
+            ung/
+                ...
+            tug/
+                ...
+
+        the result will be with two recursions:
+        [foo/bar, foo/baz, lar/ung, lar/tug]
+
+        :param path: root of the partial folder tree
+        :param nor: number of levels of the tree
+        :param results: List where the paths are stored in. If not given, func will return list instead.
+        :return: None (results given), list (results was None)
+        """
+        # Initialise function such that it has a
+        if results is None:
+            result_list = []
+            self.limited_dir_rec_list(path=path, nor=nor, results=result_list)
+            return result_list
+        else:
+            content = os.listdir(path)
+
+            for c in content:
+
+                # ignore none dirs
+                if not os.path.isdir(os.path.join(path, c)):
+                    continue
+
+                # zero, add to list
+                if nor == 0:
+                    results.append(os.path.join(path, c))
+                    continue
+
+                # not zero, continue in subdirectories.
+                self.limited_dir_rec_list(path=os.path.join(path, c), nor=nor - 1, results=results)
+
+            return None
