@@ -1,3 +1,5 @@
+import time
+
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
@@ -11,24 +13,13 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 import os
-from dataclasses import dataclass
 import datetime
-from .metadataagregator import key_lookup_dir
+from .metadataagregator import key_lookup_dir, MetadataAggregator
+from .runner import PhotoDb, DatabaseEntry
 from kivy.uix.label import Label
 import traceback
-import time
+from multiprocessing.connection import Connection
 
-@dataclass
-class DatabaseEntry:
-    key: int
-    org_fname: str
-    org_fpath: str
-    metadata: dict
-    google_fotos_metadata: dict
-    naming_tag: str
-    file_hash: str
-    new_name: str
-    datetime: str
 
 
 class ScrollLabel(ScrollView):
@@ -77,7 +68,7 @@ class ComparePane(Widget):
     l_new_name = ObjectProperty(None)
     l_metadata = ObjectProperty(None)
 
-    database_entry: DatabaseEntry
+    database_entry: DatabaseEntry = None
     modified: bool = False
     delete: bool = False
 
@@ -133,9 +124,9 @@ class MyGrid(GridLayout):
             c.l_ofpath.scroll_x = x
 
 
-class MyBox(BoxLayout):
+class FlexibleBox(BoxLayout):
     def __init__(self, **kwargs):
-        super(MyBox, self).__init__(**kwargs)
+        super(FlexibleBox, self).__init__(**kwargs)
         self.bind(minimum_width=self.setter('width'))
 
 
@@ -147,8 +138,11 @@ class MyFloat(FloatLayout):
     filenameModal = None
     errorModal = None
     db_selector_widget = None
+    db_duplicate_location = None
+    db_dup_proc_sel = None
 
     dup_fp: str = None
+    database: PhotoDb = None
 
     cps: CompareScroller
 
@@ -160,6 +154,8 @@ class MyFloat(FloatLayout):
         self.filenameModal = SetDateModal(self, self.errorModal)
         self.db_selector_widget = DatabaseSelector(self)
         self.cps = CompareScroller()
+        self.db_dup_proc_sel = DuplicateDetection(root_wdg=self)
+        self.db_duplicate_location = DuplicateLocation(Root_Ref=self, proc_select=self.db_dup_proc_sel)
 
         self.add_widget(self.cps, index=-1)
 
@@ -172,12 +168,26 @@ class MyFloat(FloatLayout):
     def add_scroller(self):
         self.add_widget(self.cps, index=-1)
 
-    def load_(self):
-        pass
+    def load_db(self):
+        self.database = PhotoDb(root_dir=self.dup_fp)
+        mda = MetadataAggregator(exiftool_path="/usr/bin/Image-ExifTool-12.44/exiftool")
+        self.database.mda = mda
+        if self.database.duplicate_table_exists():
+            self.db_duplicate_location.open()
+        else:
+            self.db_dup_proc_sel.open()
 
     def open_modal(self, t_id):
         self.filenameModal.caller = t_id
         self.filenameModal.open()
+
+    def load_entry(self):
+        # TODO Implement
+        pass
+
+    def store_load_entry(self):
+        # TODO Implement
+        pass
 
 
 class CustomDateTag(TextInput):
@@ -327,9 +337,83 @@ class DatabaseSelector(Popup):
     def apply_db(self):
         if os.path.exists(os.path.join(self.fc.path, ".photos.db")):
             self.compareFloat.dup_fp = self.fc.path
+            self.compareFloat.load_db()
             self.dismiss()
         else:
             self.ids.status.text = "No .photos.db file present. This is not a PhotoLibrary"
+
+
+class DuplicateLocation(Popup):
+    my_float_ref: MyFloat
+    reuse_button = ObjectProperty(None)
+    recompute_button = ObjectProperty(None)
+    proc_sel = None
+
+    def __init__(self, Root_Ref: MyFloat, proc_select, **kwargs):
+        super(DuplicateLocation, self).__init__(**kwargs)
+        self.my_float_ref = Root_Ref
+        self.auto_dismiss = False
+        self.reuse_button.bind(on_press=self.reuse)
+        self.recompute_button.bind(on_press=self.recmp)
+        self.proc_sel = proc_select
+    def reuse(self, *args, **kwargs):
+        print("RESUE")
+        self.dismiss()
+
+    def recmp(self, *args, **kwargs):
+        # self.my_float_ref.database.delete_duplicates_table()
+        self.dismiss()
+        self.proc_sel.open()
+
+
+class DuplicateDetection(Popup):
+    root: MyFloat
+
+    def __init__(self, root_wdg: MyFloat, **kwargs):
+        self.root = root_wdg
+        super(DuplicateDetection, self).__init__(**kwargs)
+        self.progressbar = ProgressInfo()
+
+    def hash_based(self, *args, **kwargs):
+        self.root.database.delete_duplicates_table()
+        self.root.database.duplicates_from_hash()
+        self.dismiss()
+        self.root.load_entry()
+
+    def difpy_based(self, time_span: str, *args, **kwargs):
+        self.root.database.delete_duplicates_table()
+        pipe = self.root.database.img_ana_dup_search(level=time_span)
+        self.dismiss()
+        self.progressbar.pipe = pipe[1]
+        Clock.schedule_interval(self.progressbar.suck_on_pipe, 1)
+        self.progressbar.open()
+
+
+class ProgressInfo(Popup):
+    prog_bar = ObjectProperty(None)
+    pipe: Connection = None
+
+    def __init__(self, **kwargs):
+        super(ProgressInfo, self).__init__(**kwargs)
+        self.auto_dismiss = False
+
+    def suck_on_pipe(self, *args, **kwargs):
+        try:
+            transmission = self.pipe.recv()
+            print(f"Receiving {transmission}")
+        except EOFError:
+            time.sleep(1)
+            return
+
+        if transmission == "DONE":
+            print("Stopping")
+            Clock.unschedule(self.suck_on_pipe)
+            self.pipe = None
+            self.dismiss()
+
+        else:
+            self.title = f"Total: {transmission[1]}; Done: {transmission[0]}"
+            self.ids.prog_bar.value = transmission[0] / transmission[1] * 100
 
 
 class PictureLibrary(App):
