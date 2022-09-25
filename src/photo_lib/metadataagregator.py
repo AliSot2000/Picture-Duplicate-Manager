@@ -353,6 +353,7 @@ class MetadataAggregator:
             with open(f"{path}.json", "r") as gfjf:
                 content = json.load(gfjf)
 
+        # if self.det_new_ks, search for new matadata keys
         if self.det_new_ks:
             for key in metadata.keys():
                 if "XMP:DocumentAncestors" in key:
@@ -363,6 +364,7 @@ class MetadataAggregator:
                     keys.append(key)
                     not_known = True
 
+        # determine date and time picture was taken
         for f in self.func_collection:
             res, key = f(metadata)
             if res is not None:
@@ -374,6 +376,7 @@ class MetadataAggregator:
                     cur_date = res
                     cur_tag = key
 
+        # output unknown keys if they are found.
         if not_known or not_parsed:
             print(json.dumps(keys, indent="  "))
             print(json.dumps(metadata, indent="  "))
