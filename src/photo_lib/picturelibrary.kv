@@ -178,7 +178,7 @@
     do_scroll_y: True
     do_scroll_x: True
 
-    MyBox:
+    FlexibleBox:
         orientation: 'vertical'
         size_hint_x: None
 
@@ -315,6 +315,82 @@
                 height: 40
                 text: "Confirm Folder"
                 on_press: self.parent.parent.parent.parent.parent.apply_db()
+
+<DuplicateLocation>:
+    title: "Drop the previously computed duplicates table?"
+    size_hint: 0.6, 0.2
+    reuse_button: reuse
+    recompute_button: recompute
+
+    BoxLayout:
+        orientation: "horizontal"
+        size_hint: 1.0, None
+        height: 40
+
+        Button:
+            id: reuse
+            text: "Use existing duplicates"
+            size_hint: 1.0, 1.0
+
+        Button:
+            id: recompute
+            text: "Compute new duplicates"
+            size_hint: 1.0, 1.0
+
+
+<DuplicateDetection>:
+    title: "Select the Method with which the duplicates are supposed to be detected."
+    size_hint: 0.6, 0.6
+    reuse_button: reuse
+    recompute_button: recompute
+
+    BoxLayout:
+        orientation: "vertical"
+        size_hint: 1.0, 1.0
+        height: 40
+
+        Button:
+            id: reuse
+            text: "Duplicates based on file_hashes"
+            size_hint: 1.0, 1.0
+            on_press: self.parent.parent.parent.parent.hash_based()
+
+        Button:
+            id: recompute
+            text: "Duplicates based on rgb, day (fastest)"
+            size_hint: 1.0, 1.0
+            on_press: self.parent.parent.parent.parent.difpy_based(time_span="day")
+
+        Button:
+            id: recompute
+            text: "Duplicates based on rgb, month (faster)"
+            size_hint: 1.0, 1.0
+            on_press: self.parent.parent.parent.parent.difpy_based(time_span="month")
+
+        Button:
+            id: recompute
+            text: "Duplicates based on rgb, year (slower)"
+            size_hint: 1.0, 1.0
+            on_press: self.parent.parent.parent.parent.difpy_based(time_span="year")
+
+        Button:
+            id: recompute
+            text: "Duplicates based on rgb, global (slowest)"
+            size_hint: 1.0, 1.0
+            on_press: self.parent.parent.parent.parent.difpy_based(time_span="all")
+
+
+<ProgressInfo>:
+    title: "Search Progress"
+    size_hint: 0.5, 0.1
+    prog_bar: prog_bar
+
+    ProgressBar:
+        max: 100
+        value: 0
+        id: prog_bar
+        size_hint: 1.0, 1.0
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
 
 
