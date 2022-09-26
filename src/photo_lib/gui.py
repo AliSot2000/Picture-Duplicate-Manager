@@ -417,12 +417,12 @@ class DuplicateLocation(Popup):
         self.reuse_button.bind(on_press=self.reuse)
         self.recompute_button.bind(on_press=self.recmp)
         self.proc_sel = proc_select
+
     def reuse(self, *args, **kwargs):
-        print("RESUE")
         self.dismiss()
+        self.my_float_ref.load_entry()
 
     def recmp(self, *args, **kwargs):
-        # self.my_float_ref.database.delete_duplicates_table()
         self.dismiss()
         self.proc_sel.open()
 
