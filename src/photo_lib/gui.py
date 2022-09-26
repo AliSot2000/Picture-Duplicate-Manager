@@ -339,7 +339,11 @@ class SetDateModal(ModalView):
         self.caller = None
         self.customDateTimeInput.text = ""
 
-    def apply_close(self):
+    def apply(self):
+        self.try_rename()
+        self.dismiss()
+
+    def try_rename(self):
         """
         Applies the new name to the selected comparePane,
         Closes the modal by removing the widget.
@@ -352,12 +356,11 @@ class SetDateModal(ModalView):
         if text == "Custom":
             try:
                 new_datetime = datetime.datetime.strptime(self.ids.datetime_input.text, "%Y-%m-%d %H.%M.%S")
-                new_datetime = text
+                naming_tag = text
             except Exception as e:
                 self.error_popup.error_msg = f"Exception while parsing custom datetime:\n {e}"
                 self.error_popup.traceback_string = traceback.format_exc()
                 self.error_popup.open()
-                self.dismiss()
                 return
 
         else:
@@ -367,27 +370,30 @@ class SetDateModal(ModalView):
                 self.error_popup.error_msg = f"No Parsing function found for given Tag."
                 self.error_popup.traceback_string = traceback.format_exc()
                 self.error_popup.open()
-                self.dismiss()
 
             new_datetime, key = parse_func(self.caller.database_entry.metadata)
 
         # if the datetime is identical, ignore
         if new_datetime == self.caller.database_entry.datetime:
             print("Date is equivalent")
-            self.dismiss()
             return
 
         print(new_datetime)
         # not identical, rename the file
         new_name = self.float_sibling.database.rename_file(self.caller.database_entry, new_datetime=new_datetime,
-                                                naming_tag=naming_tag)
+                                                           naming_tag=naming_tag)
 
         self.caller.database_entry.new_name = new_name
         self.caller.database_entry.datetime = new_datetime
         self.caller.database_entry.naming_tag = naming_tag
         self.caller.load_from_database_entry()
 
-        self.dismiss()  # resets caller already
+    def apply_close(self):
+        self.try_rename()
+
+        self.float_sibling.cps.flexbox.remove_widget(self.caller)
+        self.float_sibling.compareWidgets.remove(self.caller)
+        self.dismiss()
 
 
 class TracebackWidget(Label):
