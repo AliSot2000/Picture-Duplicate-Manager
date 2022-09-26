@@ -441,6 +441,7 @@ class DatabaseSelector(Popup):
 
     def hide_scroll(self, *args, **kwargs):
         self.compareFloat.remove_scroller()
+        self.compareFloat.clear_comparepanes()
 
     def try_close(self, *args, **kwargs):
         self.compareFloat.add_scroller()
