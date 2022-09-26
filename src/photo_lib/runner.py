@@ -45,6 +45,7 @@ class DatabaseEntry:
     file_hash: str
     new_name: str
     datetime: datetime.datetime
+    verify: int
 
 
 def rec_list(root_path):
