@@ -164,6 +164,7 @@ class FlexibleBox(BoxLayout):
 
 
 class CompareScroller(ScrollView):
+    flexbox = ObjectProperty(None)
     pass
 
 
@@ -178,6 +179,7 @@ class MyFloat(FloatLayout):
     database: PhotoDb = None
 
     cps: CompareScroller
+    compareWidgets = []
 
     def __init__(self, fp: str = None, **kwargs):
         super(MyFloat, self).__init__(**kwargs)
@@ -215,8 +217,23 @@ class MyFloat(FloatLayout):
         self.filenameModal.open()
 
     def load_entry(self):
-        # TODO Implement
-        pass
+        success, results = self.database.get_duplicate_entry()
+
+        # table empty
+        if not success:
+
+            # clear table and open selector again
+            self.database.delete_duplicates_table()
+            self.db_selector_widget.open()
+            return
+
+        for entry in results:
+            if entry is not None:
+                cw = ComparePane(db=entry, pictureLib=self.database)
+                self.compareWidgets.append(cw)
+                self.cps.flexbox.add_widget(cw)
+
+        self.ids.status.text = f"Number of duplicates in database: {self.database.get_duplicate_table_size()}"
 
     def store_load_entry(self):
         # TODO Implement
