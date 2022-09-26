@@ -126,12 +126,17 @@ class ComparePane(Widget):
         self.parent.parent.parent.parent.open_modal(caller=self)
 
     def set_button_color(self):
-        if self.ids.dlt_btn.state == "down":
-            self.ids.dlt_btn.background_color = 1.0, 0.0, 0.0
-            self.ids.dlt_btn.text = "to trash"
+        if self.mark_delete_button.state == "down":
+            self.mark_delete_button.background_color = 1.0, 0.0, 0.0
+            self.mark_delete_button.text = "to trash"
         else:
-            self.ids.dlt_btn.background_color = 0.2, 0.6, 0.2
-            self.ids.dlt_btn.text = "keep"
+            self.mark_delete_button.background_color = 0.2, 0.6, 0.2
+            self.mark_delete_button.text = "keep"
+
+    def set_delete_on_main(self):
+        self.mark_delete_button.state = "normal"
+        self.set_button_color()
+
 
 
 class MyGrid(GridLayout):
