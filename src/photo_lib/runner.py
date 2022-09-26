@@ -368,55 +368,22 @@ class PhotoDb:
 
             # perform the metadata aggregation
             file_metadata = self.mda.process_file(os.path.join(cur_file[1], cur_file[0]))
-            imported_file_name = self.__file_name_generator(file_metadata.datetime_object, file_metadata.org_fname)
+            # imported_file_name = self.__file_name_generator(file_metadata.datetime_object, file_metadata.org_fname)
 
             # should be imported?
-            should_import, message, successor = self.determine_import(file_metadata, imported_file_name)
+            should_import, message, successor = self.determine_import(file_metadata)
 
             # DEBUG AID
             # assert 0 <= should_import <= 2
 
             # 0 equal to not import, already present
             if should_import == 0:
-                self.__handle_preset(table=temp_table_name, file_metadata=file_metadata,
-                                     new_file_name=imported_file_name, msg=message, present_file_name=successor,
-                                     update_key=cur_file[2])
+                self.__handle_preset(table=temp_table_name, file_metadata=file_metadata,  msg=message,
+                                     present_file_name=successor, update_key=cur_file[2])
 
             # straight import
             elif should_import == 1:
-                self.__handle_import(fmd=file_metadata, new_file_name=imported_file_name, table=temp_table_name,
-                                     msg=message, update_key=cur_file[2])
-
-            elif should_import == 2:
-                # on debug
-                print(message)
-
-                f_index = 1
-                search = True
-                while search and f_index < 1000:
-                    imported_file_name = self.__file_name_generator(file_metadata.datetime_object,
-                                                                    file_metadata.org_fname, f_index)
-
-                    # should be imported?
-                    should_import, message, successor = self.determine_import(file_metadata, imported_file_name)
-
-                    # 0 equal to not import, already present
-                    if should_import == 0:
-                        self.__handle_preset(table=temp_table_name, file_metadata=file_metadata,
-                                             new_file_name=imported_file_name, msg=message, present_file_name=successor,
-                                             update_key=cur_file[2])
-                        search = False
-
-                    # straight import
-                    if should_import == 1:
-                        self.__handle_import(fmd=file_metadata, new_file_name=imported_file_name, table=temp_table_name,
-                                             msg=message, update_key=cur_file[2])
-
-                        search = False
-
-                    # if should_import is 2
-                    f_index += 1
-                    print(f"{message}: {imported_file_name}")
+                self.__handle_import(fmd=file_metadata, table=temp_table_name, msg=message, update_key=cur_file[2])
 
         return temp_table_name
 
@@ -469,19 +436,19 @@ class PhotoDb:
                              f"original_google_metadata = 0")
         self.con.commit()
 
-    def __handle_import(self, fmd: FileMetaData, new_file_name: str, table: str, msg: str, update_key: int):
+    def __handle_import(self, fmd: FileMetaData, table: str, msg: str, update_key: int):
         if not os.path.exists(self.__folder_from_datetime(fmd.datetime_object)):
             # create subdirectory
             os.makedirs(self.__folder_from_datetime(fmd.datetime_object))
 
-        if os.path.exists(self.__path_from_datetime(fmd.datetime_object, new_file_name)):
-            raise Exception(f"File Exists already; "
-                            f"dst: {self.__path_from_datetime(fmd.datetime_object, new_file_name)}, "
-                            f"src: {os.path.join(fmd.org_fpath, fmd.org_fname)}")
+        new_file_name = self.__file_name_generator(fmd.datetime_object, fmd.org_fname)
+        new_file_path = self.path_from_datetime(fmd.datetime_object, new_file_name)
+
+        self.cur.execute(f"INSERT INTO names (name) VALUES ('{new_file_name}')")
 
         # copy file and preserve metadata
         shutil.copy2(src=os.path.join(fmd.org_fpath, fmd.org_fname),
-                     dst=self.__path_from_datetime(fmd.datetime_object, new_file_name),
+                     dst=new_file_path,
                      follow_symlinks=True)
 
         if fmd.google_fotos_metadata is None:
