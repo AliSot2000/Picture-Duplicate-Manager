@@ -283,7 +283,7 @@ class SetDateModal(ModalView):
             print(self.customDateTimeInput.disabled)
 
     def load_current_tag(self, *_args, **kwargs):
-        pass
+        self.customDateTag.text = self.caller.database_entry.naming_tag
 
     def close(self, *args, **kwargs):
         """
@@ -299,16 +299,14 @@ class SetDateModal(ModalView):
         Closes the modal by removing the widget.
         :return:
         """
-        print("Need to update value in ComparePane")
-
-        target_key = self.ids.naming_tag_input
-        text: str = self.customDateTag.text
-        text = text.strip().capitalize()
+        naming_tag = self.customDateTag.text
+        text = naming_tag.strip().capitalize()
 
         # parse custom
         if text == "Custom":
             try:
                 new_datetime = datetime.datetime.strptime(self.ids.datetime_input.text, "%Y-%m-%d %H.%M.%S")
+                new_datetime = text
             except Exception as e:
                 self.error_popup.error_msg = f"Exception while parsing custom datetime:\n {e}"
                 self.error_popup.traceback_string = traceback.format_exc()
@@ -317,7 +315,7 @@ class SetDateModal(ModalView):
                 return
 
         else:
-            parse_func = key_lookup_dir.get(target_key)
+            parse_func = key_lookup_dir.get(naming_tag)
 
             if parse_func is None:
                 self.error_popup.error_msg = f"No Parsing function found for given Tag."
@@ -325,10 +323,23 @@ class SetDateModal(ModalView):
                 self.error_popup.open()
                 self.dismiss()
 
-            new_datetime = parse_func(self.caller.database_entry.metadata)
+            new_datetime, key = parse_func(self.caller.database_entry.metadata)
 
-        # set all the shit
-        print("DO stuff")
+        # if the datetime is identical, ignore
+        if new_datetime == self.caller.database_entry.datetime:
+            print("Date is equivalent")
+            self.dismiss()
+            return
+
+        print(new_datetime)
+        # not identical, rename the file
+        new_name = self.float_sibling.database.rename_file(self.caller.database_entry, new_datetime=new_datetime,
+                                                naming_tag=naming_tag)
+
+        self.caller.database_entry.new_name = new_name
+        self.caller.database_entry.datetime = new_datetime
+        self.caller.database_entry.naming_tag = naming_tag
+        self.caller.load_from_database_entry()
 
         self.dismiss()  # resets caller already
 
