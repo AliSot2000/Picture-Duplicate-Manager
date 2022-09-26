@@ -698,7 +698,7 @@ class PhotoDb:
 
         self.con.commit()
 
-        src = self.__path_from_datetime(self.__db_str_to_datetime(data[0][5]), data[0][5])
+        src = self.path_from_datetime(self.__db_str_to_datetime(data[0][5]), data[0][5])
 
         if not delete:
             # might be redundant.
