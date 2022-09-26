@@ -270,6 +270,60 @@ class PhotoDb:
 
         self.con.commit()
 
+    def rename_file(self, entry: DatabaseEntry, new_datetime: datetime.datetime, naming_tag: str):
+        """
+        Performs renaming action of a file
+        :param entry: DatabaseEntry provided from g ui
+        :param new_datetime: the new datetime generated from a tag
+        :param naming_tag: the naming tag
+        :return:
+        """
+
+        fmd = FileMetaData(org_fname=entry.org_fname,
+                           org_fpath=entry.org_fpath,
+                           metadata=entry.metadata,
+                           naming_tag=naming_tag,
+                           file_hash=entry.file_hash,
+                           datetime_object=new_datetime,
+                           verify=entry.verify == 1,
+                           google_fotos_metadata=entry.google_fotos_metadata)
+
+        imp, msg, successor = self.determine_import(file_metadata=fmd,
+                                                    current_file_path=self.path_from_datetime(entry.datetime,
+                                                                                              entry.new_name))
+
+        new_name = self.__file_name_generator(new_datetime, entry.org_fname)
+        new_path = self.path_from_datetime(new_datetime, new_name)
+
+        old_path = self.path_from_datetime(entry.datetime, entry.new_name)
+
+        # free file name
+        self.cur.execute(f"DELETE FROM names WHERE name = '{entry.new_name}'")
+
+        # warning -> if a match was found.
+        if imp == 0:
+            print(f"While Renaming: {msg}")
+
+        # update images table
+        self.cur.execute(f"UPDATE images SET "
+                         f"new_name = '{new_name}',"
+                         f"naming_tag = '{naming_tag}',"
+                         f"datetime = '{self.__datetime_to_db_str(new_datetime)}',"
+                         f"verify = {1 - imp}"
+                         f"WHERE key = {entry.key}")
+
+        # update the names table
+        self.cur.execute(f"INSERT INTO names (name) VALUE '{new_name}'")
+
+        print(f"Renaming: {old_path}\nto      : {new_path}")
+
+        folder = self.__folder_from_datetime(new_datetime)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        os.rename(src=old_path, dst=new_path)
+        return new_name
+
     def import_folder(self, folder_path: str, al_fl: Set[str] = None, ignore_deleted: bool = False):
         folder_path = os.path.abspath(folder_path.rstrip("/"))
         temp_table_name = self.__create_import_table(folder_path)
