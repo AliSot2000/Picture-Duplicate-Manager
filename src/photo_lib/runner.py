@@ -1015,6 +1015,7 @@ class PhotoDb:
         if key_str is None:
             return False, []
 
+        key_str = key_str[0]
         keys = json.loads(key_str)
         img_attribs = []
 
