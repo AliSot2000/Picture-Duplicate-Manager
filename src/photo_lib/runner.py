@@ -766,7 +766,8 @@ class PhotoDb:
 
         return None
 
-    def create_img_thumbnail(self, key: int = None, fname: str = None, max_pixel: int = 512, overwrite: bool = False):
+    def create_img_thumbnail(self, key: int = None, fname: str = None, max_pixel: int = 512,
+                             overwrite: bool = False) -> bool:
         # both none
         if key is None and fname is None:
             raise ValueError("Key or fname must be provided")
