@@ -731,7 +731,7 @@ class PhotoDb:
 
     def bulk_duplicate_marking(self, processing_list: list):
         for f in processing_list:
-            self.mark_duplicate(o_image_id=f["o_image_id"], d_image_id=f["d_image_id"], delete=f["delete"])
+            self.mark_duplicate(successor=f["o_image_id"], duplicate_image_id=f["d_image_id"], delete=f["delete"])
 
     def get_duplicate_table_size(self):
         self.cur.execute("SELECT COUNT(key) FROM duplicates")
