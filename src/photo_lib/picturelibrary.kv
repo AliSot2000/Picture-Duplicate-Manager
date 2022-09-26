@@ -240,15 +240,15 @@
 
         Button:
             id: cls_btn
-            text: "Don't Apply"
+            text: "Apply"
             disabled: False
             size_hint_y: None
             height: self.texture_size[1] + 40
-            on_press: self.parent.parent.dismiss()
+            on_press: self.parent.parent.apply()
 
         Button:
             id: apl_btn
-            text: "Apply New Source Tag"
+            text: "Apply and remove from view"
             size_hint_y: None
             height: self.texture_size[1] + 40
             # on_press: self.parent.parent.apply_close()
