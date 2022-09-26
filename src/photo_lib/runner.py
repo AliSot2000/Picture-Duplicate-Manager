@@ -234,6 +234,10 @@ class PhotoDb:
             print("*** You still try to initialize the database. Do not set init arg when instantiating class ***")
             raise e
 
+        self.cur.execute("CREATE TABLE names"
+                         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
+                         "name TEXT UNIQUE)")
+
         # naming_tag, new_name, datetime from images table, drop path info because not needed anymore,
         # TODO: Database needs a new replaced table
         self.cur.execute("CREATE TABLE replaced "
@@ -242,6 +246,7 @@ class PhotoDb:
                          " metadata TEXT,"
                          " google_fotos_metadata TEXT,"
                          " file_hash TEXT, "
+                         " datetime TEXT,"
                          " successor INTEGER NOT NULL)")
 
         self.cur.execute("CREATE TABLE import_tables "
