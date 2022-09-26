@@ -65,6 +65,8 @@ class ComparePane(Widget):
     l_naming_tag = ObjectProperty(None)
     l_new_name = ObjectProperty(None)
     l_metadata = ObjectProperty(None)
+    obuton = ObjectProperty(None)
+    mark_delete_button = ObjectProperty(None)
 
     database_entry: DatabaseEntry = None
 
