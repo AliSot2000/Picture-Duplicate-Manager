@@ -774,10 +774,10 @@ class PhotoDb:
         img_key = results[0][0]
         img_fname = results[0][1]
 
-        img_fpath = self.__path_from_datetime(img_dt, img_fname)
+        img_fpath = self.path_from_datetime(img_dt, img_fname)
 
         # don't create a thumbnail if it already exists.
-        if os.path.exists(self.__thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key)) and not overwrite:
+        if os.path.exists(self.thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key)) and not overwrite:
             return
 
         # load image from disk
@@ -798,7 +798,7 @@ class PhotoDb:
         img_half = cv2.resize(img, dsize=(px, py))
 
         # store image
-        cv2.imwrite(self.__thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key), img_half)
+        cv2.imwrite(self.thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key), img_half)
 
     def image_to_trash(self, key: int = None, fname: str = None):
         # both none
@@ -838,8 +838,8 @@ class PhotoDb:
         self.create_img_thumbnail(key=key)
 
         # move file
-        src = self.__path_from_datetime(self.__db_str_to_datetime(datetime), new_name)
-        dst = self.__trash_path(new_name)
+        src = self.path_from_datetime(self.__db_str_to_datetime(datetime), new_name)
+        dst = self.trash_path(new_name)
 
         if os.path.exists(dst):
             raise ValueError("Image exists in trash already?")
