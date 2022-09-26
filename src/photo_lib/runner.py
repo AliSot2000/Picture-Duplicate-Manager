@@ -794,7 +794,7 @@ class PhotoDb:
 
         # don't create a thumbnail if it already exists.
         if os.path.exists(self.thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key)) and not overwrite:
-            return
+            return False
 
         # load image from disk
         img = cv2.imread(img_fpath, 1)
@@ -815,6 +815,8 @@ class PhotoDb:
 
         # store image
         cv2.imwrite(self.thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key), img_half)
+
+        return True
 
     def image_to_trash(self, key: int = None, fname: str = None):
         # both none
