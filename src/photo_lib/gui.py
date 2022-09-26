@@ -67,8 +67,24 @@ class ComparePane(Widget):
     l_metadata = ObjectProperty(None)
 
     database_entry: DatabaseEntry = None
-    modified: bool = False
-    delete: bool = False
+
+    image_path = StringProperty("")
+    org_fname = StringProperty("")
+    org_fpath = StringProperty("")
+    naming_tag = StringProperty("")
+    new_name = StringProperty("")
+    metadata = StringProperty("")
+
+    pl: PhotoDb
+
+    def __init__(self, db: DatabaseEntry, pictureLib: PhotoDb, **kwargs):
+        super(ComparePane, self).__init__(**kwargs)
+        self.database_entry = db
+        self.pl = pictureLib
+        self.load_from_database_entry()
+
+    def load_from_database_entry(self):
+        self.image_path = self.pl.path_from_datetime(self.database_entry.datetime, self.database_entry.new_name)
 
         # check trash
         if not os.path.exists(self.image_path):
