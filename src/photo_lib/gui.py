@@ -123,7 +123,7 @@ class ComparePane(Widget):
         self.parent.update_scroll_path(x=x)
 
     def open_modal(self):
-        self.parent.parent.parent.parent.open_modal(t_id=self)
+        self.parent.parent.parent.parent.open_modal(caller=self)
 
     def set_button_color(self):
         if self.ids.dlt_btn.state == "down":
@@ -214,8 +214,8 @@ class MyFloat(FloatLayout):
         else:
             self.db_dup_proc_sel.open()
 
-    def open_modal(self, t_id):
-        self.filenameModal.caller = t_id
+    def open_modal(self, caller):
+        self.filenameModal.caller = caller
         self.filenameModal.open()
 
     def load_entry(self):
