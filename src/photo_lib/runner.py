@@ -114,7 +114,7 @@ class PhotoDb:
     def __folder_from_datetime(self, dt_obj: datetime.datetime):
         return os.path.join(self.root_dir, f"{dt_obj.year}", f"{dt_obj.month:02}", f"{dt_obj.day:02}")
 
-    def __path_from_datetime(self, dt_obj: datetime.datetime, file_name: str):
+    def path_from_datetime(self, dt_obj: datetime.datetime, file_name: str):
         return os.path.join(self.__folder_from_datetime(dt_obj), file_name)
 
     def __datetime_to_db_str(self, dt_obj: datetime.datetime):
@@ -123,10 +123,18 @@ class PhotoDb:
     def __db_str_to_datetime(self, dt_str: str):
         return datetime.datetime.strptime(dt_str, self.__datetime_format)
 
-    def __file_name_generator(self, dt_obj: datetime.datetime, old_fname: str, index: int = 0):
-        base = dt_obj.strftime(self.__datetime_format)
-        extension = os.path.splitext(old_fname)[1].lower()
-        return f"{base}_{index:03}{extension}"
+    def __file_name_generator(self, dt_obj: datetime.datetime, old_fname: str):
+        for i in range(1000):
+            base = dt_obj.strftime(self.__datetime_format)
+            extension = os.path.splitext(old_fname)[1].lower()
+            name = f"{base}_{i:03}{extension}"
+
+            self.cur.execute(f"SELECT * FROM names WHERE name = '{name}'")
+            if self.cur.fetchone() is None:
+                return name
+
+        raise ValueError("No valid name found")
+
 
     def __string_to_datetime(self, dt_str: str):
         return datetime.datetime.strptime(dt_str, self.__datetime_format)
@@ -147,11 +155,11 @@ class PhotoDb:
         meta_dict = json.loads(json_str)
         return meta_dict
 
-    def __thumbnail_name(self, ext: str, key: int):
+    def thumbnail_name(self, ext: str, key: int):
         thumbnail_name = f"thumb_{key}{ext}"
         return os.path.join(self.thumbnail_dir, thumbnail_name)
 
-    def __trash_path(self, file_name: str):
+    def trash_path(self, file_name: str):
         return os.path.join(self.trash_dir, file_name)
 
     def duplicate_table_exists(self) -> bool:
