@@ -56,6 +56,8 @@
     l_new_name: label_new_name
     # l_binary_comp: label_binary_comparison
     l_metadata: label_metadata
+    obuton: origin_btn
+    mark_delete_button: dlt_btn
 
     canvas:
         Color:
@@ -136,6 +138,7 @@
                 text: "main"
                 size_hint: 1.0, None
                 height: 30
+                on_press: self.parent.parent.parent.set_delete_on_main()
 
 
         MetadataScrollLabel:
@@ -155,10 +158,14 @@
         size_hint_y: None
         size_hint_x: None
         size: 100, 40
+        on_press: print("TEST") # self.parent.store_load_entry()
 
     BoxLayout:
         orientation: 'horizontal'
         pos_hint: {'bottom': 1.0, 'left': 1.0}
+        # size_hint: None, 1.0
+        # width: self.parent.width - 100
+
 
         Button:
             text: "Load first"
