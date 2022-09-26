@@ -433,7 +433,7 @@ class DuplicateDetection(Popup):
     def __init__(self, root_wdg: MyFloat, **kwargs):
         self.root = root_wdg
         super(DuplicateDetection, self).__init__(**kwargs)
-        self.progressbar = ProgressInfo()
+        self.progressbar = ProgressInfo(self.root.load_entry)
 
     def hash_based(self, *args, **kwargs):
         self.root.database.delete_duplicates_table()
@@ -454,9 +454,10 @@ class ProgressInfo(Popup):
     prog_bar = ObjectProperty(None)
     pipe: Connection = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, done_func, **kwargs):
         super(ProgressInfo, self).__init__(**kwargs)
         self.auto_dismiss = False
+        self.done_callback = done_func
 
     def suck_on_pipe(self, *args, **kwargs):
         try:
@@ -471,6 +472,7 @@ class ProgressInfo(Popup):
             Clock.unschedule(self.suck_on_pipe)
             self.pipe = None
             self.dismiss()
+            self.done_callback()
 
         else:
             self.title = f"Total: {transmission[1]}; Done: {transmission[0]}"
