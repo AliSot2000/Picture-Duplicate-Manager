@@ -1,5 +1,4 @@
 import time
-
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
@@ -19,7 +18,6 @@ from .runner import PhotoDb, DatabaseEntry
 from kivy.uix.label import Label
 import traceback
 from multiprocessing.connection import Connection
-
 
 
 class ScrollLabel(ScrollView):
@@ -72,14 +70,33 @@ class ComparePane(Widget):
     modified: bool = False
     delete: bool = False
 
-    image_path = StringProperty("/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2162.JPG")
-    org_fname = StringProperty("IMG_2162.JPG")
-    org_fpath = StringProperty("/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images")
-    naming_tag = StringProperty("Create Date")
-    new_name = StringProperty("2018-06-03 22.44.11_000.jpg")
-    bin_comp = BooleanProperty(True)
-    metadata = StringProperty(
-        """Composite:ImageSize: 2048 1536\nComposite:Megapixels: 3.145728\nExifTool:ExifToolVersion: 12.44\nFile:Directory: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018\nFile:FileAccessDate: 2022:09:12 18:34:46+02:00\nFile:FileInodeChangeDate: 2022:09:12 17:11:13+02:00\nFile:FileModifyDate: 2018:04:01 02:43:30+02:00\nFile:FileName: IMG_2130.PNG\nFile:FilePermissions: 100777\nFile:FileSize: 1912870\nFile:FileType: PNG\nFile:FileTypeExtension: PNG\nFile:MIMEType: image/png\nPNG:BitDepth: 8\nPNG:ColorType: 2\nPNG:Compression: 0\nPNG:Filter: 0\nPNG:ImageHeight: 1536\nPNG:ImageWidth: 2048\nPNG:Interlace: 0\nPNG:SRGBRendering: 0\nSourceFile: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018/IMG_2130.PNG\nXMP:DateCreated: 2018:04:01 02:43:29\nXMP:UserComment: Screenshot\nXMP:XMPToolkit: XMP Core 5.4.0""")
+        # check trash
+        if not os.path.exists(self.image_path):
+            self.image_path = self.pl.trash_path(self.database_entry.new_name)
+
+        # check thumbnails
+        if not os.path.exists(self.image_path):
+            self.image_path = self.pl.thumbnail_name(os.path.splitext(self.database_entry.new_name)[1],
+
+                                                     self.database_entry.key)
+
+        self.org_fname = self.database_entry.org_fname
+        self.org_fpath = self.database_entry.org_fpath
+        self.naming_tag = self.database_entry.naming_tag
+        self.new_name = self.database_entry.new_name
+        self.generate_metadata()
+
+    def generate_metadata(self):
+        keys = self.database_entry.metadata.keys()
+        key_list = list(keys)
+        key_list.sort()
+
+        result = ""
+
+        for key in key_list:
+            result += f"{key}: {self.database_entry.metadata.get(key)}\n"
+
+        self.metadata = result
 
     def update_scroll_metadata(self, *args, x: float, y: float, **kwargs):
         self.parent.update_scroll_meta(x=x, y=y)

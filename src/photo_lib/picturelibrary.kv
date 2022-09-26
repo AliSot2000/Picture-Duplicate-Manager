@@ -43,6 +43,10 @@
 
 <ComparePane>:
 
+    size_hint_x: None
+    width: 400
+    size_hint_y: 1.0
+
     image: img
     dump: dlt_btn
     rename_file: rnf_btn
@@ -94,7 +98,7 @@
             height: 25
             size_hint: 1.0, None
             do_scroll_y: False
-            text: "Create Date"
+            text: self.parent.parent.naming_tag
 
 
         ScrollLabel:
@@ -102,7 +106,7 @@
             size_hint: 1.0, None
             height: 25
             do_scroll_y: False
-            text: "2018-06-03 22.44.11_000.jpg"
+            text: self.parent.parent.new_name
 
         BoxLayout:
             size_hint: 1.0, None
@@ -138,8 +142,7 @@
             id: label_metadata
             size_hint_x: 1.0
             multiline: True
-            text: "Composite:ImageSize: 2048 1536\nComposite:Megapixels: 3.145728\nExifTool:ExifToolVersion: 12.44\nFile:Directory: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018\nFile:FileAccessDate: 2022:09:12 18:34:46+02:00\nFile:FileInodeChangeDate: 2022:09:12 17:11:13+02:00\nFile:FileModifyDate: 2018:04:01 02:43:30+02:00\nFile:FileName: IMG_2130.PNG\nFile:FilePermissions: 100777\nFile:FileSize: 1912870\nFile:FileType: PNG\nFile:FileTypeExtension: PNG\nFile:MIMEType: image/png\nPNG:BitDepth: 8\nPNG:ColorType: 2\nPNG:Compression: 0\nPNG:Filter: 0\nPNG:ImageHeight: 1536\nPNG:ImageWidth: 2048\nPNG:Interlace: 0\nPNG:SRGBRendering: 0\nSourceFile: /media/alisot2000/DumpStuff/Picture consolidation/Export Fotos Macbok archive 2/iptc/1. April 2018/IMG_2130.PNG\nXMP:DateCreated: 2018:04:01 02:43:29\nXMP:UserComment: Screenshot\nXMP:XMPToolkit: XMP Core 5.4.0"
-
+            text: self.parent.parent.metadata
 
 
 
