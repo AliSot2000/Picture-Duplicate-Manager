@@ -301,7 +301,7 @@ class PhotoDb:
         self.cur.execute(f"DELETE FROM names WHERE name = '{entry.new_name}'")
 
         # warning -> if a match was found.
-        if imp == 0:
+        if imp <= 0:
             print(f"While Renaming: {msg}")
 
         # update images table
@@ -377,9 +377,9 @@ class PhotoDb:
             # assert 0 <= should_import <= 2
 
             # 0 equal to not import, already present
-            if should_import == 0:
+            if should_import <= 0:
                 self.__handle_preset(table=temp_table_name, file_metadata=file_metadata,  msg=message,
-                                     present_file_name=successor, update_key=cur_file[2])
+                                     present_file_name=successor, update_key=cur_file[2], status_code=should_import, successor=successor)
 
             # straight import
             elif should_import == 1:
@@ -406,39 +406,55 @@ class PhotoDb:
                 count += self.__rec_list(np, table, allowed_files)
         return count
 
-    def __handle_preset(self, table: str, file_metadata: FileMetaData, new_file_name: str, msg: str,
-                        present_file_name: str, update_key: int):
+    def __handle_preset(self, table: str, file_metadata: FileMetaData,  msg: str,
+                        present_file_name: str, update_key: int, status_code: int, successor: str):
+        """
+        Handler to be called if a file which is to be imported is already present in the database.
+
+        :param table: import_table for the currently imported folder
+        :param file_metadata: metadata from MetadataAggregator of current file
+        :param msg: Message from determine import
+        :param present_file_name: id of the
+        :param update_key:
+        :return:
+        """
         if file_metadata.google_fotos_metadata is None:
             self.cur.execute(f"UPDATE {table} "
                              f"SET metadata = '{self.__dict_to_b64(file_metadata.metadata)}', "
                              f"file_hash = '{file_metadata.file_hash}', "
-                             f"new_name = '{new_file_name}', "
                              f"imported = 0, "
                              f"processed=1, "
                              f"message = '{msg}', "
                              f"hash_based_duplicate = '{present_file_name}' WHERE key = {update_key}")
+            self.con.commit()
         else:
             self.cur.execute(f"UPDATE {table} "
                              f"SET metadata = '{self.__dict_to_b64(file_metadata.metadata)}', "
                              f"file_hash = '{file_metadata.file_hash}', "
-                             f"new_name = '{new_file_name}', "
                              f"imported = 0, "
                              f"processed=1, "
                              f"message = '{msg}', "
                              f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
                              f"hash_based_duplicate = '{present_file_name}' WHERE key = {update_key}")
+            self.con.commit()
 
-            self.cur.execute(f"SELECT key FROM images WHERE new_name is '{new_file_name}'")
-            res = self.cur.fetchone()
+            if status_code == 0:
+                self.cur.execute(f"SELECT key FROM images WHERE new_name is '{successor}'")
+                res = self.cur.fetchone()
 
-            self.cur.execute(f"UPDATE images SET "
-                             f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
-                             f"original_google_metadata = 0")
-        self.con.commit()
+                self.cur.execute(f"UPDATE images SET "
+                                 f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
+                                 f"original_google_metadata = 0")
+
+                self.con.commit()
+
+            elif status_code == -1:
+                raise NotImplementedError("Updating of google fotos metadata if file is in replaced not implemented.")
 
     def __handle_import(self, fmd: FileMetaData, table: str, msg: str, update_key: int):
+
+        # create subdirectory
         if not os.path.exists(self.__folder_from_datetime(fmd.datetime_object)):
-            # create subdirectory
             os.makedirs(self.__folder_from_datetime(fmd.datetime_object))
 
         new_file_name = self.__file_name_generator(fmd.datetime_object, fmd.org_fname)
