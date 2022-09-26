@@ -1022,6 +1022,10 @@ class PhotoDb:
         self.con.commit()
         return True, msg + f"Successfully found {len(duplicates)} duplicates"
 
+    def delete_duplicate_row(self, key: int):
+        self.cur.execute(f"DELETE FROM duplicates WHERE key = {key}")
+        self.con.commit()
+
     def get_duplicate_entry(self):
         """
         Returns one entry from the duplicates table
