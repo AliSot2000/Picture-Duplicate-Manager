@@ -718,6 +718,10 @@ class PhotoDb:
         for f in processing_list:
             self.mark_duplicate(o_image_id=f["o_image_id"], d_image_id=f["d_image_id"], delete=f["delete"])
 
+    def get_duplicate_table_size(self):
+        self.cur.execute("SELECT COUNT(key) FROM duplicates")
+        return self.cur.fetchone()[0]
+
     def gui_get_image(self, key: int = None, filename: str = None):
         if key is None and filename is None:
             raise ValueError("Key or Filename must be provided")
@@ -738,11 +742,12 @@ class PhotoDb:
                 org_fname=res[1],
                 org_fpath=res[2],
                 metadata=self.__b64_to_dict(res[3]),
-                naming_tag=res[4],
-                file_hash=res[5],
-                new_name=res[6],
-                datetime=self.__db_str_to_datetime(res[7]),
-                google_fotos_metadata=self.__b64_to_dict(res[10]))
+                naming_tag=res[5],
+                file_hash=res[6],
+                new_name=res[7],
+                datetime=self.__db_str_to_datetime(res[8]),
+                google_fotos_metadata=self.__b64_to_dict(res[4]),
+                verify=res[10])
 
         return None
 
