@@ -1031,12 +1031,13 @@ class PhotoDb:
         Returns one entry from the duplicates table
         :return:
         """
-        self.cur.execute("SELECT matched_keys FROM duplicates")
+        self.cur.execute("SELECT matched_keys, key FROM duplicates")
         key_str = self.cur.fetchone()
 
         if key_str is None:
             return False, []
 
+        row_id = key_str[1]
         key_str = key_str[0]
         keys = json.loads(key_str)
         img_attribs = []
@@ -1044,7 +1045,7 @@ class PhotoDb:
         for k in keys:
             img_attribs.append(self.gui_get_image(key=k))
 
-        return True, img_attribs
+        return True, img_attribs, row_id
 
     def limited_dir_rec_list(self, path: str, nor: int, results: list = None) -> Union[None, list]:
         """
