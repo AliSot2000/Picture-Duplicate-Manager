@@ -242,10 +242,48 @@ class MyFloat(FloatLayout):
                 self.cps.flexbox.add_widget(cw)
 
         self.ids.status.text = f"Number of duplicates in database: {self.database.get_duplicate_table_size()}"
+        self.loaded_row = row_id
+
+    def clear_comparepanes(self):
+        for p in self.compareWidgets:
+            self.cps.flexbox.remove_widget(self.caller)
+
+        self.compareWidgets = []
 
     def store_load_entry(self):
-        # TODO Implement
-        pass
+        if len(self.compareWidgets) == 0:
+            return
+
+        main_entry: ComparePane = None
+        for_duplicates = []
+
+        for entry in self.compareWidgets:
+            if entry.obuton.state == "down":
+                main_entry = entry
+            if entry.mark_delete_button.state == "down":
+                for_duplicates.append(entry)
+
+        # remove all ComparePanes and repopulate
+        if main_entry is None:
+            self.clear_comparepanes()
+            self.database.delete_duplicate_row(self.loaded_row)
+            self.loaded_row = None
+            self.load_entry()
+            return
+
+        main_key = main_entry.database_entry.key
+
+        for marks in for_duplicates:
+            marks: ComparePane
+            self.database.mark_duplicate(successor=main_key, duplicate_image_id=marks.database_entry.key, delete=True)
+
+        self.clean_up()
+
+    def clean_up(self):
+        self.clear_comparepanes()
+        self.database.delete_duplicate_row(self.loaded_row)
+        self.loaded_row = None
+        self.load_entry()
 
 
 class CustomDateTag(TextInput):
