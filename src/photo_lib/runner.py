@@ -522,11 +522,11 @@ class PhotoDb:
         # check all matches in images database for hash and binary match
         for match in matches:
 
-            # generate path to new file as well as old file.
+            # path to existing file
             dt_obj = self.__string_to_datetime(dt_str=match[6])
-
             old_path = self.path_from_datetime(dt_obj=dt_obj, file_name=match[5])
 
+            # file that we want to import
             if current_file_path is None:
                 current_file_path = os.path.join(file_metadata.org_fpath, file_metadata.org_fname)
 
@@ -535,17 +535,13 @@ class PhotoDb:
 
                 # compare binary if hash is match
                 if not filecmp.cmp(old_path, current_file_path, shallow=False):
-                    warnings.warn(f"Files with identital hash but differing binary found.\n"
+                    warnings.warn(f"Files with identical hash but differing binary found.\n"
                                   f"New File: {current_file_path}\nOld File: {old_path}", RareOccurrence)
                 # matching hash and binary:
                 else:
                     return 0, "Binary matching file found.", match[5]
 
-        success, message, successor = self.presence_in_replaced(file_metadata=file_metadata)
-
-        # file doesn't exist -> insert and create database entry
-        if len(matches) == 0:
-            return 1, "no entry in database", ""
+        return self.presence_in_replaced(file_metadata=file_metadata)
 
     def presence_in_replaced(self, file_metadata: FileMetaData) -> tuple:
         # search the replaced database
