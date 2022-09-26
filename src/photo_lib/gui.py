@@ -172,7 +172,6 @@ class FlexibleBox(BoxLayout):
 
 class CompareScroller(ScrollView):
     flexbox = ObjectProperty(None)
-    pass
 
 
 class MyFloat(FloatLayout):
@@ -187,6 +186,7 @@ class MyFloat(FloatLayout):
 
     cps: CompareScroller
     compareWidgets = []
+    loaded_row: int = None
 
     def __init__(self, fp: str = None, **kwargs):
         super(MyFloat, self).__init__(**kwargs)
@@ -224,7 +224,8 @@ class MyFloat(FloatLayout):
         self.filenameModal.open()
 
     def load_entry(self):
-        success, results = self.database.get_duplicate_entry()
+        success, results, row_id = self.database.get_duplicate_entry()
+
 
         # table empty
         if not success:
