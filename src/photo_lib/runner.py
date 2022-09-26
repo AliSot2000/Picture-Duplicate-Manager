@@ -546,13 +546,13 @@ class PhotoDb:
     def presence_in_replaced(self, file_metadata: FileMetaData) -> tuple:
         # search the replaced database
         self.cur.execute(
-            f"SELECT metadata, key FROM replaced "
+            f"SELECT metadata, key, successor FROM replaced "
             f"WHERE datetime = '{self.__datetime_to_db_str(file_metadata.datetime_object)}' "
             f"AND hash IS '{file_metadata.file_hash}'")
 
         matches = self.cur.fetchall()
 
-        # no matches, continue with import but change file name
+        # no matches, continue with import
         if len(matches) == 0:
             return 1, "no file found matching datetime and hash in replaced", ""
 
@@ -561,8 +561,11 @@ class PhotoDb:
             warnings.warn(f"Found {len(matches)} entries matching hash and creation datetime", RareOccurrence)
             return 1, "Found multiple matching entries, importing just to be sure", ""
 
+        # number of matches must be 1
         # Import file, Message, (one of possibly many) matches
-        return 0, "Found entry in database with matching hash", matches[0][1]
+        self.cur.execute("SELECT new_name FROM images WHERE key = {matches[0][1]}")
+        successor_name = self.cur.fetchone()[0]
+        return -1, "Found entry in database with matching hash", successor_name
 
     def __create_import_table(self, folder_path: str) -> str:
         table_name = os.path.basename(folder_path)
