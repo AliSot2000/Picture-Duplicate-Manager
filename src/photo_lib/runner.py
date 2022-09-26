@@ -492,62 +492,65 @@ class PhotoDb:
 
         self.con.commit()
 
-    def determine_import(self, file_metadata: FileMetaData, new_name: str) -> tuple:
+    def determine_import(self, file_metadata: FileMetaData, current_file_path: str = None) -> tuple:
         # Verify existence in the database
         # TODO: rethink the present column in database
-        self.cur.execute(f"SELECT org_fname, org_fpath, metadata, naming_tag, file_hash, new_name, datetime, key "
-                         f"FROM images WHERE new_name IS '{new_name}'")
 
-        match = self.cur.fetchone()
+        print(file_metadata.datetime_object)
+
+        self.cur.execute(f"SELECT org_fname, org_fpath, metadata, naming_tag, file_hash, new_name, datetime, key "
+                         f"FROM images WHERE datetime IS '{self.__datetime_to_db_str(file_metadata.datetime_object)}'")
+
+        matches = self.cur.fetchall()
+
+        # check all matches in images database for hash and binary match
+        for match in matches:
+
+            # generate path to new file as well as old file.
+            dt_obj = self.__string_to_datetime(dt_str=match[6])
+
+            old_path = self.path_from_datetime(dt_obj=dt_obj, file_name=match[5])
+
+            if current_file_path is None:
+                current_file_path = os.path.join(file_metadata.org_fpath, file_metadata.org_fname)
+
+            # verify match by hash, if has doesn't match, search replaced table
+            if match[4] == file_metadata.file_hash:
+
+                # compare binary if hash is match
+                if not filecmp.cmp(old_path, current_file_path, shallow=False):
+                    warnings.warn(f"Files with identital hash but differing binary found.\n"
+                                  f"New File: {current_file_path}\nOld File: {old_path}", RareOccurrence)
+                # matching hash and binary:
+                else:
+                    return 0, "Binary matching file found.", match[5]
+
+        success, message, successor = self.presence_in_replaced(file_metadata=file_metadata)
 
         # file doesn't exist -> insert and create database entry
-        if match is None:
+        if len(matches) == 0:
             return 1, "no entry in database", ""
 
-        # generate path to new file as well as old file.
-        dt_obj = self.__string_to_datetime(dt_str=match[6])
-        old_path = self.__path_from_datetime(dt_obj=dt_obj, file_name=match[5])
-
-        new_path = self.__path_from_datetime(file_metadata.datetime_object, new_name)
-
-        # verify match by hash
-        if match[4] != file_metadata.file_hash:
-            return self.presence_in_replaced(file_metadata=file_metadata, key=match[7], old_file_name=match[5])
-
-        # compare binary if hash is match
-        if not filecmp.cmp(old_path, new_path, shallow=False):
-            warnings.warn(f"Files with identital hash but differing binary found.\n"
-                          f"New File: {new_path}\nOld File: {old_path}", RareOccurrence)
-            return 2, "Entry in database with same hash but differing in binary", match[5]
-
-        return 0, "Binary matching file found.", match[5]
-
-    def presence_in_replaced(self, file_metadata: FileMetaData, key: int, old_file_name: str) -> tuple:
-        # search the replaced databse
+    def presence_in_replaced(self, file_metadata: FileMetaData) -> tuple:
+        # search the replaced database
         self.cur.execute(
-            f"SELECT metadata FROM replaced "
-            f"WHERE successor = {key} AND hash IS '{file_metadata.file_hash}'")
+            f"SELECT metadata, key FROM replaced "
+            f"WHERE datetime = '{self.__datetime_to_db_str(file_metadata.datetime_object)}' "
+            f"AND hash IS '{file_metadata.file_hash}'")
 
         matches = self.cur.fetchall()
 
         # no matches, continue with import but change file name
         if len(matches) == 0:
-            return 2, "no file found matching datetime and hash in replaced", ""
+            return 1, "no file found matching datetime and hash in replaced", ""
 
         # unusual event, multiple matching hashes... TODO: is this allowed / possible
         if len(matches) > 1:
             warnings.warn(f"Found {len(matches)} entries matching hash and creation datetime", RareOccurrence)
-
-        # If filesize of one hash is smaller, import anyway and prommpt user to check
-        for m in matches:
-            metadict = self.__b64_to_dict(m[0])
-            fsize = metadict["File:FileSize"]
-
-            if fsize < file_metadata.metadata["File:FileSize"]:
-                return 2, "Found one hash which has a smaller filesize in replaced", old_file_name
+            return 1, "Found multiple matching entries, importing just to be sure", ""
 
         # Import file, Message, (one of possibly many) matches
-        return 0, "Found entry in database with matching hash and greater or equal filesize in replaced", old_file_name
+        return 0, "Found entry in database with matching hash", matches[0][1]
 
     def __create_import_table(self, folder_path: str) -> str:
         table_name = os.path.basename(folder_path)
