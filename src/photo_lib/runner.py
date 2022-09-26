@@ -338,7 +338,7 @@ class PhotoDb:
                          f" org_fname TEXT NOT NULL, "
                          f" org_fpath TEXT NOT NULL, "
                          f" metadata TEXT, "
-                         f"google_fotos_metadata TEXT,"
+                         f" google_fotos_metadata TEXT,"
                          f" file_hash TEXT, "
                          f" new_name TEXT,"
                          f" imported INTEGER DEFAULT 0 CHECK ({temp_table_name}.imported >= 0 AND {temp_table_name}.imported < 2),"
@@ -353,12 +353,11 @@ class PhotoDb:
         number_of_files = self.__rec_list(path=folder_path, table=temp_table_name, allowed_files=al_fl)
         self.con.commit()
 
-        # set the not allowed files processed for the moment...
-        # self.cur.execute(f"UPDATE {temp_table_name} SET processed = 1 WHERE allowed = 0")
         for i in range(number_of_files):
             if i % 100 == 0:
                 print(i)
 
+            # fetch a not processed file from import table
             self.cur.execute(
                 f"SELECT org_fname, org_fpath, key FROM {temp_table_name} WHERE allowed = 1 AND processed = 0")
             cur_file = self.cur.fetchone()
