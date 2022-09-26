@@ -687,10 +687,10 @@ class PhotoDb:
     #                 # here would be the deletion and shit.
     #                 pass
 
-    def mark_duplicate(self, o_image_id: int, d_image_id: int, delete: bool = False):
+    def mark_duplicate(self, successor: int, duplicate_image_id: int, delete: bool = False):
 
         # verify original is not a duplicate itself
-        self.cur.execute(f"SELECT successor FROM replaced WHERE key is {o_image_id}")
+        self.cur.execute(f"SELECT successor FROM replaced WHERE key is {successor}")
         result = self.cur.fetchone()
 
         if result is not None:
@@ -699,7 +699,7 @@ class PhotoDb:
         # get data from original
         self.cur.execute(
             f"SELECT key, org_fname, metadata, google_fotos_metadata, hash, datetime, new_name FROM images "
-            f"WHERE key is {d_image_id}")
+            f"WHERE key is {duplicate_image_id}")
         data = self.cur.fetchall()
 
         # would violate SQL but just put it in here because I might be stupid
@@ -707,20 +707,20 @@ class PhotoDb:
 
         # insert duplicate into replaced table
         self.cur.execute(f"INSERT INTO replaced "
-                         f"(key, org_fname, metadata, google_fotos_metadata, hash, successor) "
+                         f"(key, org_fname, metadata, google_fotos_metadata, hash, successor, datetime) "
                          f"VALUES "
-                         f"({data[0][0]}, {data[0][1]}, {data[0][2]}, {data[0][3]}, {data[0][4]}, {o_image_id})")
+                         f"({data[0][0]}, '{data[0][1]}', '{data[0][2]}', '{data[0][3]}', '{data[0][4]}', {successor}, "
+                         f"'{data[0][5]}')")
 
         self.con.commit()
 
         src = self.path_from_datetime(self.__db_str_to_datetime(data[0][5]), data[0][5])
 
-        if not delete:
-            # might be redundant.
-            self.create_img_thumbnail(data[0][0])
+        self.create_img_thumbnail(data[0][0])
 
+        if not delete:
             # move file
-            dst = self.__trash_path(data[0][5])
+            dst = self.trash_path(data[0][5])
 
             if os.path.exists(dst):
                 raise ValueError("Image exists in trash already?")
