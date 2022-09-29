@@ -269,17 +269,25 @@ class ComparePane(Widget):
         self.parent.parent.parent.parent.open_modal(caller=self)
 
     def set_button_color(self):
+        """
+        Delete Button set color to red if set to down, otherwise green
+        :return:
+        """
         if self.mark_delete_button.state == "down":
             self.mark_delete_button.background_color = 1.0, 0.0, 0.0
             self.mark_delete_button.text = "to trash"
+            self.obuton.state = "normal"
         else:
             self.mark_delete_button.background_color = 0.2, 0.6, 0.2
             self.mark_delete_button.text = "keep"
 
     def set_delete_on_main(self):
+        """
+        Cannot have 'Delete button' set as well as main.
+        :return:
+        """
         self.mark_delete_button.state = "normal"
         self.set_button_color()
-
 
 
 class MyGrid(GridLayout):
