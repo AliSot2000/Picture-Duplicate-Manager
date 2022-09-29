@@ -83,6 +83,10 @@ class ScrollLabel(ScrollView):
 
 
 class MetadataScrollLabel(ScrollView):
+    """
+    Specific instance of ScrollLabel which has a callback which updates the scroll in every instance of
+    MetadataScrollLabel
+    """
     lbl = ObjectProperty(None)
     text = StringProperty("example content")
 
@@ -138,6 +142,9 @@ class MetadataScrollLabel(ScrollView):
 
 
 class PathScrollLabel(ScrollView):
+    """
+    Specific instance of ScrollLabel which has a callback which updates the scroll in every instance of PathScrollLabel
+    """
     lbl = ObjectProperty(None)
     text = StringProperty("example content")
 
