@@ -555,7 +555,7 @@ class PhotoDb:
         self.cur.execute(
             f"SELECT metadata, key, successor FROM replaced "
             f"WHERE datetime = '{self.__datetime_to_db_str(file_metadata.datetime_object)}' "
-            f"AND hash IS '{file_metadata.file_hash}'")
+            f"AND file_hash IS '{file_metadata.file_hash}'")
 
         matches = self.cur.fetchall()
 
