@@ -259,11 +259,11 @@ class ComparePane(Widget):
 
         self.metadata = result
 
-    def update_scroll_metadata(self, *args, x: float, y: float, **kwargs):
-        self.parent.update_scroll_meta(x=x, y=y)
+    def update_scroll_metadata(self, *args, x: float, y: float, caller: MetadataScrollLabel, **kwargs):
+        self.parent.update_scroll_meta(x=x, y=y, caller=caller)
 
-    def update_scroll_path(self, *args, x: float, **kwargs):
-        self.parent.update_scroll_path(x=x)
+    def update_scroll_path(self, *args, x: float, caller: PathScrollLabel, **kwargs):
+        self.parent.update_scroll_path(x=x, caller=caller)
 
     def open_modal(self):
         self.parent.parent.parent.parent.open_modal(caller=self)
@@ -287,7 +287,7 @@ class MyGrid(GridLayout):
         super(MyGrid, self).__init__(**kwargs)
         self.bind(minimum_width=self.setter('width'))
 
-    def update_scroll_meta(self, *args, x: float, y: float, **kwargs):
+    def update_scroll_meta(self, *args, x: float, y: float, caller: MetadataScrollLabel, **kwargs):
         """
         Updates the scroll value of all meta_data labels to the same value
         :param args: just for safety
@@ -298,12 +298,16 @@ class MyGrid(GridLayout):
         """
         for c in self.children:
             c: ComparePane
+            if c == caller:
+                continue
             c.l_metadata.scroll_x = x
             c.l_metadata.scroll_y = y
 
-    def update_scroll_path(self, *args, x: float, **kwargs):
+    def update_scroll_path(self, *args, x: float, caller: PathScrollLabel,  **kwargs):
         for c in self.children:
             c: ComparePane
+            if c == caller:
+                continue
             c.l_ofpath.scroll_x = x
 
 
