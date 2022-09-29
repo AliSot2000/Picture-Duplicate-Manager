@@ -567,6 +567,7 @@ class SetDateModal(ModalView):
                 self.error_popup.error_msg = f"No Parsing function found for given Tag."
                 self.error_popup.traceback_string = traceback.format_exc()
                 self.error_popup.open()
+                return
 
             new_datetime, key = parse_func(self.caller.database_entry.metadata)
 
