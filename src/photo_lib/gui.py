@@ -446,7 +446,7 @@ class MyFloat(FloatLayout):
 
     def clear_comparepanes(self):
         for p in self.compareWidgets:
-            self.cps.flexbox.remove_widget(self.caller)
+            self.cps.flexbox.remove_widget(p)
 
         self.compareWidgets = []
 
@@ -465,10 +465,7 @@ class MyFloat(FloatLayout):
 
         # remove all ComparePanes and repopulate
         if main_entry is None:
-            self.clear_comparepanes()
-            self.database.delete_duplicate_row(self.loaded_row)
-            self.loaded_row = None
-            self.load_entry()
+            self.clean_up()
             return
 
         main_key = main_entry.database_entry.key
