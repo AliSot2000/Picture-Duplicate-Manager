@@ -208,6 +208,16 @@
     do_scroll_y: True
     do_scroll_x: True
     flexbox: cg
+    effect_cls: "ScrollEffect"
+    always_overscroll: False
+    smooth_scroll_end: 5
+
+    canvas:
+        Color:
+            rgb: (0.3, 0.3, 0.3)
+        Rectangle:
+            pos: self.pos[0], self.pos[1]
+            size: self.size[0], self.size[1]
 
     FlexibleBox:
         orientation: 'vertical'
