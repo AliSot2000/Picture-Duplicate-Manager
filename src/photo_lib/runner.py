@@ -246,7 +246,7 @@ class PhotoDb:
                          "name TEXT UNIQUE)")
 
         # naming_tag, new_name, datetime from images table, drop path info because not needed anymore,
-        # TODO: Database needs a new replaced table
+        # TODO: Database needs a new replaced table -> DAtetime and file_hash
         self.cur.execute("CREATE TABLE replaced "
                          "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
                          " org_fname TEXT,"
