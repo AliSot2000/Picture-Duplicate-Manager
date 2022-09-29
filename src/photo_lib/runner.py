@@ -794,9 +794,19 @@ class PhotoDb:
             if len(results) > 1:
                 raise ValueError("Corrupted Database - multiple images with identical name")
 
+        if len(results) == 0:
+            warnings.warn("Couldn't locate image by id or name in images table. Image might exist but not be in table ", NoDatabaseEntry)
+
+        # only on is allowed otherwise the database is broken
+        assert len(results) == 1, "more results than allowed, Database configuration is wrong, should be unique or " \
+                                  "primary key"
+
         img_dt = self.__db_str_to_datetime(results[0][2])
         img_key = results[0][0]
         img_fname = results[0][1]
+
+        if os.path.splitext(img_fname)[1] not in {".jpeg", ".jpg", ".png", ".tiff"}:
+            print(f"{img_fname} was not of supported type to create thumbnails with cv2 lib.")
 
         img_fpath = self.path_from_datetime(img_dt, img_fname)
 
