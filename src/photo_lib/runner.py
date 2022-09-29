@@ -705,7 +705,7 @@ class PhotoDb:
 
         # get data from original
         self.cur.execute(
-            f"SELECT key, org_fname, metadata, google_fotos_metadata, hash, datetime, new_name FROM images "
+            f"SELECT key, org_fname, metadata, google_fotos_metadata, file_hash, datetime, new_name FROM images "
             f"WHERE key is {duplicate_image_id}")
         data = self.cur.fetchall()
 
@@ -714,16 +714,17 @@ class PhotoDb:
 
         # insert duplicate into replaced table
         self.cur.execute(f"INSERT INTO replaced "
-                         f"(key, org_fname, metadata, google_fotos_metadata, hash, successor, datetime) "
+                         f"(key, org_fname, metadata, google_fotos_metadata, file_hash, successor, datetime) "
                          f"VALUES "
                          f"({data[0][0]}, '{data[0][1]}', '{data[0][2]}', '{data[0][3]}', '{data[0][4]}', {successor}, "
                          f"'{data[0][5]}')")
 
+        # is removed duplicate from main table because it could result in confusion
+        self.cur.execute(f"DELETE FROM images WHERE key = {duplicate_image_id}")
+
         self.con.commit()
 
-        src = self.path_from_datetime(self.__db_str_to_datetime(data[0][5]), data[0][5])
-
-        self.create_img_thumbnail(data[0][0])
+        src = self.path_from_datetime(self.__db_str_to_datetime(data[0][5]), data[0][6])
 
         if not delete:
             # move file
