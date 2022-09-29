@@ -397,7 +397,7 @@ class MyFloat(FloatLayout):
         self.db_dup_proc_sel = DuplicateDetection(root_wdg=self)
         self.db_duplicate_location = DuplicateLocation(Root_Ref=self, proc_select=self.db_dup_proc_sel)
 
-        self.add_widget(self.cps, index=-1)
+        self.add_scroller()
 
         if self.dup_fp is None:
             self.db_selector_widget.open()
@@ -406,7 +406,9 @@ class MyFloat(FloatLayout):
         self.remove_widget(self.cps)
 
     def add_scroller(self):
-        self.add_widget(self.cps, index=-1)
+        print(self.children)
+        self.add_widget(self.cps, index=2)
+        print(self.children)
 
     def load_db(self):
         self.database = PhotoDb(root_dir=self.dup_fp)
