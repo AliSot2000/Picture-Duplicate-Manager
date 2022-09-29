@@ -34,6 +34,14 @@ class DuplicateChainingError(Exception):
         return repr(self.message)
 
 
+class NoDatabaseEntry(Warning):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return repr(self.message)
+
+
 @dataclass
 class DatabaseEntry:
     key: int
