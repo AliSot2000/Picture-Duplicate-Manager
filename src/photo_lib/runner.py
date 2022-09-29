@@ -982,7 +982,7 @@ class PhotoDb:
         # if len(res) == 0:
         #     print("\n\n\n\n\n\n\n")
         #     print(f"File name is: {file_name}")
-        assert len(res) == 1
+        assert len(res) <= 1, "multiple matching files found error in database, since not allowed by filesystem"
 
         return res[0][0]
 
