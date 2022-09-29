@@ -143,7 +143,6 @@ class PhotoDb:
 
         raise ValueError("No valid name found")
 
-
     def __string_to_datetime(self, dt_str: str):
         return datetime.datetime.strptime(dt_str, self.__datetime_format)
 
