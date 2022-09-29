@@ -313,14 +313,14 @@ class PhotoDb:
 
         # update images table
         self.cur.execute(f"UPDATE images SET "
-                         f"new_name = '{new_name}',"
-                         f"naming_tag = '{naming_tag}',"
-                         f"datetime = '{self.__datetime_to_db_str(new_datetime)}',"
-                         f"verify = {1 - imp}"
+                         f"new_name = '{new_name}', "
+                         f"naming_tag = '{naming_tag}', "
+                         f"datetime = '{self.__datetime_to_db_str(new_datetime)}', "
+                         f"verify = {1 - imp} "
                          f"WHERE key = {entry.key}")
 
         # update the names table
-        self.cur.execute(f"INSERT INTO names (name) VALUE '{new_name}'")
+        self.cur.execute(f"INSERT INTO names (name) VALUES ('{new_name}')")
 
         print(f"Renaming: {old_path}\nto      : {new_path}")
 
