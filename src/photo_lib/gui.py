@@ -1,11 +1,10 @@
 import time
 from kivy.app import App
 from kivy.uix.widget import Widget
-from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
+from kivy.properties import StringProperty, ObjectProperty
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.modalview import ModalView
 from kivy.clock import Clock
-from kivy.core.window import Window
 from kivy.uix.popup import Popup
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -18,7 +17,11 @@ from .runner import PhotoDb, DatabaseEntry
 from kivy.uix.label import Label
 import traceback
 from multiprocessing.connection import Connection
+from gestures4kivy import CommonGestures
 
+
+# TODO Nice Scroll Sync
+# TODO Scroll Horizontal
 
 class ScrollLabel(ScrollView):
     lbl = ObjectProperty(None)
