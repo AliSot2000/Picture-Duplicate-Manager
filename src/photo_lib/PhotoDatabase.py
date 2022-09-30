@@ -1299,5 +1299,4 @@ class PhotoDb:
             result = self.cur.fetchone()
 
         self.con.commit()
-        print(f"Added {count} non-tracked names to names table of {index} entries")
-
+        print(f"Created {count} thumbnails for {index} entries")
