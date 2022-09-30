@@ -100,7 +100,59 @@ class PhotoDb:
 
     proc_handles: list = []
 
-    def __init__(self, root_dir: str, db_path: str = None, init: bool = False):
+    # Table Creation Commands
+    images_table_command: str = \
+        ("CREATE TABLE images "
+         "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
+         "org_fname TEXT NOT NULL, "
+         "org_fpath TEXT NOT NULL, "
+         "metadata TEXT NOT NULL, "
+         "google_fotos_metadata TEXT,"
+         "naming_tag TEXT, "
+         "file_hash TEXT, "
+         "new_name TEXT UNIQUE , "
+         "datetime TEXT, "
+         "present INTEGER DEFAULT 1 CHECK (images.present >= 0 AND images.present < 2), "
+         "verify INTEGER DEFAULT 0 CHECK (images.verify >= 0 AND images.verify < 2),"
+         "original_google_metadata INTEGER DEFAULT 1 "
+         "CHECK (images.original_google_metadata >= 0 AND images.original_google_metadata < 2))")
+
+    names_table_command: str = \
+        "CREATE TABLE names (key INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)"
+
+    replaced_table_command: str = \
+        ("CREATE TABLE replaced "
+         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
+         " org_fname TEXT,"
+         " metadata TEXT,"
+         " google_fotos_metadata TEXT,"
+         " file_hash TEXT, "
+         " datetime TEXT,"
+         " successor INTEGER NOT NULL)")
+
+    import_tables_table_command: str = \
+        ("CREATE TABLE import_tables "
+         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
+         " root_path TEXT NOT NULL, "
+         " import_table_name TEXT UNIQUE NOT NULL)")
+
+    trash_table_command: str = \
+        ("CREATE TABLE trash "
+         "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
+         "org_fname TEXT NOT NULL, "
+         "org_fpath TEXT NOT NULL, "
+         "metadata TEXT NOT NULL, "
+         "google_fotos_metadata TEXT,"
+         "naming_tag TEXT, "
+         "file_hash TEXT, "
+         "new_name TEXT UNIQUE , "
+         "datetime TEXT, "
+         "original_google_metadata INTEGER DEFAULT 1 "
+         "CHECK (trash.original_google_metadata >= 0 AND trash.original_google_metadata < 2))")
+
+    table_command_dict: dict
+
+    def __init__(self, root_dir: str, db_path: str = None):
 
         if os.path.exists(root_dir):
             self.root_dir = root_dir
@@ -109,22 +161,35 @@ class PhotoDb:
         else:
             raise ValueError(f"{root_dir} doesn't exist")
 
+        # verify database path
         if db_path is not None and os.path.exists(db_path):
             self.img_db = db_path
         else:
             # db default path
             self.img_db = os.path.join(self.root_dir, ".photos.db")
 
+        # create directory for trash and thumbnails
         if not os.path.exists(self.thumbnail_dir):
             os.mkdir(self.thumbnail_dir)
 
         if not os.path.exists(self.trash_dir):
             os.mkdir(self.trash_dir)
 
+        self.table_command_dict = {"images": self.images_table_command,
+                                   "names": self.names_table_command,
+                                   "replaced": self.replaced_table_command,
+                                   "import_tables": self.import_tables_table_command,
+                                   "trash": self.trash_table_command}
+
         self.__connect()
 
-        if init:
+        existence, correctness = self.verify_tables()
+
+        if not existence and not correctness:
             self.create_db()
+
+        if existence and not correctness:
+            raise CorruptDatabase("Database is not correctly formatted and might not work. Check the logs.")
 
     # ------------------------------------------------------------------------------------------------------------------
     # UTILITY CONVERTERS
