@@ -391,57 +391,21 @@ class PhotoDb:
 
     def create_db(self):
         try:
-            self.cur.execute("CREATE TABLE images "
-                             "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
-                             "org_fname TEXT NOT NULL, "
-                             "org_fpath TEXT NOT NULL, "
-                             "metadata TEXT NOT NULL, "
-                             "google_fotos_metadata TEXT,"
-                             "naming_tag TEXT, "
-                             "file_hash TEXT, "
-                             "new_name TEXT UNIQUE , "
-                             "datetime TEXT, "
-                             "present INTEGER DEFAULT 1 CHECK (images.present >= 0 AND images.present < 2), "
-                             "verify INTEGER DEFAULT 0 CHECK (images.verify >= 0 AND images.verify < 2,"
-                             "original_google_metadata INTEGER DEFAULT 1 "
-                             "CHECK (images.original_google_metadata >= 0 AND images.original_google_metadata < 2)))")
+            self.cur.execute(self.images_table_command)
         except sqlite3.OperationalError as e:
             print("*** You still try to initialize the database. Do not set init arg when instantiating class ***")
             raise e
 
-        self.cur.execute("CREATE TABLE names"
-                         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
-                         "name TEXT UNIQUE)")
+        self.cur.execute(self.names_table_command)
 
-        # naming_tag, new_name, datetime from images table, drop path info because not needed anymore,
+        # naming_tag, new_name, from images table, drop path info because not needed anymore,
         # TODO: Database needs a new replaced table -> DAtetime and file_hash
-        self.cur.execute("CREATE TABLE replaced "
-                         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
-                         " org_fname TEXT,"
-                         " metadata TEXT,"
-                         " google_fotos_metadata TEXT,"
-                         " file_hash TEXT, "
-                         " datetime TEXT,"
-                         " successor INTEGER NOT NULL)")
+        self.cur.execute(self.replaced_table_command)
 
-        self.cur.execute("CREATE TABLE import_tables "
-                         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
-                         " root_path TEXT NOT NULL, "
-                         " import_table_name TEXT UNIQUE NOT NULL) ")
+        self.cur.execute(self.import_tables_table_command)
 
         # Todo: Think about trash -> once removed images not reimported?
-        self.cur.execute("CREATE TABLE trash "
-                         "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
-                         "org_fname TEXT NOT NULL, "
-                         "org_fpath TEXT NOT NULL, "
-                         "metadata TEXT NOT NULL, "
-                         "google_fotos_metadata TEXT,"
-                         "naming_tag TEXT, "
-                         "file_hash TEXT, "
-                         "new_name TEXT UNIQUE , "
-                         "datetime TEXT, "
-                         "original_google_metadata INTEGER DEFAULT 1 "
-                         "CHECK (trash.original_google_metadata >= 0 AND trash.original_google_metadata < 2))")
+        self.cur.execute(self.trash_table_command)
 
         self.con.commit()
 
