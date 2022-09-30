@@ -16,6 +16,9 @@ from difPy.dif import dif
 from _queue import Empty
 from multiprocessing import Queue, Process, Pipe, Lock
 from multiprocessing.connection import Connection
+from typing import Tuple
+import sys
+import ffmpeg
 
 
 class RareOccurrence(Warning):
@@ -27,6 +30,14 @@ class RareOccurrence(Warning):
 
 
 class DuplicateChainingError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return repr(self.message)
+
+
+class CorruptDatabase(Exception):
     def __init__(self, message):
         self.message = message
 
