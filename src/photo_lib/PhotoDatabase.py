@@ -517,8 +517,9 @@ class PhotoDb:
 
             # 0 equal to not import, already present
             if should_import <= 0:
-                self.__handle_preset(table=temp_table_name, file_metadata=file_metadata,  msg=message,
-                                     present_file_name=successor, update_key=cur_file[2], status_code=should_import, successor=successor)
+                self.__handle_preset(table=temp_table_name, file_metadata=file_metadata, msg=message,
+                                     present_file_name=successor, update_key=cur_file[2], status_code=should_import,
+                                     successor=successor)
 
             # straight import
             elif should_import == 1:
@@ -545,7 +546,7 @@ class PhotoDb:
                 count += self.__rec_list(np, table, allowed_files)
         return count
 
-    def __handle_preset(self, table: str, file_metadata: FileMetaData,  msg: str,
+    def __handle_preset(self, table: str, file_metadata: FileMetaData, msg: str,
                         present_file_name: str, update_key: int, status_code: int, successor: str):
         """
         Handler to be called if a file which is to be imported is already present in the database.
