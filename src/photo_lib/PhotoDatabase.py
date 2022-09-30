@@ -297,6 +297,98 @@ class PhotoDb:
 
         self.con.commit()
 
+    def __list_present_tables(self) -> list:
+        self.cur.execute("SELECT name FROM sqlite_master WHERE type ='table'")
+        result = self.cur.fetchall()
+        tables = []
+
+        # fill all table names into a single list
+        for t in result:
+            tables.append(t[0])
+
+        return tables
+
+    def __get_table_definition(self, table: str):
+        # precondition, table exists already.
+        self.cur.execute(f"SELECT sql FROM sqlite_master WHERE tbl_name = '{table}' AND type = 'table'")
+        return self.cur.fetchone()[0]
+
+    @staticmethod
+    def __column_equality(definition_a: str, definition_b: str):
+        col_start_a = definition_a.index("(")
+        col_start_b = definition_b.index("(")
+
+        col_str_a = definition_a[col_start_a+1:-1]
+        col_str_b = definition_b[col_start_b+1:-1]
+
+        cols_a = col_str_a.split(",")
+        cols_b = col_str_b.split(",")
+
+        # sanitise cols
+        for i in range(len(cols_a)):
+            p = cols_a[i].strip()
+            p = p.replace("\n", "")
+            cols_a[i] = p
+
+        for i in range(len(cols_b)):
+            p = cols_b[i].strip()
+            p = p.replace("\n", "")
+            cols_b[i] = p
+
+                # go through all columns and remove them from the other dictionary.
+        while len(cols_a) > 0 and len(cols_b) > 0:
+            target_col_a = cols_a.pop()
+
+            if target_col_a not in cols_b:
+                print(f"Failed: {target_col_a}")
+                return False
+
+            cols_b.remove(target_col_a)
+
+        if len(cols_b) > 0:
+            return False
+
+        return True
+
+    def __verify_table(self, table: str, existing_tables: list) -> Tuple[bool, bool]:
+        """
+        Verifies existence and correctness of definition of a table.
+
+        **Preconditions:**
+
+        - self.table_command_dict contains table as key
+
+
+        :param table: name of table to be searched
+        :param existing_tables: list of all tables existing in the database
+        :return: First bool -> table exists, Second bool -> Table is correctly formatted.
+        """
+
+        if table not in existing_tables:
+            return False, False
+
+        # table exists but is not correctly formatted
+        if not self.__column_equality(self.__get_table_definition(table), self.table_command_dict[table]):
+            print(f"Table {table} not correctly formatted:\n"
+                  f"is:     {self.__get_table_definition(table)}\n"
+                  f"target: {self.table_command_dict[table]}")
+            return True, False
+
+        return True, True
+
+    def verify_tables(self) -> Tuple[bool, bool]:
+        existing_tables = self.__list_present_tables()
+        tables = ("images", "names", "replaced", "import_tables", "trash")
+        all_correctly_formatted = True
+        all_present = True
+
+        for tb in tables:
+            exists, correct = self.__verify_table(tb, existing_tables)
+            all_correctly_formatted = all_correctly_formatted and correct
+            all_present = all_present and exists
+
+        return all_present, all_correctly_formatted
+
     def create_db(self):
         try:
             self.cur.execute("CREATE TABLE images "
