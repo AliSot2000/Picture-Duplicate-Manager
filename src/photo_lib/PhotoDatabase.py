@@ -928,7 +928,8 @@ class PhotoDb:
                 raise ValueError("Corrupted Database - multiple images with identical name")
 
         if len(results) == 0:
-            warnings.warn("Couldn't locate image by id or name in images table. Image might exist but not be in table ", NoDatabaseEntry)
+            warnings.warn("Couldn't locate image by id or name in images table. Image might exist but not be in table ",
+                          NoDatabaseEntry)
 
         # only on is allowed otherwise the database is broken
         assert len(results) == 1, "more results than allowed, Database configuration is wrong, should be unique or " \
@@ -940,6 +941,7 @@ class PhotoDb:
 
         if os.path.splitext(img_fname)[1] not in {".jpeg", ".jpg", ".png", ".tiff"}:
             print(f"{img_fname} was not of supported type to create thumbnails with cv2 lib.")
+            return False
 
         img_fpath = self.path_from_datetime(img_dt, img_fname)
 
@@ -947,7 +949,7 @@ class PhotoDb:
         if os.path.exists(self.thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key)) and not overwrite:
             return False
 
-        # load image from disk
+        # load image from disk, 1 means cv::IMREAD_COLOR
         img = cv2.imread(img_fpath, 1)
 
         # determine which axis is larger
@@ -1051,7 +1053,7 @@ class PhotoDb:
         self.create_duplicates_table()
 
         if level == "all":
-           raise NotImplementedError("This function is not implemented since it requires a rewrite of difpy")
+            raise NotImplementedError("This function is not implemented since it requires a rewrite of difpy")
 
         elif level == "year":
             dirs = self.limited_dir_rec_list(path=self.root_dir, nor=0)
