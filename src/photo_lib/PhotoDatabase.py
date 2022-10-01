@@ -980,7 +980,7 @@ class PhotoDb:
         return True
 
     def create_img_thumbnail(self, key: int = None, fname: str = None, max_pixel: int = 512,
-                             overwrite: bool = False) -> bool:
+                             overwrite: bool = False, inform: bool = False) -> bool:
         # both none
         if key is None and fname is None:
             raise ValueError("Key or fname must be provided")
@@ -1012,7 +1012,10 @@ class PhotoDb:
         img_fname = results[0][1]
 
         if os.path.splitext(img_fname)[1] not in {".jpeg", ".jpg", ".png", ".tiff"}:
-            print(f"{img_fname} was not of supported type to create thumbnails with cv2 lib.")
+            if inform:
+                # TODO logging debug
+                # print(f"{img_fname} was not of supported type to create thumbnails with cv2 lib.")
+                pass
             return False
 
         img_fpath = self.path_from_datetime(img_dt, img_fname)
