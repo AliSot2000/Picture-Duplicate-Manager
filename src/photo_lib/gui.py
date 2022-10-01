@@ -753,6 +753,75 @@ class ProgressInfo(Popup):
             self.ids.prog_bar.value = transmission[0] / transmission[1] * 100
 
 
+class FileCompareModal(ModalView):
+    file_index_a: ObjectProperty(None)
+    file_index_b: ObjectProperty(None)
+    status_label = ObjectProperty(None)
+
+    root_widget: MyFloat
+
+    def __init__(self, root: MyFloat, **kwargs):
+        super(FileCompareModal, self).__init__(**kwargs)
+        self.root_widget = root
+        self.bind(on_open=self.on_open_set_hint)
+
+    def on_open_set_hint(self, *args):
+        self.file_index_a.hint_text = f"Enter Integer from 0 to {len(self.root_widget.compareWidgets) - 1}"
+        self.file_index_b.hint_text = f"Enter Integer from 0 to {len(self.root_widget.compareWidgets) - 1}"
+
+    def on_close_reset_status(self):
+        self.update_status(success=None)
+
+    def update_status(self, success: Union[bool, None], message: str = ""):
+        self.status_label.text = message
+        # with self.status_label.canvas:
+        #     if success is None:
+        #         Color(0.2, 0.2, 0.2)
+        #     elif success:
+        #         Color(0.2, 0.5, 0.2)
+        #     else:
+        #         Color(0.5, 0.2, 0.2)
+        #     Rectangle(size=self.status_label.size, pos=self.status_label.pos)
+
+    def compare_files(self):
+        # parse content
+        a = self.file_index_a.text
+        if a == "":
+            self.update_status(success=None, message="Provide a valid Integer in base 10")
+            return
+
+        try:
+            index_a = int(a)
+        except ValueError:
+            self.update_status(success=None, message="Provide a valid Integer in base 10")
+            return
+
+        b = self.file_index_b.text
+        if b == "":
+            self.update_status(success=None, message="Provide a valid Integer in base 10")
+            return
+
+        try:
+            index_b = int(b)
+        except ValueError:
+            self.update_status(success=None, message="Provide a valid Integer in base 10")
+            return
+
+        if not 0 <= index_a < len(self.root_widget.compareWidgets):
+            self.update_status(success=None, message="Index a is out of range")
+            return
+
+        if not 0 <= index_b <= len(self.root_widget.compareWidgets):
+            self.update_status(success=None, message="Index b is out of range")
+            return
+
+        a_key = self.root_widget.compareWidgets[index_a].database_entry.key
+        b_key = self.root_widget.compareWidgets[index_b].database_entry.key
+
+        success, msg = self.root_widget.database.compare_files(a_key, b_key)
+        self.update_status(success, message=msg)
+
+
 class PictureLibrary(App):
     def build(self):
         mf = MyFloat()
