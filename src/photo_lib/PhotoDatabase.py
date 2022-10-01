@@ -1368,6 +1368,8 @@ class PhotoDb:
 
             if self.create_img_thumbnail(key=result[0]):
                 count += 1
+            elif self.create_vid_thumbnail(key=result[0]):
+                count += 1
 
             # fetch next new_name
             self.cur.execute(f"SELECT key FROM images WHERE key >= {index}")
@@ -1375,3 +1377,33 @@ class PhotoDb:
 
         self.con.commit()
         print(f"Created {count} thumbnails for {index} entries")
+
+    def compare_files(self, a_key: int, b_key: int):
+        # Locate Entry a
+        self.cur.execute(f"SELECT new_name, datetime FROM images WHERE key = {a_key}")
+        res_a = self.cur.fetchall()
+
+        if len(res_a) == 0:
+            return None, "Failed to find key_a in images"
+
+        if len(res_a) > 1:
+            raise CorruptDatabase("Multiple entries with identical key")
+
+        # Locate Entry b
+        self.cur.execute(f"SELECT new_name, datetime FROM images WHERE key = {b_key}")
+        res_b = self.cur.fetchall()
+
+        if len(res_a) == 0:
+            return None, "Failed to find key_a in images"
+
+        if len(res_a) > 1:
+            raise CorruptDatabase("Multiple entries with identical key")
+
+        path_a = self.path_from_datetime(self.__db_str_to_datetime(res_a[0][1]), res_a[0][0])
+        path_b = self.path_from_datetime(self.__db_str_to_datetime(res_b[0][1]), res_b[0][0])
+
+        success = filecmp.cmp(path_a, path_b, shallow=False)
+        msg = f"'{res_a[0][0]}' is{'' if success else ' FUCKING NOT'} identical to '{res_b[0][0]}'"
+
+        return success, msg
+
