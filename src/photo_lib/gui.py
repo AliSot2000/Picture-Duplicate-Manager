@@ -400,6 +400,7 @@ class MyFloat(FloatLayout):
     db_selector_widget = None
     db_duplicate_location = None
     db_dup_proc_sel = None
+    file_compare_modal = None
 
     dup_fp: str = None
     database: PhotoDb = None
@@ -418,6 +419,7 @@ class MyFloat(FloatLayout):
         self.cps = CompareScroller()
         self.db_dup_proc_sel = DuplicateDetection(root_wdg=self)
         self.db_duplicate_location = DuplicateLocation(Root_Ref=self, proc_select=self.db_dup_proc_sel)
+        self.filenameModal = FileCompareModal(root=self)
 
         self.add_scroller()
 
@@ -447,7 +449,6 @@ class MyFloat(FloatLayout):
 
     def load_entry(self):
         success, results, row_id = self.database.get_duplicate_entry()
-
 
         # table empty
         if not success:
