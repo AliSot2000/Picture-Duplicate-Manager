@@ -907,6 +907,78 @@ class PhotoDb:
 
         return None
 
+    def create_vid_thumbnail(self, key: int = None, fname: str = None, max_pixel: int = 512,
+                             overwrite: bool = False, inform: bool = False) -> bool:
+        # both none
+        if key is None and fname is None:
+            raise ValueError("Key or fname must be provided")
+        elif key is None:
+            self.cur.execute(f"SELECT key, new_name, datetime FROM images WHERE new_name IS '{fname}'")
+            results = self.cur.fetchall()
+
+            if len(results) > 1:
+                raise ValueError("Corrupted Database - multiple images with identical name")
+
+        # key provided -> overrules a secondary fname
+        else:
+            self.cur.execute(f"SELECT key, new_name, datetime FROM images WHERE key = {key}")
+            results = self.cur.fetchall()
+
+            if len(results) > 1:
+                raise ValueError("Corrupted Database - multiple images with identical name")
+
+        if len(results) == 0:
+            warnings.warn("Couldn't locate image by id or name in images table. Image might exist but not be in table ",
+                          NoDatabaseEntry)
+
+        # only on is allowed otherwise the database is broken
+        assert len(results) == 1, "more results than allowed, Database configuration is wrong, should be unique or " \
+                                  "primary key"
+
+        img_dt = self.__db_str_to_datetime(results[0][2])
+        img_key = results[0][0]
+        img_fname = results[0][1]
+
+        if os.path.splitext(img_fname)[1] not in {".mov", ".m4v", ".mp4", ".gif"}:
+            if inform:
+                # TODO Debug
+                # print(f"{img_fname} was not of supported type to create thumbnails with ffmpeg lib.")
+                pass
+            return False
+
+        img_fpath = self.path_from_datetime(img_dt, img_fname)
+
+        # don't create a thumbnail if it already exists.
+        if os.path.exists(self.thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key)) and not overwrite:
+            return False
+
+        try:
+            probe = ffmpeg.probe(img_fpath)
+        except ffmpeg.Error as e:
+            print(e.stderr.decode(), file=sys.stderr)
+            return False
+
+        time = float(probe['streams'][0]['duration']) // 2
+
+        for i in range(len(probe['streams'])):
+            width = probe['streams'][i].get('width')
+            if width is not None:
+                break
+        try:
+            (
+                ffmpeg
+                .input(img_fpath, ss=time)
+                .filter('scale', width, -1)
+                .output(self.thumbnail_name(ext=".jpg", key=img_key), vframes=1)
+                .overwrite_output()
+                .run(capture_stdout=True, capture_stderr=True)
+            )
+        except ffmpeg.Error as e:
+            print(e.stderr.decode(), file=sys.stderr)
+            return False
+
+        return True
+
     def create_img_thumbnail(self, key: int = None, fname: str = None, max_pixel: int = 512,
                              overwrite: bool = False) -> bool:
         # both none
