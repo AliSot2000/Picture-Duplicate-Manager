@@ -1239,10 +1239,10 @@ class PhotoDb:
 
         self.create_duplicates_table()
 
-        duplicates = self.find_hash_based_duplicates(only_key=True)
+        duplicates = self.find_hash_based_duplicates(only_key=False)
 
         for d in duplicates:
-            matching_keys = self.find_hash_in_pictures(d[0], only_key=True)
+            matching_keys = self.find_hash_in_pictures(d["file_hash"], only_key=True)
 
             self.cur.execute(f"INSERT INTO duplicates (match_type, matched_keys) "
                              f"VALUES ('hash', '{json.dumps(matching_keys)}')")
@@ -1263,7 +1263,7 @@ class PhotoDb:
         key_str = self.cur.fetchone()
 
         if key_str is None:
-            return False, []
+            return False, [], None
 
         row_id = key_str[1]
         key_str = key_str[0]
