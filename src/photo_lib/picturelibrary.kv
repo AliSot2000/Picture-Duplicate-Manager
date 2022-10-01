@@ -191,8 +191,17 @@
             size_hint_y: None
             size_hint_x: None
             height:  40
-            width:  self.parent.width - 200
+            width:  self.parent.width - 400
             text: "Set 1 of 100"
+
+        Button:
+            text: "Compare Files"
+            font_size: 18
+            size_hint_y: None
+            size_hint_x: None
+            size: 200, 40
+            # on_press: print("TEST")
+            on_press: self.parent.parent.filenameModal.open()
 
         Button:
             pos_hint: {'bottom': 1.0, 'right': 1.0}
@@ -421,7 +430,65 @@
         size_hint: 1.0, 1.0
         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
+<FileCompareModal>:
+    title: "Compare two currently displayed files"
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    size_hint: None, None
+    auto_dismiss: True
+    width: 700
+    height: 500
 
+    status_label: status
+    file_index_a: compare_a
+    file_index_b: compare_b
+
+    BoxLayout:
+        size_hint: 1.0, 1.0
+        orientation: 'vertical'
+
+        Label:
+            id: status
+            size_hint_y: None
+            size_hint_x: 1.0
+            height: 40 + self.texture_size[1]
+            font_size: 18
+
+
+        GridLayout:
+            cols: 2
+            Label:
+                id: naming_tag
+                text: "Source Tag"
+                font_size: 18
+
+            TextInput:
+                multiline: False
+                id: compare_a
+                font_size: 18
+
+            Label:
+                id: datetime_label
+                text: "Custom Datetime"
+                font_size: 18
+
+            TextInput:
+                multiline: False
+                id: compare_b
+                font_size: 18
+
+            Button:
+                id: cls_btn
+                text: "Close"
+                size_hint_y: None
+                height: self.texture_size[1] + 40
+                on_press: self.parent.parent.parent.dismiss()
+
+            Button:
+                id: cmp_btn
+                text: "Compare"
+                size_hint_y: None
+                height: self.texture_size[1] + 40
+                on_press: self.parent.parent.parent.compare_files()
 
 # nice label:
 #         Label:
