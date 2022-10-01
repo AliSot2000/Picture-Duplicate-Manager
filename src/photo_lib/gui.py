@@ -13,17 +13,20 @@ from kivy.uix.textinput import TextInput
 import os
 import datetime
 from .metadataagregator import key_lookup_dir, MetadataAggregator
-from .runner import PhotoDb, DatabaseEntry
+from .PhotoDatabase import PhotoDb, DatabaseEntry
 from kivy.uix.label import Label
 import traceback
 from multiprocessing.connection import Connection
-from gestures4kivy import CommonGestures
+from kivy.graphics import Canvas, Color, Rectangle
+from typing import Union
+# from gestures4kivy import CommonGestures
 
 
 # TODO Nice Scroll Sync
 # TODO Scroll Horizontal
 
 class ScrollLabel(ScrollView):
+# class ScrollLabel(CommonGestures, ScrollView):
     """
     Default Scroll Label
     """
@@ -32,14 +35,19 @@ class ScrollLabel(ScrollView):
 
     def __init__(self, **kwargs):
         super(ScrollLabel, self).__init__(**kwargs)
-        # self.bind(on_scroll_stop=self.update_compare_pane)
         # self.bind(on_scroll_stop=self.test_function)
 
-    def update_compare_pane(self, *args, **kwargs):
-        self.parent.parent.update_scroll_metadata(x=self.scroll_x, y=self.scroll_y)
-
-    # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity):
-    #     print("PAN")
+    # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity, check_children=True):
+    #
+    #     if check_children:
+    #         touch.push()
+    #         touch.apply_transform_2d(self.to_local)
+    #         if self.dispatch_children('on_scroll_stop', touch):
+    #             touch.pop()
+    #             return True
+    #         touch.pop()
+    #
+    #     print("PAN, ScrollLabel")
     #     x, _ = self.convert_distance_to_scroll(delta_x, 0)
     #     if 0 <= self.scroll_x + x <= 1:
     #         self.scroll_x += x
@@ -48,8 +56,15 @@ class ScrollLabel(ScrollView):
     #     else:
     #         self.scroll_x = 1
     #
-    # def cgb_scroll(self, touch, focus_x, focus_y, delta_y, velocity):
-    #     print("Scroll")
+    # def cgb_scroll(self, touch, focus_x, focus_y, delta_y, velocity, check_children=True):
+    #     if check_children:
+    #         touch.push()
+    #         touch.apply_transform_2d(self.to_local)
+    #         if self.dispatch_children('on_scroll_stop', touch):
+    #             touch.pop()
+    #             return True
+    #         touch.pop()
+    #     print("Scroll, ScrollLabel")
     #     _, y = self.convert_distance_to_scroll(0, delta_y)
     #     if 0 <= self.scroll_y + y <= 1:
     #         self.scroll_y += y
@@ -59,7 +74,7 @@ class ScrollLabel(ScrollView):
     #         self.scroll_y = 1
     #
     # def on_scroll_start(self, touch, check_children=True):
-    #     print("Scroll Start")
+    #     print("Scroll Start, ScrollLabel")
     #     if check_children:
     #         touch.push()
     #         touch.apply_transform_2d(self.to_local)
@@ -67,9 +82,10 @@ class ScrollLabel(ScrollView):
     #             touch.pop()
     #             return True
     #         touch.pop()
+    #     pass
     #
     # def on_scroll_stop(self, touch, check_children=True):
-    #     print("Scroll Stop")
+    #     print("Scroll Stop, ScrollLabel")
     #     if check_children:
     #         touch.push()
     #         touch.apply_transform_2d(self.to_local)
@@ -77,12 +93,14 @@ class ScrollLabel(ScrollView):
     #             touch.pop()
     #             return True
     #         touch.pop()
+    #     pass
     #
     # def on_scroll_move(self, touch):
     #     pass
 
 
 class MetadataScrollLabel(ScrollView):
+# class MetadataScrollLabel(CommonGestures, ScrollView):
     """
     Specific instance of ScrollLabel which has a callback which updates the scroll in every instance of
     MetadataScrollLabel
@@ -93,12 +111,13 @@ class MetadataScrollLabel(ScrollView):
     def __init__(self, **kwargs):
         super(MetadataScrollLabel, self).__init__(**kwargs)
         self.bind(on_scroll_stop=self.update_compare_pane)
+        # self.bind(on_scroll_start=self.update_compare_pane)
 
     def update_compare_pane(self, *args, **kwargs):
         self.parent.parent.update_scroll_metadata(x=self.scroll_x, y=self.scroll_y, caller=self)
 
     # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity):
-    #     print("PAN")
+    #     print("PAN, MetadataScrollLabel")
     #     x, _ = self.convert_distance_to_scroll(delta_x, 0)
     #     if 0 <= self.scroll_x + x <= 1:
     #         self.scroll_x += x
@@ -108,7 +127,7 @@ class MetadataScrollLabel(ScrollView):
     #         self.scroll_x = 1
     #
     # def cgb_scroll(self, touch, focus_x, focus_y, delta_y, velocity):
-    #     print("Scroll")
+    #     print("Scroll, MetadataScrollLabel")
     #     _, y = self.convert_distance_to_scroll(0, delta_y)
     #     if 0 <= self.scroll_y + y <= 1:
     #         self.scroll_y += y
@@ -118,7 +137,7 @@ class MetadataScrollLabel(ScrollView):
     #         self.scroll_y = 1
     #
     # def on_scroll_start(self, touch, check_children=True):
-    #     print("Scroll Start")
+    #     print("Scroll Start, MetadataScrollLabel")
     #     if check_children:
     #         touch.push()
     #         touch.apply_transform_2d(self.to_local)
@@ -128,7 +147,7 @@ class MetadataScrollLabel(ScrollView):
     #         touch.pop()
     #
     # def on_scroll_stop(self, touch, check_children=True):
-    #     print("Scroll Stop")
+    #     print("Scroll Stop, MetadataScrollLabel")
     #     if check_children:
     #         touch.push()
     #         touch.apply_transform_2d(self.to_local)
@@ -142,6 +161,7 @@ class MetadataScrollLabel(ScrollView):
 
 
 class PathScrollLabel(ScrollView):
+# class PathScrollLabel(CommonGestures, ScrollView):
     """
     Specific instance of ScrollLabel which has a callback which updates the scroll in every instance of PathScrollLabel
     """
@@ -151,12 +171,13 @@ class PathScrollLabel(ScrollView):
     def __init__(self, **kwargs):
         super(PathScrollLabel, self).__init__(**kwargs)
         self.bind(on_scroll_stop=self.update_compare_pane)
+        # self.bind(on_scroll_start=self.update_compare_pane)
 
     def update_compare_pane(self, *args, **kwargs):
         self.parent.parent.update_scroll_path(x=self.scroll_x, caller=self)
 
     # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity):
-    #     print("PAN")
+    #     print("PAN, PathScrollLabel")
     #     x, _ = self.convert_distance_to_scroll(delta_x, 0)
     #     if 0 <= self.scroll_x + x <= 1:
     #         self.scroll_x += x
@@ -166,7 +187,7 @@ class PathScrollLabel(ScrollView):
     #         self.scroll_x = 1
     #
     # def cgb_scroll(self, touch, focus_x, focus_y, delta_y, velocity):
-    #     print("Scroll")
+    #     print("Scroll, PathScrollLabel")
     #     _, y = self.convert_distance_to_scroll(0, delta_y)
     #     if 0 <= self.scroll_y + y <= 1:
     #         self.scroll_y += y
@@ -176,7 +197,7 @@ class PathScrollLabel(ScrollView):
     #         self.scroll_y = 1
     #
     # def on_scroll_start(self, touch, check_children=True):
-    #     print("Scroll Start")
+    #     print("Scroll Start, PathScrollLabel")
     #     if check_children:
     #         touch.push()
     #         touch.apply_transform_2d(self.to_local)
@@ -186,7 +207,7 @@ class PathScrollLabel(ScrollView):
     #         touch.pop()
     #
     # def on_scroll_stop(self, touch, check_children=True):
-    #     print("Scroll Stop")
+    #     print("Scroll Stop, PathScrollLabel")
     #     if check_children:
     #         touch.push()
     #         touch.apply_transform_2d(self.to_local)
