@@ -347,10 +347,11 @@ class FlexibleBox(BoxLayout):
 
 
 class CompareScroller(ScrollView):
+# class CompareScroller(CommonGestures, ScrollView):
     flexbox = ObjectProperty(None)
 
     # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity):
-    #     print("PAN")
+    #     print("PAN, CompareScroller")
     #     x, _ = self.convert_distance_to_scroll(delta_x, 0)
     #     if 0 <= self.scroll_x + x <= 1:
     #         self.scroll_x += x
@@ -360,7 +361,7 @@ class CompareScroller(ScrollView):
     #         self.scroll_x = 1
     #
     # def cgb_scroll(self, touch, focus_x, focus_y, delta_y, velocity):
-    #     print("Scroll")
+    #     print("Scroll, CompareScroller")
     #     _, y = self.convert_distance_to_scroll(0, delta_y)
     #     if 0 <= self.scroll_y + y <= 1:
     #         self.scroll_y += y
@@ -370,7 +371,7 @@ class CompareScroller(ScrollView):
     #         self.scroll_y = 1
     #
     # def on_scroll_start(self, touch, check_children=True):
-    #     print("Scroll Start")
+    #     print("Scroll Start, CompareScroller")
     #     if check_children:
     #         touch.push()
     #         touch.apply_transform_2d(self.to_local)
@@ -380,7 +381,7 @@ class CompareScroller(ScrollView):
     #         touch.pop()
     #
     # def on_scroll_stop(self, touch, check_children=True):
-    #     print("Scroll Stop")
+    #     print("Scroll Stop, CompareScroller")
     #     if check_children:
     #         touch.push()
     #         touch.apply_transform_2d(self.to_local)
