@@ -233,6 +233,7 @@ class ComparePane(Widget):
     l_naming_tag = ObjectProperty(None)
     l_new_name = ObjectProperty(None)
     l_metadata = ObjectProperty(None)
+    l_file_size = ObjectProperty
     obuton = ObjectProperty(None)
     mark_delete_button = ObjectProperty(None)
 
@@ -244,6 +245,7 @@ class ComparePane(Widget):
     naming_tag = StringProperty("")
     new_name = StringProperty("")
     metadata = StringProperty("")
+    file_size = StringProperty("")
 
     pl: PhotoDb
 
@@ -252,6 +254,9 @@ class ComparePane(Widget):
         self.database_entry = db
         self.pl = pictureLib
         self.load_from_database_entry()
+
+    def open_image_popup(self):
+        self.parent.open_image_popup(self.image_path)
 
     def load_from_database_entry(self):
         self.image_path = self.pl.path_from_datetime(self.database_entry.datetime, self.database_entry.new_name)
@@ -281,6 +286,8 @@ class ComparePane(Widget):
 
         for key in key_list:
             result += f"{key}: {self.database_entry.metadata.get(key)}\n"
+            if key == "File:FileSize":
+                self.file_size = f"File Size: {int(self.database_entry.metadata.get(key)):,}".replace(",", "'")
 
         self.metadata = result
 
@@ -342,6 +349,9 @@ class MyGrid(GridLayout):
             if c == caller:
                 continue
             c.l_ofpath.scroll_x = x
+
+    def open_image_popup(self, path: str):
+        self.parent.parent.parent.open_image_popup(path)
 
 
 class FlexibleBox(BoxLayout):
