@@ -915,6 +915,17 @@ class FileCompareModal(ModalView):
         self.update_status(success, message=msg)
 
 
+class ImageButton(ButtonBehavior, Image):
+    pass
+
+
+class PicturePopup(Popup):
+    img_path = StringProperty("")
+
+    def open_and_set(self, path: str = ""):
+        self.img_path = path
+        self.open()
+
 class PictureLibrary(App):
     def build(self):
         mf = MyFloat()
