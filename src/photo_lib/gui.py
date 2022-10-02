@@ -850,6 +850,7 @@ class FileCompareModal(ModalView):
     file_index_a: ObjectProperty(None)
     file_index_b: ObjectProperty(None)
     status_label = ObjectProperty(None)
+    background_col = ColorProperty()
 
     root_widget: MyFloat
 
@@ -857,6 +858,7 @@ class FileCompareModal(ModalView):
         super(FileCompareModal, self).__init__(**kwargs)
         self.root_widget = root
         self.bind(on_open=self.on_open_set_hint)
+        self.update_status(success=None, message="   ")
 
     def on_open_set_hint(self, *args):
         self.file_index_a.hint_text = f"Enter Integer from 0 to {len(self.root_widget.compareWidgets) - 1}"
@@ -867,14 +869,12 @@ class FileCompareModal(ModalView):
 
     def update_status(self, success: Union[bool, None], message: str = ""):
         self.status_label.text = message
-        # with self.status_label.canvas:
-        #     if success is None:
-        #         Color(0.2, 0.2, 0.2)
-        #     elif success:
-        #         Color(0.2, 0.5, 0.2)
-        #     else:
-        #         Color(0.5, 0.2, 0.2)
-        #     Rectangle(size=self.status_label.size, pos=self.status_label.pos)
+        if success is None:
+            self.background_col = [0.2, 0.2, 0.2, 1.0]
+        elif success:
+            self.background_col = [0.2, 0.5, 0.2, 1.0]
+        else:
+            self.background_col = [0.5, 0.2, 0.2, 1.0]
 
     def compare_files(self):
         # parse content
