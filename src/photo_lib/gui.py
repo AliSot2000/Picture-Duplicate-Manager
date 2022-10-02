@@ -484,6 +484,75 @@ class MyFloat(FloatLayout):
                 self.compareWidgets.append(cw)
                 self.cps.flexbox.add_widget(cw)
 
+        # compare the files
+        all_identical = True
+        for i in range(len(results)):
+            for j in range(i + 1, len(results)):
+                if results[i] is not None and results[j] is not None:
+                    suc, msg = self.database.compare_files(results[i].key, results[j].key)
+                    all_identical = all_identical and suc
+
+        if all_identical:
+            self.cps.background_col = [0.2, 0.5, 0.2, 1.0]
+        else:
+            self.cps.background_col = [0.5, 0.2, 0.2, 1.0]
+
+        # compare the filenames
+        identical_names = True
+        for i in range(len(results)):
+            for j in range(i + 1, len(results)):
+                if results[i] is not None and results[j] is not None:
+                    identical_names = identical_names and results[i].org_fname.lower() == results[j].org_fname.lower()
+
+        if identical_names:
+            for c in self.compareWidgets:
+                if c is not None:
+                    c: ComparePane
+                    c.l_ofname.background_col = [0.2, 0.5, 0.2, 1.0]
+        else:
+            for c in self.compareWidgets:
+                if c is not None:
+                    c: ComparePane
+                    c.l_ofname.background_col = [0.5, 0.2, 0.2, 1.0]
+
+        identical_datetime = True
+        for i in range(len(results)):
+            for j in range(i + 1, len(results)):
+                if results[i] is not None and results[j] is not None:
+                    identical_datetime = identical_datetime and results[i].datetime == results[j].datetime
+
+        if identical_datetime:
+            for c in self.compareWidgets:
+                if c is not None:
+                    c: ComparePane
+                    c.l_new_name.background_col = [0.2, 0.5, 0.2, 1.0]
+        else:
+            for c in self.compareWidgets:
+                if c is not None:
+                    c: ComparePane
+                    c.l_new_name.background_col = [0.5, 0.2, 0.2, 1.0]
+
+        identical_file_size = True
+        for i in range(len(results)):
+            for j in range(i + 1, len(results)):
+                if results[i] is not None and results[j] is not None:
+                    identical_file_size = identical_file_size and \
+                                         results[i].metadata.get("File:FileSize") \
+                                         == results[j].metadata.get("File:FileSize")
+                    print(results[i].metadata.get("File:FileSize") == results[j].metadata.get("File:FileSize"))
+
+        if identical_file_size:
+            for c in self.compareWidgets:
+                if c is not None:
+                    c: ComparePane
+                    c.l_file_size.background_col = [0.2, 0.5, 0.2, 1.0]
+        else:
+            for c in self.compareWidgets:
+                if c is not None:
+                    c: ComparePane
+                    c.l_file_size.background_col = [0.5, 0.2, 0.2, 1.0]
+
+
         self.ids.status.text = f"Number of duplicates in database: {self.database.get_duplicate_table_size()}"
         self.loaded_row = row_id
 
