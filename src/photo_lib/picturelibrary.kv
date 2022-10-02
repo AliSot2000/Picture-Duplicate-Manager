@@ -7,6 +7,13 @@
     # smooth_scroll_end: 5
     smooth_scroll_end: 0
 
+    canvas.before:
+        Color:
+            rgb: self.background_col
+        Rectangle:
+            pos: self.pos[0], self.pos[1]
+            size: self.size[0], self.size[1]
+
     Label:
         id: lab
         text: self.parent.text
@@ -69,6 +76,7 @@
     l_metadata: label_metadata
     obuton: origin_btn
     mark_delete_button: dlt_btn
+    l_file_size: file_size_tag
 
     canvas:
         Color:
@@ -84,12 +92,13 @@
         size: self.parent.size
         cols: 1
 
-        Image:
+        ImageButton:
             id: img
             size_hint_x: 1.0
             size_hint_y: None
             height: self.width / self.image_ratio
             source: self.parent.parent.image_path
+            on_press:self.parent.parent.open_image_popup()
 
         ScrollLabel:
             id: label_original_file_name
@@ -121,6 +130,14 @@
             do_scroll_y: False
             text: self.parent.parent.new_name
 
+        ScrollLabel:
+            id: file_size_tag
+            height: 25
+            size_hint: 1.0, None
+            height: 25
+            do_scroll_y: False
+            text: self.parent.parent.file_size
+
         BoxLayout:
             size_hint: 1.0, None
             orientation: 'horizontal'
@@ -138,7 +155,7 @@
                 id: dlt_btn
                 size_hint: 1.0, None
                 height: 30
-                text: "Keep"
+                text: "keep"
                 background_normal: ''
                 background_color: 0.2, 0.6, 0.2
                 on_press: self.parent.parent.parent.set_button_color()
@@ -201,10 +218,9 @@
             size_hint_x: None
             size: 200, 40
             # on_press: print("TEST")
-            on_press: self.parent.parent.filenameModal.open()
+            on_press: self.parent.parent.file_compare_modal.open()
 
         Button:
-            pos_hint: {'bottom': 1.0, 'right': 1.0}
             text: "done"
             font_size: 18
             size_hint_y: None
@@ -225,9 +241,9 @@
     # smooth_scroll_end: 5
     smooth_scroll_end: 0
 
-    canvas:
+    canvas.before:
         Color:
-            rgb: (0.3, 0.3, 0.3)
+            rgb: self.background_col
         Rectangle:
             pos: self.pos[0], self.pos[1]
             size: self.size[0], self.size[1]
@@ -448,17 +464,24 @@
 
         Label:
             id: status
+            text: "Have some sample Text"
             size_hint_y: None
             size_hint_x: 1.0
             height: 40 + self.texture_size[1]
             font_size: 18
 
+            canvas.before:
+                Color:
+                    rgb: self.parent.parent.background_col
+                Rectangle:
+                    pos: self.pos[0]+3, self.pos[1]+3
+                    size: self.size[0] - 6, self.size[1] - 6
 
         GridLayout:
             cols: 2
             Label:
                 id: naming_tag
-                text: "Source Tag"
+                text: "File Index A"
                 font_size: 18
 
             TextInput:
@@ -468,7 +491,7 @@
 
             Label:
                 id: datetime_label
-                text: "Custom Datetime"
+                text: "File Index B"
                 font_size: 18
 
             TextInput:
@@ -489,6 +512,16 @@
                 size_hint_y: None
                 height: self.texture_size[1] + 40
                 on_press: self.parent.parent.parent.compare_files()
+
+<PicturePopup>:
+    size_hint: 1.0, 1.0
+    title: self.img_path
+
+    ImageButton:
+        size: self.parent.width - 10, self.parent.height - 10
+        size_hint: None, None
+        source: self.parent.parent.parent.img_path
+        on_press: self.parent.parent.parent.dismiss()
 
 # nice label:
 #         Label:
