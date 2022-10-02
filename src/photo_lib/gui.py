@@ -416,6 +416,7 @@ class MyFloat(FloatLayout):
     db_duplicate_location = None
     db_dup_proc_sel = None
     file_compare_modal = None
+    image_popup = None
 
     dup_fp: str = None
     database: PhotoDb = None
@@ -434,12 +435,16 @@ class MyFloat(FloatLayout):
         self.cps = CompareScroller()
         self.db_dup_proc_sel = DuplicateDetection(root_wdg=self)
         self.db_duplicate_location = DuplicateLocation(Root_Ref=self, proc_select=self.db_dup_proc_sel)
-        self.filenameModal = FileCompareModal(root=self)
+        self.file_compare_modal = FileCompareModal(root=self)
+        self.image_popup = PicturePopup()
 
         self.add_scroller()
 
         if self.dup_fp is None:
             self.db_selector_widget.open()
+
+    def open_image_popup(self, path: str):
+        self.image_popup.open_and_set(path)
 
     def remove_scroller(self):
         self.remove_widget(self.cps)
