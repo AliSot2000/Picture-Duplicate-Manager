@@ -550,9 +550,28 @@ class MyFloat(FloatLayout):
                     c: ComparePane
                     c.l_file_size.background_col = [0.5, 0.2, 0.2, 1.0]
 
+        # auto set main and delete
+        self.auto_set_buttons()
 
         self.ids.status.text = f"Number of duplicates in database: {self.database.get_duplicate_table_size()}"
         self.loaded_row = row_id
+
+    def auto_set_buttons(self):
+        if len(self.compareWidgets) == 2:
+            widget_a: ComparePane = self.compareWidgets[0]
+            widget_b: ComparePane = self.compareWidgets[1]
+            if widget_a.database_entry.metadata.get("File:FileSize")\
+                    > widget_b.database_entry.metadata.get("File:FileSize"):
+                widget_a.obuton.state = "down"
+                widget_a.set_delete_on_main()
+                widget_b.mark_delete_button.state = "down"
+                widget_b.set_button_color()
+            elif widget_a.database_entry.metadata.get("File:FileSize")\
+                    < widget_b.database_entry.metadata.get("File:FileSize"):
+                widget_b.obuton.state = "down"
+                widget_b.set_delete_on_main()
+                widget_a.mark_delete_button.state = "down"
+                widget_a.set_button_color()
 
     def clear_comparepanes(self):
         for p in self.compareWidgets:
