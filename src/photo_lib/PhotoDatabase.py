@@ -1432,3 +1432,78 @@ class PhotoDb:
 
         return success, msg
 
+    def preprocess_duplicates(self, task: str = ""):
+        """
+        Currently supported tasks:
+        * remove identical file sizes
+        * only identical file size
+
+        :param task:
+        :return:
+        """
+        if not self.duplicate_table_exists():
+            return False, "no duplicates table"
+
+        task = task.strip().lower()
+
+        if task not in ("remove identical file sizes", "only identical file size"):
+            return False, "Not supported command"
+
+        # assumption the ram suffices to load the entire duplicates table to ram
+        self.cur.execute("SELECT key, matched_keys FROM duplicates")
+        all_reseults = self.cur.fetchall()
+        dels = 0
+
+        if len(all_reseults) == 0:
+            return False, "No entries in table"
+
+        for result in all_reseults:
+            key = result[0]
+            json_list = result[1]
+            matches: list = json.loads(json_list)
+
+            if len(matches) == 0:
+                continue
+
+            # get the function from the factory and execute it with the matches
+            delete = self.__make_processor(command=task)(matches)
+
+            if delete:
+                self.cur.execute(f"DELETE FROM duplicates WHERE key == {key}")
+                dels += 1
+
+        self.con.commit()
+        return True, f"Removed {dels} entries from duplicates table"
+
+    def __make_processor(self, command: str):
+        """
+        assuming commands are processed from preprocess_duplicates
+
+        returned function returns True -> Delete this row, False, don't delete this row
+        """
+
+        if command == "remove identical file sizes":
+            def process(matches: list) -> bool:
+                file_size = self.get_metadata(matches[0]).get("File:FileSize")
+
+                for m in matches:
+                    if file_size == self.get_metadata(key=m).get("File:FileSize"):
+                        return True
+
+                return False
+
+        elif command == "only identical file size":
+            def process(matches: list) -> bool:
+                file_size = self.get_metadata(matches[0]).get("File:FileSize")
+
+                for m in matches:
+                    if file_size != self.get_metadata(key=m).get("File:FileSize"):
+                        return True
+
+                return False
+
+        else:
+            def process(matches: list):
+                return False
+
+        return process
