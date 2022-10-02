@@ -1394,7 +1394,16 @@ class PhotoDb:
         self.con.commit()
         print(f"Created {count} thumbnails for {index} entries")
 
-    def compare_files(self, a_key: int, b_key: int):
+    # TODO what happens if one file is not in images table but in trash or sth.
+    def compare_files(self, a_key: int, b_key: int) -> Tuple[Union[bool, None], str]:
+        """
+        Given two keys, performs binary comparison of the two files.
+        :param a_key: key of file first in table
+        :param b_key: key of file second in table
+        :return: Tuple[success, message]
+        success: True False -> binary comparison result, None, failed to find keys
+        message: Message on what went wrong or result of comarison
+        """
         # Locate Entry a
         self.cur.execute(f"SELECT new_name, datetime FROM images WHERE key = {a_key}")
         res_a = self.cur.fetchall()
