@@ -259,6 +259,10 @@ class PhotoDb:
     def delete_duplicates_table(self):
         self.cur.execute("DROP TABLE IF EXISTS duplicates")
 
+    def get_duplicate_table_size(self):
+        self.cur.execute("SELECT COUNT(key) FROM duplicates")
+        return self.cur.fetchone()[0]
+
     # ------------------------------------------------------------------------------------------------------------------
     # INIT
     # ------------------------------------------------------------------------------------------------------------------
@@ -873,10 +877,6 @@ class PhotoDb:
     def bulk_duplicate_marking(self, processing_list: list):
         for f in processing_list:
             self.mark_duplicate(successor=f["o_image_id"], duplicate_image_id=f["d_image_id"], delete=f["delete"])
-
-    def get_duplicate_table_size(self):
-        self.cur.execute("SELECT COUNT(key) FROM duplicates")
-        return self.cur.fetchone()[0]
 
     def gui_get_image(self, key: int = None, filename: str = None):
         if key is None and filename is None:
