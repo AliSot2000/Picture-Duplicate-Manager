@@ -363,6 +363,7 @@ class FlexibleBox(BoxLayout):
 class CompareScroller(ScrollView):
 # class CompareScroller(CommonGestures, ScrollView):
     flexbox = ObjectProperty(None)
+    background_col = ColorProperty()
 
     # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity):
     #     print("PAN, CompareScroller")
