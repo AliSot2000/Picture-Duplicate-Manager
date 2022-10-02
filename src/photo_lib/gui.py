@@ -450,9 +450,7 @@ class MyFloat(FloatLayout):
         self.remove_widget(self.cps)
 
     def add_scroller(self):
-        print(self.children)
         self.add_widget(self.cps, index=2)
-        print(self.children)
 
     def load_db(self):
         self.database = PhotoDb(root_dir=self.dup_fp)
@@ -540,7 +538,6 @@ class MyFloat(FloatLayout):
                     identical_file_size = identical_file_size and \
                                          results[i].metadata.get("File:FileSize") \
                                          == results[j].metadata.get("File:FileSize")
-                    print(results[i].metadata.get("File:FileSize") == results[j].metadata.get("File:FileSize"))
 
         if identical_file_size:
             for c in self.compareWidgets:
@@ -634,11 +631,9 @@ class SetDateModal(ModalView):
         text = text.strip().capitalize()
         if text == "Custom":
             self.customDateTimeInput.disabled = False
-            print("Set to false")
             print(self.customDateTimeInput.disabled)
         else:
             self.customDateTimeInput.disabled = True
-            print("Set to true")
             print(self.customDateTimeInput.disabled)
 
     def load_current_tag(self, *args, **kwargs):
