@@ -641,7 +641,7 @@ class SetDateModal(ModalView):
             print("Set to true")
             print(self.customDateTimeInput.disabled)
 
-    def load_current_tag(self, *_args, **kwargs):
+    def load_current_tag(self, *args, **kwargs):
         self.customDateTag.text = self.caller.database_entry.naming_tag
 
     def close(self, *args, **kwargs):
