@@ -3,7 +3,6 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import StringProperty, ObjectProperty, ColorProperty
 from kivy.uix.widget import Widget
-from kivy.properties import StringProperty, ObjectProperty
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
