@@ -1486,7 +1486,8 @@ class PhotoDb:
             def process(matches: list) -> bool:
                 file_size = self.get_metadata(matches[0]).get("File:FileSize")
 
-                for m in matches:
+                for i in range(1, len(matches)):
+                    m = matches[i]
                     if file_size == self.get_metadata(key=m).get("File:FileSize"):
                         return True
 
@@ -1496,7 +1497,8 @@ class PhotoDb:
             def process(matches: list) -> bool:
                 file_size = self.get_metadata(matches[0]).get("File:FileSize")
 
-                for m in matches:
+                for i in range(1, len(matches)):
+                    m = matches[i]
                     if file_size != self.get_metadata(key=m).get("File:FileSize"):
                         return True
 
