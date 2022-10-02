@@ -565,7 +565,7 @@ class MyFloat(FloatLayout):
 
     def store_load_entry(self):
         if len(self.compareWidgets) == 0:
-            return
+            self.load_entry()
 
         main_entry: ComparePane = None
         for_duplicates = []
@@ -578,12 +578,15 @@ class MyFloat(FloatLayout):
 
         # remove all ComparePanes and repopulate
         if main_entry is None:
+            print("Main Entry none, cleaning up")
             self.clean_up()
             return
 
         main_key = main_entry.database_entry.key
+        print(f"Keeping: {main_entry.new_name}")
 
         for marks in for_duplicates:
+            print(f"Marking: {marks.new_name}")
             marks: ComparePane
             self.database.mark_duplicate(successor=main_key, duplicate_image_id=marks.database_entry.key, delete=True)
 
