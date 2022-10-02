@@ -1,15 +1,18 @@
 import time
 from kivy.app import App
+from kivy.clock import Clock
+from kivy.properties import StringProperty, ObjectProperty, ColorProperty
 from kivy.uix.widget import Widget
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.modalview import ModalView
-from kivy.clock import Clock
 from kivy.uix.popup import Popup
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.image import Image
 import os
 import datetime
 from .metadataagregator import key_lookup_dir, MetadataAggregator
@@ -17,8 +20,8 @@ from .PhotoDatabase import PhotoDb, DatabaseEntry
 from kivy.uix.label import Label
 import traceback
 from multiprocessing.connection import Connection
-from kivy.graphics import Canvas, Color, Rectangle
 from typing import Union
+
 # from gestures4kivy import CommonGestures
 
 
@@ -32,9 +35,11 @@ class ScrollLabel(ScrollView):
     """
     lbl = ObjectProperty(None)
     text = StringProperty("example content")
+    background_col = ColorProperty()
 
     def __init__(self, **kwargs):
         super(ScrollLabel, self).__init__(**kwargs)
+        self.background_col = [0.2, 0.2, 0.2, 1.0]
         # self.bind(on_scroll_stop=self.test_function)
 
     # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity, check_children=True):
