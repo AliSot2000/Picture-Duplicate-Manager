@@ -480,6 +480,7 @@ class MyFloat(FloatLayout):
 
         for entry in results:
             if entry is not None:
+                entry: DatabaseEntry
                 cw = ComparePane(db=entry, pictureLib=self.database)
                 self.compareWidgets.append(cw)
                 self.cps.flexbox.add_widget(cw)
