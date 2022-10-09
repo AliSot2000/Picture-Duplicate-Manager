@@ -36,21 +36,6 @@ class DatabaseEntry:
     verify: int
 
 
-def rec_list(root_path):
-    def __rec_list(rp, results):
-        sub = os.listdir(rp)
-        for f in sub:
-            np = os.path.join(rp, f)
-            if os.path.isfile(np):
-                results.append(np)
-            elif os.path.isdir(np):
-                __rec_list(np, results)
-
-    res = []
-    __rec_list(root_path, res)
-    return res
-
-
 class PhotoDb:
     root_dir: str
     img_db: str
