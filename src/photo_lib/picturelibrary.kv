@@ -60,10 +60,11 @@
         height: self.texture_size[1]
 
 <ComparePane>:
-
-    size_hint_x: None
     width: 400
     size_hint_y: 1.0
+    # size_hint_x: 1.0
+    size_hint_x: None
+
 
     image: img
     dump: dlt_btn
@@ -233,7 +234,7 @@
 
 
 <CompareScroller>:
-    do_scroll_y: True
+    do_scroll_y: False
     do_scroll_x: True
     flexbox: cg
     effect_cls: "ScrollEffect"
@@ -353,6 +354,7 @@
             id: file_selector
             size_hint: None, 1.0
             width: self.parent.parent.parent.width
+            path: "/media/alisot2000/DumpStuff/Photo_Library_Correct/"
 
         BoxLayout:
             orientation: 'horizontal'

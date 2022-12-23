@@ -293,7 +293,7 @@ class PhotoDb:
             p = p.replace("\n", "")
             cols_b[i] = p
 
-                # go through all columns and remove them from the other dictionary.
+        # go through all columns and remove them from the other dictionary.
         while len(cols_a) > 0 and len(cols_b) > 0:
             target_col_a = cols_a.pop()
 
@@ -877,6 +877,7 @@ class PhotoDb:
             return self.__b64_to_dict(res[0])
 
         return None
+
     def create_vid_thumbnail(self, key: int = None, fname: str = None, max_pixel: int = 512,
                              overwrite: bool = False, inform: bool = False) -> bool:
         # both none

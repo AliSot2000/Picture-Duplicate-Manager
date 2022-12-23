@@ -1,6 +1,7 @@
 import time
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.core.window import Window
 from kivy.properties import StringProperty, ObjectProperty, ColorProperty
 from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
@@ -248,6 +249,7 @@ class ComparePane(Widget):
     file_size = StringProperty("")
 
     pl: PhotoDb
+    __image_count = 1
 
     def __init__(self, db: DatabaseEntry, pictureLib: PhotoDb, **kwargs):
         super(ComparePane, self).__init__(**kwargs)
@@ -437,11 +439,20 @@ class MyFloat(FloatLayout):
         self.db_duplicate_location = DuplicateLocation(Root_Ref=self, proc_select=self.db_dup_proc_sel)
         self.file_compare_modal = FileCompareModal(root=self)
         self.image_popup = PicturePopup()
-
+        Window.bind(on_resize=self.set_compareWidget_size)
         self.add_scroller()
 
         if self.dup_fp is None:
             self.db_selector_widget.open()
+
+    def set_compareWidget_size(self, window, width, height, *args, **kwargs):
+        if len(self.compareWidgets) == 0:
+            return
+        widget_width = 400 if (width / len(self.compareWidgets)) < 400 else width / len(self.compareWidgets)
+
+        for compareWidget in self.compareWidgets:
+            compareWidget: ComparePane
+            compareWidget.width = widget_width
 
     def open_image_popup(self, path: str):
         self.image_popup.open_and_set(path)
@@ -532,22 +543,32 @@ class MyFloat(FloatLayout):
                     c.l_new_name.background_col = [0.5, 0.2, 0.2, 1.0]
 
         identical_file_size = True
+        difference = 0
+        count = 0
         for i in range(len(results)):
             for j in range(i + 1, len(results)):
                 if results[i] is not None and results[j] is not None:
                     identical_file_size = identical_file_size and \
                                          results[i].metadata.get("File:FileSize") \
                                          == results[j].metadata.get("File:FileSize")
+                    difference += (results[i].metadata.get("File:FileSize")
+                                   - results[j].metadata.get("File:FileSize"))**2
+                    count += 1
+
+        if count > 0:
+            print(f"Average Difference {(difference ** 0.5) / count}")
+            difference = (difference ** 0.5)/count
 
         if identical_file_size:
             for c in self.compareWidgets:
-                if c is not None:
-                    c: ComparePane
-                    c.l_file_size.background_col = [0.2, 0.5, 0.2, 1.0]
+                c: ComparePane
+                c.l_file_size.background_col = [0.2, 0.5, 0.2, 1.0]
         else:
             for c in self.compareWidgets:
-                if c is not None:
-                    c: ComparePane
+                c: ComparePane
+                if difference < 1000:
+                    c.l_file_size.background_col = [0.5, 0.5, 0.2, 1.0]
+                else:
                     c.l_file_size.background_col = [0.5, 0.2, 0.2, 1.0]
 
         # auto set main and delete
@@ -555,11 +576,17 @@ class MyFloat(FloatLayout):
 
         self.ids.status.text = f"Number of duplicates in database: {self.database.get_duplicate_table_size()}"
         self.loaded_row = row_id
+        wd = self.get_root_window()
+        self.set_compareWidget_size(wd, width=wd.width, height=wd.height)
 
     def auto_set_buttons(self):
         if len(self.compareWidgets) == 2:
             widget_a: ComparePane = self.compareWidgets[0]
             widget_b: ComparePane = self.compareWidgets[1]
+            fsize_a_type = type(widget_a.database_entry.metadata.get("File:FileSize"))
+            fsize_b_type = type(widget_b.database_entry.metadata.get("File:FileSize"))
+            assert fsize_a_type is int, f"FileSize of a not of expected type int but {fsize_a_type}"
+            assert fsize_b_type is int, f"FileSize of b not of expected type int but {fsize_b_type}"
             if widget_a.database_entry.metadata.get("File:FileSize")\
                     > widget_b.database_entry.metadata.get("File:FileSize"):
                 widget_a.obuton.state = "down"
@@ -613,6 +640,13 @@ class MyFloat(FloatLayout):
         self.database.delete_duplicate_row(self.loaded_row)
         self.loaded_row = None
         self.load_entry()
+
+    def removeCompareWidget(self, wdg: ComparePane):
+        self.float_sibling.cps.flexbox.remove_widget(wdg)
+        self.float_sibling.compareWidgets.remove(wdg)
+
+        for comparePane in self.compareWidgets:
+            comparePane.image_count = len(self.compareWidgets)
 
 
 class CustomDateTag(TextInput):
@@ -719,8 +753,7 @@ class SetDateModal(ModalView):
     def apply_close(self):
         self.try_rename()
 
-        self.float_sibling.cps.flexbox.remove_widget(self.caller)
-        self.float_sibling.compareWidgets.remove(self.caller)
+        self.float_sibling.removeCompareWidget(self.caller)
         self.dismiss()
 
 
