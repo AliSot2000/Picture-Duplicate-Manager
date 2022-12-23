@@ -21,6 +21,7 @@ from kivy.uix.label import Label
 import traceback
 from multiprocessing.connection import Connection
 from typing import Union
+from kivy.config import Config
 
 # from gestures4kivy import CommonGestures
 
@@ -411,7 +412,7 @@ class CompareScroller(ScrollView):
     #     pass
 
 
-class MyFloat(FloatLayout):
+class RootWidget(FloatLayout):
     filenameModal = None
     errorModal = None
     db_selector_widget = None
@@ -428,7 +429,7 @@ class MyFloat(FloatLayout):
     loaded_row: int = None
 
     def __init__(self, fp: str = None, **kwargs):
-        super(MyFloat, self).__init__(**kwargs)
+        super(RootWidget, self).__init__(**kwargs)
         self.dup_fp = fp
 
         self.errorModal = ErrorPopup()
@@ -663,7 +664,7 @@ class SetDateModal(ModalView):
     customDateTimeInput = ObjectProperty(None)
 
     caller: ComparePane = None
-    float_sibling: MyFloat
+    float_sibling: RootWidget
     # error_popup: NewDatetimeError
 
     def __init__(self, float_sibling, error_popup, **kwargs):
@@ -792,9 +793,9 @@ class ErrorPopup(Popup):
 class DatabaseSelector(Popup):
     fc = ObjectProperty(None)
 
-    compareFloat: MyFloat
+    compareFloat: RootWidget
 
-    def __init__(self, comp_flt: MyFloat, **kwargs):
+    def __init__(self, comp_flt: RootWidget, **kwargs):
         super(DatabaseSelector, self).__init__(**kwargs)
         self.compareFloat = comp_flt
         self.bind(on_dismiss=self.try_close)
@@ -819,12 +820,12 @@ class DatabaseSelector(Popup):
 
 
 class DuplicateLocation(Popup):
-    my_float_ref: MyFloat
+    my_float_ref: RootWidget
     reuse_button = ObjectProperty(None)
     recompute_button = ObjectProperty(None)
     proc_sel = None
 
-    def __init__(self, Root_Ref: MyFloat, proc_select, **kwargs):
+    def __init__(self, Root_Ref: RootWidget, proc_select, **kwargs):
         super(DuplicateLocation, self).__init__(**kwargs)
         self.my_float_ref = Root_Ref
         self.auto_dismiss = False
@@ -842,9 +843,9 @@ class DuplicateLocation(Popup):
 
 
 class DuplicateDetection(Popup):
-    root: MyFloat
+    root: RootWidget
 
-    def __init__(self, root_wdg: MyFloat, **kwargs):
+    def __init__(self, root_wdg: RootWidget, **kwargs):
         self.root = root_wdg
         super(DuplicateDetection, self).__init__(**kwargs)
         self.progressbar = ProgressInfo(self.root.load_entry)
@@ -899,9 +900,9 @@ class FileCompareModal(ModalView):
     status_label = ObjectProperty(None)
     background_col = ColorProperty()
 
-    root_widget: MyFloat
+    root_widget: RootWidget
 
-    def __init__(self, root: MyFloat, **kwargs):
+    def __init__(self, root: RootWidget, **kwargs):
         super(FileCompareModal, self).__init__(**kwargs)
         self.root_widget = root
         self.bind(on_open=self.on_open_set_hint)
@@ -975,6 +976,10 @@ class PicturePopup(Popup):
 
 class PictureLibrary(App):
     def build(self):
-        mf = MyFloat()
+        mf = RootWidget()
         return mf
 
+
+if __name__ == "__main__":
+    Config.set('input', 'mouse', 'mouse, disable_multitouch')
+    PictureLibrary().run()
