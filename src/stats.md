@@ -21,3 +21,5 @@
 
 **Info:**
 On Server Photo_Library is only up and including Export Fotos MacBok
+
+TODO: create Gui with: https://github.com/Android-for-Python/gestures4kivy#pan
