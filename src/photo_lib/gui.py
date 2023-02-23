@@ -19,7 +19,7 @@ from photo_lib.metadataagregator import key_lookup_dir, MetadataAggregator
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
 from kivy.uix.label import Label
 import traceback
-from multiprocessing.connection import Connection
+from sqlite3 import Connection
 from typing import Union
 from kivy.config import Config
 from gestures4kivy import CommonGestures
@@ -498,7 +498,8 @@ class RootWidget(FloatLayout):
 
     def load_db(self):
         self.database = PhotoDb(root_dir=self.dup_fp)
-        mda = MetadataAggregator(exiftool_path="/home/alisot2000/Documents/01_ReposNCode/exiftool/exiftool")
+        # mda = MetadataAggregator(exiftool_path="/home/alisot2000/Documents/01_ReposNCode/exiftool/exiftool")
+        mda = MetadataAggregator(exiftool_path="/usr/bin/Image-ExifTool-12.44/exiftool")
         self.database.mda = mda
         if self.database.duplicate_table_exists():
             self.db_duplicate_location.open()
