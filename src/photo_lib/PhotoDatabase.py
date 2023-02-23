@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from difPy.dif import dif
 from _queue import Empty
 from multiprocessing import Queue, Process, Pipe, Lock
-from multiprocessing.connection import Connection
+from sqlite3 import Connection
 from typing import Tuple
 import sys
 import ffmpeg
