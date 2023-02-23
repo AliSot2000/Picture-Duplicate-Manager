@@ -145,6 +145,8 @@ class MetadataScrollLabel(ScrollView):
     """
     lbl = ObjectProperty(None)
     text = StringProperty("example content")
+    last_scroll_x = 0.0
+    last_scroll_y = 1.0
 
     def __init__(self, **kwargs):
         super(MetadataScrollLabel, self).__init__(**kwargs)
@@ -152,7 +154,10 @@ class MetadataScrollLabel(ScrollView):
         # self.bind(on_scroll_start=self.update_compare_pane)
 
     def update_compare_pane(self, *args, **kwargs):
-        self.parent.parent.update_scroll_metadata(x=self.scroll_x, y=self.scroll_y, caller=self)
+        if (self.last_scroll_x != self.scroll_x) or (self.last_scroll_y != self.scroll_y):
+            self.parent.parent.update_scroll_metadata(x=self.scroll_x, y=self.scroll_y, caller=self)
+            self.last_scroll_x = self.scroll_x
+            self.last_scroll_y = self.scroll_y
 
     # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity):
     #     print("PAN, MetadataScrollLabel")
@@ -205,6 +210,8 @@ class PathScrollLabel(ScrollView):
     """
     lbl = ObjectProperty(None)
     text = StringProperty("example content")
+    last_scroll_x = 0.0
+    last_scroll_y = 1.0
 
     def __init__(self, **kwargs):
         super(PathScrollLabel, self).__init__(**kwargs)
@@ -212,7 +219,10 @@ class PathScrollLabel(ScrollView):
         # self.bind(on_scroll_start=self.update_compare_pane)
 
     def update_compare_pane(self, *args, **kwargs):
-        self.parent.parent.update_scroll_path(x=self.scroll_x, caller=self)
+        if (self.last_scroll_x != self.scroll_x) or (self.last_scroll_y != self.scroll_y):
+            self.parent.parent.update_scroll_path(x=self.scroll_x, y=self.scroll_y, caller=self)
+            self.last_scroll_x = self.scroll_x
+            self.last_scroll_y = self.scroll_y
 
     # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity):
     #     print("PAN, PathScrollLabel")
@@ -373,10 +383,12 @@ class MyGrid(GridLayout):
         """
         for c in self.children:
             c: ComparePane
-            if c == caller:
+            if c.l_metadata == caller:
                 continue
             c.l_metadata.scroll_x = x
             c.l_metadata.scroll_y = y
+            c.l_metadata.last_scroll_x = x
+            c.l_metadata.last_scroll_y = y
 
     def update_scroll_path(self, *args, x: float, caller: PathScrollLabel,  **kwargs):
         for c in self.children:
@@ -384,6 +396,7 @@ class MyGrid(GridLayout):
             if c == caller:
                 continue
             c.l_ofpath.scroll_x = x
+            c.l_ofpath.last_scroll_x = x
 
     def open_image_popup(self, path: str):
         self.parent.parent.parent.open_image_popup(path)
