@@ -15,19 +15,21 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
 import os
 import datetime
-from .metadataagregator import key_lookup_dir, MetadataAggregator
-from .PhotoDatabase import PhotoDb, DatabaseEntry
+from photo_lib.metadataagregator import key_lookup_dir, MetadataAggregator
+from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
 from kivy.uix.label import Label
 import traceback
 from multiprocessing.connection import Connection
 from typing import Union
 from kivy.config import Config
-
-# from gestures4kivy import CommonGestures
+from gestures4kivy import CommonGestures
 
 
 # TODO Nice Scroll Sync
 # TODO Scroll Horizontal
+
+sample_text = "OI"
+
 
 class StupidScrollLabel(CommonGestures, ScrollView):
     lb = ObjectProperty(None)
@@ -496,7 +498,7 @@ class RootWidget(FloatLayout):
 
     def load_db(self):
         self.database = PhotoDb(root_dir=self.dup_fp)
-        mda = MetadataAggregator(exiftool_path="/usr/bin/Image-ExifTool-12.44/exiftool")
+        mda = MetadataAggregator(exiftool_path="/home/alisot2000/Documents/01_ReposNCode/exiftool/exiftool")
         self.database.mda = mda
         if self.database.duplicate_table_exists():
             self.db_duplicate_location.open()
@@ -631,7 +633,7 @@ class RootWidget(FloatLayout):
                 widget_a.mark_delete_button.state = "down"
                 widget_a.set_button_color()
 
-    def clear_comparepanes(self):
+    def clear_compare_panes(self):
         for p in self.compareWidgets:
             self.cps.flexbox.remove_widget(p)
 
@@ -667,7 +669,7 @@ class RootWidget(FloatLayout):
         self.clean_up()
 
     def clean_up(self):
-        self.clear_comparepanes()
+        self.clear_compare_panes()
         self.database.delete_duplicate_row(self.loaded_row)
         self.loaded_row = None
         self.load_entry()
@@ -833,7 +835,7 @@ class DatabaseSelector(Popup):
 
     def hide_scroll(self, *args, **kwargs):
         self.compareFloat.remove_scroller()
-        self.compareFloat.clear_comparepanes()
+        self.compareFloat.clear_compare_panes()
 
     def try_close(self, *args, **kwargs):
         self.compareFloat.add_scroller()

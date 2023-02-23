@@ -186,6 +186,8 @@ class PhotoDb:
 
     @staticmethod
     def __b64_to_dict(b64_str: str):
+        if b64_str is None:
+            return None
         b64_bytes = b64_str.encode("ascii")
         json_bytes = base64.b64decode(b64_bytes)
         json_str = json_bytes.decode("utf-8")
@@ -1135,7 +1137,7 @@ class PhotoDb:
                     time.sleep(1)
                     continue
 
-                duplicates = dif(directory_A=task_dir, show_progress=False, show_output=False)
+                duplicates = dif(task_dir, show_progress=False, show_output=False)
                 results.put(duplicates.result)
 
         self.proc_handles = []
