@@ -1077,7 +1077,111 @@ class PhotoDb:
         self.cur.execute(f"DELETE FROM images WHERE key = {key}")
         self.con.commit()
 
-    def img_ana_dup_search(self, level: str, procs: int = 16, overwrite: bool = False):
+    def img_ana_dup_search(self, level: str, procs: int = 16, overwrite: bool = False, new: bool = True):
+        if new:
+            return self.img_ana_dup_search_new(level, procs, overwrite)
+        else:
+            return self.img_ana_dup_search_old(level, procs, overwrite)
+
+
+    def img_ana_dup_search_new(self, level: str, procs: int = 16, overwrite: bool = False):
+        """
+        Perform default difpy search. Level determines the level at which the fotos are compared. The higher the level,
+        the longer the comparison. O(n²) The implementation here is my own using parallel searching on global level.
+        :param overwrite: Will drop an existing duplicates table if detected
+        :param level: possible: all, year, month, day
+        :param procs: number of parallel processes
+        :return:
+        """
+        if level not in ("all", "year", "month", "day"):
+            raise ValueError("Not supported search level")
+
+        if self.duplicate_table_exists():
+
+            # on not overwrite, return already
+            if not overwrite:
+                return False, "Duplicates Table exist."
+
+            # otherwise drop table
+            self.delete_duplicates_table()
+
+        self.create_duplicates_table()
+
+        if level == "all":
+            # raise NotImplementedError("This function is not implemented since it requires a rewrite of difpy")
+            dirs = [self.root_dir]
+
+        elif level == "year":
+            dirs = self.limited_dir_rec_list(path=self.root_dir, nor=0)
+
+        elif level == "month":
+            dirs = self.limited_dir_rec_list(path=self.root_dir, nor=1)
+
+        # day
+        else:
+            dirs = self.limited_dir_rec_list(path=self.root_dir, nor=2)
+
+        # remove thumbnail and trash directory
+        while self.thumbnail_dir in dirs:
+            dirs.remove(self.thumbnail_dir)
+
+        # remove the trash directory
+        while self.trash_dir in dirs:
+            dirs.remove(self.trash_dir)
+
+        pipe_out, pipe_in = Pipe()
+        p = Process(target=self.process_images_fast_difpy, args=(dirs, pipe_in, level))
+        p.start()
+
+        return True, pipe_out
+
+    def process_images_fast_difpy(self, folders: list, pipe_in: Connection, info: str):
+        """
+        The eigentliche implementation. Needs to be fixed. I namely need to switch to using the Qt5 gui stuff.
+
+        :param folders: list of folders to search
+        :param pipe_in: the pipe to inform the gui about the progress
+        :param info: Info in the database what type of search it was
+        :return:
+        """
+        initial_size = len(folders)
+        pipe_in.send((0, initial_size))
+
+        for i in range(len(folders)):
+            folder = folders[i]
+
+            # perform the difpy stuff
+            fdp = fastDif.FastDifPy(directory_a=folder)
+            fdp.ignore_names = (".thumbnails", ".trash", ".thumbnailsold")
+            fdp.index_the_dirs()
+            fdp.estimate_disk_usage()
+            fdp.first_loop_iteration()
+            fdp.second_loop_iteration()
+
+            results, low_quality = fdp.get_duplicates()
+            fdp.clean_up()
+
+            print(results)
+            print(low_quality)
+
+            # iterate through results
+            for val in results.values():
+                keys = [self.file_name_to_key(val['filename'])]
+
+                # iterate through duplicates of single result
+                for d in val["duplicates"]:
+                    keys.append(self.file_name_to_key(os.path.basename(d)))
+
+                self.cur.execute(f"INSERT INTO duplicates (match_type, matched_keys) "
+                                 f"VALUES ('{info}', '{json.dumps(keys)}')")
+            self.con.commit()
+            pipe_in.send((i, initial_size))
+
+        pipe_in.send("DONE")
+        pipe_in.close()
+
+
+    def img_ana_dup_search_old(self, level: str, procs: int = 16, overwrite: bool = False):
         """
         Perform default difpy search. Level determines the level at which the fotos are compared. The higher the level,
         the longer the comparison. O(n²)
