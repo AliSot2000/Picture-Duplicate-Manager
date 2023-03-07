@@ -20,6 +20,7 @@ from typing import Tuple
 import sys
 import ffmpeg
 from .errors_and_warnings import *
+from fast_diff_py import fastDif
 
 
 @dataclass
