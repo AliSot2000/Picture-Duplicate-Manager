@@ -1272,6 +1272,11 @@ class PhotoDb:
         #     print(f"File name is: {file_name}")
         assert len(res) <= 1, "multiple matching files found error in database, since not allowed by filesystem"
 
+        if len(res) == 0:
+            print("Image in folder structure that is not recorded in the database. This should not happen.")
+            print(f"File name is: {file_name}")
+            return -1
+
         return res[0][0]
 
     def result_processor(self, initial_size: int, result: Queue, pipe_in: Connection, info: str):
