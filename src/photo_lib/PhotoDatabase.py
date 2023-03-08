@@ -822,10 +822,10 @@ class PhotoDb:
 
         if not delete:
             # move file
-            dst = self.trash_path(data[0][5])
-
+            dst = self.trash_path(data[0][6])
+            
             if os.path.exists(dst):
-                raise ValueError("Image exists in trash already?")
+                raise ValueError(f"Image exists in trash already? {dst}")
 
             os.rename(src, dst)
         else:
