@@ -23,3 +23,7 @@
 On Server Photo_Library is only up and including Export Fotos MacBok
 
 TODO: create Gui with: https://github.com/Android-for-Python/gestures4kivy#pan
+DID gui with that thing, didn't work
+
+**Notes:**
+Pictures of the iPod which are selfies are always ~3kB larger on iCloud than on if they came from the MacMini
