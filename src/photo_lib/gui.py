@@ -176,7 +176,7 @@ class ComparePane(Widget):
         key_list = list(keys)
         key_list.sort()
 
-        result = ""
+        result = f"Number of Attributes: {len(key_list)}\n"
 
         for key in key_list:
             result += f"{key}: {self.database_entry.metadata.get(key)}\n"
@@ -483,7 +483,7 @@ class RootWidget(FloatLayout):
         for marks in for_duplicates:
             print(f"Marking: {marks.new_name}")
             marks: ComparePane
-            self.database.mark_duplicate(successor=main_key, duplicate_image_id=marks.database_entry.key, delete=True)
+            self.database.mark_duplicate(successor=main_key, duplicate_image_id=marks.database_entry.key, delete=False)
 
         self.clean_up()
 
