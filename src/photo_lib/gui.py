@@ -73,72 +73,9 @@ class ScrollLabel(ScrollView):
     def __init__(self, **kwargs):
         super(ScrollLabel, self).__init__(**kwargs)
         self.background_col = [0.2, 0.2, 0.2, 1.0]
-        # self.bind(on_scroll_stop=self.test_function)
-
-    # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity, check_children=True):
-    #
-    #     if check_children:
-    #         touch.push()
-    #         touch.apply_transform_2d(self.to_local)
-    #         if self.dispatch_children('on_scroll_stop', touch):
-    #             touch.pop()
-    #             return True
-    #         touch.pop()
-    #
-    #     print("PAN, ScrollLabel")
-    #     x, _ = self.convert_distance_to_scroll(delta_x, 0)
-    #     if 0 <= self.scroll_x + x <= 1:
-    #         self.scroll_x += x
-    #     elif self.scroll_x + x < 0:
-    #         self.scroll_x = 0
-    #     else:
-    #         self.scroll_x = 1
-    #
-    # def cgb_scroll(self, touch, focus_x, focus_y, delta_y, velocity, check_children=True):
-    #     if check_children:
-    #         touch.push()
-    #         touch.apply_transform_2d(self.to_local)
-    #         if self.dispatch_children('on_scroll_stop', touch):
-    #             touch.pop()
-    #             return True
-    #         touch.pop()
-    #     print("Scroll, ScrollLabel")
-    #     _, y = self.convert_distance_to_scroll(0, delta_y)
-    #     if 0 <= self.scroll_y + y <= 1:
-    #         self.scroll_y += y
-    #     elif self.scroll_y + y < 0:
-    #         self.scroll_y = 0
-    #     else:
-    #         self.scroll_y = 1
-    #
-    # def on_scroll_start(self, touch, check_children=True):
-    #     print("Scroll Start, ScrollLabel")
-    #     if check_children:
-    #         touch.push()
-    #         touch.apply_transform_2d(self.to_local)
-    #         if self.dispatch_children('on_scroll_stop', touch):
-    #             touch.pop()
-    #             return True
-    #         touch.pop()
-    #     pass
-    #
-    # def on_scroll_stop(self, touch, check_children=True):
-    #     print("Scroll Stop, ScrollLabel")
-    #     if check_children:
-    #         touch.push()
-    #         touch.apply_transform_2d(self.to_local)
-    #         if self.dispatch_children('on_scroll_stop', touch):
-    #             touch.pop()
-    #             return True
-    #         touch.pop()
-    #     pass
-    #
-    # def on_scroll_move(self, touch):
-    #     pass
 
 
 class MetadataScrollLabel(ScrollView):
-# class MetadataScrollLabel(CommonGestures, ScrollView):
     """
     Specific instance of ScrollLabel which has a callback which updates the scroll in every instance of
     MetadataScrollLabel
@@ -159,52 +96,8 @@ class MetadataScrollLabel(ScrollView):
             self.last_scroll_x = self.scroll_x
             self.last_scroll_y = self.scroll_y
 
-    # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity):
-    #     print("PAN, MetadataScrollLabel")
-    #     x, _ = self.convert_distance_to_scroll(delta_x, 0)
-    #     if 0 <= self.scroll_x + x <= 1:
-    #         self.scroll_x += x
-    #     elif self.scroll_x + x < 0:
-    #         self.scroll_x = 0
-    #     else:
-    #         self.scroll_x = 1
-    #
-    # def cgb_scroll(self, touch, focus_x, focus_y, delta_y, velocity):
-    #     print("Scroll, MetadataScrollLabel")
-    #     _, y = self.convert_distance_to_scroll(0, delta_y)
-    #     if 0 <= self.scroll_y + y <= 1:
-    #         self.scroll_y += y
-    #     elif self.scroll_y + y < 0:
-    #         self.scroll_y = 0
-    #     else:
-    #         self.scroll_y = 1
-    #
-    # def on_scroll_start(self, touch, check_children=True):
-    #     print("Scroll Start, MetadataScrollLabel")
-    #     if check_children:
-    #         touch.push()
-    #         touch.apply_transform_2d(self.to_local)
-    #         if self.dispatch_children('on_scroll_stop', touch):
-    #             touch.pop()
-    #             return True
-    #         touch.pop()
-    #
-    # def on_scroll_stop(self, touch, check_children=True):
-    #     print("Scroll Stop, MetadataScrollLabel")
-    #     if check_children:
-    #         touch.push()
-    #         touch.apply_transform_2d(self.to_local)
-    #         if self.dispatch_children('on_scroll_stop', touch):
-    #             touch.pop()
-    #             return True
-    #         touch.pop()
-    #
-    # def on_scroll_move(self, touch):
-    #     pass
-
 
 class PathScrollLabel(ScrollView):
-# class PathScrollLabel(CommonGestures, ScrollView):
     """
     Specific instance of ScrollLabel which has a callback which updates the scroll in every instance of PathScrollLabel
     """
@@ -216,56 +109,12 @@ class PathScrollLabel(ScrollView):
     def __init__(self, **kwargs):
         super(PathScrollLabel, self).__init__(**kwargs)
         self.bind(on_scroll_stop=self.update_compare_pane)
-        # self.bind(on_scroll_start=self.update_compare_pane)
 
     def update_compare_pane(self, *args, **kwargs):
         if (self.last_scroll_x != self.scroll_x) or (self.last_scroll_y != self.scroll_y):
             self.parent.parent.update_scroll_path(x=self.scroll_x, y=self.scroll_y, caller=self)
             self.last_scroll_x = self.scroll_x
             self.last_scroll_y = self.scroll_y
-
-    # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity):
-    #     print("PAN, PathScrollLabel")
-    #     x, _ = self.convert_distance_to_scroll(delta_x, 0)
-    #     if 0 <= self.scroll_x + x <= 1:
-    #         self.scroll_x += x
-    #     elif self.scroll_x + x < 0:
-    #         self.scroll_x = 0
-    #     else:
-    #         self.scroll_x = 1
-    #
-    # def cgb_scroll(self, touch, focus_x, focus_y, delta_y, velocity):
-    #     print("Scroll, PathScrollLabel")
-    #     _, y = self.convert_distance_to_scroll(0, delta_y)
-    #     if 0 <= self.scroll_y + y <= 1:
-    #         self.scroll_y += y
-    #     elif self.scroll_y + y < 0:
-    #         self.scroll_y = 0
-    #     else:
-    #         self.scroll_y = 1
-    #
-    # def on_scroll_start(self, touch, check_children=True):
-    #     print("Scroll Start, PathScrollLabel")
-    #     if check_children:
-    #         touch.push()
-    #         touch.apply_transform_2d(self.to_local)
-    #         if self.dispatch_children('on_scroll_stop', touch):
-    #             touch.pop()
-    #             return True
-    #         touch.pop()
-    #
-    # def on_scroll_stop(self, touch, check_children=True):
-    #     print("Scroll Stop, PathScrollLabel")
-    #     if check_children:
-    #         touch.push()
-    #         touch.apply_transform_2d(self.to_local)
-    #         if self.dispatch_children('on_scroll_stop', touch):
-    #             touch.pop()
-    #             return True
-    #         touch.pop()
-    #
-    # def on_scroll_move(self, touch):
-    #     pass
 
 
 class ComparePane(Widget):
@@ -409,52 +258,8 @@ class FlexibleBox(BoxLayout):
 
 
 class CompareScroller(ScrollView):
-# class CompareScroller(CommonGestures, ScrollView):
     flexbox = ObjectProperty(None)
     background_col = ColorProperty()
-
-    # def cgb_pan(self, touch, focus_x, focus_y, delta_x, velocity):
-    #     print("PAN, CompareScroller")
-    #     x, _ = self.convert_distance_to_scroll(delta_x, 0)
-    #     if 0 <= self.scroll_x + x <= 1:
-    #         self.scroll_x += x
-    #     elif self.scroll_x + x < 0:
-    #         self.scroll_x = 0
-    #     else:
-    #         self.scroll_x = 1
-    #
-    # def cgb_scroll(self, touch, focus_x, focus_y, delta_y, velocity):
-    #     print("Scroll, CompareScroller")
-    #     _, y = self.convert_distance_to_scroll(0, delta_y)
-    #     if 0 <= self.scroll_y + y <= 1:
-    #         self.scroll_y += y
-    #     elif self.scroll_y + y < 0:
-    #         self.scroll_y = 0
-    #     else:
-    #         self.scroll_y = 1
-    #
-    # def on_scroll_start(self, touch, check_children=True):
-    #     print("Scroll Start, CompareScroller")
-    #     if check_children:
-    #         touch.push()
-    #         touch.apply_transform_2d(self.to_local)
-    #         if self.dispatch_children('on_scroll_stop', touch):
-    #             touch.pop()
-    #             return True
-    #         touch.pop()
-    #
-    # def on_scroll_stop(self, touch, check_children=True):
-    #     print("Scroll Stop, CompareScroller")
-    #     if check_children:
-    #         touch.push()
-    #         touch.apply_transform_2d(self.to_local)
-    #         if self.dispatch_children('on_scroll_stop', touch):
-    #             touch.pop()
-    #             return True
-    #         touch.pop()
-    #
-    # def on_scroll_move(self, touch):
-    #     pass
 
 
 class RootWidget(FloatLayout):
