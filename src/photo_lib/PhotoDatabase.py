@@ -424,6 +424,37 @@ class PhotoDb:
         os.rename(src=old_path, dst=new_path)
         return new_name
 
+    def revert_import(self, tbl_name: str):
+        """
+        In case an import failed, revert the import and remove the images from the database and stuff.
+        :param tbl_name: name of the import table
+        :return:
+        """
+        self.cur.execute(f"SELECT * FROM {tbl_name}")
+        rows = self.cur.fetchall()
+
+        for row in rows:
+            # imported is 1
+            if row[7] == 1:
+                dt = row[6].split("_")[0]
+                try:
+                    os.remove(self.path_from_datetime(self.__db_str_to_datetime(dt), row[6]))
+                except FileNotFoundError:
+                    print(f"File {row[6]} not found. Skipping.")
+
+                # remove from the images table
+                self.cur.execute(f"DELETE FROM images WHERE new_name = '{row[6]}'")
+
+            # deleting the row from the import table
+            self.cur.execute(f"DELETE FROM {tbl_name} WHERE key = {row[0]}")
+
+        # deleting the import table
+        self.cur.execute(f"DELETE FROM import_tables WHERE import_table_name = '{tbl_name}'")
+
+        # dropping the table
+        self.cur.execute(f"DROP TABLE {tbl_name}")
+        self.con.commit()
+
     def import_folder(self, folder_path: str, al_fl: Set[str] = None, ignore_deleted: bool = False):
         folder_path = os.path.abspath(folder_path.rstrip("/"))
         temp_table_name = self.__create_import_table(folder_path)
