@@ -695,10 +695,16 @@ class PhotoDb:
             warnings.warn(f"Found {len(matches)} entries matching hash and creation datetime", RareOccurrence)
             return 1, "Found multiple matching entries, importing just to be sure", ""
 
-        # number of matches must be 1
-        # Import file, Message, (one of possibly many) matches
-        self.cur.execute("SELECT new_name FROM images WHERE key = {matches[0][1]}")
-        successor_name = self.cur.fetchone()[0]
+        # number of matches must be 1 (from guard clauses before)
+        # Get the file name of the image that is already present.
+        self.cur.execute(f"SELECT new_name FROM images WHERE key = {matches[0][2]}")
+        successor_in_images = self.cur.fetchone()
+        if successor_in_images is None:
+            warnings.warn(f"Found entry in replaced database with matching hash, but no successor in images database",
+                          RareOccurrence)
+            return 1, "Found entry in replaced database with matching hash, but no successor in images database", ""
+
+        successor_name = successor_in_images[0]
         return -1, "Found entry in database with matching hash", successor_name
 
     def __create_import_table(self, folder_path: str) -> str:
