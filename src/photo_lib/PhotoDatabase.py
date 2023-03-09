@@ -578,7 +578,12 @@ class PhotoDb:
                 self.con.commit()
 
             elif status_code == -1:
-                raise NotImplementedError("Updating of google fotos metadata if file is in replaced not implemented.")
+                self.cur.execute(f"UPDATE images SET "
+                                 f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
+                                 f"original_google_metadata = 0 WHERE new_name = '{successor}'")
+
+                self.con.commit()
+                # raise NotImplementedError("Updating of google fotos metadata if file is in replaced not implemented.")
 
     def __handle_import(self, fmd: FileMetaData, table: str, msg: str, update_key: int):
 
