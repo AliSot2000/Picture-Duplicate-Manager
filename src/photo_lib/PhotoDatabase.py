@@ -571,9 +571,6 @@ class PhotoDb:
             self.con.commit()
 
             if status_code == 0:
-                self.cur.execute(f"SELECT key FROM images WHERE new_name is '{successor}'")
-                res = self.cur.fetchone()
-
                 self.cur.execute(f"UPDATE images SET "
                                  f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
                                  f"original_google_metadata = 0 WHERE new_name = '{successor}'")
