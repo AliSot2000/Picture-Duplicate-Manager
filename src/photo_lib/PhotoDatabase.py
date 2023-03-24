@@ -1062,14 +1062,14 @@ class PhotoDb:
 
         return True
 
-    def image_to_trash(self, key: int = None, fname: str = None):
+    def image_to_trash(self, key: int = None, file_name: str = None):
         # both none
-        if key is None and fname is None:
-            raise ValueError("Key or fname must be provided")
+        if key is None and file_name is None:
+            raise ValueError("Key or file name must be provided")
         elif key is None:
             self.cur.execute(
                 f"SELECT key, org_fname, org_fpath, metadata, google_fotos_metadata, naming_tag, file_hash,"
-                f" new_name, datetime, original_google_metadata FROM images WHERE new_name IS '{fname}'")
+                f" new_name, datetime, original_google_metadata FROM images WHERE new_name IS '{file_name}'")
             results = self.cur.fetchall()
 
             if len(results) > 1:
