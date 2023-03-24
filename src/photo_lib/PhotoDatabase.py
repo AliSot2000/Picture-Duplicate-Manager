@@ -23,6 +23,9 @@ from .errors_and_warnings import *
 from fast_diff_py import fastDif
 
 
+# INFO: If you run the img_ana_dup_search from another file and not the gui, MAKE SURE TO EMPTY THE PIPE.
+# After around 1000 Calls, the pipe will be full and the program will freeze !!!
+
 @dataclass
 class DatabaseEntry:
     key: int
