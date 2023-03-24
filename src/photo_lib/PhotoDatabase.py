@@ -14,8 +14,8 @@ import warnings
 from dataclasses import dataclass
 from difPy.dif import dif
 from _queue import Empty
-from multiprocessing import Queue, Process, Pipe, Lock
-from sqlite3 import Connection
+import multiprocessing as mp
+import multiprocessing.connection as mpconn
 from typing import Tuple
 import sys
 import ffmpeg
@@ -1264,12 +1264,12 @@ class PhotoDb:
         while self.trash_dir in dirs:
             dirs.remove(self.thumbnail_dir)
 
-        task_queue = Queue()
+        task_queue = mp.Queue()
         [task_queue.put(directory) for directory in dirs]
-        result_queue = Queue()
+        result_queue = mp.Queue()
         init_size = len(dirs)
 
-        def difpy_process(task: Queue, results: Queue, id: int):
+        def difpy_process(task: mp.Queue, results: mp.Queue, id: int):
             timeout = 10
             while timeout > 0:
                 try:
@@ -1287,13 +1287,13 @@ class PhotoDb:
         self.proc_handles = []
 
         for i in range(procs):
-            p = Process(target=difpy_process, args=(task_queue, result_queue, i))
+            p = mp.Process(target=difpy_process, args=(task_queue, result_queue, i))
             p.start()
             self.proc_handles.append(p)
 
-        pipe_out, pipe_in = Pipe()
+        pipe_out, pipe_in = mp.Pipe()
 
-        p = Process(target=self.result_processor, args=(init_size, result_queue, pipe_in, level))
+        p = mp.Process(target=self.result_processor, args=(init_size, result_queue, pipe_in, level))
         p.start()
         self.proc_handles.append(p)
         return True, pipe_out
@@ -1318,7 +1318,7 @@ class PhotoDb:
 
         return res[0][0]
 
-    def result_processor(self, initial_size: int, result: Queue, pipe_in: Connection, info: str):
+    def result_processor(self, initial_size: int, result: mp.Queue, pipe_in: mpconn.Connection, info: str):
         count = 0
         pipe_in.send((0, initial_size))
 
