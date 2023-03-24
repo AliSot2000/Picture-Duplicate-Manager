@@ -439,6 +439,8 @@ class RootWidget(FloatLayout):
             fsize_b_type = type(widget_b.database_entry.metadata.get("File:FileSize"))
             assert fsize_a_type is int, f"FileSize of a not of expected type int but {fsize_a_type}"
             assert fsize_b_type is int, f"FileSize of b not of expected type int but {fsize_b_type}"
+
+            # Two files differing only in file size
             if widget_a.database_entry.metadata.get("File:FileSize")\
                     > widget_b.database_entry.metadata.get("File:FileSize"):
                 widget_a.obuton.state = "down"
@@ -452,6 +454,22 @@ class RootWidget(FloatLayout):
                 widget_a.mark_delete_button.state = "down"
                 widget_a.set_button_color()
 
+            # Two files identical but different dates.
+            elif widget_a.database_entry.metadata.get("File:FileSize")\
+                    == widget_b.database_entry.metadata.get("File:FileSize") and \
+                    widget_a.database_entry.datetime < widget_b.database_entry.datetime:
+                widget_a.obuton.state = "down"
+                widget_a.set_delete_on_main()
+                widget_b.mark_delete_button.state = "down"
+                widget_b.set_button_color()
+
+            elif widget_a.database_entry.metadata.get("File:FileSize")\
+                    == widget_b.database_entry.metadata.get("File:FileSize") and \
+                    widget_a.database_entry.datetime > widget_b.database_entry.datetime:
+                widget_b.obuton.state = "down"
+                widget_b.set_delete_on_main()
+                widget_a.mark_delete_button.state = "down"
+                widget_a.set_button_color()
     def clear_compare_panes(self):
         for p in self.compareWidgets:
             self.cps.flexbox.remove_widget(p)
