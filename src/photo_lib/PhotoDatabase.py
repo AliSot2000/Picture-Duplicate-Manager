@@ -1507,6 +1507,7 @@ class PhotoDb:
         result = self.cur.fetchone()
 
         count = 0
+        last = 1
 
         while result is not None:
             # increment index
@@ -1520,6 +1521,10 @@ class PhotoDb:
             # fetch next new_name
             self.cur.execute(f"SELECT key FROM images WHERE key >= {index}")
             result = self.cur.fetchone()
+
+            if count > last and count % 100 == 0:
+                last = count
+                print(f"Created {count} thumbnails")
 
         self.con.commit()
         print(f"Created {count} thumbnails for {index} entries")
