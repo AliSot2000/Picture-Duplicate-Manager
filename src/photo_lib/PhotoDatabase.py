@@ -1381,11 +1381,17 @@ class PhotoDb:
 
         duplicates = self.find_hash_based_duplicates(only_key=False)
 
-        for d in duplicates:
+        for i in range(len(duplicates)):
+            if i % 100 == 0:
+                print(f"Processing {i} of {len(duplicates)}")
+
+            d = duplicates[i]
             matching_keys = self.find_hash_in_pictures(d["file_hash"], only_key=True)
 
             self.cur.execute(f"INSERT INTO duplicates (match_type, matched_keys) "
                              f"VALUES ('hash', '{json.dumps(matching_keys)}')")
+
+        print(f"Done Processing")
 
         self.con.commit()
         return True, msg + f"Successfully found {len(duplicates)} duplicates"
