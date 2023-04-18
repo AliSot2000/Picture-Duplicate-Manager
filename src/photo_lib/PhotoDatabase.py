@@ -1187,7 +1187,7 @@ class PhotoDb:
             pipe_in.send("DONE")
         return True, pipe_out
 
-    def process_images_fast_difpy(self, folders: list, pipe_in: Connection, info: str):
+    def process_images_fast_difpy(self, folders: list, pipe_in: mpconn.Connection, info: str):
         """
         The eigentliche implementation. Needs to be fixed. I namely need to switch to using the Qt5 gui stuff.
 
@@ -1201,6 +1201,11 @@ class PhotoDb:
 
         for i in range(len(folders)):
             folder = folders[i]
+
+            old_db = os.path.join(folder, "diff.db")
+            if os.path.exists(old_db):
+                print(f"Removing old db in {folder}")
+                os.remove(old_db)
 
             # perform the difpy stuff
             fdp = fastDif.FastDifPy(directory_a=folder)
