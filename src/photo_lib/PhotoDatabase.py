@@ -1176,10 +1176,15 @@ class PhotoDb:
         while self.trash_dir in dirs:
             dirs.remove(self.trash_dir)
 
-        pipe_out, pipe_in = Pipe()
-        p = Process(target=self.process_images_fast_difpy, args=(dirs, pipe_in, level))
-        p.start()
+        pipe_out, pipe_in = mp.Pipe()
 
+        if separate_process:
+            p = mp.Process(target=self.process_images_fast_difpy, args=(dirs, pipe_in, level))
+            p.start()
+
+        else:
+            self.process_images_fast_difpy(dirs, pipe_in, level)
+            pipe_in.send("DONE")
         return True, pipe_out
 
     def process_images_fast_difpy(self, folders: list, pipe_in: Connection, info: str):
