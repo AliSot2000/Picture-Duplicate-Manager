@@ -573,6 +573,8 @@ class PhotoDb:
                              f"hash_based_duplicate = '{present_file_name}' WHERE key = {update_key}")
             self.con.commit()
 
+
+            # TODO simplify the two if blocks.
             if status_code == 0:
                 self.cur.execute(f"UPDATE images SET "
                                  f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
@@ -1085,6 +1087,7 @@ class PhotoDb:
             if len(results) > 1:
                 raise ValueError("Corrupted Database - multiple images with identical key")
 
+        # Parse the result of the Database
         key = results[0][0]
         org_fname = results[0][1]
         org_fpath = results[0][2]
@@ -1119,20 +1122,22 @@ class PhotoDb:
         self.cur.execute(f"DELETE FROM images WHERE key = {key}")
         self.con.commit()
 
-    def img_ana_dup_search(self, level: str, procs: int = 16, overwrite: bool = False, new: bool = True):
+    def img_ana_dup_search(self, level: str, procs: int = 16, overwrite: bool = False, new: bool = True, separate_process: bool = True):
         if new:
-            return self.img_ana_dup_search_new(level, procs, overwrite)
+            return self.img_ana_dup_search_new(level, overwrite, separate_process)
         else:
             return self.img_ana_dup_search_old(level, procs, overwrite)
 
 
-    def img_ana_dup_search_new(self, level: str, procs: int = 16, overwrite: bool = False):
+    def img_ana_dup_search_new(self, level: str, overwrite: bool = False,
+                               separate_process: bool = True):
         """
         Perform default difpy search. Level determines the level at which the fotos are compared. The higher the level,
         the longer the comparison. O(n²) The implementation here is my own using parallel searching on global level.
         :param overwrite: Will drop an existing duplicates table if detected
         :param level: possible: all, year, month, day
         :param procs: number of parallel processes
+        :param separate_process: if true, the search will be performed in a separate process (bc gui)
         :return:
         """
         if level not in ("all", "year", "month", "day"):
