@@ -29,7 +29,7 @@ class MediaPane(QWidget):
     layout: QVBoxLayout
 
     # Child Widgets, and associated attributes
-    media: Union[QLabel, QMediaPlayer]
+    media: Union[ResizingImage, QMediaPlayer]
     pixmap: QPixmap = None
     original_name_lbl: QLabel
     original_path_lbl: QLabel
@@ -69,17 +69,27 @@ class MediaPane(QWidget):
         # creating all the necessary labels
         self.original_name_lbl = QLabel()
         self.original_name_lbl.setText(self.dbe.org_fname)
+        self.original_name_lbl.setFixedHeight(20)
+        self.original_name_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.original_path_lbl = QLabel()
         self.original_path_lbl.setText(self.dbe.org_fpath)
+        self.original_path_lbl.setFixedHeight(20)
+        self.original_path_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.tag_lbl = QLabel()
         self.tag_lbl.setText(self.dbe.naming_tag)
+        self.tag_lbl.setFixedHeight(20)
+        self.tag_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.new_name_lbl = QLabel()
         self.new_name_lbl.setText(self.dbe.new_name)
+        self.new_name_lbl.setFixedHeight(20)
+        self.new_name_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.file_size_lbl = QLabel()
         self.file_size_lbl.setText(self.file_size)
+        self.file_size_lbl.setFixedHeight(20)
+        self.file_size_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.metadata_lbl = QLabel()
         self.metadata_lbl.setText(self.metadata)
-
+        self.metadata_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         # Adding all the widgets.
         self.layout.addWidget(self.media)
         self.layout.addWidget(self.original_name_lbl)
@@ -89,7 +99,10 @@ class MediaPane(QWidget):
         self.layout.addWidget(self.file_size_lbl)
         self.layout.addWidget(self.metadata_lbl)
 
-
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.media.setFixedWidth(self.width())
+        # self.media.setScaledContents(True)
 
 
 
