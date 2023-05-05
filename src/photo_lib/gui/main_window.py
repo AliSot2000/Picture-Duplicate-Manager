@@ -1,6 +1,8 @@
-from PyQt6.QtWidgets import QMainWindow, QScrollArea, QLabel, QMenu, QMenuBar, QStatusBar, QToolBar, QFileDialog, QHBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QScrollArea, QLabel, QMenu, QMenuBar, QStatusBar, QToolBar, QFileDialog, QHBoxLayout, QSizePolicy
+from PyQt6.QtGui import QResizeEvent
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
+from photo_lib.gui.image_container import ResizingImage
 
 sample_text = """
     Cominius. Breathe you, my friends: well fought;
