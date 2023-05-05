@@ -152,13 +152,13 @@ class RootWindow(QMainWindow):
         self.model = Model()
         self.sca = QScrollArea()
         self.csl = CompareRoot(self.model)
+        # imc = ResizingImage("/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test_db/2018/5/24/2018-05-24 20.35.54_000.jpg")
+        # imc.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        text = QLabel(sample_text)
-        # self.sca.setWidget(self.csl)
-        self.sca.setWidget(text)
+        # text = QLabel(sample_text)
+        self.sca.setWidget(self.csl)
+        # self.sca.setWidget(imc)
 
         self.setCentralWidget(self.sca)
         self.csl.load_elements()
         # self.setStatusBar(QStatusBar())
-
-
