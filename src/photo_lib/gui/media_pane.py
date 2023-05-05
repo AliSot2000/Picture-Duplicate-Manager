@@ -3,6 +3,7 @@ from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 
+from photo_lib.gui.image_container import ResizingImage
 from photo_lib.gui.model import Model
 from photo_lib.PhotoDatabase import DatabaseEntry, PhotoDb
 from typing import Union
@@ -43,13 +44,16 @@ class MediaPane(QWidget):
     delete_button: QPushButton
     change_tag_button: QPushButton
 
+    min_width:int = 200
+    min_height:int = 600
+
     def __init__(self, model: Model, entry: DatabaseEntry):
         super().__init__()
         self.model = model
         self.dbe = entry
         self.layout = QVBoxLayout()
 
-        self.setFixedWidth(200)
+        self.setMinimumWidth(self.min_width)
 
         self.setLayout(self.layout)
 
@@ -57,10 +61,10 @@ class MediaPane(QWidget):
         self.metadata, self.file_size = self.model.process_metadata(self.dbe.metadata)
 
         # Assuming default for the moment and just assuming that we get a picture.
-        self.media = QLabel()
         file_path = self.model.pdb.path_from_datetime(dt_obj=self.dbe.datetime, file_name=self.dbe.new_name)
-        self.pixmap = QPixmap(file_path)
-        self.media.setPixmap(self.pixmap.scaled(self.media.size(), aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio))
+        self.media = ResizingImage(file_path=file_path)
+        self.media.setFixedHeight(self.min_height)
+        self.media.setFixedWidth(self.min_width)
 
         # creating all the necessary labels
         self.original_name_lbl = QLabel()
