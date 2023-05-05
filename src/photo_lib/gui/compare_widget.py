@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QHBoxLayout, QWidget, QLabel, QPushButton
 from photo_lib.gui.model import Model
 from typing import List
-from photo_lib.gui.image_pane import MediaPane
+from photo_lib.gui.media_pane import MediaPane
 
 
 class CompareRoot(QWidget):
@@ -16,6 +16,7 @@ class CompareRoot(QWidget):
         self.media_panes = []
 
         self.setLayout(self.layout)
+        self.load_elements()
 
     def load_elements(self):
         """
