@@ -165,7 +165,7 @@ class RootWindow(QMainWindow):
         self.csl.load_elements()
         # self.setStatusBar(QStatusBar())
 
-    def resizeEvent(self, a0: QtGui.QResizeEvent) -> None:
+    def resizeEvent(self, a0: QResizeEvent) -> None:
         super().resizeEvent(a0)
         if a0.size().width() > self.csl.minimumWidth():
             self.csl.setMaximumWidth(a0.size().width())
@@ -173,3 +173,4 @@ class RootWindow(QMainWindow):
             self.csl.setMaximumWidth(self.csl.minimumWidth())
 
         self.csl.resize(a0.size())
+        # print(a0.size())
