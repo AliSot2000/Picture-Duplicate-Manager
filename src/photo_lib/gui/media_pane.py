@@ -180,6 +180,27 @@ class MediaPane(QWidget):
         # print(self.metadata_lbl.size())
         # self.media.setScaledContents(True)
 
+    def update_delete_text(self):
+        """
+        Updating the Text of the Delete or Keep button
+        :return:
+        """
+        if self.delete_button.isChecked():
+            self.delete_button.setText("Delete")
+            self.delete_button.setStyleSheet("background-color: red;")
+        else:
+            self.delete_button.setText("Keep")
+            self.delete_button.setStyleSheet("background-color: green;")
+
+    def update_main_color(self):
+        """
+        Updating the Color of the Main Button
+        :return:
+        """
+        if self.main_button.isChecked():
+            self.main_button.setStyleSheet("background-color: blue;")
+        else:
+            self.main_button.setStyleSheet("background-color: gray;")
 
 
 
