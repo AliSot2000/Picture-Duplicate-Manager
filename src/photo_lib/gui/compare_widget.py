@@ -19,6 +19,19 @@ def button_wrapper(btn: QPushButton, func: Callable):
         return func(btn=btn)
     return wrapper
 
+def pain_wrapper(media_pane: MediaPane, func: Callable):
+    """
+    This function is used to wrap the media pain that calls the function into the function so that one function can be
+    used for many different buttons. Because Slots in QT don't communicate the caller of the function.
+
+    :param pain: pain that calls the function
+    :param func: methode to execute that needs to have the button as a parameter
+    :return:
+    """
+    def wrapper():
+        return func(media_pane=media_pane)
+    return wrapper
+
 class CompareRoot(QWidget):
     model: Model
     layout: QHBoxLayout
@@ -27,6 +40,7 @@ class CompareRoot(QWidget):
 
     updating_buttons: bool = False
     main_buttons: List[QPushButton] = None
+    auto_load: bool = True
 
     def __init__(self, model: Model):
         super().__init__()
@@ -59,6 +73,7 @@ class CompareRoot(QWidget):
         for pane in self.media_panes:
             pane.main_button.clicked.connect(button_wrapper(pane.main_button, self.button_state))
             self.main_buttons.append(pane.main_button)
+            pane.remove_media_button.clicked.connect(pain_wrapper(pane, self.remove_media_pane))
 
         self.setMinimumWidth(len(self.model.files) * 300)
 
@@ -86,6 +101,9 @@ class CompareRoot(QWidget):
         self.main_buttons.remove(media_pane.main_button)
         media_pane.deleteLater()
         self.media_panes.remove(media_pane)
+
+        if len(self.media_panes) == 0 and self.auto_load:
+            self.load_elements()
 
     def synchronized_scroll(self, name: str, caller: TextScroller, rx: float, ry: float):
         """
