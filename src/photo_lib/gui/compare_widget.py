@@ -9,6 +9,7 @@ class CompareRoot(QWidget):
     model: Model
     layout: QHBoxLayout
     media_panes: List[MediaPane]
+    min_width: int = 300
 
     def __init__(self, model: Model):
         super().__init__()
@@ -16,6 +17,7 @@ class CompareRoot(QWidget):
         self.layout = QHBoxLayout()
         self.media_panes = []
 
+        self.setMinimumHeight(860)
         self.setLayout(self.layout)
         self.load_elements()
 
@@ -34,6 +36,8 @@ class CompareRoot(QWidget):
             self.media_panes.append(pane)
             self.layout.addWidget(pane)
             # pane.show()
+
+        self.setMinimumWidth(len(self.model.files) * 300)
 
     def remove_all_elements(self):
         """
