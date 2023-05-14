@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QFrame
+from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QFrame, QSizePolicy, QHBoxLayout
 from PyQt6.QtMultimedia import QMediaPlayer
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QFontMetrics
 from PyQt6.QtCore import Qt
 
 from photo_lib.gui.image_container import ResizingImage
@@ -48,9 +48,12 @@ class MediaPane(QWidget):
     metadata_lbl: TextScroller
     metadata: str = ""
 
+    button_widget: QWidget
+    button_layout: QHBoxLayout
     main_button: QPushButton
     delete_button: QPushButton
     change_tag_button: QPushButton
+    remove_media_button: QPushButton
 
     min_width:int = 300
     max_height:int = 540
@@ -97,6 +100,31 @@ class MediaPane(QWidget):
         # Dito self.original_name_lbl
         self.original_path_lbl.share_scroll = bake_attribute("original_path_lbl", self.share_scroll)
 
+        # Buttons
+        self.button_widget = QWidget()
+        self.button_widget.setFixedHeight(30)
+        self.button_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        self.button_layout = QHBoxLayout()
+        self.button_layout.setContentsMargins(0, 0, 0, 0)
+        self.button_widget.setLayout(self.button_layout)
+        self.main_button = QPushButton("Original")
+        self.main_button.setMinimumHeight(20)
+        self.delete_button = QPushButton("Delete")
+        self.delete_button.setMinimumHeight(20)
+        self.change_tag_button = QPushButton("Change Tag")
+        self.change_tag_button.setMinimumWidth(self.change_tag_button.fontMetrics().boundingRect("Change Tag").width() + 10)
+        self.change_tag_button.setMinimumHeight(20)
+        self.remove_media_button = QPushButton("X")
+        self.remove_media_button.setMinimumHeight(20)
+        self.remove_media_button.setFixedWidth(20)
+
+
+        self.button_layout.addWidget(self.main_button)
+        self.button_layout.addWidget(self.delete_button)
+        self.button_layout.addWidget(self.change_tag_button)
+        self.button_layout.addWidget(self.remove_media_button)
+
         self.tag_lbl = QLabel()
         self.tag_lbl.setFixedHeight(30)
         self.tag_lbl.setText(self.dbe.naming_tag)
@@ -125,6 +153,7 @@ class MediaPane(QWidget):
         self.layout.addWidget(self.media)
         self.layout.addWidget(self.original_name_lbl)
         self.layout.addWidget(self.original_path_lbl)
+        self.layout.addWidget(self.button_widget)
         self.layout.addWidget(self.tag_lbl)
         self.layout.addWidget(self.new_name_lbl)
         self.layout.addWidget(self.file_size_lbl)
@@ -134,6 +163,7 @@ class MediaPane(QWidget):
         super().resizeEvent(event)
         self.media.setFixedWidth(self.width())
         self.media.setFixedHeight(min(self.max_height, int(self.width() / self.media.width_div_height)))
+        print(self.metadata_lbl.size())
         # self.media.setScaledContents(True)
 
 
