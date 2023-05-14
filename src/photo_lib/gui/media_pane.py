@@ -108,10 +108,19 @@ class MediaPane(QWidget):
         self.button_layout = QHBoxLayout()
         self.button_layout.setContentsMargins(0, 0, 0, 0)
         self.button_widget.setLayout(self.button_layout)
+
         self.main_button = QPushButton("Original")
         self.main_button.setMinimumHeight(20)
-        self.delete_button = QPushButton("Delete")
+        self.main_button.setCheckable(True)
+        self.main_button.setStyleSheet("background-color: gray;")
+        self.main_button.toggled.connect(self.update_main_color)
+
+        self.delete_button = QPushButton("Keep")
         self.delete_button.setMinimumHeight(20)
+        self.delete_button.setCheckable(True)
+        self.delete_button.setStyleSheet("background-color: green;")
+
+        self.delete_button.toggled.connect(self.update_delete_text)
         self.change_tag_button = QPushButton("Change Tag")
         self.change_tag_button.setMinimumWidth(self.change_tag_button.fontMetrics().boundingRect("Change Tag").width() + 10)
         self.change_tag_button.setMinimumHeight(20)
