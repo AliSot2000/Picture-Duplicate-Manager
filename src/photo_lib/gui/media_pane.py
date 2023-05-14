@@ -116,9 +116,10 @@ class MediaPane(QWidget):
         self.metadata_lbl.set_text(self.metadata)
         self.metadata_lbl.setFrameShape(QFrame.Shape.NoFrame)
         self.metadata_lbl.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        # self.metadata_lbl.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
         # Dito self.original_name_lbl
         self.metadata_lbl.share_scroll = bake_attribute("metadata_lbl", self.share_scroll)
+        self.metadata_lbl.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.metadata_lbl.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         # Adding all the widgets.
         self.layout.addWidget(self.media)
