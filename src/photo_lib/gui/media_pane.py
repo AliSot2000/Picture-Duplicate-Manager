@@ -160,10 +160,15 @@ class MediaPane(QWidget):
         self.layout.addWidget(self.metadata_lbl)
 
     def resizeEvent(self, event):
+        """
+        Pass Size to the Picture
+        :param event:
+        :return:
+        """
         super().resizeEvent(event)
         self.media.setFixedWidth(self.width())
         self.media.setFixedHeight(min(self.max_height, int(self.width() / self.media.width_div_height)))
-        print(self.metadata_lbl.size())
+        # print(self.metadata_lbl.size())
         # self.media.setScaledContents(True)
 
 
