@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QHBoxLayout, QWidget, QLabel, QPushButton
+from PyQt6.QtWidgets import QHBoxLayout, QWidget, QLabel, QPushButton, QButtonGroup
 from photo_lib.gui.model import Model
 from typing import List
 from photo_lib.gui.media_pane import MediaPane
@@ -50,6 +50,17 @@ class CompareRoot(QWidget):
             element.deleteLater()
 
         self.media_panes = []
+
+    def remove_media_pane(self, media_pane: MediaPane):
+        """
+        Removes the given MediaPane from the layout and deletes it.
+
+        :param media_pane: The MediaPane to remove.
+        :return:
+        """
+        self.layout.removeWidget(media_pane)
+        media_pane.deleteLater()
+        self.media_panes.remove(media_pane)
 
     def synchronized_scroll(self, name: str, caller: TextScroller, rx: float, ry: float):
         """
