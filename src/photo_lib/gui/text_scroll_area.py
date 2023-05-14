@@ -26,7 +26,11 @@ class TextScroller(QScrollArea):
         """
         lines = text.strip().count("\n")
         self.text_label.setText(text)
-        width = self.text_label.fontMetrics().boundingRect(self.text_label.text()).width()
+        width = 0
+
+        for l in text.split("\n"):
+            width = max(width, self.text_label.fontMetrics().boundingRect(l).width())
+
         height = self.text_label.fontMetrics().lineSpacing() * (lines + 1)
         self.text_label.setFixedWidth(width + 10)
         self.text_label.setFixedHeight(height + 10)
