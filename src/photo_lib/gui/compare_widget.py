@@ -3,7 +3,21 @@ from photo_lib.gui.model import Model
 from typing import List
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.text_scroll_area import TextScroller
+from typing import Callable
 
+
+def button_wrapper(btn: QPushButton, func: Callable):
+    """
+    This function is used to wrap the button that calls the function into the function so that one function can be
+    used for many different buttons. Because Slots in QT don't communicate the caller of the function.
+
+    :param btn: button that calls the function
+    :param func: methode to execute that needs to have the button as a parameter
+    :return:
+    """
+    def wrapper():
+        return func(btn=btn)
+    return wrapper
 
 class CompareRoot(QWidget):
     model: Model
@@ -11,8 +25,12 @@ class CompareRoot(QWidget):
     media_panes: List[MediaPane]
     min_width: int = 300
 
+    updating_buttons: bool = False
+    main_buttons: List[QPushButton] = None
+
     def __init__(self, model: Model):
         super().__init__()
+        self.main_buttons = []
         self.model = model
         self.layout = QHBoxLayout()
         self.media_panes = []
@@ -37,6 +55,11 @@ class CompareRoot(QWidget):
             self.layout.addWidget(pane)
             # pane.show()
 
+        # Attaching  Buttons
+        for pane in self.media_panes:
+            pane.main_button.clicked.connect(button_wrapper(pane.main_button, self.button_state))
+            self.main_buttons.append(pane.main_button)
+
         self.setMinimumWidth(len(self.model.files) * 300)
 
     def remove_all_elements(self):
@@ -50,6 +73,7 @@ class CompareRoot(QWidget):
             element.deleteLater()
 
         self.media_panes = []
+        self.main_buttons = []
 
     def remove_media_pane(self, media_pane: MediaPane):
         """
@@ -59,6 +83,7 @@ class CompareRoot(QWidget):
         :return:
         """
         self.layout.removeWidget(media_pane)
+        self.main_buttons.remove(media_pane.main_button)
         media_pane.deleteLater()
         self.media_panes.remove(media_pane)
 
@@ -85,3 +110,38 @@ class CompareRoot(QWidget):
                 exit(100)
             if element != caller:
                 element.scroll_from_ratio(rx, ry)
+
+    def button_state(self, btn: QPushButton):
+        """
+        This function is called when a main button is clicked. It makes sure that only one button is checked at a time.
+
+        :param btn: button that was clicked
+        :return:
+        """
+        if self.updating_buttons:
+            return
+
+        self.updating_buttons = True
+        if btn.isChecked():
+            for b in self.main_buttons:
+                if b != btn:
+                    # Try except as idiot proofing to stop the program from crashing.
+                    try:
+                        b.setChecked(False)
+                    except RuntimeError:
+                        print("Runtime Error: Couldn't set button to unchecked. CHECK CODE!!!")
+                        self.main_buttons.remove(b)
+                        self.updating_buttons = False
+                        self.button_state(btn)
+        else:
+            for b in self.main_buttons:
+                # Try except as idiot proofing to stop the program from crashing.
+                try:
+                    b.setChecked(False)
+                except RuntimeError:
+                    print("Runtime Error: Couldn't set button to unchecked. CHECK CODE!!!")
+                    self.main_buttons.remove(b)
+                    self.updating_buttons = False
+                    self.button_state(btn)
+
+        self.updating_buttons = False
