@@ -3,6 +3,7 @@ from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtGui import QPixmap, QFontMetrics
 from PyQt6.QtCore import Qt
 
+from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.gui.image_container import ResizingImage
 from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.model import Model
@@ -37,7 +38,7 @@ class MediaPane(QWidget):
     layout: QVBoxLayout
 
     # Child Widgets, and associated attributes
-    media: Union[ResizingImage, QMediaPlayer]
+    media: Union[ClickableImage, QMediaPlayer]
     pixmap: QPixmap = None
     original_name_lbl: TextScroller
     original_path_lbl: TextScroller
@@ -76,7 +77,7 @@ class MediaPane(QWidget):
 
         # Assuming default for the moment and just assuming that we get a picture.
         file_path = self.model.pdb.path_from_datetime(dt_obj=self.dbe.datetime, file_name=self.dbe.new_name)
-        self.media = ResizingImage(file_path=file_path)
+        self.media = ClickableImage(file_path=file_path)
 
         # creating all the necessary labels
         self.original_name_lbl = TextScroller()
