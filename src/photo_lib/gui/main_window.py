@@ -1,8 +1,30 @@
-from PyQt6.QtWidgets import QMainWindow, QScrollArea, QLabel, QMenu, QMenuBar, QStatusBar, QToolBar, QFileDialog, QHBoxLayout, QSizePolicy
+import time
+from threading import Thread
+
+from PyQt6.QtWidgets import QMainWindow, QScrollArea, QLabel, QMenu, QMenuBar, QStatusBar, QToolBar, QFileDialog, QHBoxLayout, QSizePolicy, QWidget, QStackedLayout
 from PyQt6.QtGui import QResizeEvent
+from PyQt6.QtCore import Qt, QSize
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.image_container import ResizingImage
+from typing import List
+
+# TODO
+#  - Add Button to go to next duplicate entry
+#  - Add Button to commit only the selected main and delete to database
+#  - Add Button to commit the selected main and delete everything else in database
+#  - Add on click on image to open image in new window
+#  - File Selector for database
+#  - Buttons for deduplication process.
+#  - Time line selection
+#  - Images in windows needed at some point
+
+def increment_thing(stack: QStackedLayout, widgets: List[QWidget]):
+    index = 0
+    while True:
+        time.sleep(1)
+        stack.setCurrentWidget(widgets[index % len(widgets)])
+        index += 1
 
 sample_text = """
     Cominius. Breathe you, my friends: well fought;
@@ -144,6 +166,8 @@ sample_text = """
 """
 class RootWindow(QMainWindow):
     model:  Model
+    dummy_center: QWidget
+    layout_stack: QStackedLayout
 
     # Scrolling and CompareView
     sca: QScrollArea
@@ -154,6 +178,25 @@ class RootWindow(QMainWindow):
         self.model = Model()
         self.sca = QScrollArea()
         self.csl = CompareRoot(self.model)
+        self.dummy_center = QWidget()
+        self.dummy_center.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
+        self.setCentralWidget(self.dummy_center)
+
+        self.layout_stack = QStackedLayout()
+        self.dummy_center.setLayout(self.layout_stack)
+
+
+        # self.label_a = QLabel("A")
+        # self.label_b = QLabel("B")
+        #
+        # self.layout_stack.addWidget(self.label_a)
+        # self.layout_stack.addWidget(self.label_b)
+        #
+        # t = Thread(target=increment_thing, args=(self.layout_stack, [self.label_a, self.label_b]))
+        # t.start()
+
+
         # imc = ResizingImage("/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test_db/2018/5/24/2018-05-24 20.35.54_000.jpg")
         # imc.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
@@ -161,9 +204,8 @@ class RootWindow(QMainWindow):
         self.sca.setWidget(self.csl)
         # self.sca.setWidget(imc)
 
-        self.setCentralWidget(self.sca)
         self.csl.load_elements()
-        # self.setStatusBar(QStatusBar())
+        self.layout_stack.addWidget(self.sca)
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         super().resizeEvent(a0)
@@ -172,5 +214,8 @@ class RootWindow(QMainWindow):
         else:
             self.csl.setMaximumWidth(self.csl.minimumWidth())
 
-        self.csl.resize(a0.size())
+        new_size = QSize(a0.size().width() - self.sca.verticalScrollBar().width(),
+                         a0.size().height() - self.sca.horizontalScrollBar().height())
+
+        self.csl.resize(new_size)
         # print(a0.size())

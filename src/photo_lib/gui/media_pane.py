@@ -59,6 +59,8 @@ class MediaPane(QWidget):
     min_width:int = 300
     max_height:int = 540
 
+    max_needed_width: int = 0
+
     share_scroll: Callable
 
     def __init__(self, model: Model, entry: DatabaseEntry, share_scroll: Callable):
@@ -90,6 +92,8 @@ class MediaPane(QWidget):
         # Using Decorator to set the attribute fix and not having to mess around with the text scroller having to
         # know its attribute name in the parent.
         self.original_name_lbl.share_scroll = bake_attribute("original_name_lbl", self.share_scroll)
+        self.max_needed_width = max(self.max_needed_width, self.original_name_lbl.text_label.width())
+
 
         self.original_path_lbl = TextScroller()
         self.original_path_lbl.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -100,6 +104,7 @@ class MediaPane(QWidget):
         self.original_path_lbl.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         # Dito self.original_name_lbl
         self.original_path_lbl.share_scroll = bake_attribute("original_path_lbl", self.share_scroll)
+        self.max_needed_width = max(self.max_needed_width, self.original_path_lbl.text_label.width())
 
         # Buttons
         self.button_widget = QWidget()
@@ -158,6 +163,7 @@ class MediaPane(QWidget):
         self.metadata_lbl.share_scroll = bake_attribute("metadata_lbl", self.share_scroll)
         self.metadata_lbl.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.metadata_lbl.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.max_needed_width = max(self.max_needed_width, self.metadata_lbl.text_label.width())
 
         # Adding all the widgets.
         self.layout.addWidget(self.media)

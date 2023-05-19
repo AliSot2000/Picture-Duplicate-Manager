@@ -37,6 +37,8 @@ class CompareRoot(QWidget):
     layout: QHBoxLayout
     media_panes: List[MediaPane]
     min_width: int = 300
+    max_needed_width: int = 0
+    min_height = 870
 
     updating_buttons: bool = False
     main_buttons: List[QPushButton] = None
@@ -59,6 +61,7 @@ class CompareRoot(QWidget):
 
         :return:
         """
+        self.max_needed_width = 10
         if self.layout.count() > 0:
             self.remove_all_elements()
 
@@ -74,6 +77,7 @@ class CompareRoot(QWidget):
             pane.main_button.clicked.connect(button_wrapper(pane.main_button, self.button_state))
             self.main_buttons.append(pane.main_button)
             pane.remove_media_button.clicked.connect(pain_wrapper(pane, self.remove_media_pane))
+            self.max_needed_width += pane.max_needed_width + 10
 
         self.setMinimumWidth(len(self.model.files) * 300)
 
