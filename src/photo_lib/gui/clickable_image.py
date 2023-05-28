@@ -1,12 +1,14 @@
 from PyQt6.QtWidgets import QLabel, QPushButton
 from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtCore import Qt
+from typing import Union
 
 class ClickableImage(QPushButton):
     img_lbl: QLabel
-    pxmap: QPixmap
+    pixmap: Union[QPixmap, None]
     fpath: str
     width_div_height: float
+    count: int = 0
 
     def __init__(self, file_path: str):
         super().__init__()
@@ -19,7 +21,9 @@ class ClickableImage(QPushButton):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self.setIconSize(self.size())
+        print("Resize")
+        # self.setMaximumSize(event.size())
+        self.setIconSize(event.size())
         # self.setPixmap(self.pixmap.scaled(self.size(), aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio))
         # self.media.setScaledContents(True)
 
