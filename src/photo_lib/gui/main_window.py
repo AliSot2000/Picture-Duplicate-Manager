@@ -132,6 +132,9 @@ class RootWindow(QMainWindow):
             # self.error_popup.open()
             print(f"Failed to update Datetime:\n {e}")
 
+        # update the media pane from the database entry.
+        self.datetime_modal.media_pane.update_file_naming()
+
         self.close_datetime_modal()
 
     def apply_close_datetime_modal(self):
