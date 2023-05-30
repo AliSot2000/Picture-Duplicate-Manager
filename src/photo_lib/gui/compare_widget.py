@@ -19,6 +19,7 @@ def button_wrapper(btn: QPushButton, func: Callable):
         return func(btn=btn)
     return wrapper
 
+
 def pain_wrapper(media_pane: MediaPane, func: Callable):
     """
     This function is used to wrap the media pain that calls the function into the function so that one function can be
@@ -31,6 +32,7 @@ def pain_wrapper(media_pane: MediaPane, func: Callable):
     def wrapper():
         return func(media_pane=media_pane)
     return wrapper
+
 
 class CompareRoot(QWidget):
     model: Model
