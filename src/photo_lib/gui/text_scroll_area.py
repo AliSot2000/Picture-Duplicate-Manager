@@ -76,8 +76,8 @@ class TextScroller(QScrollArea):
         y_ratio = y / self.verticalScrollBar().maximum() if self.verticalScrollBar().maximum() else 1.0
         x_ratio = x / self.horizontalScrollBar().maximum() if self.horizontalScrollBar().maximum() else 1.0
 
-        print(f"Scrolling Contents TextScroller      : {x}, {y}")
-        print(f"Scrolling Contents TextScroller Ratio: {x_ratio}, {y_ratio}")
+        # print(f"Scrolling Contents TextScroller      : {x}, {y}")
+        # print(f"Scrolling Contents TextScroller Ratio: {x_ratio}, {y_ratio}")
 
         if self.call_share_scroll and self.share_scroll is not None:
             self.share_scroll(caller=self, rx=x_ratio, ry=y_ratio)
