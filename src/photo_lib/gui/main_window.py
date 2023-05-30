@@ -167,7 +167,10 @@ sample_text = """
 class RootWindow(QMainWindow):
     model:  Model
     dummy_center: QWidget
-    layout_stack: QStackedLayout
+    sla: QStackedLayout
+
+    # Fill Screen Image
+    full_screen_image: ResizingImage = None
 
     # Scrolling and CompareView
     sca: QScrollArea
@@ -177,15 +180,15 @@ class RootWindow(QMainWindow):
         super().__init__()
         self.model = Model()
         self.sca = QScrollArea()
-        self.csl = CompareRoot(self.model)
+        self.sla = QStackedLayout()
+
+        self.csl = CompareRoot(self.model, open_image_fn=self.open_image)
         self.dummy_center = QWidget()
         self.dummy_center.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
         self.setCentralWidget(self.dummy_center)
 
-        self.layout_stack = QStackedLayout()
-        self.dummy_center.setLayout(self.layout_stack)
-
+        self.dummy_center.setLayout(self.sla)
 
         # self.label_a = QLabel("A")
         # self.label_b = QLabel("B")
@@ -205,7 +208,8 @@ class RootWindow(QMainWindow):
         # self.sca.setWidget(imc)
 
         self.csl.load_elements()
-        self.layout_stack.addWidget(self.sca)
+        self.sla.addWidget(self.sca)
+        self.sla.setCurrentWidget(self.sca)
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         super().resizeEvent(a0)
@@ -219,3 +223,16 @@ class RootWindow(QMainWindow):
 
         self.csl.resize(new_size)
         # print(a0.size())
+
+    def open_image(self, path: str):
+        if self.full_screen_image is None:
+            self.full_screen_image = ResizingImage(path)
+            self.full_screen_image.clicked.connect(self.close_image)
+            self.sla.addWidget(self.full_screen_image)
+        else:
+            self.full_screen_image.load_image(path)
+
+        self.sla.setCurrentWidget(self.full_screen_image)
+
+    def close_image(self):
+        self.sla.setCurrentWidget(self.sca)
