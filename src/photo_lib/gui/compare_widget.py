@@ -43,7 +43,6 @@ class CompareRoot(QWidget):
     min_height = 870
 
     updating_buttons: bool = False
-    main_buttons: List[QPushButton] = None
     auto_load: bool = True
     open_image_fn: Callable
 
@@ -83,7 +82,6 @@ class CompareRoot(QWidget):
         # Attaching  Buttons
         for pane in self.media_panes:
             pane.main_button.clicked.connect(button_wrapper(pane.main_button, self.button_state))
-            self.main_buttons.append(pane.main_button)
             pane.remove_media_button.clicked.connect(pain_wrapper(pane, self.remove_media_pane))
             self.max_needed_width += pane.max_needed_width + 10  # TODO Better formula
             pane.media.clicked.connect(lambda : self.open_image_fn(pane.media.fpath))
@@ -101,7 +99,6 @@ class CompareRoot(QWidget):
             element.deleteLater()
 
         self.media_panes = []
-        self.main_buttons = []
 
     def remove_media_pane(self, media_pane: MediaPane):
         """
@@ -111,7 +108,6 @@ class CompareRoot(QWidget):
         :return:
         """
         self.layout.removeWidget(media_pane)
-        self.main_buttons.remove(media_pane.main_button)
         media_pane.deleteLater()
         self.media_panes.remove(media_pane)
 
@@ -154,25 +150,16 @@ class CompareRoot(QWidget):
 
         self.updating_buttons = True
         if btn.isChecked():
-            for b in self.main_buttons:
-                if b != btn:
-                    # Try except as idiot proofing to stop the program from crashing.
-                    try:
-                        b.setChecked(False)
-                    except RuntimeError:
-                        print("Runtime Error: Couldn't set button to unchecked. CHECK CODE!!!")
-                        self.main_buttons.remove(b)
-                        self.updating_buttons = False
-                        self.button_state(btn)
+            for media_pane in self.media_panes:
+                if media_pane.main_button != btn:
+                    media_pane.main_button.setChecked(False)
+                else:
+                    media_pane.delete_button.setChecked(False)
+
         else:
-            for b in self.main_buttons:
+            for media_pane in self.media_panes:
                 # Try except as idiot proofing to stop the program from crashing.
-                try:
-                    b.setChecked(False)
-                except RuntimeError:
-                    print("Runtime Error: Couldn't set button to unchecked. CHECK CODE!!!")
-                    self.main_buttons.remove(b)
-                    self.updating_buttons = False
-                    self.button_state(btn)
+                media_pane.main_button.setChecked(False)
+
 
         self.updating_buttons = False
