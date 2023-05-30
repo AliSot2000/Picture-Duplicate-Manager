@@ -4,7 +4,6 @@ from PyQt6.QtGui import QPixmap, QFontMetrics
 from PyQt6.QtCore import Qt
 
 from photo_lib.gui.clickable_image import ClickableImage
-from photo_lib.gui.image_container import ResizingImage
 from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.model import Model
 from photo_lib.PhotoDatabase import DatabaseEntry, PhotoDb
@@ -194,6 +193,7 @@ class MediaPane(QWidget):
         if self.delete_button.isChecked():
             self.delete_button.setText("Delete")
             self.delete_button.setStyleSheet("background-color: red;")
+            self.main_button.setChecked(False)
         else:
             self.delete_button.setText("Keep")
             self.delete_button.setStyleSheet("background-color: green;")
