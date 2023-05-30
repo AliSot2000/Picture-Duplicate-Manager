@@ -45,16 +45,18 @@ class CompareRoot(QWidget):
     updating_buttons: bool = False
     auto_load: bool = True
     open_image_fn: Callable
+    open_datetime_modal_fn: Callable
 
-    def __init__(self, model: Model, open_image_fn: Callable):
+    def __init__(self, model: Model, open_image_fn: Callable, open_datetime_modal_fn: Callable):
         """
         This widget is the root widget for the compare view. It holds all the MediaPanes and the buttons to control them.
         :param model: Object that contains everything related to the state.
         :param open_image_fn: Function to open a specific image in full view.
         """
         super().__init__()
+        # self.setStyleSheet("background-color: darkGrey;")
         self.open_image_fn = open_image_fn
-        self.main_buttons = []
+        self.open_datetime_modal_fn = open_datetime_modal_fn
         self.model = model
         self.layout = QHBoxLayout()
         self.media_panes = []
