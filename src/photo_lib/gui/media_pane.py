@@ -134,7 +134,6 @@ class MediaPane(QWidget):
         self.remove_media_button.setMinimumHeight(20)
         self.remove_media_button.setFixedWidth(20)
 
-
         self.button_layout.addWidget(self.main_button)
         self.button_layout.addWidget(self.delete_button)
         self.button_layout.addWidget(self.change_tag_button)
