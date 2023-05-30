@@ -208,5 +208,10 @@ class MediaPane(QWidget):
         else:
             self.main_button.setStyleSheet("background-color: gray;")
 
+    def update_file_naming(self):
+        self.tag_lbl.setText(self.dbe.naming_tag)
+        self.new_name_lbl.setText(self.dbe.new_name)
+
+
 
 
