@@ -1,5 +1,8 @@
-from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
+import datetime
 from typing import List
+
+from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
+from photo_lib.metadataagregator import key_lookup_dir
 
 class Model:
     pdb: PhotoDb = None
@@ -34,5 +37,34 @@ class Model:
 
         return result, file_size
 
-    def try_rename_image(self, tag: str, dbe: DatabaseEntry, custom_datetime: str = None, ):
-        pass
+    def try_rename_image(self, tag: str, dbe: DatabaseEntry, custom_datetime: str = None):
+        """
+        Perform the renaming logic on the badkend. This will update the database entry, and rename the file.
+        :param tag: new tag to be used for datetime
+        :param dbe: databse entry
+        :param custom_datetime: the custom datetime string, if tag is "custom"
+        :return:
+        """
+        if tag.strip().lower() == "custom":
+            tag = "Custom"
+            new_datetime = datetime.datetime.strptime(custom_datetime, "%Y-%m-%d %H.%M.%S")
+
+        else:
+            parsing_function = key_lookup_dir.get(tag)
+
+            if parsing_function is None:
+                raise ValueError(f"Tag {tag} does not have a matching parsing function.")
+
+            new_datetime, key = parsing_function(dbe.metadata)
+
+        if new_datetime == dbe.datetime:
+            print("Equivalent Datetime, exiting")
+            return
+
+        # print(new_datetime)
+
+        # Update the Database entry
+        dbe.new_name = self.pdb.rename_file(entry=dbe, new_datetime=new_datetime, naming_tag=tag)
+        dbe.datetime = new_datetime
+        dbe.naming_tag = tag
+
