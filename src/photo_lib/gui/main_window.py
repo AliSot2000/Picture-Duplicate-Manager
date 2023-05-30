@@ -24,44 +24,44 @@ from typing import List
 class RootWindow(QMainWindow):
     model:  Model
     dummy_center: QWidget
-    sla: QStackedLayout
+    stacked_layout: QStackedLayout
 
     # Fill Screen Image
     full_screen_image: ResizingImage = None
 
     # Scrolling and CompareView
-    sca: QScrollArea
-    csl: CompareRoot
+    scroll_area: QScrollArea
+    compare_root: CompareRoot
 
     # Change Datetime Modal
-    dtm: DateTimeModal
+    datetime_modal: DateTimeModal
 
     def __init__(self):
         super().__init__()
         self.model = Model()
-        self.sca = QScrollArea()
-        self.sla = QStackedLayout()
-        self.dtm = DateTimeModal()
+        self.scroll_area = QScrollArea()
+        self.stacked_layout = QStackedLayout()
+        self.datetime_modal = DateTimeModal()
 
-        self.csl = CompareRoot(self.model, open_image_fn=self.open_image,
-                               open_datetime_modal_fn=self.open_datetime_modal)
+        self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image,
+                                        open_datetime_modal_fn=self.open_datetime_modal)
         self.dummy_center = QWidget()
         self.dummy_center.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
+        # self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
         self.setCentralWidget(self.dummy_center)
 
-        self.dummy_center.setLayout(self.sla)
+        self.dummy_center.setLayout(self.stacked_layout)
 
-        self.sca.setWidget(self.csl)
+        self.scroll_area.setWidget(self.compare_root)
 
-        self.csl.load_elements()
-        self.sla.addWidget(self.sca)
-        self.sla.setCurrentWidget(self.sca)
+        self.compare_root.load_elements()
+        self.stacked_layout.addWidget(self.scroll_area)
+        self.stacked_layout.setCurrentWidget(self.scroll_area)
 
         # Connecting the buttons of the modals
-        self.dtm.close_button.clicked.connect(self.close_datetime_modal)
-        self.dtm.apply_button.clicked.connect(self.apply_datetime_modal)
-        self.dtm.apply_close_button.clicked.connect(self.apply_close_datetime_modal)
+        self.datetime_modal.close_button.clicked.connect(self.close_datetime_modal)
+        self.datetime_modal.apply_button.clicked.connect(self.apply_datetime_modal)
+        self.datetime_modal.apply_close_button.clicked.connect(self.apply_close_datetime_modal)
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
@@ -70,15 +70,15 @@ class RootWindow(QMainWindow):
         :return:
         """
         super().resizeEvent(a0)
-        if a0.size().width() > self.csl.minimumWidth():
-            self.csl.setMaximumWidth(a0.size().width())
+        if a0.size().width() > self.compare_root.minimumWidth():
+            self.compare_root.setMaximumWidth(a0.size().width())
         else:
-            self.csl.setMaximumWidth(self.csl.minimumWidth())
+            self.compare_root.setMaximumWidth(self.compare_root.minimumWidth())
 
-        new_size = QSize(a0.size().width() - self.sca.verticalScrollBar().width(),
-                         a0.size().height() - self.sca.horizontalScrollBar().height())
+        new_size = QSize(a0.size().width() - self.scroll_area.verticalScrollBar().width(),
+                         a0.size().height() - self.scroll_area.horizontalScrollBar().height())
 
-        self.csl.resize(new_size)
+        self.compare_root.resize(new_size)
         # print(a0.size())
 
     def open_image(self, path: str):
@@ -90,18 +90,18 @@ class RootWindow(QMainWindow):
         if self.full_screen_image is None:
             self.full_screen_image = ResizingImage(path)
             self.full_screen_image.clicked.connect(self.close_image)
-            self.sla.addWidget(self.full_screen_image)
+            self.stacked_layout.addWidget(self.full_screen_image)
         else:
             self.full_screen_image.load_image(path)
 
-        self.sla.setCurrentWidget(self.full_screen_image)
+        self.stacked_layout.setCurrentWidget(self.full_screen_image)
 
     def close_image(self):
         """
         Close the full screen image.
         :return:
         """
-        self.sla.setCurrentWidget(self.sca)
+        self.stacked_layout.setCurrentWidget(self.scroll_area)
 
     def open_datetime_modal(self, media_pane: MediaPane):
         """
@@ -109,15 +109,15 @@ class RootWindow(QMainWindow):
         :param media_pane: Media pane to modify
         :return:
         """
-        self.dtm.media_pane = media_pane
-        self.dtm.show()
+        self.datetime_modal.media_pane = media_pane
+        self.datetime_modal.show()
 
     def close_datetime_modal(self):
         """
         Hide the datetime modal again.
         :return:
         """
-        self.dtm.hide()
+        self.datetime_modal.hide()
 
     def apply_datetime_modal(self):
         """
@@ -125,8 +125,8 @@ class RootWindow(QMainWindow):
         :return:
         """
         try:
-            self.model.try_rename_image(tag=self.dtm.tag_input.text(), dbe=self.dtm.media_pane.dbe,
-                                    custom_datetime=self.dtm.custom_datetime_input.text())
+            self.model.try_rename_image(tag=self.datetime_modal.tag_input.text(), dbe=self.datetime_modal.media_pane.dbe,
+                                        custom_datetime=self.datetime_modal.custom_datetime_input.text())
         except Exception as e:
             # self.error_popup.error_msg = f"Failed to update Datetime:\n {e}"
             # self.error_popup.open()
@@ -140,4 +140,4 @@ class RootWindow(QMainWindow):
         :return:
         """
         self.apply_datetime_modal()
-        self.csl.remove_media_pane(self.dtm.media_pane)
+        self.compare_root.remove_media_pane(self.datetime_modal.media_pane)
