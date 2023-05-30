@@ -1,7 +1,7 @@
 import time
 from threading import Thread
 
-from PyQt6.QtWidgets import QMainWindow, QScrollArea, QLabel, QMenu, QMenuBar, QStatusBar, QToolBar, QFileDialog, QHBoxLayout, QSizePolicy, QWidget, QStackedLayout
+from PyQt6.QtWidgets import QMainWindow, QScrollArea, QLabel, QMenu, QMenuBar, QStatusBar, QToolBar, QFileDialog, QHBoxLayout, QSizePolicy, QWidget, QStackedLayout, QVBoxLayout
 from PyQt6.QtGui import QResizeEvent
 from PyQt6.QtCore import Qt, QSize
 from photo_lib.gui.model import Model
@@ -9,6 +9,7 @@ from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.image_container import ResizingImage
 from photo_lib.gui.modals import DateTimeModal, FolderSelectModal
 from photo_lib.gui.media_pane import MediaPane
+from photo_lib.gui.button_bar import ButtonBar
 from typing import List
 
 # TODO
@@ -32,6 +33,9 @@ class RootWindow(QMainWindow):
     # Scrolling and CompareView
     scroll_area: QScrollArea
     compare_root: CompareRoot
+    compare_view_dummy: QWidget
+    compare_layout: QVBoxLayout
+    button_bar: ButtonBar
 
     # Change Datetime Modal
     datetime_modal: DateTimeModal
@@ -42,6 +46,14 @@ class RootWindow(QMainWindow):
         self.scroll_area = QScrollArea()
         self.stacked_layout = QStackedLayout()
         self.datetime_modal = DateTimeModal()
+        self.button_bar = ButtonBar()
+
+        self.compare_view_dummy = QWidget()
+        self.compare_layout = QVBoxLayout()
+        self.compare_layout.setContentsMargins(0, 0, 0, 0)
+        self.compare_view_dummy.setLayout(self.compare_layout)
+        self.compare_layout.addWidget(self.scroll_area)
+        self.compare_layout.addWidget(self.button_bar)
 
         self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image,
                                         open_datetime_modal_fn=self.open_datetime_modal)
@@ -55,8 +67,8 @@ class RootWindow(QMainWindow):
         self.scroll_area.setWidget(self.compare_root)
 
         self.compare_root.load_elements()
-        self.stacked_layout.addWidget(self.scroll_area)
-        self.stacked_layout.setCurrentWidget(self.scroll_area)
+        self.stacked_layout.addWidget(self.compare_view_dummy)
+        self.stacked_layout.setCurrentWidget(self.compare_view_dummy)
 
         # Connecting the buttons of the modals
         self.datetime_modal.close_button.clicked.connect(self.close_datetime_modal)
@@ -76,7 +88,7 @@ class RootWindow(QMainWindow):
             self.compare_root.setMaximumWidth(self.compare_root.minimumWidth())
 
         new_size = QSize(a0.size().width() - self.scroll_area.verticalScrollBar().width(),
-                         a0.size().height() - self.scroll_area.horizontalScrollBar().height())
+                         a0.size().height() - self.scroll_area.horizontalScrollBar().height() - 50)
 
         self.compare_root.resize(new_size)
         # print(a0.size())
