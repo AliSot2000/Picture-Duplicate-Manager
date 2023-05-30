@@ -33,13 +33,18 @@ class RootWindow(QMainWindow):
     sca: QScrollArea
     csl: CompareRoot
 
+    # Change Datetime Modal
+    dtm: DateTimeModal
+
     def __init__(self):
         super().__init__()
         self.model = Model()
         self.sca = QScrollArea()
         self.sla = QStackedLayout()
+        self.dtm = DateTimeModal()
 
-        self.csl = CompareRoot(self.model, open_image_fn=self.open_image)
+        self.csl = CompareRoot(self.model, open_image_fn=self.open_image,
+                               open_datetime_modal_fn=self.open_datetime_modal)
         self.dummy_center = QWidget()
         self.dummy_center.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
@@ -52,6 +57,11 @@ class RootWindow(QMainWindow):
         self.csl.load_elements()
         self.sla.addWidget(self.sca)
         self.sla.setCurrentWidget(self.sca)
+
+        # Connecting the buttons of the modals
+        self.dtm.close_button.clicked.connect(self.close_datetime_modal)
+        self.dtm.apply_button.clicked.connect(self.apply_datetime_modal)
+        self.dtm.apply_close_button.clicked.connect(self.apply_close_datetime_modal)
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         super().resizeEvent(a0)
