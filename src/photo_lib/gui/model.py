@@ -34,3 +34,5 @@ class Model:
 
         return result, file_size
 
+    def try_rename_image(self, tag: str, dbe: DatabaseEntry, custom_datetime: str = None, ):
+        pass
