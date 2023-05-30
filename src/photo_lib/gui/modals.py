@@ -1,5 +1,7 @@
-from PyQt6.QtWidgets import QWidget, QFormLayout, QLineEdit, QPushButton, QLabel, QApplication, QHBoxLayout
+from PyQt6.QtWidgets import QWidget, QFormLayout, QLineEdit, QPushButton, QLabel, QApplication, QHBoxLayout, QFileDialog
 import sys
+from photo_lib.gui.media_pane import MediaPane
+from typing import Union
 
 
 class DateTimeModal(QWidget):
@@ -17,10 +19,11 @@ class DateTimeModal(QWidget):
     button_box_layout: QHBoxLayout
     button_container: QWidget
 
+    __media_pane: Union[MediaPane, None] = None
 
     def __init__(self):
         """
-        Setup the form and everything.
+        Set up the form and everything.
         """
 
         super().__init__()
@@ -69,9 +72,28 @@ class DateTimeModal(QWidget):
             self.custom_datetime_input.setDisabled(True)
             self.custom_datetime_input.setInputMask("")
 
+    @property
+    def media_pane(self):
+        return self.__media_pane
+
+    @media_pane.setter
+    def media_pane(self, value):
+        self.__media_pane = value
+        self.tag_input.setText(self.__media_pane.dbe.naming_tag)
+
+class FolderSelectModal(QFileDialog):
+    def __init__(self):
+        """
+        Set up the QFileDialog to select a folder since I'm lazy and it might need additional things.
+        """
+        super().__init__()
+        self.setFileMode(QFileDialog.FileMode.Directory)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = DateTimeModal()
     window.show()
+    window2 = FolderSelectModal()
+    window2.show()
     sys.exit(app.exec())
