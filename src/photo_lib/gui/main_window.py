@@ -19,36 +19,6 @@ from typing import List
 #  - Time line selection
 #  - Images in windows needed at some point
 
-def increment_thing(stack: QStackedLayout, widgets: List[QWidget]):
-    index = 0
-    while True:
-        time.sleep(1)
-        stack.setCurrentWidget(widgets[index % len(widgets)])
-        index += 1
-
-sample_text = """
-    Cominius. Breathe you, my friends: well fought;
-    we are come off 610
-    Like Romans, neither foolish in our stands,
-    Nor cowardly in retire: believe me, sirs,
-    We shall be charged again. Whiles we have struck,
-    By interims and conveying gusts we have heard
-    The charges of our friends. Ye Roman gods! 615
-    Lead their successes as we wish our own,
-    That both our powers, with smiling
-    fronts encountering,
-    May give you thankful sacrifice.
-    [Enter a Messenger] 620
-    Thy news? 
-
-    Messenger. The citizens of Corioli have issued,
-    And given to TITUS and to CORIOLANUS battle:
-    I saw our party to their trenches driven,
-    And then I came away. 625
-
-    Cominius. Though thou speak'st truth,
-    Methinks thou speak'st not well.
-    How long is't since? 
 
     Messenger. Above an hour, my lord. 
 
@@ -190,22 +160,7 @@ class RootWindow(QMainWindow):
 
         self.dummy_center.setLayout(self.sla)
 
-        # self.label_a = QLabel("A")
-        # self.label_b = QLabel("B")
-        #
-        # self.layout_stack.addWidget(self.label_a)
-        # self.layout_stack.addWidget(self.label_b)
-        #
-        # t = Thread(target=increment_thing, args=(self.layout_stack, [self.label_a, self.label_b]))
-        # t.start()
-
-
-        # imc = ResizingImage("/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test_db/2018/5/24/2018-05-24 20.35.54_000.jpg")
-        # imc.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-        # text = QLabel(sample_text)
         self.sca.setWidget(self.csl)
-        # self.sca.setWidget(imc)
 
         self.csl.load_elements()
         self.sla.addWidget(self.sca)
