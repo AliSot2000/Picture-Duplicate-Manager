@@ -102,3 +102,42 @@ class RootWindow(QMainWindow):
         :return:
         """
         self.sla.setCurrentWidget(self.sca)
+
+    def open_datetime_modal(self, media_pane: MediaPane):
+        """
+        Open the datetime modal.
+        :param media_pane: Media pane to modify
+        :return:
+        """
+        self.dtm.media_pane = media_pane
+        self.dtm.show()
+
+    def close_datetime_modal(self):
+        """
+        Hide the datetime modal again.
+        :return:
+        """
+        self.dtm.hide()
+
+    def apply_datetime_modal(self):
+        """
+        Hide the modal, apply the new naming tag.
+        :return:
+        """
+        try:
+            self.model.try_rename_image(tag=self.dtm.tag_input.text(), dbe=self.dtm.media_pane.dbe,
+                                    custom_datetime=self.dtm.custom_datetime_input.text())
+        except Exception as e:
+            # self.error_popup.error_msg = f"Failed to update Datetime:\n {e}"
+            # self.error_popup.open()
+            print(f"Failed to update Datetime:\n {e}")
+
+        self.close_datetime_modal()
+
+    def apply_close_datetime_modal(self):
+        """
+        Apply the new naming tag, close the modal and remove the pane from the compare view.
+        :return:
+        """
+        self.apply_datetime_modal()
+        self.csl.remove_media_pane(self.dtm.media_pane)
