@@ -87,6 +87,7 @@ class CompareRoot(QWidget):
             pane.remove_media_button.clicked.connect(pain_wrapper(pane, self.remove_media_pane))
             self.max_needed_width += pane.max_needed_width + 10  # TODO Better formula
             pane.media.clicked.connect(lambda : self.open_image_fn(pane.media.fpath))
+            pane.change_tag_button.clicked.connect(lambda : self.open_datetime_modal_fn(pane))
 
         self.setMinimumWidth(len(self.model.files) * 300)
 
