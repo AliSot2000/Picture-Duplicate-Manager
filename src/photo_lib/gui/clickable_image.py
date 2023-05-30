@@ -21,7 +21,6 @@ class ClickableImage(QPushButton):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        print("Resize")
         # self.setMaximumSize(event.size())
         self.setIconSize(event.size())
         # self.setPixmap(self.pixmap.scaled(self.size(), aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio))
