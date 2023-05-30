@@ -64,6 +64,11 @@ class RootWindow(QMainWindow):
         self.dtm.apply_close_button.clicked.connect(self.apply_close_datetime_modal)
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
+        """
+        Propagate the resizing down even though there is a scroll view.
+        :param a0: size event
+        :return:
+        """
         super().resizeEvent(a0)
         if a0.size().width() > self.csl.minimumWidth():
             self.csl.setMaximumWidth(a0.size().width())
@@ -77,6 +82,11 @@ class RootWindow(QMainWindow):
         # print(a0.size())
 
     def open_image(self, path: str):
+        """
+        Open an image in full screen mode.
+        :param path: path to the image
+        :return:
+        """
         if self.full_screen_image is None:
             self.full_screen_image = ResizingImage(path)
             self.full_screen_image.clicked.connect(self.close_image)
@@ -87,4 +97,8 @@ class RootWindow(QMainWindow):
         self.sla.setCurrentWidget(self.full_screen_image)
 
     def close_image(self):
+        """
+        Close the full screen image.
+        :return:
+        """
         self.sla.setCurrentWidget(self.sca)
