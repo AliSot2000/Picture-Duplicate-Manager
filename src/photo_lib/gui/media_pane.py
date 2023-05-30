@@ -64,6 +64,7 @@ class MediaPane(QWidget):
 
     def __init__(self, model: Model, entry: DatabaseEntry, share_scroll: Callable):
         super().__init__()
+        self.setMinimumHeight(860)
         self.share_scroll = share_scroll
         self.model = model
         self.dbe = entry
@@ -124,11 +125,12 @@ class MediaPane(QWidget):
         self.delete_button.setMinimumHeight(20)
         self.delete_button.setCheckable(True)
         self.delete_button.setStyleSheet("background-color: green;")
-
         self.delete_button.toggled.connect(self.update_delete_text)
+
         self.change_tag_button = QPushButton("Change Tag")
         self.change_tag_button.setMinimumWidth(self.change_tag_button.fontMetrics().boundingRect("Change Tag").width() + 10)
         self.change_tag_button.setMinimumHeight(20)
+
         self.remove_media_button = QPushButton("X")
         self.remove_media_button.setMinimumHeight(20)
         self.remove_media_button.setFixedWidth(20)
