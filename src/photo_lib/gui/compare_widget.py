@@ -43,9 +43,16 @@ class CompareRoot(QWidget):
     updating_buttons: bool = False
     main_buttons: List[QPushButton] = None
     auto_load: bool = True
+    open_image_fn: Callable
 
-    def __init__(self, model: Model):
+    def __init__(self, model: Model, open_image_fn: Callable):
+        """
+        This widget is the root widget for the compare view. It holds all the MediaPanes and the buttons to control them.
+        :param model: Object that contains everything related to the state.
+        :param open_image_fn: Function to open a specific image in full view.
+        """
         super().__init__()
+        self.open_image_fn = open_image_fn
         self.main_buttons = []
         self.model = model
         self.layout = QHBoxLayout()
@@ -70,14 +77,14 @@ class CompareRoot(QWidget):
             pane = MediaPane(self.model, dbe, self.synchronized_scroll)
             self.media_panes.append(pane)
             self.layout.addWidget(pane)
-            # pane.show()
 
         # Attaching  Buttons
         for pane in self.media_panes:
             pane.main_button.clicked.connect(button_wrapper(pane.main_button, self.button_state))
             self.main_buttons.append(pane.main_button)
             pane.remove_media_button.clicked.connect(pain_wrapper(pane, self.remove_media_pane))
-            self.max_needed_width += pane.max_needed_width + 10
+            self.max_needed_width += pane.max_needed_width + 10  # TODO Better formula
+            pane.media.clicked.connect(lambda : self.open_image_fn(pane.media.fpath))
 
         self.setMinimumWidth(len(self.model.files) * 300)
 
