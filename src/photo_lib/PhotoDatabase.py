@@ -1537,7 +1537,7 @@ class PhotoDb:
         :param b_key: key of file second in table
         :return: Tuple[success, message]
         success: True False -> binary comparison result, None, failed to find keys
-        message: Message on what went wrong or result of comarison
+        message: Message on what went wrong or result of comparison
         """
         # Locate Entry a
         self.cur.execute(f"SELECT new_name, datetime FROM images WHERE key = {a_key}")
@@ -1554,7 +1554,7 @@ class PhotoDb:
         res_b = self.cur.fetchall()
 
         if len(res_a) == 0:
-            return None, "Failed to find key_a in images"
+            return None, "Failed to find key_b in images"
 
         if len(res_a) > 1:
             raise CorruptDatabase("Multiple entries with identical key")
