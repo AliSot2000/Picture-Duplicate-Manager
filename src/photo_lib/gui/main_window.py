@@ -40,35 +40,46 @@ class RootWindow(QMainWindow):
     # Change Datetime Modal
     datetime_modal: DateTimeModal
 
+    # using ScrollView
+    using_scroll_view: bool = True
+
     def __init__(self):
         super().__init__()
-        self.model = Model()
-        self.scroll_area = QScrollArea()
-        self.stacked_layout = QStackedLayout()
-        self.datetime_modal = DateTimeModal()
-        self.button_bar = ButtonBar()
 
+        # Object Instantiation
+        self.model = Model()
+
+        self.dummy_center = QWidget()
         self.compare_view_dummy = QWidget()
         self.compare_layout = QVBoxLayout()
-        self.compare_layout.setContentsMargins(0, 0, 0, 0)
-        self.compare_view_dummy.setLayout(self.compare_layout)
-        self.compare_layout.addWidget(self.scroll_area)
-        self.compare_layout.addWidget(self.button_bar)
-
+        self.stacked_layout = QStackedLayout()
+        self.scroll_area = QScrollArea()
+        self.datetime_modal = DateTimeModal()
+        self.button_bar = ButtonBar()
         self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image,
-                                        open_datetime_modal_fn=self.open_datetime_modal)
-        self.dummy_center = QWidget()
-        self.dummy_center.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        # self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
+                                        open_datetime_modal_fn=self.open_datetime_modal,
+                                        maintain_visibility=self.maintain_visibility)
+
+        # Generating the remaining widgets
+        self.compare_root.load_elements()
+
+        # Top down adding of widgets and layouts
         self.setCentralWidget(self.dummy_center)
 
         self.dummy_center.setLayout(self.stacked_layout)
+        self.dummy_center.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        # self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
 
-        self.scroll_area.setWidget(self.compare_root)
-
-        self.compare_root.load_elements()
         self.stacked_layout.addWidget(self.compare_view_dummy)
         self.stacked_layout.setCurrentWidget(self.compare_view_dummy)
+
+        self.compare_view_dummy.setLayout(self.compare_layout)
+
+        self.compare_layout.setContentsMargins(0, 0, 0, 0)
+        self.compare_layout.addWidget(self.scroll_area)
+        self.compare_layout.addWidget(self.button_bar)
+
+        self.scroll_area.setWidget(self.compare_root)
 
         # Connecting the buttons of the modals
         self.datetime_modal.close_button.clicked.connect(self.close_datetime_modal)
