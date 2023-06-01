@@ -162,7 +162,6 @@ class ComparePane(Widget):
         # check thumbnails
         if not os.path.exists(self.image_path):
             self.image_path = self.pl.thumbnail_name(os.path.splitext(self.database_entry.new_name)[1],
-
                                                      self.database_entry.key)
 
         self.org_fname = self.database_entry.org_fname
