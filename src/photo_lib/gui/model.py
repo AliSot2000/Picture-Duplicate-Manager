@@ -67,3 +67,90 @@ class Model:
         dbe.datetime = new_datetime
         dbe.naming_tag = tag
 
+    def fetch_duplicate_row(self):
+        """
+        Fetch the current row from the database.
+        :return:
+        """
+        success, results, row_id = self.pdb.get_duplicate_entry()
+        if success:
+            self.files = results
+            self.current_row = row_id
+
+        return success
+
+    def compare_current_files(self):
+        """
+        Compare access all available files and determine the areas of similarity.
+
+        - identical_binary: If (all) files are identical on a binary level
+        - identical_names: If all files have the same original name
+        - identical_datetime: If all files have the same datetime
+        - identical_file_size: If all files have the same file size
+        - difference: The average difference in file size between all files
+
+        :return: identical_binary, identical_names, identical_datetime, identical_file_size, difference
+        """
+
+        if len(self.files) == 0 or self.files is None:
+            return None
+
+        # compare the files
+        identical_binary = True
+        for i in range(1, len(self.files)):
+            if self.files[i] is not None and self.files[0] is not None:
+                suc, msg = self.pdb.compare_files(self.files[i].key, self.files[0].key)
+                if suc is None:
+                    print(msg)
+                identical_binary = identical_binary and suc
+
+        # compare the filenames
+        identical_names = True
+        for i in range(1, len(self.files)):
+            if self.files[i] is not None and self.files[0] is not None:
+                identical_names = identical_names and self.files[i].org_fname.lower() == self.files[0].org_fname.lower()
+
+        identical_datetime = True
+        for i in range(1, len(self.files)):
+            if self.files[i] is not None and self.files[0] is not None:
+                identical_datetime = identical_datetime and self.files[i].datetime == self.files[0].datetime
+
+        identical_file_size = True
+        difference = 0
+        count = 0
+        # All to all comparison of the file size
+        for i in range(len(self.files)):
+            for j in range(i + 1, len(self.files)):
+                if self.files[i] is not None and self.files[j] is not None:
+                    identical_file_size = identical_file_size and \
+                                          self.files[i].metadata.get("File:FileSize") \
+                                          == self.files[j].metadata.get("File:FileSize")
+                    difference += (self.files[i].metadata.get("File:FileSize")
+                                   - self.files[j].metadata.get("File:FileSize")) ** 2
+                    count += 1
+
+        if count > 0:
+            print(f"Average Difference {(difference ** 0.5) / count}")
+            difference = (difference ** 0.5) / count
+
+        return identical_binary, identical_names, identical_datetime, identical_file_size, difference
+
+    def clear_files(self):
+        """
+        Clear the files list of the current model.
+
+        => Future proofing...
+        :return:
+        """
+        self.files = []
+        self.pdb.delete_duplicate_row(self.current_row)
+        self.current_row = None
+
+    def remove_file(self, dbe: DatabaseEntry):
+        """
+        Remove a file from the current selection of present files.
+
+        => Future proofing...
+        :return:
+        """
+        self.files.remove(dbe)
