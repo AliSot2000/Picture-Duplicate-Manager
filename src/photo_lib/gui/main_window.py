@@ -30,18 +30,10 @@ class RootWindow(QMainWindow):
     # Fill Screen Image
     full_screen_image: ResizingImage = None
 
-    # Scrolling and CompareView
-    scroll_area: QScrollArea
     compare_root: CompareRoot
-    compare_view_dummy: QWidget
-    compare_layout: QVBoxLayout
-    button_bar: ButtonBar
 
     # Change Datetime Modal
     datetime_modal: DateTimeModal
-
-    # using ScrollView
-    using_scroll_view: bool = True
 
     def __init__(self):
         super().__init__()
@@ -50,15 +42,10 @@ class RootWindow(QMainWindow):
         self.model = Model()
 
         self.dummy_center = QWidget()
-        self.compare_view_dummy = QWidget()
-        self.compare_layout = QVBoxLayout()
         self.stacked_layout = QStackedLayout()
-        self.scroll_area = QScrollArea()
         self.datetime_modal = DateTimeModal()
-        self.button_bar = ButtonBar()
         self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image,
-                                        open_datetime_modal_fn=self.open_datetime_modal,
-                                        maintain_visibility=self.maintain_visibility)
+                                        open_datetime_modal_fn=self.open_datetime_modal)
 
         # Generating the remaining widgets
         self.compare_root.load_elements()
@@ -70,74 +57,16 @@ class RootWindow(QMainWindow):
         self.dummy_center.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         # self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
 
-        self.stacked_layout.addWidget(self.compare_view_dummy)
-        self.stacked_layout.setCurrentWidget(self.compare_view_dummy)
-
-        self.compare_view_dummy.setLayout(self.compare_layout)
-
-        self.compare_layout.setContentsMargins(0, 0, 0, 0)
-        self.compare_layout.addWidget(self.scroll_area)
-        self.compare_layout.addWidget(self.button_bar)
-
-        self.scroll_area.setWidget(self.compare_root)
+        self.stacked_layout.addWidget(self.compare_root)
+        self.stacked_layout.setCurrentWidget(self.compare_root)
 
         # Connecting the buttons of the modals
         self.datetime_modal.close_button.clicked.connect(self.close_datetime_modal)
         self.datetime_modal.apply_button.clicked.connect(self.apply_datetime_modal)
         self.datetime_modal.apply_close_button.clicked.connect(self.apply_close_datetime_modal)
 
-        self.button_bar.next_button.clicked.connect(self.skip_entry)
-        self.button_bar.next_button.clicked.connect(self.update_duplicate_count)
-        self.button_bar.commit_selected.clicked.connect(self.commit_selected)
-        self.button_bar.commit_selected.clicked.connect(self.update_duplicate_count)
-        self.button_bar.commit_all.clicked.connect(self.commit_all)
-        self.button_bar.commit_all.clicked.connect(self.update_duplicate_count)
-
         # Misc setup of the window
         self.setWindowTitle("Picture Duplicate Manager")
-        self.update_duplicate_count()
-
-    def resizeEvent(self, a0: QResizeEvent) -> None:
-        """
-        Propagate the resizing down even though there is a scroll view.
-        :param a0: size event
-        :return:
-        """
-        super().resizeEvent(a0)
-        if a0.size().width() > self.compare_root.minimumWidth():
-            self.compare_root.setMaximumWidth(a0.size().width())
-        else:
-            self.compare_root.setMaximumWidth(self.compare_root.minimumWidth())
-
-        self.maintain_visibility()
-
-    def maintain_visibility(self):
-        """
-        Function checks that the CompareRoot fits the screen. If not, a ScrollArea is added to contain the widgets.
-        :return:
-        """
-        try:
-            if self.size().width() > self.compare_root.minimumWidth() \
-                and self.size().height() - 70 > self.compare_root.minimumHeight():
-
-                # Check the scroll_area is in the stacked layout
-                if self.using_scroll_view:
-                    print("Removing scroll area")
-                    self.compare_layout.removeWidget(self.scroll_area)
-                    self.scroll_area.takeWidget()
-                    self.compare_layout.insertWidget(0, self.compare_root)
-                    self.using_scroll_view = False
-
-            else:
-                # Check the compare_root is in the stacked layout
-                if not self.using_scroll_view:
-                    print("Removing compare root")
-                    self.compare_layout.removeWidget(self.compare_root)
-                    self.compare_layout.insertWidget(0, self.scroll_area)
-                    self.scroll_area.setWidget(self.compare_root)
-                    self.using_scroll_view = True
-        except AttributeError as e:
-            print(e)
 
     def open_image(self, path: str):
         """
@@ -159,7 +88,7 @@ class RootWindow(QMainWindow):
         Close the full screen image.
         :return:
         """
-        self.stacked_layout.setCurrentWidget(self.compare_view_dummy)
+        self.stacked_layout.setCurrentWidget(self.compare_root)
 
     def open_datetime_modal(self, media_pane: MediaPane):
         """
@@ -202,20 +131,3 @@ class RootWindow(QMainWindow):
         """
         self.apply_datetime_modal()
         self.compare_root.remove_media_pane(self.datetime_modal.media_pane)
-
-    def update_duplicate_count(self):
-        """
-        Update the duplicate count in the button bar.
-        :return:
-        """
-        duplicates_to_go = self.model.pdb.get_duplicate_table_size()
-        self.button_bar.status.setText(f"Remaining Duplicates: {duplicates_to_go}")
-
-    def skip_entry(self):
-        pass
-
-    def commit_selected(self):
-        pass
-
-    def commit_all(self):
-        pass
