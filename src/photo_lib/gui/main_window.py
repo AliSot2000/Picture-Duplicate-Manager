@@ -148,7 +148,7 @@ class RootWindow(QMainWindow):
         Close the full screen image.
         :return:
         """
-        self.stacked_layout.setCurrentWidget(self.scroll_area)
+        self.stacked_layout.setCurrentWidget(self.compare_view_dummy)
 
     def open_datetime_modal(self, media_pane: MediaPane):
         """
@@ -191,3 +191,4 @@ class RootWindow(QMainWindow):
         """
         self.apply_datetime_modal()
         self.compare_root.remove_media_pane(self.datetime_modal.media_pane)
+
