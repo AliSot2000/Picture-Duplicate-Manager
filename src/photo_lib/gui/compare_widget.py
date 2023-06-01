@@ -68,17 +68,20 @@ class CompareRoot(QWidget):
 
         self.setMinimumHeight(870)
         self.setLayout(self.layout)
-        self.load_elements()
 
-    def load_elements(self):
+    def load_elements(self) -> bool:
         """
         Goes through the model and fetches all the present files. Adds all files to the view.
 
-        :return:
+        :return: (If duplicates were available to be loaded)
         """
         self.max_needed_width = 10
         if self.layout.count() > 0:
             self.remove_all_elements()
+
+        # Query new files from the db.
+        if not self.model.fetch_duplicate_row():
+            return False
 
         # Go through all DatabaseEntries, generate a MediaPane from each one and add the panes to the layout.
         for dbe in self.model.files:
@@ -97,6 +100,8 @@ class CompareRoot(QWidget):
         self.setMinimumWidth(len(self.model.files) * 310 + 10)
         if self.maintain_visibility is not None:
             self.maintain_visibility()
+
+        return True
 
     def remove_all_elements(self):
         """
