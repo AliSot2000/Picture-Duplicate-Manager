@@ -183,5 +183,4 @@ class CompareRoot(QWidget):
                 # Try except as idiot proofing to stop the program from crashing.
                 media_pane.main_button.setChecked(False)
 
-
         self.__updating_buttons = False
