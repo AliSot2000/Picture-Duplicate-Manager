@@ -25,7 +25,7 @@ def pain_wrapper(media_pane: MediaPane, func: Callable):
     This function is used to wrap the media pain that calls the function into the function so that one function can be
     used for many different buttons. Because Slots in QT don't communicate the caller of the function.
 
-    :param pain: pain that calls the function
+    :param media_pane: pain that calls the function
     :param func: methode to execute that needs to have the button as a parameter
     :return:
     """
