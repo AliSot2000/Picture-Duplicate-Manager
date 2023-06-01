@@ -1,5 +1,5 @@
 import datetime
-from typing import List
+from typing import List, Union
 
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
 from photo_lib.metadataagregator import key_lookup_dir
@@ -7,11 +7,11 @@ from photo_lib.metadataagregator import key_lookup_dir
 class Model:
     pdb: PhotoDb = None
     files: List[DatabaseEntry]
+    current_row: Union[int, None] = None
 
     def __init__(self):
         # TODO implement this correctly, this is only for testing purposes.
         self.pdb = PhotoDb(root_dir="/media/alisot2000/DumpStuff/Photo_Library_Testing/")
-        _, self.files, _ = self.pdb.get_duplicate_entry()
 
 
     @staticmethod
