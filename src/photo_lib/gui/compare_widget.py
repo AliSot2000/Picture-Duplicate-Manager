@@ -3,7 +3,7 @@ from photo_lib.gui.model import Model
 from typing import List
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.text_scroll_area import TextScroller
-from typing import Callable
+from typing import Callable, Union
 
 
 def button_wrapper(btn: QPushButton, func: Callable):
@@ -42,12 +42,14 @@ class CompareRoot(QWidget):
     max_needed_width: int = 0
     min_height = 870
 
-    updating_buttons: bool = False
+    __updating_buttons: bool = False
     auto_load: bool = True
+
     open_image_fn: Callable
     open_datetime_modal_fn: Callable
+    maintain_visibility: Union[None, Callable] = None
 
-    def __init__(self, model: Model, open_image_fn: Callable, open_datetime_modal_fn: Callable):
+    def __init__(self, model: Model, open_image_fn: Callable, open_datetime_modal_fn: Callable, **kwargs):
         """
         This widget is the root widget for the compare view. It holds all the MediaPanes and the buttons to control them.
         :param model: Object that contains everything related to the state.
@@ -61,7 +63,10 @@ class CompareRoot(QWidget):
         self.layout = QHBoxLayout()
         self.media_panes = []
 
-        self.setMinimumHeight(860)
+        if 'maintain_visibility' in kwargs:
+            self.maintain_visibility = kwargs['maintain_visibility']
+
+        self.setMinimumHeight(870)
         self.setLayout(self.layout)
         self.load_elements()
 
@@ -89,7 +94,9 @@ class CompareRoot(QWidget):
             pane.media.clicked.connect(lambda : self.open_image_fn(pane.media.fpath))
             pane.change_tag_button.clicked.connect(lambda : self.open_datetime_modal_fn(pane))
 
-        self.setMinimumWidth(len(self.model.files) * 300)
+        self.setMinimumWidth(len(self.model.files) * 310 + 10)
+        if self.maintain_visibility is not None:
+            self.maintain_visibility()
 
     def remove_all_elements(self):
         """
@@ -102,6 +109,8 @@ class CompareRoot(QWidget):
             element.deleteLater()
 
         self.media_panes = []
+        if self.maintain_visibility is not None:
+            self.maintain_visibility()
 
     def remove_media_pane(self, media_pane: MediaPane):
         """
@@ -116,6 +125,8 @@ class CompareRoot(QWidget):
 
         if len(self.media_panes) == 0 and self.auto_load:
             self.load_elements()
+        if self.maintain_visibility is not None:
+            self.maintain_visibility()
 
     def synchronized_scroll(self, name: str, caller: TextScroller, rx: float, ry: float):
         """
@@ -148,10 +159,10 @@ class CompareRoot(QWidget):
         :param btn: button that was clicked
         :return:
         """
-        if self.updating_buttons:
+        if self.__updating_buttons:
             return
 
-        self.updating_buttons = True
+        self.__updating_buttons = True
         if btn.isChecked():
             for media_pane in self.media_panes:
                 if media_pane.main_button != btn:
@@ -165,4 +176,4 @@ class CompareRoot(QWidget):
                 media_pane.main_button.setChecked(False)
 
 
-        self.updating_buttons = False
+        self.__updating_buttons = False
