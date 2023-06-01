@@ -1,9 +1,12 @@
-from PyQt6.QtWidgets import QHBoxLayout, QWidget, QLabel, QPushButton, QButtonGroup
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from PyQt6.QtGui import QResizeEvent
+
 from photo_lib.gui.model import Model
-from typing import List
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.text_scroll_area import TextScroller
-from typing import Callable, Union
+from photo_lib.gui.button_bar import ButtonBar
+
+from typing import Callable, List
 
 
 def button_wrapper(btn: QPushButton, func: Callable):
@@ -36,7 +39,7 @@ def pain_wrapper(media_pane: MediaPane, func: Callable):
 
 class CompareRoot(QWidget):
     model: Model
-    layout: QHBoxLayout
+    media_layout: QHBoxLayout
     media_panes: List[MediaPane]
     min_width: int = 300
     max_needed_width: int = 0
@@ -47,9 +50,16 @@ class CompareRoot(QWidget):
 
     open_image_fn: Callable
     open_datetime_modal_fn: Callable
-    maintain_visibility: Union[None, Callable] = None
 
-    def __init__(self, model: Model, open_image_fn: Callable, open_datetime_modal_fn: Callable, **kwargs):
+    scroll_area: QScrollArea
+    media_panes_placeholder: QLabel
+    compare_layout: QVBoxLayout
+    button_bar: ButtonBar
+
+    # using ScrollView
+    using_scroll_view: bool = True
+
+    def __init__(self, model: Model, open_image_fn: Callable, open_datetime_modal_fn: Callable):
         """
         This widget is the root widget for the compare view. It holds all the MediaPanes and the buttons to control them.
         :param model: Object that contains everything related to the state.
@@ -60,14 +70,40 @@ class CompareRoot(QWidget):
         self.open_image_fn = open_image_fn
         self.open_datetime_modal_fn = open_datetime_modal_fn
         self.model = model
-        self.layout = QHBoxLayout()
         self.media_panes = []
 
-        if 'maintain_visibility' in kwargs:
-            self.maintain_visibility = kwargs['maintain_visibility']
+        # Instantiating the widgets
+        self.media_panes_placeholder = QLabel()
+        self.compare_layout = QVBoxLayout()
+        self.media_layout = QHBoxLayout()
+        self.scroll_area = QScrollArea()
+        self.button_bar = ButtonBar()
 
-        self.setMinimumHeight(870)
-        self.setLayout(self.layout)
+        # Creating the widget hierarchy
+        self.setLayout(self.compare_layout)
+
+        self.compare_layout.setContentsMargins(0, 0, 0, 0)
+        self.compare_layout.setSpacing(0)
+        self.compare_layout.addWidget(self.scroll_area)
+        self.compare_layout.addWidget(self.button_bar)
+
+        self.scroll_area.setWidget(self.media_panes_placeholder)
+
+        self.media_panes_placeholder.setLayout(self.media_layout)
+        self.media_panes_placeholder.setStyleSheet("background-color: darkGrey;")
+        self.media_panes_placeholder.setContentsMargins(0, 0, 0, 0)
+
+        self.button_bar.next_button.clicked.connect(self.skip_entry)
+        self.button_bar.next_button.clicked.connect(self.update_duplicate_count)
+        self.button_bar.commit_selected.clicked.connect(self.commit_selected)
+        self.button_bar.commit_selected.clicked.connect(self.update_duplicate_count)
+        self.button_bar.commit_all.clicked.connect(self.commit_all)
+        self.button_bar.commit_all.clicked.connect(self.update_duplicate_count)
+
+        self.setMinimumHeight(500)
+        self.setMinimumWidth(500)
+        self.media_panes_placeholder.setMinimumHeight(870)
+        self.update_duplicate_count()
 
     def load_elements(self) -> bool:
         """
@@ -76,7 +112,7 @@ class CompareRoot(QWidget):
         :return: (If duplicates were available to be loaded)
         """
         self.max_needed_width = 10
-        if self.layout.count() > 0:
+        if self.media_layout.count() > 0:
             self.remove_all_elements()
 
         # Query new files from the db.
@@ -87,7 +123,7 @@ class CompareRoot(QWidget):
         for dbe in self.model.files:
             pane = MediaPane(self.model, dbe, self.synchronized_scroll)
             self.media_panes.append(pane)
-            self.layout.addWidget(pane)
+            self.media_layout.addWidget(pane)
 
         # Attaching  Buttons
         for pane in self.media_panes:
@@ -97,7 +133,7 @@ class CompareRoot(QWidget):
             pane.media.clicked.connect(lambda : self.open_image_fn(pane.media.fpath))
             pane.change_tag_button.clicked.connect(lambda : self.open_datetime_modal_fn(pane))
 
-        self.setMinimumWidth(len(self.model.files) * 310 + 10)
+        self.media_panes_placeholder.setMinimumWidth(len(self.model.files) * 310 + 10)
         if self.maintain_visibility is not None:
             self.maintain_visibility()
 
@@ -111,7 +147,7 @@ class CompareRoot(QWidget):
         :return:
         """
         for element in self.media_panes:
-            self.layout.removeWidget(element)
+            self.media_layout.removeWidget(element)
             element.deleteLater()
 
         self.media_panes = []
@@ -126,7 +162,7 @@ class CompareRoot(QWidget):
         :param media_pane: The MediaPane to remove.
         :return:
         """
-        self.layout.removeWidget(media_pane)
+        self.media_layout.removeWidget(media_pane)
         media_pane.deleteLater()
         self.media_panes.remove(media_pane)
         self.model.remove_file(media_pane.dbe)
@@ -223,3 +259,62 @@ class CompareRoot(QWidget):
                 widget_a.dbe.datetime > widget_b.dbe.datetime:
             widget_b.main_button.setChecked(True)
             widget_a.delete_button.setChecked(True)
+
+    def update_duplicate_count(self):
+        """
+        Update the duplicate count in the button bar.
+        :return:
+        """
+        duplicates_to_go = self.model.pdb.get_duplicate_table_size()
+        self.button_bar.status.setText(f"Remaining Duplicates: {duplicates_to_go}")
+
+    def skip_entry(self):
+        pass
+
+    def commit_selected(self):
+        pass
+
+    def commit_all(self):
+        pass
+
+    def resizeEvent(self, a0: QResizeEvent) -> None:
+        """
+        Propagate the resizing down even though there is a scroll view.
+        :param a0: size event
+        :return:
+        """
+        super().resizeEvent(a0)
+        if a0.size().width() > self.media_panes_placeholder.minimumWidth():
+            self.media_panes_placeholder.setMaximumWidth(a0.size().width())
+        else:
+            self.media_panes_placeholder.setMaximumWidth(self.media_panes_placeholder.minimumWidth())
+
+        self.maintain_visibility()
+
+    def maintain_visibility(self):
+        """
+        Function checks that the CompareRoot fits the screen. If not, a ScrollArea is added to contain the widgets.
+        :return:
+        """
+        try:
+            if self.size().width() > self.media_panes_placeholder.minimumWidth() \
+                and self.size().height() - 70 > self.media_panes_placeholder.minimumHeight():
+
+                # Check the scroll_area is in the stacked layout
+                if self.using_scroll_view:
+                    print("Removing scroll area")
+                    self.compare_layout.removeWidget(self.scroll_area)
+                    self.scroll_area.takeWidget()
+                    self.compare_layout.insertWidget(0, self.media_panes_placeholder)
+                    self.using_scroll_view = False
+
+            else:
+                # Check the compare_root is in the stacked layout
+                if not self.using_scroll_view:
+                    print("Removing compare root")
+                    self.compare_layout.removeWidget(self.media_panes_placeholder)
+                    self.compare_layout.insertWidget(0, self.scroll_area)
+                    self.scroll_area.setWidget(self.media_panes_placeholder)
+                    self.using_scroll_view = True
+        except AttributeError as e:
+            print(e)
