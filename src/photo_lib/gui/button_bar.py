@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QLabel
+from PyQt6.QtWidgets import QPushButton, QHBoxLayout, QLabel
 
-class ButtonBar(QWidget):
+class ButtonBar(QLabel):
 
     next_button: QPushButton
     commit_all: QPushButton
@@ -26,7 +26,6 @@ class ButtonBar(QWidget):
         self.status = QLabel("Remaining Duplicates: 0")
 
         self.box_layout = QHBoxLayout()
-        # self.box_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.box_layout)
 
         self.box_layout.addWidget(self.status)
@@ -34,4 +33,9 @@ class ButtonBar(QWidget):
         self.box_layout.addWidget(self.commit_selected)
         self.box_layout.addWidget(self.next_button)
 
-        self.setMaximumHeight(50)
+        self.setFixedHeight(45)
+
+        # m = self.box_layout.contentsMargins()
+        # print(f"Margins: {m.left()} {m.top()} {m.right()} {m.bottom()}")
+        # self.setGeometry(0, 0, 500, 50)
+        # self.setStyleSheet("background-color: #000000; color: #ffffff;")
