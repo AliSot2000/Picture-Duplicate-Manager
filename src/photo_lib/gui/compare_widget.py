@@ -114,6 +114,7 @@ class CompareRoot(QWidget):
             element.deleteLater()
 
         self.media_panes = []
+        self.model.clear_files()
         if self.maintain_visibility is not None:
             self.maintain_visibility()
 
@@ -127,8 +128,10 @@ class CompareRoot(QWidget):
         self.layout.removeWidget(media_pane)
         media_pane.deleteLater()
         self.media_panes.remove(media_pane)
+        self.model.remove_file(media_pane.dbe)
 
         if len(self.media_panes) == 0 and self.auto_load:
+            self.model.clear_files()
             self.load_elements()
         if self.maintain_visibility is not None:
             self.maintain_visibility()
