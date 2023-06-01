@@ -98,11 +98,35 @@ class RootWindow(QMainWindow):
         else:
             self.compare_root.setMaximumWidth(self.compare_root.minimumWidth())
 
-        new_size = QSize(a0.size().width() - self.scroll_area.verticalScrollBar().width(),
-                         a0.size().height() - self.scroll_area.horizontalScrollBar().height() - 50)
+        self.maintain_visibility()
 
-        self.compare_root.resize(new_size)
-        # print(a0.size())
+    def maintain_visibility(self):
+        """
+        Function checks that the CompareRoot fits the screen. If not, a ScrollArea is added to contain the widgets.
+        :return:
+        """
+        try:
+            if self.size().width() > self.compare_root.minimumWidth() \
+                and self.size().height() - 70 > self.compare_root.minimumHeight():
+
+                # Check the scroll_area is in the stacked layout
+                if self.using_scroll_view:
+                    print("Removing scroll area")
+                    self.compare_layout.removeWidget(self.scroll_area)
+                    self.scroll_area.takeWidget()
+                    self.compare_layout.insertWidget(0, self.compare_root)
+                    self.using_scroll_view = False
+
+            else:
+                # Check the compare_root is in the stacked layout
+                if not self.using_scroll_view:
+                    print("Removing compare root")
+                    self.compare_layout.removeWidget(self.compare_root)
+                    self.compare_layout.insertWidget(0, self.scroll_area)
+                    self.scroll_area.setWidget(self.compare_root)
+                    self.using_scroll_view = True
+        except AttributeError as e:
+            print(e)
 
     def open_image(self, path: str):
         """
