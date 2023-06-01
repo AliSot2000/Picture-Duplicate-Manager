@@ -101,6 +101,7 @@ class CompareRoot(QWidget):
         if self.maintain_visibility is not None:
             self.maintain_visibility()
 
+        self.auto_set_buttons()
         return True
 
     def remove_all_elements(self):
@@ -184,3 +185,41 @@ class CompareRoot(QWidget):
                 media_pane.main_button.setChecked(False)
 
         self.__updating_buttons = False
+
+    def auto_set_buttons(self):
+        """
+        Automatically sets the main buttons of the MediaPanes to the correct state.
+        :return:
+        """
+        if len(self.media_panes) != 2:
+            return
+
+        widget_a: MediaPane = self.media_panes[0]
+        widget_b: MediaPane = self.media_panes[1]
+        fsize_a_type = type(widget_a.dbe.metadata.get("File:FileSize"))
+        fsize_b_type = type(widget_b.dbe.metadata.get("File:FileSize"))
+        assert fsize_a_type is int, f"FileSize of a not of expected type int but {fsize_a_type}"
+        assert fsize_b_type is int, f"FileSize of b not of expected type int but {fsize_b_type}"
+
+        # Two files differing only in file size
+        if widget_a.dbe.metadata.get("File:FileSize")\
+                > widget_b.dbe.metadata.get("File:FileSize"):
+            widget_a.main_button.setChecked(True)
+            widget_b.delete_button.setChecked(True)
+        elif widget_a.dbe.metadata.get("File:FileSize")\
+                < widget_b.dbe.metadata.get("File:FileSize"):
+            widget_b.main_button.setChecked(True)
+            widget_a.delete_button.setChecked(True)
+
+        # Two files identical but different dates.
+        elif widget_a.dbe.metadata.get("File:FileSize")\
+                == widget_b.dbe.metadata.get("File:FileSize") and \
+                widget_a.dbe.datetime < widget_b.dbe.datetime:
+            widget_a.main_button.setChecked(True)
+            widget_b.delete_button.setChecked(True)
+
+        elif widget_a.dbe.metadata.get("File:FileSize")\
+                == widget_b.dbe.metadata.get("File:FileSize") and \
+                widget_a.dbe.datetime > widget_b.dbe.datetime:
+            widget_b.main_button.setChecked(True)
+            widget_a.delete_button.setChecked(True)
