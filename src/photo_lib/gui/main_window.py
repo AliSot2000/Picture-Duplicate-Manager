@@ -86,6 +86,17 @@ class RootWindow(QMainWindow):
         self.datetime_modal.apply_button.clicked.connect(self.apply_datetime_modal)
         self.datetime_modal.apply_close_button.clicked.connect(self.apply_close_datetime_modal)
 
+        self.button_bar.next_button.clicked.connect(self.skip_entry)
+        self.button_bar.next_button.clicked.connect(self.update_duplicate_count)
+        self.button_bar.commit_selected.clicked.connect(self.commit_selected)
+        self.button_bar.commit_selected.clicked.connect(self.update_duplicate_count)
+        self.button_bar.commit_all.clicked.connect(self.commit_all)
+        self.button_bar.commit_all.clicked.connect(self.update_duplicate_count)
+
+        # Misc setup of the window
+        self.setWindowTitle("Picture Duplicate Manager")
+        self.update_duplicate_count()
+
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
         Propagate the resizing down even though there is a scroll view.
@@ -192,3 +203,19 @@ class RootWindow(QMainWindow):
         self.apply_datetime_modal()
         self.compare_root.remove_media_pane(self.datetime_modal.media_pane)
 
+    def update_duplicate_count(self):
+        """
+        Update the duplicate count in the button bar.
+        :return:
+        """
+        duplicates_to_go = self.model.pdb.get_duplicate_table_size()
+        self.button_bar.status.setText(f"Remaining Duplicates: {duplicates_to_go}")
+
+    def skip_entry(self):
+        pass
+
+    def commit_selected(self):
+        pass
+
+    def commit_all(self):
+        pass
