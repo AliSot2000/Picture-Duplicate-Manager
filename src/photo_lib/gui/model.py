@@ -10,7 +10,6 @@ class Model:
     current_row: Union[int, None] = None
 
     def __init__(self):
-        # TODO implement this correctly, this is only for testing purposes.
         self.pdb = PhotoDb(root_dir="/media/alisot2000/DumpStuff/Photo_Library_Testing/")
 
 
