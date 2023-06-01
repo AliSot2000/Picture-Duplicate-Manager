@@ -27,7 +27,7 @@ def bake_attribute(name: str, func: Callable):
     return baked_attribute_func
 
 
-class MediaPane(QWidget):
+class MediaPane(QLabel):
     """
     This Widget holds a piece of media, and it's associated metadata.
     """
@@ -71,6 +71,8 @@ class MediaPane(QWidget):
         self.layout = QVBoxLayout()
 
         self.setMinimumWidth(self.min_width)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        # self.setStyleSheet("background-color: #333333;")
 
         self.setLayout(self.layout)
 
@@ -89,6 +91,7 @@ class MediaPane(QWidget):
         self.original_name_lbl.setFrameShape(QFrame.Shape.NoFrame)
         self.original_name_lbl.set_text(self.dbe.org_fname)
         self.original_name_lbl.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        # self.original_name_lbl.setStyleSheet("border: 1px solid red;")
         # Using Decorator to set the attribute fix and not having to mess around with the text scroller having to
         # know its attribute name in the parent.
         self.original_name_lbl.share_scroll = bake_attribute("original_name_lbl", self.share_scroll)
@@ -102,6 +105,7 @@ class MediaPane(QWidget):
         self.original_path_lbl.setFrameShape(QFrame.Shape.NoFrame)
         self.original_path_lbl.set_text(self.dbe.org_fpath)
         self.original_path_lbl.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        # self.original_path_lbl.setStyleSheet("border: 1px solid red;")
         # Dito self.original_name_lbl
         self.original_path_lbl.share_scroll = bake_attribute("original_path_lbl", self.share_scroll)
         self.max_needed_width = max(self.max_needed_width, self.original_path_lbl.text_label.width())
