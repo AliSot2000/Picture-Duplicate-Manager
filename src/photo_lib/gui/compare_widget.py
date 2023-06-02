@@ -270,6 +270,44 @@ class CompareRoot(QWidget):
         duplicates_to_go = self.model.pdb.get_duplicate_table_size()
         self.button_bar.status.setText(f"Remaining Duplicates: {duplicates_to_go}")
 
+    def mark_duplicates_from_gui(self, selected: bool = True):
+        """
+        Function to commit the selection of duplicates to the database.
+        :param selected: if only the with delete selected images should be marked as duplicates or all elements.
+        :return:
+        """
+        if len(self.media_panes) == 0:
+            self.load_elements()
+            return
+
+        main_entry: MediaPane = None
+        for_duplicates = []
+
+        for entry in self.media_panes:
+            if entry.main_button.isChecked():
+                main_entry = entry
+            # Add the entry to the list of duplicates if the delete button is checked or if 'commit all' is called and
+            # any other entry except the main is considered a duplicate.
+            elif entry.delete_button.isChecked() or not selected:
+                for_duplicates.append(entry)
+
+        # remove all ComparePanes and repopulate
+        if main_entry is None:
+            warnings.warn("No main entry selected.")
+            return
+
+        # At least one duplicate to remove.
+        if len(for_duplicates) == 0:
+            return
+
+        self.model.mark_duplicates(main_entry.dbe, [entry.dbe for entry in for_duplicates])
+
+        # Remove the processed elements from the gui.
+        self.remove_media_pane(main_entry)
+        for entry in for_duplicates:
+            self.remove_media_pane(entry)
+
+
     def skip_entry(self):
         pass
 
