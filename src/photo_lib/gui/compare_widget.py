@@ -309,13 +309,13 @@ class CompareRoot(QWidget):
 
 
     def skip_entry(self):
-        pass
-
-    def commit_selected(self):
-        pass
-
-    def commit_all(self):
-        pass
+        """
+        Skip the current duplicates cluster. For this, remove all elements and load the next cluster. Removing all
+        elements already entails deleting the current row from the database.
+        :return:
+        """
+        self.remove_all_elements()
+        self.load_elements()
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
