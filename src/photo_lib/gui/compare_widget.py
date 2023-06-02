@@ -7,6 +7,7 @@ from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.button_bar import ButtonBar
 
 from typing import Callable, List
+import warnings
 
 
 def button_wrapper(btn: QPushButton, func: Callable):
@@ -95,9 +96,9 @@ class CompareRoot(QWidget):
 
         self.button_bar.next_button.clicked.connect(self.skip_entry)
         self.button_bar.next_button.clicked.connect(self.update_duplicate_count)
-        self.button_bar.commit_selected.clicked.connect(self.commit_selected)
+        self.button_bar.commit_selected.clicked.connect(lambda : self.mark_duplicates_from_gui(selected=True))
         self.button_bar.commit_selected.clicked.connect(self.update_duplicate_count)
-        self.button_bar.commit_all.clicked.connect(self.commit_all)
+        self.button_bar.commit_all.clicked.connect(lambda : self.mark_duplicates_from_gui(selected=False))
         self.button_bar.commit_all.clicked.connect(self.update_duplicate_count)
 
         self.setMinimumHeight(500)
@@ -113,10 +114,11 @@ class CompareRoot(QWidget):
         """
         self.max_needed_width = 10
         if self.media_layout.count() > 0:
-            self.remove_all_elements()
+            return False
 
         # Query new files from the db.
         if not self.model.fetch_duplicate_row():
+            warnings.warn("Load elements called with duplicates still present. Call to remove_all_elements() needed.")
             return False
 
         # Go through all DatabaseEntries, generate a MediaPane from each one and add the panes to the layout.
