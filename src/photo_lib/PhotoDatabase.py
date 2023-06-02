@@ -833,6 +833,17 @@ class PhotoDb:
     #                 pass
 
     def mark_duplicate(self, successor: int, duplicate_image_id: int, delete: bool = False):
+        """
+        Given two keys of images, the function marks the duplicate_image_id as the duplicate, removing the image from
+        the database and marking it as a duplicate, pointing to the successor.
+
+        If desired, the image is also deleted straight away.
+
+        :param successor: sql id of the successor
+        :param duplicate_image_id: sql id of the duplicate image
+        :param delete: if the image should be deleted or moved to the trash.
+        :return:
+        """
 
         # verify original is not a duplicate itself
         self.cur.execute(f"SELECT successor FROM replaced WHERE key is {successor}")
