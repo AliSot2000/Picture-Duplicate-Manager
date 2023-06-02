@@ -154,3 +154,20 @@ class Model:
         :return:
         """
         self.files.remove(dbe)
+
+    def mark_duplicates(self, original: DatabaseEntry, duplicates: List[DatabaseEntry]):
+        """
+        Mark the duplicates as such in the database.
+
+        :param original: The original file
+        :param duplicates: The list of duplicates
+        :return:
+        """
+        main_key = original.key
+        print(f"Keeping: {original.new_name}")
+
+        for marks in duplicates:
+            print(f"Marking: {marks.new_name}")
+            marks: DatabaseEntry
+            self.pdb.mark_duplicate(successor=main_key, duplicate_image_id=marks.key, delete=False)
+
