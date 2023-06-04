@@ -5,13 +5,21 @@ from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
 from photo_lib.metadataagregator import key_lookup_dir
 
 class Model:
-    pdb: PhotoDb = None
+    pdb:  Union[PhotoDb, None] = None
     files: List[DatabaseEntry]
     current_row: Union[int, None] = None
 
-    def __init__(self):
-        self.pdb = PhotoDb(root_dir="/media/alisot2000/DumpStuff/Photo_Library_Testing/")
+    def __init__(self, folder_path: str = None):
+        if folder_path is not None:
+            self.pdb = PhotoDb(root_dir=folder_path)
 
+    def set_folder_path(self, folder_path: str):
+        """
+        Wrapper function in case more logic is needed in the future.
+        :param folder_path: path to the database
+        :return:
+        """
+        self.pdb = PhotoDb(root_dir=folder_path)
 
     @staticmethod
     def process_metadata(metadict: dict):
@@ -44,6 +52,10 @@ class Model:
         :param custom_datetime: the custom datetime string, if tag is "custom"
         :return:
         """
+        if self.pdb is None:
+            print("No Database loaded")
+            return
+
         if tag.strip().lower() == "custom":
             tag = "Custom"
             new_datetime = datetime.datetime.strptime(custom_datetime, "%Y-%m-%d %H.%M.%S")
@@ -72,6 +84,10 @@ class Model:
         Fetch the current row from the database.
         :return:
         """
+        if self.pdb is None:
+            print("No Database loaded")
+            return
+
         success, results, row_id = self.pdb.get_duplicate_entry()
         if success:
             self.files = results
@@ -91,6 +107,9 @@ class Model:
 
         :return: identical_binary, identical_names, identical_datetime, identical_file_size, difference
         """
+        if self.pdb is None:
+            print("No Database loaded")
+            return
 
         if len(self.files) == 0 or self.files is None:
             return None
@@ -142,6 +161,10 @@ class Model:
         => Future proofing...
         :return:
         """
+        if self.pdb is None:
+            print("No Database loaded")
+            return
+
         self.files = []
         self.pdb.delete_duplicate_row(self.current_row)
         self.current_row = None
@@ -163,6 +186,10 @@ class Model:
         :param duplicates: The list of duplicates
         :return:
         """
+        if self.pdb is None:
+            print("No Database loaded")
+            return
+
         main_key = original.key
         print(f"Keeping: {original.new_name}")
 
