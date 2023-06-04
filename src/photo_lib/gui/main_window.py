@@ -81,6 +81,14 @@ class RootWindow(QMainWindow):
         # Open the Folder Select Modal
         self.open_folder_select()
 
+        # Open folder select action.
+        self.open_folder_select_action = QAction("&Open Folder", self)
+
+        menu_bar = self.menuBar()
+
+        file_menu = menu_bar.addMenu("&File")
+        file_menu.addAction(self.open_folder_select_action)
+
     def open_image(self, path: str):
         """
         Open an image in full screen mode.
