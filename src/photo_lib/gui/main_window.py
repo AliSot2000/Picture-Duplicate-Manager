@@ -35,7 +35,11 @@ class RootWindow(QMainWindow):
     # Fill Screen Image
     full_screen_image: ResizingImage = None
 
+    # Compare stuff
     compare_root: CompareRoot
+
+    # Folder Select Modal
+    folder_select: FolderSelectModal
 
     # Change Datetime Modal
     datetime_modal: DateTimeModal
@@ -52,6 +56,8 @@ class RootWindow(QMainWindow):
         self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image,
                                         open_datetime_modal_fn=self.open_datetime_modal)
 
+        self.folder_select = FolderSelectModal()
+
         # Generating the remaining widgets
         self.compare_root.load_elements()
 
@@ -63,6 +69,7 @@ class RootWindow(QMainWindow):
         # self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
 
         self.stacked_layout.addWidget(self.compare_root)
+        self.stacked_layout.addWidget(self.folder_select)
         self.stacked_layout.setCurrentWidget(self.compare_root)
 
         # Connecting the buttons of the modals
@@ -70,8 +77,14 @@ class RootWindow(QMainWindow):
         self.datetime_modal.apply_button.clicked.connect(self.apply_datetime_modal)
         self.datetime_modal.apply_close_button.clicked.connect(self.apply_close_datetime_modal)
 
+        # Connecting to the folder select modal
+        self.folder_select.fileSelected.connect(self.close_and_apply_folder)
+
         # Misc setup of the window
         self.setWindowTitle("Picture Duplicate Manager")
+
+        # Open the Folder Select Modal
+        self.open_folder_select()
 
     def open_image(self, path: str):
         """
@@ -136,3 +149,21 @@ class RootWindow(QMainWindow):
         """
         self.apply_datetime_modal()
         self.compare_root.remove_media_pane(self.datetime_modal.media_pane)
+
+    def open_folder_select(self):
+        """
+        Open the folder select modal.
+        :return:
+        """
+        self.stacked_layout.setCurrentWidget(self.folder_select)
+
+    def close_and_apply_folder(self):
+        """
+        Close the folder select modal and apply the new folder.
+        :return:
+        """
+        print("Closing and applying folder")
+        self.compare_root.remove_all_elements()
+        self.model.set_folder_path(self.folder_select.selectedFiles()[0])
+        self.compare_root.load_elements()
+        self.stacked_layout.setCurrentWidget(self.compare_root)
