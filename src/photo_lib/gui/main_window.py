@@ -13,13 +13,18 @@ from photo_lib.gui.button_bar import ButtonBar
 from typing import List
 
 # TODO
-#  - Add Button to go to next duplicate entry
-#  - Add Button to commit only the selected main and delete to database
-#  - Add Button to commit the selected main and delete everything else in database
+#  - Session storage
+#  - Config Storage
+#  - Keyboard shortcuts
 #  - File Selector for database
 #  - Buttons for deduplication process.
+
+# TODO Features
 #  - Time line selection
 #  - Images in windows needed at some point
+#  - No import required, just list the images in folders
+#  - Verify integrity of images
+#  - Multi-database support... Future.
 
 
 class RootWindow(QMainWindow):
