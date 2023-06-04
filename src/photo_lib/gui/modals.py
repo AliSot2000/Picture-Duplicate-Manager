@@ -89,6 +89,7 @@ class FolderSelectModal(QFileDialog):
         super().__init__()
         self.setFileMode(QFileDialog.FileMode.Directory)
         # self.fileSelected.connect(self.print_path)
+        self.setDirectory("/media/alisot2000/DumpStuff/Photo_Library_Testing/")
 
     def print_path(self):
         print(self.selectedFiles()[0])
