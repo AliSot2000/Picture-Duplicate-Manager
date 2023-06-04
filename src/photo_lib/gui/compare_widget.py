@@ -91,7 +91,7 @@ class CompareRoot(QWidget):
         self.scroll_area.setWidget(self.media_panes_placeholder)
 
         self.media_panes_placeholder.setLayout(self.media_layout)
-        self.media_panes_placeholder.setStyleSheet("background-color: darkGrey;")
+        # self.media_panes_placeholder.setStyleSheet("background-color: darkGrey;")
         self.media_panes_placeholder.setContentsMargins(0, 0, 0, 0)
 
         self.button_bar.next_button.clicked.connect(self.skip_entry)
@@ -136,10 +136,10 @@ class CompareRoot(QWidget):
             pane.change_tag_button.clicked.connect(lambda : self.open_datetime_modal_fn(pane))
 
         self.media_panes_placeholder.setMinimumWidth(len(self.model.files) * 310 + 10)
-        if self.maintain_visibility is not None:
-            self.maintain_visibility()
+        self.maintain_visibility()
 
         self.auto_set_buttons()
+        self.color_widgets()
         return True
 
     def remove_all_elements(self):
@@ -154,8 +154,7 @@ class CompareRoot(QWidget):
 
         self.media_panes = []
         self.model.clear_files()
-        if self.maintain_visibility is not None:
-            self.maintain_visibility()
+        self.maintain_visibility()
 
     def remove_media_pane(self, media_pane: MediaPane):
         """
@@ -172,8 +171,9 @@ class CompareRoot(QWidget):
         if len(self.media_panes) == 0 and self.auto_load:
             self.model.clear_files()
             self.load_elements()
-        if self.maintain_visibility is not None:
-            self.maintain_visibility()
+
+        self.maintain_visibility()
+        self.color_widgets()
 
     def synchronized_scroll(self, name: str, caller: TextScroller, rx: float, ry: float):
         """
@@ -358,3 +358,27 @@ class CompareRoot(QWidget):
                     self.using_scroll_view = True
         except AttributeError as e:
             print(e)
+
+    def color_widgets(self):
+        """
+        Give the widgets a color depending on if the values are identical or not.
+        :return:
+        """
+        bin_ident, names, dt, fsize, avg_diff = self.model.compare_current_files()
+        bg = f"background: rgb({'200, 255' if bin_ident else '255, 200'}, 200);"
+        self.button_bar.setStyleSheet(bg)
+
+        name_bg = f"background: rgb({'200, 255' if names else '255, 200'}, 200);"
+        dt_bg = f"background: rgb({'200, 255' if dt else '255, 200'}, 200);"
+
+        if fsize:
+            fsize_bg = f"background: rgb(200, 255, 200);"
+        elif avg_diff < 1000:
+            fsize_bg = f"background: rgb(255, 255, 200);"
+        else:
+            fsize_bg = f"background: rgb(255, 200, 200);"
+
+        for pane in self.media_panes:
+            pane.original_name_lbl.setStyleSheet(name_bg)
+            pane.new_name_lbl.setStyleSheet(dt_bg)
+            pane.file_size_lbl.setStyleSheet(fsize_bg)
