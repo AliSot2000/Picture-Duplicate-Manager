@@ -72,7 +72,7 @@ class MediaPane(QLabel):
 
         self.setMinimumWidth(self.min_width)
         self.layout.setContentsMargins(0, 0, 0, 0)
-        # self.setStyleSheet("background-color: #333333;")
+        # self.setStyleSheet("background-color: #ffffff;")
 
         self.setLayout(self.layout)
 
