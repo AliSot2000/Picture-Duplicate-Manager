@@ -1,16 +1,10 @@
-import time
-from threading import Thread
-
-from PyQt6.QtWidgets import QMainWindow, QScrollArea, QLabel, QMenu, QMenuBar, QStatusBar, QToolBar, QFileDialog, QHBoxLayout, QSizePolicy, QWidget, QStackedLayout, QVBoxLayout
-from PyQt6.QtGui import QResizeEvent
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.image_container import ResizingImage
 from photo_lib.gui.modals import DateTimeModal, FolderSelectModal
 from photo_lib.gui.media_pane import MediaPane
-from photo_lib.gui.button_bar import ButtonBar
-from typing import List
+from PyQt6.QtGui import QAction, QIcon, QKeySequence
 
 # TODO
 #  - Session storage
@@ -18,6 +12,7 @@ from typing import List
 #  - Keyboard shortcuts
 #  - File Selector for database
 #  - Buttons for deduplication process.
+#  - Logging
 
 # TODO Features
 #  - Time line selection
@@ -162,7 +157,6 @@ class RootWindow(QMainWindow):
         Close the folder select modal and apply the new folder.
         :return:
         """
-        print("Closing and applying folder")
         self.compare_root.remove_all_elements()
         self.model.set_folder_path(self.folder_select.selectedFiles()[0])
         self.compare_root.load_elements()
