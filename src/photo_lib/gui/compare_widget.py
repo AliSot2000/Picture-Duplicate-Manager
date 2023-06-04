@@ -329,6 +329,14 @@ class CompareRoot(QWidget):
         else:
             self.media_panes_placeholder.setMaximumWidth(self.media_panes_placeholder.minimumWidth())
 
+        if self.using_scroll_view:
+            new_width = a0.size().width() - self.scroll_area.verticalScrollBar().width()
+            new_height = a0.size().height() - 45 - self.scroll_area.horizontalScrollBar().height()
+        else:
+            new_width = a0.size().width()
+            new_height = a0.size().height() - 45
+
+        self.media_panes_placeholder.resize(new_width, new_height)
         self.maintain_visibility()
 
     def maintain_visibility(self):
