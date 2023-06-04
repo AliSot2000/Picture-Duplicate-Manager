@@ -267,7 +267,10 @@ class CompareRoot(QWidget):
         Update the duplicate count in the button bar.
         :return:
         """
-        duplicates_to_go = self.model.pdb.get_duplicate_table_size()
+        try:
+            duplicates_to_go = self.model.pdb.get_duplicate_table_size()
+        except AttributeError:
+            duplicates_to_go = "?"
         self.button_bar.status.setText(f"Remaining Duplicates: {duplicates_to_go}")
 
     def mark_duplicates_from_gui(self, selected: bool = True):
