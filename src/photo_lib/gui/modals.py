@@ -88,12 +88,16 @@ class FolderSelectModal(QFileDialog):
         """
         super().__init__()
         self.setFileMode(QFileDialog.FileMode.Directory)
+        # self.fileSelected.connect(self.print_path)
+
+    def print_path(self):
+        print(self.selectedFiles()[0])
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = DateTimeModal()
-    window.show()
+    # window = DateTimeModal()
+    # window.show()
     window2 = FolderSelectModal()
     window2.show()
     sys.exit(app.exec())
