@@ -41,6 +41,7 @@ class RootWindow(QMainWindow):
     datetime_modal: DateTimeModal
 
     commit_submenu: Union[None, QMenu] = None
+    mark_submenu: Union[None, QMenu] = None
 
     def __init__(self):
         super().__init__()
@@ -206,6 +207,13 @@ class RootWindow(QMainWindow):
             self.commit_submenu.addAction(self.compare_root.commit_selected)
             self.commit_submenu.addAction(self.compare_root.commit_all)
 
+        if self.mark_submenu is None:
+            self.mark_submenu = menu_bar.addMenu("&Mark")
+            self.mark_submenu.addAction(self.compare_root.mark_delete_action)
+            self.mark_submenu.addAction(self.compare_root.set_main_action)
+            self.mark_submenu.addAction(self.compare_root.change_tag_action)
+            self.mark_submenu.addAction(self.compare_root.remove_media_action)
+
         self.set_view(self.compare_root)
 
     def close_compare_root(self):
@@ -216,7 +224,9 @@ class RootWindow(QMainWindow):
         print("Close")
         menubar = self.menuBar()
         menubar.removeAction(self.commit_submenu.menuAction())
+        menubar.removeAction(self.mark_submenu.menuAction())
         self.commit_submenu = None
+        self.mark_submenu = None
 
     def close_folder_select(self):
         """
