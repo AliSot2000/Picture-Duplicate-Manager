@@ -93,19 +93,12 @@ class RootWindow(QMainWindow):
         """
         if self.full_screen_image is None:
             self.full_screen_image = ResizingImage(path)
-            self.full_screen_image.clicked.connect(self.close_image)
+            self.full_screen_image.clicked.connect(self.set_view(self.compare_root))
             self.stacked_layout.addWidget(self.full_screen_image)
         else:
             self.full_screen_image.load_image(path)
 
-        self.stacked_layout.setCurrentWidget(self.full_screen_image)
-
-    def close_image(self):
-        """
-        Close the full screen image.
-        :return:
-        """
-        self.stacked_layout.setCurrentWidget(self.compare_root)
+        self.set_view(self.full_screen_image)
 
     def open_datetime_modal(self, media_pane: MediaPane):
         """
