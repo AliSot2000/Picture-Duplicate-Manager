@@ -10,7 +10,6 @@ from PyQt6.QtGui import QAction, QIcon, QKeySequence
 #  - Session storage
 #  - Config Storage
 #  - Keyboard shortcuts
-#  - File Selector for database
 #  - Buttons for deduplication process.
 #  - Logging
 
