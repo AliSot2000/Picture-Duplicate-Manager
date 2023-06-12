@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QFrame, QSizePolicy, QHBoxLayout
 from PyQt6.QtMultimedia import QMediaPlayer
-from PyQt6.QtGui import QPixmap, QFontMetrics
-from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QFontMetrics, QEnterEvent
+from PyQt6.QtCore import Qt, QEvent
 
 from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.gui.text_scroll_area import TextScroller
@@ -61,6 +61,9 @@ class MediaPane(QLabel):
     max_needed_width: int = 0
 
     share_scroll: Callable
+
+    set_callback: Union[None, Callable]
+    remove_callback: Union[None, Callable]
 
     def __init__(self, model: Model, entry: DatabaseEntry, share_scroll: Callable):
         super().__init__()
@@ -217,6 +220,30 @@ class MediaPane(QLabel):
     def update_file_naming(self):
         self.tag_lbl.setText(self.dbe.naming_tag)
         self.new_name_lbl.setText(self.dbe.new_name)
+
+    def enterEvent(self, event: QEnterEvent) -> None:
+        """
+        When the mouse enters the widget, the metadata will be displayed.
+        :param event:
+        :return:
+        """
+        # print(f"Enter {self.dbe.new_name}")
+        if self.set_callback is not None:
+            self.set_callback(self)
+
+        super().enterEvent(event)
+
+    def leaveEvent(self, event: QEvent) -> None:
+        """
+        When the mouse leaves the widget, the metadata will be hidden.
+        :param event:
+        :return:
+        """
+        # print(f"Remove {self.dbe.new_name}")
+        if self.remove_callback is not None:
+            self.remove_callback(self)
+
+        super().leaveEvent(event)
 
 
 
