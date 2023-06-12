@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget
 from PyQt6.QtGui import QResizeEvent
+from PyQt6.QtGui import QAction, QIcon, QKeySequence
 
 from photo_lib.gui.model import Model
 from photo_lib.gui.media_pane import MediaPane
@@ -57,6 +58,10 @@ class CompareRoot(QWidget):
     compare_layout: QVBoxLayout
     button_bar: ButtonBar
 
+    next_action: QAction
+    commit_selected: QAction
+    commit_all: QAction
+
     # using ScrollView
     using_scroll_view: bool = True
 
@@ -94,12 +99,26 @@ class CompareRoot(QWidget):
         # self.media_panes_placeholder.setStyleSheet("background-color: darkGrey;")
         self.media_panes_placeholder.setContentsMargins(0, 0, 0, 0)
 
-        self.button_bar.next_button.clicked.connect(self.skip_entry)
-        self.button_bar.next_button.clicked.connect(self.update_duplicate_count)
-        self.button_bar.commit_selected.clicked.connect(lambda : self.mark_duplicates_from_gui(selected=True))
-        self.button_bar.commit_selected.clicked.connect(self.update_duplicate_count)
-        self.button_bar.commit_all.clicked.connect(lambda : self.mark_duplicates_from_gui(selected=False))
-        self.button_bar.commit_all.clicked.connect(self.update_duplicate_count)
+        # Actions, create actions and add them to the buttons.
+        self.next_action = QAction("Next Cluster", self)
+        self.next_action.triggered.connect(self.skip_entry)
+        self.next_action.triggered.connect(self.update_duplicate_count)
+        self.next_action.setShortcut(QKeySequence("CTRL+D"))
+
+        self.commit_selected = QAction("Commit Selected", self)
+        self.commit_selected.triggered.connect(lambda : self.mark_duplicates_from_gui(selected=True))
+        self.commit_selected.triggered.connect(self.update_duplicate_count)
+        self.commit_selected.setShortcut(QKeySequence("CTRL+S"))
+
+        self.commit_all = QAction("Commit All", self)
+        self.commit_all.triggered.connect(lambda : self.mark_duplicates_from_gui(selected=False))
+        self.commit_all.triggered.connect(self.update_duplicate_count)
+        self.commit_all.setShortcut(QKeySequence("CTRL+A"))
+
+        # Adding the actions to the buttons.
+        self.button_bar.next_button.target_action = self.next_action
+        self.button_bar.commit_selected.target_action = self.commit_selected
+        self.button_bar.commit_all.target_action = self.commit_all
 
         self.setMinimumHeight(500)
         self.setMinimumWidth(500)
