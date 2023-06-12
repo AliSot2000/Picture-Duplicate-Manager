@@ -58,12 +58,21 @@ class CompareRoot(QWidget):
     compare_layout: QVBoxLayout
     button_bar: ButtonBar
 
+    # Actions related to duplicate cluster.
     next_action: QAction
     commit_selected: QAction
     commit_all: QAction
 
+    # Actions related to a single image
+    set_main_action: QAction
+    mark_delete_action: QAction
+    change_tag_action: QAction
+    remove_media_action: QAction
+
     # using ScrollView
     using_scroll_view: bool = True
+
+    target_panes: List[MediaPane] = None
 
     def __init__(self, model: Model, open_image_fn: Callable, open_datetime_modal_fn: Callable):
         """
@@ -171,6 +180,7 @@ class CompareRoot(QWidget):
             self.media_layout.removeWidget(element)
             element.deleteLater()
 
+        self.target_panes = []
         self.media_panes = []
         self.model.clear_files()
         self.maintain_visibility()
@@ -191,6 +201,7 @@ class CompareRoot(QWidget):
             self.model.clear_files()
             self.load_elements()
 
+        self.remove_target(media_pane)
         self.maintain_visibility()
         self.color_widgets()
 
@@ -412,3 +423,24 @@ class CompareRoot(QWidget):
             pane.original_name_lbl.setStyleSheet(name_bg)
             pane.new_name_lbl.setStyleSheet(dt_bg)
             pane.file_size_lbl.setStyleSheet(fsize_bg)
+
+    def set_target(self, target: MediaPane):
+        """
+        Set the target pane for the current comparison. This is used so the QAction can update the buttons of the
+        target pane.
+        :param target: the MediaPane which the cursor is now hovering over.
+        :return:
+        """
+        if target not in self.target_panes:
+            self.target_panes.append(target)
+
+    def remove_target(self, target: MediaPane):
+        """
+        Remove the target pane from the list of target panes. This is used so the QAction can update the buttons of the
+        target pane.
+        :param target: The MediaPane over which the cursor is no longer hovering over.
+        :return:
+        """
+
+        if target in self.target_panes:
+            self.target_panes.remove(target)
