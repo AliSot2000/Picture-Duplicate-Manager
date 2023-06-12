@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog
+from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog, QMenu
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.image_container import ResizingImage
@@ -39,6 +39,8 @@ class RootWindow(QMainWindow):
 
     # Change Datetime Modal
     datetime_modal: DateTimeModal
+
+    commit_submenu: Union[None, QMenu] = None
 
     def __init__(self):
         super().__init__()
@@ -172,7 +174,7 @@ class RootWindow(QMainWindow):
         # elif result == QDialog.DialogCode.Rejected:
         #     pass
 
-        self.set_view(self.compare_root)
+        self.open_compare_root()
 
     def set_view(self, target: Union[CompareRoot, FolderSelectModal, ResizingImage]):
         """
@@ -191,12 +193,29 @@ class RootWindow(QMainWindow):
 
         self.stacked_layout.setCurrentWidget(target)
 
+    def open_compare_root(self):
+        """
+        Open the compare root.
+        :return:
+        """
+        menu_bar = self.menuBar()
+        if self.commit_submenu is None:
+            self.commit_submenu = menu_bar.addMenu("&Commit")
+            self.commit_submenu.addAction(self.compare_root.next_action)
+            self.commit_submenu.addSeparator()
+            self.commit_submenu.addAction(self.compare_root.commit_selected)
+            self.commit_submenu.addAction(self.compare_root.commit_all)
+        else:
+            self.commit_submenu.setVisible(True)
+
+        self.set_view(self.compare_root)
+
     def close_compare_root(self):
         """
         Close the compare root.
         :return:
         """
-        pass
+        self.commit_submenu.setVisible(False)
 
     def close_folder_select(self):
         """
