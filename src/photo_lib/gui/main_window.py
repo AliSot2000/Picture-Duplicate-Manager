@@ -149,19 +149,76 @@ class RootWindow(QMainWindow):
         self.apply_datetime_modal()
         self.compare_root.remove_media_pane(self.datetime_modal.media_pane)
 
-    def open_folder_select(self):
+    def open_folder_select(self, init=False):
         """
         Open the folder select modal.
         :return:
         """
-        self.stacked_layout.setCurrentWidget(self.folder_select)
+        self.folder_select = FolderSelectModal()
 
-    def close_and_apply_folder(self):
+        # Connecting to the folder select modal
+        self.folder_select.finished.connect(self.close_and_apply_folder)
+        self.stacked_layout.addWidget(self.folder_select)
+
+        if not init:
+            self.set_view(self.folder_select)
+        else:
+            self.stacked_layout.setCurrentWidget(self.folder_select)
+
+    def close_and_apply_folder(self, result):
         """
         Close the folder select modal and apply the new folder.
         :return:
         """
-        self.compare_root.remove_all_elements()
-        self.model.set_folder_path(self.folder_select.selectedFiles()[0])
-        self.compare_root.load_elements()
-        self.stacked_layout.setCurrentWidget(self.compare_root)
+        # Load from new folder
+        if result == QDialog.DialogCode.Accepted:
+            self.compare_root.remove_all_elements()
+            self.model.set_folder_path(self.folder_select.selectedFiles()[0])
+            self.compare_root.load_elements()
+
+        # elif result == QDialog.DialogCode.Rejected:
+        #     pass
+
+        self.set_view(self.compare_root)
+
+    def set_view(self, target: Union[CompareRoot, FolderSelectModal, ResizingImage]):
+        """
+        Set the view to the target.
+        :param target: Target to set the view to.
+        :return:
+        """
+        current_view = self.stacked_layout.currentWidget()
+
+        if type(current_view) is CompareRoot:
+            self.close_compare_root()
+        elif type(current_view) is FolderSelectModal:
+            self.close_folder_select()
+        elif type(current_view) is ResizingImage:
+            self.close_full_screen_image()
+
+        self.stacked_layout.setCurrentWidget(target)
+
+    def close_compare_root(self):
+        """
+        Close the compare root.
+        :return:
+        """
+        pass
+
+    def close_folder_select(self):
+        """
+        Close the folder select modal. Remove the current widget and add a new one. (In case of the Close button)
+        :return:
+        """
+
+        # Clean up Folder Select
+        self.stacked_layout.removeWidget(self.folder_select)
+        self.folder_select.deleteLater()
+        self.folder_select = None
+
+    def close_full_screen_image(self):
+        """
+        Close the full screen image. If more needs to be changed other than just the view, this is the place to do it.
+        :return:
+        """
+        pass
