@@ -110,16 +110,34 @@ class CompareRoot(QWidget):
 
         # Actions, create actions and add them to the buttons.
         self.next_action = QAction("Next Cluster", self)
+        self.commit_selected = QAction("Commit Selected", self)
+        self.commit_all = QAction("Commit All", self)
+        self.__init_commit_actions()
+
+        self.mark_delete_action = QAction("Mark for Deletion", self)
+        self.set_main_action = QAction("Set as Main", self)
+        self.change_tag_action = QAction("Change Tag", self)
+        self.remove_media_action = QAction("Remove from Cluster", self)
+        self.__init_pane_actions()
+
+        self.setMinimumHeight(500)
+        self.setMinimumWidth(500)
+        self.media_panes_placeholder.setMinimumHeight(870)
+        self.update_duplicate_count()
+
+    def __init_commit_actions(self):
+        """
+        Set all necessary callbacks and attributes of the actions that commit or skip the current cluster.
+        :return:
+        """
         self.next_action.triggered.connect(self.skip_entry)
         self.next_action.triggered.connect(self.update_duplicate_count)
         self.next_action.setShortcut(QKeySequence("CTRL+D"))
 
-        self.commit_selected = QAction("Commit Selected", self)
         self.commit_selected.triggered.connect(lambda : self.mark_duplicates_from_gui(selected=True))
         self.commit_selected.triggered.connect(self.update_duplicate_count)
         self.commit_selected.setShortcut(QKeySequence("CTRL+S"))
 
-        self.commit_all = QAction("Commit All", self)
         self.commit_all.triggered.connect(lambda : self.mark_duplicates_from_gui(selected=False))
         self.commit_all.triggered.connect(self.update_duplicate_count)
         self.commit_all.setShortcut(QKeySequence("CTRL+A"))
@@ -129,10 +147,54 @@ class CompareRoot(QWidget):
         self.button_bar.commit_selected.target_action = self.commit_selected
         self.button_bar.commit_all.target_action = self.commit_all
 
-        self.setMinimumHeight(500)
-        self.setMinimumWidth(500)
-        self.media_panes_placeholder.setMinimumHeight(870)
-        self.update_duplicate_count()
+    def __init_pane_actions(self):
+        self.mark_delete_action.triggered.connect(self.mark_target_delete)
+        self.mark_delete_action.setShortcut(QKeySequence("D"))
+
+        self.set_main_action.triggered.connect(self.set_target_main)
+        self.set_main_action.setShortcut(QKeySequence("S"))
+
+        self.change_tag_action.triggered.connect(self.change_target_tag)
+        self.change_tag_action.setShortcut(QKeySequence("C"))
+
+        self.remove_media_action.triggered.connect(self.remove_target_from_cluster)
+        self.remove_media_action.setShortcut(QKeySequence("X"))
+
+    def mark_target_delete(self):
+        """
+        Go through target panes and trigger a click on the delete_button
+        :return:
+        """
+        for target in self.target_panes:
+            target: MediaPane
+            target.delete_button.click()
+
+    def set_target_main(self):
+        """
+        Go through target panes and trigger a click on the main_button
+        :return:
+        """
+        for target in self.target_panes:
+            target: MediaPane
+            target.main_button.click()
+
+    def change_target_tag(self):
+        """
+        Go through target panes and trigger a click on the change_tag_button
+        :return:
+        """
+        for target in self.target_panes:
+            target: MediaPane
+            target.change_tag_button.click()
+
+    def remove_target_from_cluster(self):
+        """
+        Go through target panes and trigger a click on the remove_media_button
+        :return:
+        """
+        for target in self.target_panes:
+            target: MediaPane
+            target.remove_media_button.click()
 
     def load_elements(self) -> bool:
         """
@@ -162,6 +224,10 @@ class CompareRoot(QWidget):
             self.max_needed_width += pane.max_needed_width + 10  # TODO Better formula
             pane.media.clicked.connect(lambda : self.open_image_fn(pane.media.fpath))
             pane.change_tag_button.clicked.connect(lambda : self.open_datetime_modal_fn(pane))
+
+            # Add functions for the adding and removing of the target.
+            pane.set_callback = self.set_target
+            pane.remove_callback = self.remove_target
 
         self.media_panes_placeholder.setMinimumWidth(len(self.model.files) * 310 + 10)
         self.maintain_visibility()
