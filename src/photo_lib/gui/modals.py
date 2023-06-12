@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QFormLayout, QLineEdit, QPushButton, QLabel, QApplication, QHBoxLayout, QFileDialog
+from PyQt6.QtGui import QKeySequence
 import sys
 from photo_lib.gui.media_pane import MediaPane
 from typing import Union
@@ -41,8 +42,11 @@ class DateTimeModal(QWidget):
         self.custom_datetime_input.setDisabled(True)
 
         self.close_button = QPushButton("Close")
+        self.close_button.setShortcut(QKeySequence("ESC"))
         self.apply_button = QPushButton("Apply")
+        # self.apply_button.setShortcut(QKeySequence("ENTER"))
         self.apply_close_button = QPushButton("Apply and Close")
+        # self.apply_close_button.setShortcut(QKeySequence("SHIFT+ENTER"))
 
         self.button_box_layout = QHBoxLayout()
         self.button_box_layout.addWidget(self.close_button)
@@ -80,6 +84,7 @@ class DateTimeModal(QWidget):
     def media_pane(self, value):
         self.__media_pane = value
         self.tag_input.setText(self.__media_pane.dbe.naming_tag)
+
 
 class FolderSelectModal(QFileDialog):
     def __init__(self):
