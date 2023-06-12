@@ -95,7 +95,7 @@ class RootWindow(QMainWindow):
         """
         if self.full_screen_image is None:
             self.full_screen_image = ResizingImage(path)
-            self.full_screen_image.clicked.connect(self.set_view(self.compare_root))
+            self.full_screen_image.clicked.connect(self.open_compare_root)
             self.stacked_layout.addWidget(self.full_screen_image)
         else:
             self.full_screen_image.load_image(path)
@@ -205,8 +205,6 @@ class RootWindow(QMainWindow):
             self.commit_submenu.addSeparator()
             self.commit_submenu.addAction(self.compare_root.commit_selected)
             self.commit_submenu.addAction(self.compare_root.commit_all)
-        else:
-            self.commit_submenu.setVisible(True)
 
         self.set_view(self.compare_root)
 
@@ -215,7 +213,10 @@ class RootWindow(QMainWindow):
         Close the compare root.
         :return:
         """
-        self.commit_submenu.setVisible(False)
+        print("Close")
+        menubar = self.menuBar()
+        menubar.removeAction(self.commit_submenu.menuAction())
+        self.commit_submenu = None
 
     def close_folder_select(self):
         """
