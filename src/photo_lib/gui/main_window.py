@@ -1,10 +1,12 @@
-from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout
+from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.image_container import ResizingImage
 from photo_lib.gui.modals import DateTimeModal, FolderSelectModal
 from photo_lib.gui.media_pane import MediaPane
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
+from typing import Union
+
 
 # TODO
 #  - Session storage
@@ -33,7 +35,7 @@ class RootWindow(QMainWindow):
     compare_root: CompareRoot
 
     # Folder Select Modal
-    folder_select: FolderSelectModal
+    folder_select: Union[FolderSelectModal, None] = None
 
     # Change Datetime Modal
     datetime_modal: DateTimeModal
@@ -50,8 +52,6 @@ class RootWindow(QMainWindow):
         self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image,
                                         open_datetime_modal_fn=self.open_datetime_modal)
 
-        self.folder_select = FolderSelectModal()
-
         # Generating the remaining widgets
         self.compare_root.load_elements()
 
@@ -63,7 +63,6 @@ class RootWindow(QMainWindow):
         # self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
 
         self.stacked_layout.addWidget(self.compare_root)
-        self.stacked_layout.addWidget(self.folder_select)
         self.stacked_layout.setCurrentWidget(self.compare_root)
 
         # Connecting the buttons of the modals
@@ -71,17 +70,15 @@ class RootWindow(QMainWindow):
         self.datetime_modal.apply_button.clicked.connect(self.apply_datetime_modal)
         self.datetime_modal.apply_close_button.clicked.connect(self.apply_close_datetime_modal)
 
-        # Connecting to the folder select modal
-        self.folder_select.fileSelected.connect(self.close_and_apply_folder)
-
         # Misc setup of the window
         self.setWindowTitle("Picture Duplicate Manager")
 
         # Open the Folder Select Modal
-        self.open_folder_select()
+        self.open_folder_select(init=True)
 
         # Open folder select action.
         self.open_folder_select_action = QAction("&Open Folder", self)
+        self.open_folder_select_action.triggered.connect(self.open_folder_select)
 
         menu_bar = self.menuBar()
 
