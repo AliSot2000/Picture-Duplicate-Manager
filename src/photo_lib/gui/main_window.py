@@ -11,11 +11,10 @@ from typing import Union
 # TODO
 #  - Session storage
 #  - Config Storage
-#  - Keyboard shortcuts
-#  - Buttons for deduplication process.
 #  - Logging
 
 # TODO Features
+#  - Highlighting for the currently selected media-pane when shortcut is activated.
 #  - Time line selection
 #  - Images in windows needed at some point
 #  - No import required, just list the images in folders
