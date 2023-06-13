@@ -110,6 +110,7 @@ class TaskSelectModal(QDialog):
 
     cancel_button: QPushButton
 
+    hash_button: QPushButton
     day_button: QPushButton
     month_button: QPushButton
     year_button: QPushButton
@@ -126,11 +127,15 @@ class TaskSelectModal(QDialog):
 
         self.info_label = QLabel("Select the cluster size on which deduplication is to be performed.")
 
+        self.hash_button = QPushButton("Hash")
+        self.hash_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_0))
+        self.hash_button.setToolTip("Search for duplicates that have the same hash.")
+        self.hash_button.clicked.connect(lambda : self.set_level_accept("hash"))
+
         self.day_button = QPushButton("Day")
         self.day_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_1))
         self.day_button.setToolTip("Search for duplicates that were taken on the same day.")
         self.day_button.clicked.connect(lambda : self.set_level_accept("day"))
-
 
         self.month_button = QPushButton("Month")
         self.month_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_2))
@@ -173,10 +178,10 @@ class TaskSelectModal(QDialog):
     def set_level_accept(self, level: str):
         """
         Set the targeted level and perform the search.
-        :param level: level string from ["day", "month", "year", "all"]
+        :param level: level string from ["day", "month", "year", "all", "hash"]
         :return:
         """
-        assert level in ["day", "month", "year", "all"]
+        assert level in ["day", "month", "year", "all", "hash"]
 
         self.model.search_level = level
         self.accept()
