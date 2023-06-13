@@ -1,8 +1,10 @@
-from PyQt6.QtWidgets import QWidget, QFormLayout, QLineEdit, QPushButton, QLabel, QApplication, QHBoxLayout, QFileDialog
+from PyQt6.QtWidgets import QWidget, QFormLayout, QLineEdit, QPushButton, QLabel, QApplication, QHBoxLayout, \
+    QFileDialog, QDialog
 from PyQt6.QtGui import QKeySequence
 from PyQt6.QtCore import Qt
 import sys
 from photo_lib.gui.media_pane import MediaPane
+from photo_lib.gui.model import Model
 from typing import Union
 
 
@@ -101,10 +103,91 @@ class FolderSelectModal(QFileDialog):
         print(self.selectedFiles()[0])
 
 
+class TaskSelectModal(QDialog):
+    main_layout: QFormLayout
+
+    info_label: QLabel
+
+    cancel_button: QPushButton
+
+    day_button: QPushButton
+    month_button: QPushButton
+    year_button: QPushButton
+    all_button: QPushButton
+
+    model: Model
+
+    def __init__(self, *args, model: Model, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setWindowTitle("Deduplication Level")
+
+        self.main_layout = QFormLayout()
+        self.setLayout(self.main_layout)
+
+        self.info_label = QLabel("Select the cluster size on which deduplication is to be performed.")
+
+        self.day_button = QPushButton("Day")
+        self.day_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_1))
+        self.day_button.setToolTip("Search for duplicates that were taken on the same day.")
+        self.day_button.clicked.connect(lambda : self.set_level_accept("day"))
+
+
+        self.month_button = QPushButton("Month")
+        self.month_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_2))
+        self.month_button.setToolTip("Search for duplicates that were taken on the same month.")
+        self.month_button.clicked.connect(lambda : self.set_level_accept("month"))
+
+        self.year_button = QPushButton("Year")
+        self.year_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_3))
+        self.year_button.setToolTip("Search for duplicates that were taken on the same year.")
+        self.year_button.clicked.connect(lambda : self.set_level_accept("year"))
+
+        self.all_button = QPushButton("All")
+        self.all_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_4))
+        self.all_button.setToolTip("Search for duplicates across the entire library.")
+        self.all_button.clicked.connect(lambda : self.set_level_accept("all"))
+
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.setShortcut(QKeySequence(Qt.Key.Key_Escape))
+        self.cancel_button.setToolTip("Cancel and close the modal.")
+        self.cancel_button.clicked.connect(self.cancel)
+
+        self.main_layout.addWidget(self.info_label)
+        self.main_layout.addWidget(self.day_button)
+        self.main_layout.addWidget(self.month_button)
+        self.main_layout.addWidget(self.year_button)
+        self.main_layout.addWidget(self.all_button)
+        self.main_layout.addWidget(self.cancel_button)
+
+        self.model = model
+
+    def cancel(self):
+        """
+        Cancel and close the modal
+        :return:
+        """
+        self.model.search_level = None
+
+        self.reject()
+
+    def set_level_accept(self, level: str):
+        """
+        Set the targeted level and perform the search.
+        :param level: level string from ["day", "month", "year", "all"]
+        :return:
+        """
+        assert level in ["day", "month", "year", "all"]
+
+        self.model.search_level = level
+        self.accept()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # window = DateTimeModal()
     # window.show()
-    window2 = FolderSelectModal()
-    window2.show()
+    window = TaskSelectModal(model=Model())
+    window.show()
+
     sys.exit(app.exec())
+
