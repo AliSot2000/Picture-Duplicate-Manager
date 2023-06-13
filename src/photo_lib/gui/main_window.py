@@ -1,8 +1,8 @@
-from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog, QMenu
+from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog, QMenu, QProgressDialog
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.image_container import ResizingImage
-from photo_lib.gui.modals import DateTimeModal, FolderSelectModal
+from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal
 from photo_lib.gui.media_pane import MediaPane
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
 from typing import Union
@@ -42,6 +42,12 @@ class RootWindow(QMainWindow):
     commit_submenu: Union[None, QMenu] = None
     mark_submenu: Union[None, QMenu] = None
 
+    # Actions
+    open_folder_select_action: QAction
+    search_duplicates_action: QAction
+
+    progress_dialog: Union[QProgressDialog, None] = None
+
     def __init__(self):
         super().__init__()
 
@@ -79,13 +85,52 @@ class RootWindow(QMainWindow):
         self.open_folder_select(init=True)
 
         # Open folder select action.
-        self.open_folder_select_action = QAction("&Open Folder", self)
+        self.open_folder_select_action = QAction("&Open Database Folder", self)
         self.open_folder_select_action.triggered.connect(self.open_folder_select)
+
+        self.search_duplicates_action = QAction("&Search Duplicates", self)
+        self.search_duplicates_action.triggered.connect(self.search_duplicates)
+        self.search_duplicates_action.setToolTip("Start search for duplicates in the currently selected database.")
 
         menu_bar = self.menuBar()
 
         file_menu = menu_bar.addMenu("&File")
         file_menu.addAction(self.open_folder_select_action)
+        file_menu.addAction(self.search_duplicates_action)
+
+    def search_duplicates(self):
+        """
+        Search for duplicates in the currently selected database.
+        :return:
+        """
+        modal = TaskSelectModal(model=self.model)
+        ret_val = modal.exec()
+
+        if ret_val == 0:
+            return
+
+        assert ret_val == 1, f"Unknown return value from TaskSelectModal of {ret_val}"
+
+        success, pipe = self.model.search_duplicates()
+
+        if not success:
+            print("No success")
+            return
+
+        if pipe is None:
+            self.open_compare_root()
+            self.compare_root.load_elements()
+            self.model.search_level = None
+
+        else:
+            pass
+            # self.progress_dialog = QProgressDialog("Searching for duplicates...", "Cancel", 0, 0, self)
+            # self.progress_dialog.setWindowModality(2)
+            # self.progress_dialog.setCancelButton(None)
+            # self.progress_dialog.show()
+            #
+            # pipe.progress.connect(self.progress_dialog.setValue)
+            # pipe.finished.connect(self.search_finished)
 
     def open_image(self, path: str):
         """
