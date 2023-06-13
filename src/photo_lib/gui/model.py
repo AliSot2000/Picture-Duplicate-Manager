@@ -1,5 +1,6 @@
 import datetime
-from typing import List, Union
+from typing import List, Union, Tuple
+import multiprocessing as mp
 
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
 from photo_lib.metadataagregator import key_lookup_dir
@@ -198,4 +199,29 @@ class Model:
             print(f"Marking: {marks.new_name}")
             marks: DatabaseEntry
             self.pdb.mark_duplicate(successor=main_key, duplicate_image_id=marks.key, delete=False)
+
+    def search_duplicates(self) -> Tuple[bool, mp.Pipe]:
+        """
+        Search for duplicates in the database.
+
+        :return:
+        """
+        if self.pdb is None:
+            print("No Database loaded")
+            return False, None
+
+        if self.search_level == "hash":
+            self.pdb.duplicates_from_hash(overwrite=True)
+            return True, None
+
+        # Other thing
+        # success, pipe = self.pdb.img_ana_dup_search(overwrite=True, level=self.search_level)
+        success, pipe = self.pdb.img_ana_dup_search(overwrite=True, level=self.search_level, new=False)
+
+        if not success:
+            print(pipe)
+            return False, None
+
+        return True, pipe
+
 
