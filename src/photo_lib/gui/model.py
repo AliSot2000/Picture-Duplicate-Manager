@@ -8,6 +8,7 @@ class Model:
     pdb:  Union[PhotoDb, None] = None
     files: List[DatabaseEntry]
     current_row: Union[int, None] = None
+    search_level: Union[str, None] = None
 
     def __init__(self, folder_path: str = None):
         if folder_path is not None:
