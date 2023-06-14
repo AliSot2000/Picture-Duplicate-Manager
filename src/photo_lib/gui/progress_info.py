@@ -1,7 +1,9 @@
+import os.path
 import time
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty
 from kivy.uix.popup import Popup
+from kivy.lang import Builder
 import multiprocessing.connection as conn
 
 
@@ -10,6 +12,7 @@ class ProgressInfo(Popup):
     pipe: conn.Connection = None
 
     def __init__(self, done_func, **kwargs):
+        Builder.load_file(os.path.join(os.path.dirname(__file__), "progress_info.kv"))
         super().__init__(**kwargs)
         self.auto_dismiss = False
         self.done_callback = done_func
