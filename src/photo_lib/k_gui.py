@@ -27,6 +27,7 @@ from photo_lib.gui.scroll_label import ScrollLabel
 from photo_lib.gui.database_selector import DatabaseSelector
 from photo_lib.gui.root_widget_stub import RootWidgetStub
 from photo_lib.gui.file_compare_modal import FileCompareModal
+from photo_lib.gui.picture_popup import PicturePopup
 
 
 # TODO Nice Scroll Sync
@@ -723,17 +724,6 @@ class ProgressInfo(Popup):
             self.title = f"Total: {transmission[1]}; Done: {transmission[0]}"
             self.ids.prog_bar.value = transmission[0] / transmission[1] * 100
 
-
-class ImageButton(ButtonBehavior, Image):
-    pass
-
-
-class PicturePopup(Popup):
-    img_path = StringProperty("")
-
-    def open_and_set(self, path: str = ""):
-        self.img_path = path
-        self.open()
 
 class PictureLibrary(App):
     def build(self):

@@ -418,16 +418,6 @@
         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
 
-<PicturePopup>:
-    size_hint: 1.0, 1.0
-    title: self.img_path
-
-    ImageButton:
-        size: self.parent.width - 10, self.parent.height - 10
-        size_hint: None, None
-        source: self.parent.parent.parent.img_path
-        on_press: self.parent.parent.parent.dismiss()
-
 # nice label:
 #         Label:
 #             size_hint: None, None
