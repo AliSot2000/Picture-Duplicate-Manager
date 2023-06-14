@@ -658,35 +658,6 @@ class ErrorPopup(Popup):
         self.hide_traceback()
 
 
-class DatabaseSelector(Popup):
-    fc = ObjectProperty(None)
-
-    compareFloat: RootWidget
-
-    def __init__(self, comp_flt: RootWidget, **kwargs):
-        super(DatabaseSelector, self).__init__(**kwargs)
-        self.compareFloat = comp_flt
-        self.bind(on_dismiss=self.try_close)
-        self.bind(on_open=self.hide_scroll)
-
-    def hide_scroll(self, *args, **kwargs):
-        self.compareFloat.remove_scroller()
-        self.compareFloat.clear_compare_panes()
-
-    def try_close(self, *args, **kwargs):
-        self.compareFloat.add_scroller()
-        if self.compareFloat.dup_fp is None:
-            self.open()
-
-    def apply_db(self):
-        if os.path.exists(os.path.join(self.fc.path, ".photos.db")):
-            self.compareFloat.dup_fp = self.fc.path
-            self.compareFloat.load_db()
-            self.dismiss()
-        else:
-            self.ids.status.text = "No .photos.db file present. This is not a PhotoLibrary"
-
-
 class DuplicateLocation(Popup):
     my_float_ref: RootWidget
     reuse_button = ObjectProperty(None)
