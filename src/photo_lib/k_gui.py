@@ -28,7 +28,7 @@ from photo_lib.gui.database_selector import DatabaseSelector
 from photo_lib.gui.root_widget_stub import RootWidgetStub
 from photo_lib.gui.file_compare_modal import FileCompareModal
 from photo_lib.gui.picture_popup import PicturePopup
-
+from photo_lib.gui.progress_info import ProgressInfo
 
 # TODO Nice Scroll Sync
 # TODO Scroll Horizontal
@@ -661,35 +661,6 @@ class DuplicateDetection(Popup):
         self.progressbar.pipe = pipe[1]
         Clock.schedule_interval(self.progressbar.suck_on_pipe, 1)
         self.progressbar.open()
-
-
-class ProgressInfo(Popup):
-    prog_bar = ObjectProperty(None)
-    pipe: Connection = None
-
-    def __init__(self, done_func, **kwargs):
-        super(ProgressInfo, self).__init__(**kwargs)
-        self.auto_dismiss = False
-        self.done_callback = done_func
-
-    def suck_on_pipe(self, *args, **kwargs):
-        try:
-            transmission = self.pipe.recv()
-            print(f"Receiving {transmission}")
-        except EOFError:
-            time.sleep(1)
-            return
-
-        if transmission == "DONE":
-            print("Stopping")
-            Clock.unschedule(self.suck_on_pipe)
-            self.pipe = None
-            self.dismiss()
-            self.done_callback()
-
-        else:
-            self.title = f"Total: {transmission[1]}; Done: {transmission[0]}"
-            self.ids.prog_bar.value = transmission[0] / transmission[1] * 100
 
 
 class PictureLibrary(App):

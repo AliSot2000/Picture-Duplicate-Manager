@@ -1,0 +1,14 @@
+#:kivy 2.1.0
+
+
+<ProgressInfo>:
+    title: "Search Progress"
+    size_hint: 0.5, 0.1
+    prog_bar: prog_bar
+
+    ProgressBar:
+        max: 100
+        value: 0
+        id: prog_bar
+        size_hint: 1.0, 1.0
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
