@@ -26,6 +26,7 @@ from gestures4kivy import CommonGestures
 from photo_lib.gui.scroll_label import ScrollLabel
 from photo_lib.gui.database_selector import DatabaseSelector
 from photo_lib.gui.root_widget_stub import RootWidgetStub
+from photo_lib.gui.file_compare_modal import FileCompareModal
 
 
 # TODO Nice Scroll Sync
@@ -306,7 +307,7 @@ class RootWidget(RootWidgetStub):
     def load_db(self):
         self.database = PhotoDb(root_dir=self.dup_fp)
         # mda = MetadataAggregator(exiftool_path="/home/alisot2000/Documents/01_ReposNCode/exiftool/exiftool")
-        mda = MetadataAggregator(exiftool_path="/usr/bin/Image-ExifTool-12.44/exiftool")
+        mda = MetadataAggregator(exiftool_path="/usr/bin/exiftool")
         self.database.mda = mda
         if self.database.duplicate_table_exists():
             self.db_duplicate_location.open()
@@ -721,75 +722,6 @@ class ProgressInfo(Popup):
         else:
             self.title = f"Total: {transmission[1]}; Done: {transmission[0]}"
             self.ids.prog_bar.value = transmission[0] / transmission[1] * 100
-
-
-class FileCompareModal(ModalView):
-    file_index_a: ObjectProperty(None)
-    file_index_b: ObjectProperty(None)
-    status_label = ObjectProperty(None)
-    background_col = ColorProperty()
-
-    root_widget: RootWidget
-
-    def __init__(self, root: RootWidget, **kwargs):
-        super(FileCompareModal, self).__init__(**kwargs)
-        self.root_widget = root
-        self.bind(on_open=self.on_open_set_hint)
-        self.update_status(success=None, message="   ")
-
-    def on_open_set_hint(self, *args):
-        self.file_index_a.hint_text = f"Enter Integer from 0 to {len(self.root_widget.compareWidgets) - 1}"
-        self.file_index_b.hint_text = f"Enter Integer from 0 to {len(self.root_widget.compareWidgets) - 1}"
-
-    def on_close_reset_status(self):
-        self.update_status(success=None)
-
-    def update_status(self, success: Union[bool, None], message: str = ""):
-        self.status_label.text = message
-        if success is None:
-            self.background_col = [0.2, 0.2, 0.2, 1.0]
-        elif success:
-            self.background_col = [0.2, 0.5, 0.2, 1.0]
-        else:
-            self.background_col = [0.5, 0.2, 0.2, 1.0]
-
-    def compare_files(self):
-        # parse content
-        a = self.file_index_a.text
-        if a == "":
-            self.update_status(success=None, message="Provide a valid Integer in base 10")
-            return
-
-        try:
-            index_a = int(a)
-        except ValueError:
-            self.update_status(success=None, message="Provide a valid Integer in base 10")
-            return
-
-        b = self.file_index_b.text
-        if b == "":
-            self.update_status(success=None, message="Provide a valid Integer in base 10")
-            return
-
-        try:
-            index_b = int(b)
-        except ValueError:
-            self.update_status(success=None, message="Provide a valid Integer in base 10")
-            return
-
-        if not 0 <= index_a < len(self.root_widget.compareWidgets):
-            self.update_status(success=None, message="Index a is out of range")
-            return
-
-        if not 0 <= index_b <= len(self.root_widget.compareWidgets):
-            self.update_status(success=None, message="Index b is out of range")
-            return
-
-        a_key = self.root_widget.compareWidgets[index_a].database_entry.key
-        b_key = self.root_widget.compareWidgets[index_b].database_entry.key
-
-        success, msg = self.root_widget.database.compare_files(a_key, b_key)
-        self.update_status(success, message=msg)
 
 
 class ImageButton(ButtonBehavior, Image):

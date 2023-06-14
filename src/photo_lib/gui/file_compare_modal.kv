@@ -1,0 +1,69 @@
+#:kivy 2.1.0
+
+
+<FileCompareModal>:
+    title: "Compare two currently displayed files"
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    size_hint: None, None
+    auto_dismiss: True
+    width: 700
+    height: 500
+
+    status_label: status
+    file_index_a: compare_a
+    file_index_b: compare_b
+
+    BoxLayout:
+        size_hint: 1.0, 1.0
+        orientation: 'vertical'
+
+        Label:
+            id: status
+            text: "Have some sample Text"
+            size_hint_y: None
+            size_hint_x: 1.0
+            height: 40 + self.texture_size[1]
+            font_size: 18
+
+            canvas.before:
+                Color:
+                    rgb: self.parent.parent.background_col
+                Rectangle:
+                    pos: self.pos[0]+3, self.pos[1]+3
+                    size: self.size[0] - 6, self.size[1] - 6
+
+        GridLayout:
+            cols: 2
+            Label:
+                id: naming_tag
+                text: "File Index A"
+                font_size: 18
+
+            TextInput:
+                multiline: False
+                id: compare_a
+                font_size: 18
+
+            Label:
+                id: datetime_label
+                text: "File Index B"
+                font_size: 18
+
+            TextInput:
+                multiline: False
+                id: compare_b
+                font_size: 18
+
+            Button:
+                id: cls_btn
+                text: "Close"
+                size_hint_y: None
+                height: self.texture_size[1] + 40
+                on_press: self.parent.parent.parent.dismiss()
+
+            Button:
+                id: cmp_btn
+                text: "Compare"
+                size_hint_y: None
+                height: self.texture_size[1] + 40
+                on_press: self.parent.parent.parent.compare_files()
