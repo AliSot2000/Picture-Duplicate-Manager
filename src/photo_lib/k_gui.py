@@ -29,6 +29,7 @@ from photo_lib.gui.root_widget_stub import RootWidgetStub
 from photo_lib.gui.file_compare_modal import FileCompareModal
 from photo_lib.gui.picture_popup import PicturePopup
 from photo_lib.gui.progress_info import ProgressInfo
+from photo_lib.gui.duplicate_detection import DuplicateDetection
 
 # TODO Nice Scroll Sync
 # TODO Scroll Horizontal
@@ -638,29 +639,6 @@ class DuplicateLocation(Popup):
     def recmp(self, *args, **kwargs):
         self.dismiss()
         self.proc_sel.open()
-
-
-class DuplicateDetection(Popup):
-    root: RootWidget
-
-    def __init__(self, root_wdg: RootWidget, **kwargs):
-        self.root = root_wdg
-        super(DuplicateDetection, self).__init__(**kwargs)
-        self.progressbar = ProgressInfo(self.root.load_entry)
-
-    def hash_based(self, *args, **kwargs):
-        self.root.database.delete_duplicates_table()
-        self.root.database.duplicates_from_hash()
-        self.dismiss()
-        self.root.load_entry()
-
-    def difpy_based(self, time_span: str, *args, **kwargs):
-        self.root.database.delete_duplicates_table()
-        pipe = self.root.database.img_ana_dup_search(level=time_span)
-        self.dismiss()
-        self.progressbar.pipe = pipe[1]
-        Clock.schedule_interval(self.progressbar.suck_on_pipe, 1)
-        self.progressbar.open()
 
 
 class PictureLibrary(App):

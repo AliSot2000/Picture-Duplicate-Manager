@@ -1,0 +1,43 @@
+#:kivy 2.1.0
+
+
+<DuplicateDetection>:
+    title: "Select the Method with which the duplicates are supposed to be detected."
+    size_hint: 0.6, 0.6
+    reuse_button: reuse
+    recompute_button: recompute
+
+    BoxLayout:
+        orientation: "vertical"
+        size_hint: 1.0, 1.0
+        height: 40
+
+        Button:
+            id: reuse
+            text: "Duplicates based on file_hashes"
+            size_hint: 1.0, 1.0
+            on_press: self.parent.parent.parent.parent.hash_based()
+
+        Button:
+            id: recompute
+            text: "Duplicates based on rgb, day (fastest)"
+            size_hint: 1.0, 1.0
+            on_press: self.parent.parent.parent.parent.difpy_based(time_span="day")
+
+        Button:
+            id: recompute
+            text: "Duplicates based on rgb, month (faster)"
+            size_hint: 1.0, 1.0
+            on_press: self.parent.parent.parent.parent.difpy_based(time_span="month")
+
+        Button:
+            id: recompute
+            text: "Duplicates based on rgb, year (slower)"
+            size_hint: 1.0, 1.0
+            on_press: self.parent.parent.parent.parent.difpy_based(time_span="year")
+
+        Button:
+            id: recompute
+            text: "Duplicates based on rgb, global (slowest)"
+            size_hint: 1.0, 1.0
+            on_press: self.parent.parent.parent.parent.difpy_based(time_span="all")
