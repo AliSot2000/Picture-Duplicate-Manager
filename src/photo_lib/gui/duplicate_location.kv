@@ -1,0 +1,23 @@
+#:kivy 2.1.0
+
+
+<DuplicateLocation>:
+    title: "Drop the previously computed duplicates table?"
+    size_hint: 0.6, 0.2
+    reuse_button: reuse
+    recompute_button: recompute
+
+    BoxLayout:
+        orientation: "horizontal"
+        size_hint: 1.0, None
+        height: 40
+
+        Button:
+            id: reuse
+            text: "Use existing duplicates"
+            size_hint: 1.0, 1.0
+
+        Button:
+            id: recompute
+            text: "Compute new duplicates"
+            size_hint: 1.0, 1.0

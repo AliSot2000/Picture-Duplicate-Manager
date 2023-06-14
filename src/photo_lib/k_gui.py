@@ -30,6 +30,7 @@ from photo_lib.gui.file_compare_modal import FileCompareModal
 from photo_lib.gui.picture_popup import PicturePopup
 from photo_lib.gui.progress_info import ProgressInfo
 from photo_lib.gui.duplicate_detection import DuplicateDetection
+from photo_lib.gui.duplicate_location import DuplicateLocation
 
 # TODO Nice Scroll Sync
 # TODO Scroll Horizontal
@@ -246,7 +247,7 @@ class RootWidget(RootWidgetStub):
         self.db_selector_widget = DatabaseSelector(self)
         self.cps = CompareScroller()
         self.db_dup_proc_sel = DuplicateDetection(root_wdg=self)
-        self.db_duplicate_location = DuplicateLocation(Root_Ref=self, proc_select=self.db_dup_proc_sel)
+        self.db_duplicate_location = DuplicateLocation(root_ref=self, proc_select=self.db_dup_proc_sel)
         self.file_compare_modal = FileCompareModal(root=self)
         self.image_popup = PicturePopup()
         Window.bind(on_resize=self.set_compareWidget_size)
@@ -616,29 +617,6 @@ class ErrorPopup(Popup):
             return
 
         self.hide_traceback()
-
-
-class DuplicateLocation(Popup):
-    my_float_ref: RootWidget
-    reuse_button = ObjectProperty(None)
-    recompute_button = ObjectProperty(None)
-    proc_sel = None
-
-    def __init__(self, Root_Ref: RootWidget, proc_select, **kwargs):
-        super(DuplicateLocation, self).__init__(**kwargs)
-        self.my_float_ref = Root_Ref
-        self.auto_dismiss = False
-        self.reuse_button.bind(on_press=self.reuse)
-        self.recompute_button.bind(on_press=self.recmp)
-        self.proc_sel = proc_select
-
-    def reuse(self, *args, **kwargs):
-        self.dismiss()
-        self.my_float_ref.load_entry()
-
-    def recmp(self, *args, **kwargs):
-        self.dismiss()
-        self.proc_sel.open()
 
 
 class PictureLibrary(App):
