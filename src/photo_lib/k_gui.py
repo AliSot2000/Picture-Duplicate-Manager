@@ -251,7 +251,7 @@ class CompareScroller(ScrollView):
     background_col = ColorProperty()
 
 
-class RootWidget(FloatLayout):
+class RootWidget(RootWidgetStub):
     filenameModal = None
     errorModal = None
     db_selector_widget = None
