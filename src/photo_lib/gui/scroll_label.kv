@@ -1,0 +1,25 @@
+#:kivy 2.1.0
+
+<ScrollLabel>:
+    lbl: lab
+    always_overscroll: False
+    effect_cls: "ScrollEffect"
+    # smooth_scroll_end: 5
+    smooth_scroll_end: 0
+
+    canvas.before:
+        Color:
+            rgb: self.background_col
+        Rectangle:
+            pos: self.pos[0], self.pos[1]
+            size: self.size[0], self.size[1]
+
+    Label:
+        id: lab
+        text: self.parent.text
+        font_size: 18
+        text_size: None, None
+        size_hint_x: None
+        size_hint_y: None
+        width: self.texture_size[0]
+        height: self.texture_size[1]

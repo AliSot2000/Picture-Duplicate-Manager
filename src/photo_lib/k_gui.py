@@ -23,6 +23,9 @@ from sqlite3 import Connection
 from typing import Union
 from kivy.config import Config
 from gestures4kivy import CommonGestures
+from photo_lib.gui.scroll_label import ScrollLabel
+from photo_lib.gui.database_selector import DatabaseSelector
+from photo_lib.gui.root_widget_stub import RootWidgetStub
 
 
 # TODO Nice Scroll Sync
@@ -60,19 +63,6 @@ class StupidScrollLabel(CommonGestures, ScrollView):
         dx = velocity * self.scroll_wheel_distance
         width = self.children[0].size[0]
         self.scroll_x = min(1.0, max(0, self.scroll_x + (dx / width)))
-
-class ScrollLabel(ScrollView):
-# class ScrollLabel(CommonGestures, ScrollView):
-    """
-    Default Scroll Label
-    """
-    lbl = ObjectProperty(None)
-    text = StringProperty("example content")
-    background_col = ColorProperty()
-
-    def __init__(self, **kwargs):
-        super(ScrollLabel, self).__init__(**kwargs)
-        self.background_col = [0.2, 0.2, 0.2, 1.0]
 
 
 class MetadataScrollLabel(ScrollView):
