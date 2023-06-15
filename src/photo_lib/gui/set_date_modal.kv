@@ -1,0 +1,52 @@
+#:kivy 2.1.0
+
+
+<SetDateModal>:
+    id: ChangeDateModal
+    customDateTag: naming_tag_input
+    customDateTimeInput: datetime_input
+
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    size_hint: None, None
+    height: 200
+    width: 500
+    auto_dismiss: True
+
+    GridLayout:
+        cols: 2
+        Label:
+            id: naming_tag
+            text: "Source Tag"
+            font_size: 18
+
+        CustomDateTag:
+            multiline: False
+            id: naming_tag_input
+            font_size: 18
+
+        Label:
+            id: datetime_label
+            text: "Custom Datetime"
+            font_size: 18
+
+        TextInput:
+            id: datetime_input
+            hint_text: "YYYY-MM-DD HH.MM.SS"
+            font_size: 18
+            disabled: True
+
+        Button:
+            id: cls_btn
+            text: "Apply"
+            disabled: False
+            size_hint_y: None
+            height: self.texture_size[1] + 40
+            on_press: self.parent.parent.apply()
+
+        Button:
+            id: apl_btn
+            text: "Apply and remove from view"
+            size_hint_y: None
+            height: self.texture_size[1] + 40
+            # on_press: self.parent.parent.apply_close()
+            on_press: self.parent.parent.apply_close()
