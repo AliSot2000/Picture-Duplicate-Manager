@@ -7,11 +7,16 @@ import os
 from photo_lib.gui.image_button import ImageButton
 
 
+picture_popup_loaded = False
+if not picture_popup_loaded:
+    Builder.load_file(os.path.join(os.path.dirname(__file__), "picture_popup.kv"))
+    picture_popup_loaded = True
+
+
 class PicturePopup(Popup):
     img_path = StringProperty("")
 
     def __init__(self):
-        Builder.load_file(os.path.join(os.path.dirname(__file__), "picture_popup.kv"))
         super().__init__()
 
     def open_and_set(self, path: str = ""):
