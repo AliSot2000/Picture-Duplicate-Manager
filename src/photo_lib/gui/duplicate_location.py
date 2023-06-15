@@ -5,6 +5,12 @@ import os
 from photo_lib.gui.root_widget_stub import RootWidgetStub
 
 
+duplicate_location_loaded = False
+if not duplicate_location_loaded:
+    Builder.load_file(os.path.join(os.path.dirname(__file__), "duplicate_location.kv"))
+    duplicate_location_loaded = True
+
+
 class DuplicateLocation(Popup):
     my_float_ref: RootWidgetStub
     reuse_button = ObjectProperty(None)
@@ -12,7 +18,6 @@ class DuplicateLocation(Popup):
     proc_sel = None
 
     def __init__(self, root_ref: RootWidgetStub, proc_select, **kwargs):
-        Builder.load_file(os.path.join(os.path.dirname(__file__), "duplicate_location.kv"))
         super().__init__(**kwargs)
         self.my_float_ref = root_ref
         self.auto_dismiss = False
