@@ -4,13 +4,19 @@ from kivy.lang import Builder
 import os
 from photo_lib.gui.root_widget_stub import RootWidgetStub
 
+
+database_selector_loaded = False
+if not database_selector_loaded:
+    Builder.load_file(os.path.join(os.path.dirname(__file__), "database_selector.kv"))
+    database_selector_loaded = True
+
+
 class DatabaseSelector(Popup):
     fc = ObjectProperty(None)
 
     compareFloat: RootWidgetStub
 
     def __init__(self, comp_flt: RootWidgetStub, **kwargs):
-        Builder.load_file(os.path.join(os.path.dirname(__file__), "database_selector.kv"))
         super().__init__(**kwargs)
         self.compareFloat = comp_flt
         self.bind(on_dismiss=self.try_close)
