@@ -1,0 +1,26 @@
+#:kivy 2.1.0
+
+
+
+<ErrorPopup>:
+    size_hint: 0.8, 0.8
+    # size: 400, 400
+    title: "ERROR"
+
+
+    BoxLayout:
+        size_hint: 1.0, 1.0
+        id: layout
+        orientation: 'vertical'
+
+        Label:
+            size_hint: 1.0, None
+            height: self.texture_size[1] + 40
+            text: self.parent.parent.parent.parent.error_msg
+
+        ToggleButton:
+            id: show_btn
+            size_hint: 1.0, None
+            height: 40
+            text: "Show Traceback"
+            on_press: self.parent.parent.parent.parent.trigger_traceback()

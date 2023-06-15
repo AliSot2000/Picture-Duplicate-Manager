@@ -31,7 +31,7 @@ from photo_lib.gui.picture_popup import PicturePopup
 from photo_lib.gui.progress_info import ProgressInfo
 from photo_lib.gui.duplicate_detection import DuplicateDetection
 from photo_lib.gui.duplicate_location import DuplicateLocation
-from photo_lib.gui.traceback_widget import TracebackWidget
+from photo_lib.gui.error_popup import ErrorPopup
 
 # TODO Nice Scroll Sync
 # TODO Scroll Horizontal
@@ -586,34 +586,6 @@ class SetDateModal(ModalView):
 
         self.float_sibling.removeCompareWidget(self.caller)
         self.dismiss()
-
-
-class ErrorPopup(Popup):
-    error_msg = StringProperty("")
-    traceback_string = StringProperty("")
-    tbw: TracebackWidget = None
-    
-    def __init__(self, **kwargs):
-        super(ErrorPopup, self).__init__(**kwargs)
-
-    def show_traceback(self):
-        l: BoxLayout = self.ids.layout
-
-        self.tbw = TracebackWidget()
-        self.tbw.text = self.traceback_string if self.traceback_string is not None else "<No Traceback>"
-
-        l.add_widget(self.tbw)
-
-    def hide_traceback(self):
-        l: BoxLayout = self.ids.layout
-        l.remove_widget(self.tbw)
-
-    def trigger_traceback(self, **kwargs):
-        if self.ids.show_btn.state == "down":
-            self.show_traceback()
-            return
-
-        self.hide_traceback()
 
 
 class PictureLibrary(App):
