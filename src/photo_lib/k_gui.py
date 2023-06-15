@@ -31,6 +31,7 @@ from photo_lib.gui.picture_popup import PicturePopup
 from photo_lib.gui.progress_info import ProgressInfo
 from photo_lib.gui.duplicate_detection import DuplicateDetection
 from photo_lib.gui.duplicate_location import DuplicateLocation
+from photo_lib.gui.traceback_widget import TracebackWidget
 
 # TODO Nice Scroll Sync
 # TODO Scroll Horizontal
@@ -587,10 +588,6 @@ class SetDateModal(ModalView):
         self.dismiss()
 
 
-class TracebackWidget(Label):
-    pass
-
-
 class ErrorPopup(Popup):
     error_msg = StringProperty("")
     traceback_string = StringProperty("")
@@ -603,7 +600,7 @@ class ErrorPopup(Popup):
         l: BoxLayout = self.ids.layout
 
         self.tbw = TracebackWidget()
-        self.tbw.text = self.traceback_string
+        self.tbw.text = self.traceback_string if self.traceback_string is not None else "<No Traceback>"
 
         l.add_widget(self.tbw)
 
