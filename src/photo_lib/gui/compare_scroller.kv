@@ -1,0 +1,32 @@
+#:kivy 2.1.0
+
+
+<CompareScroller>:
+    do_scroll_y: False
+    do_scroll_x: True
+    flexbox: cg
+    effect_cls: "ScrollEffect"
+    always_overscroll: False
+    # smooth_scroll_end: 5
+    smooth_scroll_end: 0
+
+    canvas.before:
+        Color:
+            rgb: self.background_col
+        Rectangle:
+            pos: self.pos[0], self.pos[1]
+            size: self.size[0], self.size[1]
+
+    FlexibleBox:
+        orientation: 'vertical'
+        size_hint_x: None
+
+        MyGrid:
+            id: cg
+            rows: 1
+            size_hint: None, 1.0
+
+        Widget:
+            size_hint_x: None
+            size_hint_y: None
+            height: 40

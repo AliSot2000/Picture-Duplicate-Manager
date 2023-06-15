@@ -34,23 +34,10 @@ from photo_lib.gui.duplicate_location import DuplicateLocation
 from photo_lib.gui.error_popup import ErrorPopup
 from photo_lib.gui.set_date_modal import SetDateModal
 from photo_lib.gui.metadata_scroll_label import MetadataScrollLabel
-
-
-
-# Import for the kv file
-from photo_lib.gui.scroll_label import ScrollLabel
-
-
-
-
-
-
-
-
-
-class CompareScroller(ScrollView):
-    flexbox = ObjectProperty(None)
-    background_col = ColorProperty()
+from photo_lib.gui.path_scroll_label import PathScrollLabel
+from photo_lib.gui.compare_pane import ComparePane
+from photo_lib.gui.my_grid import MyGrid
+from photo_lib.gui.compare_scroller import CompareScroller
 
 
 class RootWidget(RootWidgetStub):
