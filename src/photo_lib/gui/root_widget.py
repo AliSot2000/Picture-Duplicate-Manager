@@ -1,4 +1,6 @@
 from kivy.core.window import Window
+from kivy.lang import Builder
+import os
 from photo_lib.metadataagregator import MetadataAggregator
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
 from photo_lib.gui.database_selector import DatabaseSelector
@@ -11,6 +13,12 @@ from photo_lib.gui.error_popup import ErrorPopup
 from photo_lib.gui.set_date_modal import SetDateModal
 from photo_lib.gui.compare_pane import ComparePane
 from photo_lib.gui.compare_scroller import CompareScroller
+
+
+root_widget_loaded = False
+if not root_widget_loaded:
+    Builder.load_file(os.path.join(os.path.dirname(__file__), "root_widget.kv"))
+    root_widget_loaded = True
 
 
 class RootWidget(RootWidgetStub):
@@ -30,7 +38,7 @@ class RootWidget(RootWidgetStub):
     loaded_row: int = None
 
     def __init__(self, fp: str = None, **kwargs):
-        super(RootWidget, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.dup_fp = fp
 
         self.errorModal = ErrorPopup()
