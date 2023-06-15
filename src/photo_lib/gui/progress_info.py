@@ -7,12 +7,17 @@ from kivy.lang import Builder
 import multiprocessing.connection as conn
 
 
+progress_info_loaded = False
+if not progress_info_loaded:
+    Builder.load_file(os.path.join(os.path.dirname(__file__), "progress_info.kv"))
+    progress_info_loaded = True
+
+
 class ProgressInfo(Popup):
     prog_bar = ObjectProperty(None)
     pipe: conn.Connection = None
 
     def __init__(self, done_func, **kwargs):
-        Builder.load_file(os.path.join(os.path.dirname(__file__), "progress_info.kv"))
         super().__init__(**kwargs)
         self.auto_dismiss = False
         self.done_callback = done_func
