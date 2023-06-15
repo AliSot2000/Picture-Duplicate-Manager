@@ -4,6 +4,10 @@ from kivy.lang import Builder
 import os
 
 
+scroll_label_loaded = False
+if not scroll_label_loaded:
+    Builder.load_file(os.path.join(os.path.dirname(__file__), "scroll_label.kv"))
+    scroll_label_loaded = True
 
 class ScrollLabel(ScrollView):
     """
@@ -15,6 +19,5 @@ class ScrollLabel(ScrollView):
 
     def __init__(self, **kwargs):
         # TODO get it working with the Builder
-        # Builder.load_file(os.path.join(os.path.dirname(__file__), "scroll_label.kv"))
         super().__init__(**kwargs)
         self.background_col = [0.2, 0.2, 0.2, 1.0]
