@@ -36,25 +36,9 @@ from photo_lib.gui.set_date_modal import SetDateModal
 from photo_lib.gui.metadata_scroll_label import MetadataScrollLabel
 
 
-class PathScrollLabel(ScrollView):
-    """
-    Specific instance of ScrollLabel which has a callback which updates the scroll in every instance of PathScrollLabel
-    """
-    lbl = ObjectProperty(None)
-    text = StringProperty("example content")
-    last_scroll_x = 0.0
-    last_scroll_y = 1.0
 
-    def __init__(self, **kwargs):
-        super(PathScrollLabel, self).__init__(**kwargs)
-        self.bind(on_scroll_stop=self.update_compare_pane)
-
-    def update_compare_pane(self, *args, **kwargs):
-        if (self.last_scroll_x != self.scroll_x) or (self.last_scroll_y != self.scroll_y):
-            self.parent.parent.update_scroll_path(x=self.scroll_x, y=self.scroll_y, caller=self)
-            self.last_scroll_x = self.scroll_x
-            self.last_scroll_y = self.scroll_y
-
+# Import for the kv file
+from photo_lib.gui.scroll_label import ScrollLabel
 
 class ComparePane(Widget):
     image = ObjectProperty(None)
