@@ -1,5 +1,5 @@
 from kivy.uix.floatlayout import FloatLayout
-from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
+from photo_lib.PhotoDatabase import PhotoDb
 
 
 class RootWidgetStub(FloatLayout):
