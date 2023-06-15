@@ -6,6 +6,12 @@ from typing import Union
 from photo_lib.gui.root_widget_stub import RootWidgetStub
 
 
+file_compare_modal_loaded = False
+if not file_compare_modal_loaded:
+    Builder.load_file(os.path.join(os.path.dirname(__file__), "file_compare_modal.kv"))
+    file_compare_modal_loaded = True
+
+
 class FileCompareModal(ModalView):
     file_index_a: ObjectProperty(None)
     file_index_b: ObjectProperty(None)
@@ -15,7 +21,6 @@ class FileCompareModal(ModalView):
     root_widget: RootWidgetStub
 
     def __init__(self, root: RootWidgetStub, **kwargs):
-        Builder.load_file(os.path.join(os.path.dirname(__file__), "file_compare_modal.kv"))
         super().__init__(**kwargs)
         self.root_widget = root
         self.bind(on_open=self.on_open_set_hint)
