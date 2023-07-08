@@ -226,7 +226,9 @@ class CompareRoot(QLabel):
 
         # Go through all DatabaseEntries, generate a MediaPane from each one and add the panes to the layout.
         for dbe in self.model.files:
-            pane = MediaPane(self.model, dbe, self.synchronized_scroll)
+            pane = MediaPane(self.model, dbe, self.synchronized_scroll,
+                             move_right=self.move_right,
+                             move_left=self.move_left)
             self.media_panes.append(pane)
             self.media_layout.addWidget(pane)
 
@@ -242,8 +244,11 @@ class CompareRoot(QLabel):
             pane.set_callback = self.set_target
             pane.remove_callback = self.remove_target
 
-        self.media_panes_placeholder.setMinimumWidth(len(self.model.files) * 310 + 10)
+        self.media_panes_placeholder.setMinimumWidth(len(self.model.files) * 370 + 10)
         self.maintain_visibility()
+
+        self.set_arrow_enable(self.media_panes[0])
+        self.set_arrow_enable(self.media_panes[-1])
 
         self.auto_set_buttons()
         self.color_widgets()
@@ -571,3 +576,64 @@ class CompareRoot(QLabel):
         self.mark_delete_action.setEnabled(enable)
         self.change_tag_action.setEnabled(enable)
         self.remove_media_action.setEnabled(enable)
+
+    def move_right(self, mp: MediaPane):
+        """
+        Takes the media pane and moves it one position to the right in the layout.
+
+        :param mp: Media pane to move
+        :returns:
+        """
+        temp_list = self.media_panes
+        index = self.media_panes.index(mp)
+        buddy = temp_list[index + 1]
+        assert index < self.compare_layout.count() - 1, "Move left on left most image called."
+
+        self.media_panes = temp_list[:index] + [temp_list[index+1]] + [temp_list[index]] + temp_list[index + 2:]
+
+        for elm in self.media_panes:
+            self.media_layout.removeWidget(elm)
+
+        for elm in self.media_panes:
+            self.media_layout.addWidget(elm)
+
+        # update the button states.
+        self.set_arrow_enable(mp)
+        self.set_arrow_enable(buddy)
+
+    def move_left(self, mp: MediaPane):
+        """
+        Takes the media pane and moves it one position to the left in the layout.
+
+        :param mp: Widget to move left
+        :returns:
+        """
+        temp_list = self.media_panes
+        index = self.media_panes.index(mp)
+        buddy = temp_list[index - 1]
+        assert index > 0, "Move left on left most image called."
+
+        self.media_panes = temp_list[:index - 1] + [temp_list[index]] + [temp_list[index - 1]] + temp_list[index + 1:]
+
+        for elm in self.media_panes:
+            self.media_layout.removeWidget(elm)
+
+        for elm in self.media_panes:
+            self.media_layout.addWidget(elm)
+
+        # update the button states.
+        self.set_arrow_enable(mp)
+        self.set_arrow_enable(buddy)
+
+    def set_arrow_enable(self, mp: MediaPane):
+        """
+        Takes a media pane, gets the index of it in the layout and determines if it lays at the edge and if buttons need
+        to be disabled.
+
+        :param mp: Meida pane to set the arrow enable states of
+
+        :returns:
+        """
+        index = self.media_panes.index(mp)
+        mp.left_button.setEnabled(index > 0)
+        mp.right_button.setEnabled(index + 1 < len(self.media_panes))
