@@ -406,7 +406,6 @@ class CompareRoot(QWidget):
         for entry in for_duplicates:
             self.remove_media_pane(entry)
 
-
     def skip_entry(self):
         """
         Skip the current duplicates cluster. For this, remove all elements and load the next cluster. Removing all
