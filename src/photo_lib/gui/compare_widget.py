@@ -1,8 +1,7 @@
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget
-from PyQt6.QtGui import QResizeEvent
-from PyQt6.QtGui import QAction, QIcon, QKeySequence
-
-from photo_lib.gui.model import Model
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout
+from PyQt6.QtGui import QResizeEvent, QAction, QIcon, QKeySequence
+from PyQt6.QtCore import Qt
+from photo_lib.gui.model import Model, NoDbException
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.button_bar import ButtonBar
@@ -39,7 +38,7 @@ def pain_wrapper(media_pane: MediaPane, func: Callable):
     return wrapper
 
 
-class CompareRoot(QWidget):
+class CompareRoot(QLabel):
     model: Model
     media_layout: QHBoxLayout
     media_panes: List[MediaPane]
@@ -74,6 +73,8 @@ class CompareRoot(QWidget):
 
     target_panes: List[MediaPane] = None
 
+    message_label: QLabel = None
+
     def __init__(self, model: Model, open_image_fn: Callable, open_datetime_modal_fn: Callable):
         """
         This widget is the root widget for the compare view. It holds all the MediaPanes and the buttons to control them.
@@ -93,6 +94,7 @@ class CompareRoot(QWidget):
         self.media_layout = QHBoxLayout()
         self.scroll_area = QScrollArea()
         self.button_bar = ButtonBar()
+        self.message_label = QLabel()
 
         # Creating the widget hierarchy
         self.setLayout(self.compare_layout)
@@ -124,6 +126,10 @@ class CompareRoot(QWidget):
         self.setMinimumWidth(500)
         self.media_panes_placeholder.setMinimumHeight(870)
         self.update_duplicate_count()
+
+        # Setting dimensions of message label
+        self.message_label.setMinimumSize(300, 30)
+        self.message_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def __init_commit_actions(self):
         """
@@ -206,9 +212,16 @@ class CompareRoot(QWidget):
         if self.media_layout.count() > 0:
             return False
 
+        try:
+            got_rows = self.model.fetch_duplicate_row()
+            self.clear_message()
+        except NoDbException:
+            self.set_no_database()
+            return False
+
         # Query new files from the db.
-        if not self.model.fetch_duplicate_row():
-            warnings.warn("Load elements called with duplicates still present. Call to remove_all_elements() needed.")
+        if not got_rows:
+            self.set_empty_duplicates()
             return False
 
         # Go through all DatabaseEntries, generate a MediaPane from each one and add the panes to the layout.
@@ -222,8 +235,8 @@ class CompareRoot(QWidget):
             pane.main_button.clicked.connect(button_wrapper(pane.main_button, self.button_state))
             pane.remove_media_button.clicked.connect(pain_wrapper(pane, self.remove_media_pane))
             self.max_needed_width += pane.max_needed_width + 10  # TODO Better formula
-            pane.media.clicked.connect(lambda : self.open_image_fn(pane.media.fpath))
-            pane.change_tag_button.clicked.connect(lambda : self.open_datetime_modal_fn(pane))
+            pane.media.clicked.connect(lambda: self.open_image_fn(pane.media.fpath))
+            pane.change_tag_button.clicked.connect(lambda: self.open_datetime_modal_fn(pane))
 
             # Add functions for the adding and removing of the target.
             pane.set_callback = self.set_target
@@ -234,6 +247,7 @@ class CompareRoot(QWidget):
 
         self.auto_set_buttons()
         self.color_widgets()
+        self.update_duplicate_count()
         return True
 
     def remove_all_elements(self):
@@ -248,7 +262,10 @@ class CompareRoot(QWidget):
 
         self.target_panes = []
         self.media_panes = []
-        self.model.clear_files()
+        try:
+            self.model.clear_files()
+        except NoDbException:
+            pass
         self.maintain_visibility()
 
     def remove_media_pane(self, media_pane: MediaPane):
@@ -435,6 +452,8 @@ class CompareRoot(QWidget):
             new_height = a0.size().height() - 45
 
         self.media_panes_placeholder.resize(new_width, new_height)
+        self.message_label.resize(a0.size().width() - 5,
+                                  a0.size().height() - 50)
         self.maintain_visibility()
 
     def maintain_visibility(self):
@@ -509,3 +528,46 @@ class CompareRoot(QWidget):
 
         if target in self.target_panes:
             self.target_panes.remove(target)
+
+    def clear_message(self):
+        """
+        Clear the message in the CompareWidget if there's new widgets to be added.
+        """
+        self.scroll_area.takeWidget()
+        self.scroll_area.setWidget(self.media_panes_placeholder)
+        self.message_label.setStyleSheet(f"background: rgb(255, 255, 255); ")
+        self.message_label.setText("")
+        self.__set_enable_all_buttons(enable=True)
+
+    def set_no_database(self):
+        """
+        Add a text to inform that there's no database loaded.
+        """
+        self.scroll_area.takeWidget()
+        self.scroll_area.setWidget(self.message_label)
+        self.message_label.setStyleSheet(f"background: rgb(255, 200, 200);")
+        self.message_label.setText("You have no database selected.")
+        self.__set_enable_all_buttons(enable=False)
+
+    def set_empty_duplicates(self):
+        """
+        Add a text informing that there's no duplicates.
+        """
+        self.scroll_area.takeWidget()
+        self.scroll_area.setWidget(self.message_label)
+        self.message_label.setStyleSheet(f"background: rgb(255, 255, 255); ")
+        self.message_label.setText("There are no duplicates, search database to find duplicates.")
+        self.__set_enable_all_buttons(enable=False)
+
+    def __set_enable_all_buttons(self, enable: bool = True):
+        """
+        Enable or disable all actions that are associated with the compare pane.
+        """
+        self.next_action.setEnabled(enable)
+        self.commit_all.setEnabled(enable)
+        self.commit_selected.setEnabled(enable)
+
+        self.set_main_action.setEnabled(enable)
+        self.mark_delete_action.setEnabled(enable)
+        self.change_tag_action.setEnabled(enable)
+        self.remove_media_action.setEnabled(enable)
