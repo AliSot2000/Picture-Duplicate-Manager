@@ -100,7 +100,6 @@ class MediaPane(QLabel):
         self.original_name_lbl.share_scroll = bake_attribute("original_name_lbl", self.share_scroll)
         self.max_needed_width = max(self.max_needed_width, self.original_name_lbl.text_label.width())
 
-
         self.original_path_lbl = TextScroller()
         self.original_path_lbl.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.original_path_lbl.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
