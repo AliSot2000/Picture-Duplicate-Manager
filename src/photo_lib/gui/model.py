@@ -19,6 +19,7 @@ class Model:
     files: List[DatabaseEntry]
     current_row: Union[int, None] = None
     search_level: Union[str, None] = None
+    resources: str = os.path.join(os.path.dirname(__file__), "resources")
 
     def __init__(self, folder_path: str = None):
         if folder_path is not None:
