@@ -106,9 +106,11 @@ class RootWindow(QMainWindow):
         modal = TaskSelectModal(model=self.model)
         ret_val = modal.exec()
 
+        # if the val is 0 -> cancle was clicked.
         if ret_val == 0:
             return
 
+        # There may not really be another type of return value.
         assert ret_val == 1, f"Unknown return value from TaskSelectModal of {ret_val}"
 
         success, pipe = self.model.search_duplicates()
