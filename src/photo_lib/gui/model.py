@@ -1,4 +1,5 @@
 import datetime
+import os.path
 from typing import List, Union, Tuple
 import multiprocessing as mp
 
@@ -29,7 +30,8 @@ class Model:
         :param folder_path: path to the database
         :return:
         """
-        self.pdb = PhotoDb(root_dir=folder_path)
+        if os.path.exists(os.path.join(folder_path, ".photos.db")):
+            self.pdb = PhotoDb(root_dir=folder_path)
 
     @staticmethod
     def process_metadata(metadict: dict):
