@@ -60,6 +60,7 @@ class RootWindow(QMainWindow):
         self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image,
                                         open_datetime_modal_fn=self.open_datetime_modal)
 
+        # TODO Need session storage for databases.
         # Generating the remaining widgets
         self.compare_root.load_elements()
 
