@@ -55,8 +55,8 @@ class MediaPane(QLabel):
     change_tag_button: QPushButton
     remove_media_button: QPushButton
 
-    min_width:int = 300
-    max_height:int = 540
+    min_width: int = 300
+    max_height: int = 540
 
     max_needed_width: int = 0
 
