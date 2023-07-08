@@ -1219,7 +1219,7 @@ class PhotoDb:
                 os.remove(old_db)
 
             # perform the difpy stuff
-            fdp = fastDif.FastDifPy(directory_a=folder)
+            fdp = fastDif.FastDifPy.init_new(directory_a=folder, default_db=True, progress=True)
             fdp.ignore_names = (".thumbnails", ".trash", ".thumbnailsold")
             fdp.index_the_dirs()
             fdp.estimate_disk_usage()
@@ -1247,7 +1247,6 @@ class PhotoDb:
 
         pipe_in.send("DONE")
         pipe_in.close()
-
 
     def img_ana_dup_search_old(self, level: str, procs: int = 16, overwrite: bool = False):
         """
