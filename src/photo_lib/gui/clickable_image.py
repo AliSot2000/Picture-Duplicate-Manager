@@ -1,3 +1,6 @@
+import os.path
+import warnings
+
 from PyQt6.QtWidgets import QLabel, QPushButton
 from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtCore import Qt
@@ -7,7 +10,7 @@ class ClickableImage(QPushButton):
     img_lbl: QLabel
     pixmap: Union[QPixmap, None]
     fpath: str
-    width_div_height: float
+    width_div_height: float = 1.0
     count: int = 0
 
     def __init__(self, file_path: str):
@@ -29,7 +32,13 @@ class ClickableImage(QPushButton):
     def load_image(self, file_path: str):
         self.fpath = file_path
         self.pixmap = QPixmap(file_path)
-        self.width_div_height = self.pixmap.width() / self.pixmap.height()
+        if os.path.splitext(file_path)[1] not in [".png", ".jpg", ".jpeg", ".gif"]:
+            warnings.warn("File must be an image.")
+        else:
+            try:
+                self.width_div_height = self.pixmap.width() / self.pixmap.height()
+            except ZeroDivisionError:
+                self.width_div_height = 1.0
         self.setIcon(QIcon(self.pixmap))
         self.setIconSize(self.size())
         self.setStyleSheet("border: none;")
