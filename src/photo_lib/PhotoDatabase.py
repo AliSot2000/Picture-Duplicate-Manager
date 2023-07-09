@@ -852,7 +852,7 @@ class PhotoDb:
         if result is not None:
             raise DuplicateChainingError(f"Original is duplicate itself, successor of original is {result[0]}")
 
-        # get data from original
+        # get data from the target to be marked as duplicate from the main table
         self.cur.execute(
             f"SELECT key, org_fname, metadata, google_fotos_metadata, file_hash, datetime, new_name FROM images "
             f"WHERE key is {duplicate_image_id}")
