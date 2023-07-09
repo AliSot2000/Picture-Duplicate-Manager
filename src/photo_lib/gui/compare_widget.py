@@ -415,7 +415,7 @@ class CompareRoot(QLabel):
             return
 
         main_entry: MediaPane = None
-        for_duplicates = []
+        for_duplicates: List[MediaPane] = []
 
         for entry in self.media_panes:
             if entry.main_button.isChecked():
