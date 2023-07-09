@@ -440,7 +440,9 @@ class CompareRoot(QLabel):
         self.remove_media_pane(main_entry)
         for entry in for_duplicates:
             self.remove_media_pane(entry)
-        self.color_widgets()
+
+        if self.model.current_row is not None:
+            self.color_widgets()
 
     def skip_entry(self):
         """
