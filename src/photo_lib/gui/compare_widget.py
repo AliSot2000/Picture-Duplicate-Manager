@@ -120,6 +120,8 @@ class CompareRoot(QLabel):
         self.set_main_action = QAction("Set as Main", self)
         self.change_tag_action = QAction("Change Tag", self)
         self.remove_media_action = QAction("Remove from Cluster", self)
+        self.move_left_action = QAction("Move the target pane to the left", self)
+        self.move_right_action = QAction("Move the target pane to the right", self)
         self.__init_pane_actions()
 
         self.setMinimumHeight(500)
@@ -165,6 +167,14 @@ class CompareRoot(QLabel):
 
         self.remove_media_action.triggered.connect(self.remove_target_from_cluster)
         self.remove_media_action.setShortcut(QKeySequence("X"))
+
+        self.move_left_action.triggered.connect(self.move_left_action_handler)
+        # self.move_left_action.setShortcut(QKeySequence(Qt.Key.Key_Left + Qt.Key.Key_Control))
+        self.move_left_action.setShortcut(QKeySequence("W"))
+
+        self.move_right_action.triggered.connect(self.move_right_action_handler)
+        # self.move_right_action.setShortcut(QKeySequence(Qt.Key.Key_Right + Qt.Key.Key_Control))
+        self.move_right_action.setShortcut(QKeySequence("E"))
 
     def mark_target_delete(self):
         """
@@ -576,6 +586,27 @@ class CompareRoot(QLabel):
         self.mark_delete_action.setEnabled(enable)
         self.change_tag_action.setEnabled(enable)
         self.remove_media_action.setEnabled(enable)
+
+        self.move_left_action.setEnabled(enable)
+        self.move_right_action.setEnabled(enable)
+
+    def move_right_action_handler(self):
+        """
+        Send click to the move right button on the media pane the cursor is on.
+        """
+        print("Right Action")
+        for target in self.target_panes:
+            target: MediaPane
+            target.right_button.click()
+
+    def move_left_action_handler(self):
+        """
+        Send click to the move left button on the media pane the cursor is on.
+        """
+        print("Left Action")
+        for target in self.target_panes:
+            target: MediaPane
+            target.right_button.click()
 
     def move_right(self, mp: MediaPane):
         """

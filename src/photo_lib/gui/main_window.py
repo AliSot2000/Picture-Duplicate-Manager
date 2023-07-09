@@ -260,6 +260,8 @@ class RootWindow(QMainWindow):
             self.mark_submenu.addAction(self.compare_root.set_main_action)
             self.mark_submenu.addAction(self.compare_root.change_tag_action)
             self.mark_submenu.addAction(self.compare_root.remove_media_action)
+            self.mark_submenu.addAction(self.compare_root.move_left_action)
+            self.mark_submenu.addAction(self.compare_root.move_right_action)
 
         self.set_view(self.compare_root)
 
