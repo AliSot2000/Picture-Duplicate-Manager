@@ -101,7 +101,10 @@ class Model:
 
         success, results, row_id = self.pdb.get_duplicate_entry()
         if success:
-            self.files = results
+            self.files = []
+            for entry in results:
+                if entry is not None:
+                    self.files.append(entry)
             self.current_row = row_id
 
         return success
