@@ -47,6 +47,7 @@ class CompareRoot(QLabel):
     min_height = 870
 
     __updating_buttons: bool = False
+    __message_set: bool = False
     auto_load: bool = True
 
     open_image_fn: Callable
@@ -548,11 +549,12 @@ class CompareRoot(QLabel):
         """
         Clear the message in the CompareWidget if there's new widgets to be added.
         """
-        self.scroll_area.takeWidget()
-        self.scroll_area.setWidget(self.media_panes_placeholder)
-        self.message_label.setStyleSheet(f"background: rgb(255, 255, 255); ")
-        self.message_label.setText("")
-        self.__set_enable_all_buttons(enable=True)
+        if self.__message_set:
+            self.scroll_area.takeWidget()
+            self.scroll_area.setWidget(self.media_panes_placeholder)
+            self.message_label.setStyleSheet(f"background: rgb(255, 255, 255); ")
+            self.message_label.setText("")
+            self.__set_enable_all_buttons(enable=True)
 
     def set_no_database(self):
         """
@@ -563,6 +565,7 @@ class CompareRoot(QLabel):
         self.message_label.setStyleSheet(f"background: rgb(255, 200, 200);")
         self.message_label.setText("You have no database selected.")
         self.__set_enable_all_buttons(enable=False)
+        self.__message_set = True
 
     def set_empty_duplicates(self):
         """
@@ -573,6 +576,7 @@ class CompareRoot(QLabel):
         self.message_label.setStyleSheet(f"background: rgb(255, 255, 255); ")
         self.message_label.setText("There are no duplicates, search database to find duplicates.")
         self.__set_enable_all_buttons(enable=False)
+        self.__message_set = True
 
     def __set_enable_all_buttons(self, enable: bool = True):
         """
