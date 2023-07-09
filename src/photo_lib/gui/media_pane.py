@@ -1,13 +1,15 @@
 from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QFrame, QSizePolicy, QHBoxLayout
 from PyQt6.QtMultimedia import QMediaPlayer
-from PyQt6.QtGui import QPixmap, QFontMetrics, QEnterEvent
-from PyQt6.QtCore import Qt, QEvent
+from PyQt6.QtGui import QPixmap, QFontMetrics, QEnterEvent, QIcon
+from PyQt6.QtCore import Qt, QEvent, QSize
 
+from photo_lib.gui.misc import QSquarePushButton
 from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.model import Model
 from photo_lib.PhotoDatabase import DatabaseEntry, PhotoDb
 from typing import Union, Callable
+import os.path
 
 
 # Rotate Image
@@ -53,10 +55,12 @@ class MediaPane(QLabel):
     main_button: QPushButton
     delete_button: QPushButton
     change_tag_button: QPushButton
-    remove_media_button: QPushButton
+    remove_media_button: QSquarePushButton
+    left_button: QSquarePushButton
+    right_button: QSquarePushButton
 
-    min_width:int = 300
-    max_height:int = 540
+    min_width: int = 360
+    max_height: int = 540
 
     max_needed_width: int = 0
 
@@ -65,7 +69,8 @@ class MediaPane(QLabel):
     set_callback: Union[None, Callable]
     remove_callback: Union[None, Callable]
 
-    def __init__(self, model: Model, entry: DatabaseEntry, share_scroll: Callable):
+    def __init__(self, model: Model, entry: DatabaseEntry, share_scroll: Callable, move_right: Callable,
+                 move_left: Callable):
         super().__init__()
         self.setMinimumHeight(860)
         self.share_scroll = share_scroll
@@ -100,7 +105,6 @@ class MediaPane(QLabel):
         self.original_name_lbl.share_scroll = bake_attribute("original_name_lbl", self.share_scroll)
         self.max_needed_width = max(self.max_needed_width, self.original_name_lbl.text_label.width())
 
-
         self.original_path_lbl = TextScroller()
         self.original_path_lbl.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.original_path_lbl.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -122,30 +126,47 @@ class MediaPane(QLabel):
         self.button_layout.setContentsMargins(0, 0, 0, 0)
         self.button_widget.setLayout(self.button_layout)
 
+        self.left_button = QSquarePushButton()
+        left_icon = QIcon(os.path.join(self.model.resources, "caret-left-solid.svg"))
+        self.left_button.setIcon(left_icon)
+        self.left_button.setFixedSize(QSize(26, 26))
+        self.left_button.setToolTip("Moves the current pane to the left.")
+        self.left_button.clicked.connect(lambda: move_left(self))
+
+        self.right_button = QSquarePushButton()
+        right_icon = QIcon(os.path.join(self.model.resources, "caret-right-solid.svg"))
+        self.right_button.setIcon(right_icon)
+        self.right_button.setFixedSize(QSize(26, 26))
+        self.right_button.setToolTip("Moves the current pane to the right.")
+        self.right_button.clicked.connect(lambda: move_right(self))
+
         self.main_button = QPushButton("Original")
-        self.main_button.setMinimumHeight(20)
+        self.main_button.setFixedHeight(26)
         self.main_button.setCheckable(True)
         self.main_button.setStyleSheet("background-color: gray;")
         self.main_button.toggled.connect(self.update_main_color)
 
         self.delete_button = QPushButton("Keep")
-        self.delete_button.setMinimumHeight(20)
+        self.delete_button.setFixedHeight(26)
         self.delete_button.setCheckable(True)
         self.delete_button.setStyleSheet("background-color: green;")
         self.delete_button.toggled.connect(self.update_delete_text)
 
         self.change_tag_button = QPushButton("Change Tag")
         self.change_tag_button.setMinimumWidth(self.change_tag_button.fontMetrics().boundingRect("Change Tag").width() + 10)
-        self.change_tag_button.setMinimumHeight(20)
+        self.change_tag_button.setFixedHeight(26)
 
-        self.remove_media_button = QPushButton("X")
-        self.remove_media_button.setMinimumHeight(20)
-        self.remove_media_button.setFixedWidth(20)
+        self.remove_media_button = QSquarePushButton()
+        close_icon = QIcon(os.path.join(self.model.resources, "x-solid.svg"))
+        self.remove_media_button.setIcon(close_icon)
+        self.remove_media_button.setFixedSize(QSize(26, 26))
 
+        self.button_layout.addWidget(self.left_button)
         self.button_layout.addWidget(self.main_button)
         self.button_layout.addWidget(self.delete_button)
         self.button_layout.addWidget(self.change_tag_button)
         self.button_layout.addWidget(self.remove_media_button)
+        self.button_layout.addWidget(self.right_button)
 
         self.tag_lbl = QLabel()
         self.tag_lbl.setFixedHeight(30)

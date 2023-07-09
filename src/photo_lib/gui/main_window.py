@@ -60,6 +60,7 @@ class RootWindow(QMainWindow):
         self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image,
                                         open_datetime_modal_fn=self.open_datetime_modal)
 
+        # TODO Need session storage for databases.
         # Generating the remaining widgets
         self.compare_root.load_elements()
 
@@ -106,9 +107,11 @@ class RootWindow(QMainWindow):
         modal = TaskSelectModal(model=self.model)
         ret_val = modal.exec()
 
+        # if the val is 0 -> cancle was clicked.
         if ret_val == 0:
             return
 
+        # There may not really be another type of return value.
         assert ret_val == 1, f"Unknown return value from TaskSelectModal of {ret_val}"
 
         success, pipe = self.model.search_duplicates()
@@ -257,6 +260,8 @@ class RootWindow(QMainWindow):
             self.mark_submenu.addAction(self.compare_root.set_main_action)
             self.mark_submenu.addAction(self.compare_root.change_tag_action)
             self.mark_submenu.addAction(self.compare_root.remove_media_action)
+            self.mark_submenu.addAction(self.compare_root.move_left_action)
+            self.mark_submenu.addAction(self.compare_root.move_right_action)
 
         self.set_view(self.compare_root)
 

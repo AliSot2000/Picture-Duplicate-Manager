@@ -2,8 +2,10 @@ from PyQt6.QtWidgets import QPushButton
 from PyQt6.QtGui import QAction
 from typing import Union
 
+
 class QActionButton(QPushButton):
     __target_action: Union[None, QAction] = None
+
     def __init__(self, *args, target_action: QAction = None, **kwargs):
         """
         Passes args and kwargs to QPushButton

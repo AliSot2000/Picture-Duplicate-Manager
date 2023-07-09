@@ -1219,7 +1219,7 @@ class PhotoDb:
                 os.remove(old_db)
 
             # perform the difpy stuff
-            fdp = fastDif.FastDifPy(directory_a=folder)
+            fdp = fastDif.FastDifPy.init_new(directory_a=folder, default_db=True, progress=True)
             fdp.ignore_names = (".thumbnails", ".trash", ".thumbnailsold", ".temp_thumbnails")
             fdp.index_the_dirs()
             fdp.estimate_disk_usage()

@@ -1,15 +1,25 @@
 import datetime
+import os.path
 from typing import List, Union, Tuple
 import multiprocessing as mp
 
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
 from photo_lib.metadataagregator import key_lookup_dir
 
+
+class NoDbException(Exception):
+    """
+    To make handling of returned values easier, we use an exception to indicate that there's not database loaded.
+    """
+    pass
+
+
 class Model:
     pdb:  Union[PhotoDb, None] = None
     files: List[DatabaseEntry]
     current_row: Union[int, None] = None
     search_level: Union[str, None] = None
+    resources: str = os.path.join(os.path.dirname(__file__), "resources")
 
     def __init__(self, folder_path: str = None):
         if folder_path is not None:
@@ -21,7 +31,8 @@ class Model:
         :param folder_path: path to the database
         :return:
         """
-        self.pdb = PhotoDb(root_dir=folder_path)
+        if os.path.exists(os.path.join(folder_path, ".photos.db")):
+            self.pdb = PhotoDb(root_dir=folder_path)
 
     @staticmethod
     def process_metadata(metadict: dict):
@@ -55,8 +66,7 @@ class Model:
         :return:
         """
         if self.pdb is None:
-            print("No Database loaded")
-            return
+            raise NoDbException("No Database selected")
 
         if tag.strip().lower() == "custom":
             tag = "Custom"
@@ -87,8 +97,7 @@ class Model:
         :return:
         """
         if self.pdb is None:
-            print("No Database loaded")
-            return
+            raise NoDbException("No Database selected")
 
         success, results, row_id = self.pdb.get_duplicate_entry()
         if success:
@@ -110,8 +119,7 @@ class Model:
         :return: identical_binary, identical_names, identical_datetime, identical_file_size, difference
         """
         if self.pdb is None:
-            print("No Database loaded")
-            return
+            raise NoDbException("No Database selected")
 
         if len(self.files) == 0 or self.files is None:
             return None
@@ -164,8 +172,7 @@ class Model:
         :return:
         """
         if self.pdb is None:
-            print("No Database loaded")
-            return
+            raise NoDbException("No Database selected")
 
         self.files = []
         self.pdb.delete_duplicate_row(self.current_row)
@@ -189,8 +196,7 @@ class Model:
         :return:
         """
         if self.pdb is None:
-            print("No Database loaded")
-            return
+            raise NoDbException("No Database selected")
 
         main_key = original.key
         print(f"Keeping: {original.new_name}")
@@ -207,8 +213,7 @@ class Model:
         :return:
         """
         if self.pdb is None:
-            print("No Database loaded")
-            return False, None
+            raise NoDbException("No Database selected")
 
         if self.search_level == "hash":
             self.pdb.duplicates_from_hash(overwrite=True)
