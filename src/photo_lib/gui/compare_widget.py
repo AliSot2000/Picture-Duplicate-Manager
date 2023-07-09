@@ -302,7 +302,9 @@ class CompareRoot(QLabel):
 
         self.remove_target(media_pane)
         self.maintain_visibility()
-        self.color_widgets()
+        # Remove Media Pane may not call self.color_widgets() because the database is already updated while the gui
+        # is not. The key is already removed from the table in the database but the gui still has it. This would
+        # lead to an error in the compare files function.
 
     def synchronized_scroll(self, name: str, caller: TextScroller, rx: float, ry: float):
         """
@@ -438,6 +440,7 @@ class CompareRoot(QLabel):
         self.remove_media_pane(main_entry)
         for entry in for_duplicates:
             self.remove_media_pane(entry)
+        self.color_widgets()
 
     def skip_entry(self):
         """
