@@ -1220,7 +1220,7 @@ class PhotoDb:
 
             # perform the difpy stuff
             fdp = fastDif.FastDifPy(directory_a=folder)
-            fdp.ignore_names = (".thumbnails", ".trash", ".thumbnailsold")
+            fdp.ignore_names = (".thumbnails", ".trash", ".thumbnailsold", ".temp_thumbnails")
             fdp.index_the_dirs()
             fdp.estimate_disk_usage()
             fdp.first_loop_iteration()
