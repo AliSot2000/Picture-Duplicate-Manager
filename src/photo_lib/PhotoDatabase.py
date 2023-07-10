@@ -21,6 +21,7 @@ import sys
 import ffmpeg
 from .errors_and_warnings import *
 from fast_diff_py import fastDif
+from photo_lib.utils import rec_list_all
 
 
 # INFO: If you run the img_ana_dup_search from another file and not the gui, MAKE SURE TO EMPTY THE PIPE.
@@ -1578,80 +1579,29 @@ class PhotoDb:
 
         return success, msg
 
-    def preprocess_duplicates(self, task: str = ""):
+    def index_files(self):
         """
-        Currently supported tasks:
-        * remove identical file sizes
-        * only identical file size
+        Go through database and check that all files have a key associated with them.
 
-        :param task:
         :return:
         """
-        if not self.duplicate_table_exists():
-            return False, "no duplicates table"
+        subdirs = os.listdir(self.root_dir)
+        not_to_index = (".thumbnails", ".trash", ".thumbnailsold", ".temp_thumbnails", "backup.photos.db", "backup2(before orignal_google_metadata).photos.db", ".photos.db")
+        files = []
+        errors = []
 
-        task = task.strip().lower()
+        for n in not_to_index:
+            try:
+                subdirs.remove(n)
+            except ValueError:
+                pass
 
-        if task not in ("remove identical file sizes", "only identical file size"):
-            return False, "Not supported command"
+        for subdir in subdirs:
+            path = os.path.join(self.root_dir, subdir)
+            files.extend(rec_list_all(path))
 
-        # assumption the ram suffices to load the entire duplicates table to ram
-        self.cur.execute("SELECT key, matched_keys FROM duplicates")
-        all_reseults = self.cur.fetchall()
-        dels = 0
+        for file in files:
+            if self.file_name_to_key(os.path.basename(file)) == -1:
+                errors.append(file)
 
-        if len(all_reseults) == 0:
-            return False, "No entries in table"
-
-        for result in all_reseults:
-            key = result[0]
-            json_list = result[1]
-            matches: list = json.loads(json_list)
-
-            if len(matches) == 0:
-                continue
-
-            # get the function from the factory and execute it with the matches
-            delete = self.__make_processor(command=task)(matches)
-
-            if delete:
-                self.cur.execute(f"DELETE FROM duplicates WHERE key == {key}")
-                dels += 1
-
-        self.con.commit()
-        return True, f"Removed {dels} entries from duplicates table"
-
-    def __make_processor(self, command: str):
-        """
-        assuming commands are processed from preprocess_duplicates
-
-        returned function returns True -> Delete this row, False, don't delete this row
-        """
-
-        if command == "remove identical file sizes":
-            def process(matches: list) -> bool:
-                file_size = self.get_metadata(matches[0]).get("File:FileSize")
-
-                for i in range(1, len(matches)):
-                    m = matches[i]
-                    if file_size == self.get_metadata(key=m).get("File:FileSize"):
-                        return True
-
-                return False
-
-        elif command == "only identical file size":
-            def process(matches: list) -> bool:
-                file_size = self.get_metadata(matches[0]).get("File:FileSize")
-
-                for i in range(1, len(matches)):
-                    m = matches[i]
-                    if file_size != self.get_metadata(key=m).get("File:FileSize"):
-                        return True
-
-                return False
-
-        else:
-            def process(matches: list):
-                return False
-
-        return process
+        print(errors)
