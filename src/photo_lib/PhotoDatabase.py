@@ -1581,7 +1581,8 @@ class PhotoDb:
 
     def index_files(self):
         """
-        Go through database and check that all files have a key associated with them.
+        Go through database and check that all files have a key associated with them. Prints all files that are not in
+        database. (Needed because of bug in Program and not deleted images)
 
         :return:
         """
