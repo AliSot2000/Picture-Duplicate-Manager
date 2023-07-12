@@ -1421,7 +1421,11 @@ class PhotoDb:
         Returns one entry from the duplicates table
         :return:
         """
-        self.cur.execute("SELECT matched_keys, key FROM duplicates")
+        try:
+            self.cur.execute("SELECT matched_keys, key FROM duplicates")
+        except sqlite3.OperationalError:
+            print("No Duplicates Table found.")
+            return False, [], None
         key_str = self.cur.fetchone()
 
         if key_str is None:
