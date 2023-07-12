@@ -37,7 +37,7 @@ class RootWindow(QMainWindow):
     folder_select: Union[FolderSelectModal, None] = None
 
     # Change Datetime Modal
-    datetime_modal: DateTimeModal
+    datetime_modal: Union[None, DateTimeModal] = None
 
     commit_submenu: Union[None, QMenu] = None
     mark_submenu: Union[None, QMenu] = None
@@ -56,7 +56,6 @@ class RootWindow(QMainWindow):
 
         self.dummy_center = QWidget()
         self.stacked_layout = QStackedLayout()
-        self.datetime_modal = DateTimeModal()
         self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image,
                                         open_datetime_modal_fn=self.open_datetime_modal)
 
@@ -75,9 +74,6 @@ class RootWindow(QMainWindow):
         self.stacked_layout.setCurrentWidget(self.compare_root)
 
         # Connecting the buttons of the modals
-        self.datetime_modal.close_button.clicked.connect(self.close_datetime_modal)
-        self.datetime_modal.apply_button.clicked.connect(self.apply_datetime_modal)
-        self.datetime_modal.apply_close_button.clicked.connect(self.apply_close_datetime_modal)
 
         # Misc setup of the window
         self.setWindowTitle("Picture Duplicate Manager")
@@ -156,21 +152,21 @@ class RootWindow(QMainWindow):
         :param media_pane: Media pane to modify
         :return:
         """
+        self.datetime_modal = DateTimeModal()
         self.datetime_modal.media_pane = media_pane
-        self.datetime_modal.show()
+        print(media_pane.dbe.key)
+        ret_val = self.datetime_modal.exec()
 
-    def close_datetime_modal(self):
-        """
-        Hide the datetime modal again.
-        :return:
-        """
-        self.datetime_modal.hide()
+        if ret_val == 0 or self.datetime_modal.triggered_button == ButtonType.CLOSE:
+            self.datetime_modal = None
+            return
 
-    def apply_datetime_modal(self):
-        """
-        Hide the modal, apply the new naming tag.
-        :return:
-        """
+        assert ret_val == 1 and self.datetime_modal.triggered_button != ButtonType.NO_BUTTON, \
+            "No button clicked but still accepted."
+
+        # Apply or apply close button called -> apply the changes.
+        assert self.datetime_modal.triggered_button in [ButtonType.APPLY, ButtonType.APPLY_CLOSE], \
+            "Unknown button type button should be apply or apply close."
         try:
             self.model.try_rename_image(tag=self.datetime_modal.tag_input.text(), dbe=self.datetime_modal.media_pane.dbe,
                                         custom_datetime=self.datetime_modal.custom_datetime_input.text())
@@ -179,18 +175,10 @@ class RootWindow(QMainWindow):
             # self.error_popup.open()
             print(f"Failed to update Datetime:\n {e}")
 
-        # update the media pane from the database entry.
-        self.datetime_modal.media_pane.update_file_naming()
+        media_pane.update_file_naming()
 
-        self.close_datetime_modal()
-
-    def apply_close_datetime_modal(self):
-        """
-        Apply the new naming tag, close the modal and remove the pane from the compare view.
-        :return:
-        """
-        self.apply_datetime_modal()
-        self.compare_root.remove_media_pane(self.datetime_modal.media_pane)
+        if self.datetime_modal.triggered_button == ButtonType.APPLY_CLOSE:
+            self.compare_root.remove_media_pane(self.datetime_modal.media_pane)
 
     def open_folder_select(self, init=False):
         """
