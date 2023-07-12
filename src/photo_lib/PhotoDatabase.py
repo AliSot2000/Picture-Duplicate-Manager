@@ -364,7 +364,7 @@ class PhotoDb:
         self.cur.execute(self.names_table_command)
 
         # naming_tag, new_name, from images table, drop path info because not needed anymore,
-        # TODO: Database needs a new replaced table -> DAtetime and file_hash
+        # TODO: Database needs a new replaced table -> Datetime and file_hash
         self.cur.execute(self.replaced_table_command)
 
         self.cur.execute(self.import_tables_table_command)
