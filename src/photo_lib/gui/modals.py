@@ -14,7 +14,8 @@ class ButtonType(Enum):
     APPLY = 2
     APPLY_CLOSE = 3
 
-class DateTimeModal(QWidget):
+
+class DateTimeModal(QDialog):
     tag_label: QLabel
     custom_datetime: QLabel
     tag_input: QLineEdit
@@ -30,6 +31,7 @@ class DateTimeModal(QWidget):
     button_container: QWidget
 
     __media_pane: Union[MediaPane, None] = None
+    triggered_button: ButtonType = ButtonType.NO_BUTTON
 
     def __init__(self):
         """
@@ -72,6 +74,34 @@ class DateTimeModal(QWidget):
         self.setLayout(self.form_layout)
 
         self.tag_input.textChanged.connect(self.update_datetime_input)
+
+        self.close_button.clicked.connect(self.close_btn)
+        self.apply_button.clicked.connect(self.apply_btn)
+        self.apply_close_button.clicked.connect(self.apply_close_btn)
+
+    def close_btn(self):
+        """
+        Perform action associated with widget to close.
+        :return:
+        """
+        self.triggered_button = ButtonType.CLOSE
+        self.close()
+
+    def apply_btn(self):
+        """
+        Perform action associated with widget to apply.
+        :return:
+        """
+        self.triggered_button = ButtonType.APPLY
+        self.accept()
+
+    def apply_close_btn(self):
+        """
+        Perform action associated with widget to apply and close.
+        :return:
+        """
+        self.triggered_button = ButtonType.APPLY_CLOSE
+        self.accept()
 
     def update_datetime_input(self):
         """
