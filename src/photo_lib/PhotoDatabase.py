@@ -1252,6 +1252,7 @@ class PhotoDb:
 
         pipe_in.send("DONE")
         pipe_in.close()
+        print("Done")
 
 
     def img_ana_dup_search_old(self, level: str, procs: int = 16, overwrite: bool = False):
@@ -1318,6 +1319,8 @@ class PhotoDb:
                 duplicates = dif(task_dir, show_progress=False, show_output=False)
                 results.put(duplicates.result)
 
+            print("Difpy Exiting")
+
         self.proc_handles = []
 
         for i in range(procs):
@@ -1375,6 +1378,7 @@ class PhotoDb:
 
         pipe_in.send("DONE")
         pipe_in.close()
+        print("Results processor done")
 
     def duplicates_from_hash(self, overwrite: bool = False) -> tuple:
         """
