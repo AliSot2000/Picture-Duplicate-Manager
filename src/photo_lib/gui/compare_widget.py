@@ -252,7 +252,7 @@ class CompareRoot(QLabel):
             pane.set_callback = self.set_target
             pane.remove_callback = self.remove_target
 
-        self.media_panes_placeholder.setMinimumWidth(len(self.model.files) * 370 + 10)
+        self.set_max_width_of_placeholder()
         self.maintain_visibility()
 
         self.set_arrow_enable(self.media_panes[0])
@@ -262,6 +262,13 @@ class CompareRoot(QLabel):
         self.color_widgets()
         self.update_duplicate_count()
         return True
+
+    def set_max_width_of_placeholder(self):
+        """
+        Update the size of the media_panes_placeholder according to the number of files currently selected.
+        :return:
+        """
+        self.media_panes_placeholder.setMinimumWidth(len(self.model.files) * 370 + 10)
 
     def remove_all_elements(self):
         """
@@ -299,6 +306,7 @@ class CompareRoot(QLabel):
 
         self.remove_target(media_pane)
         self.maintain_visibility()
+        self.set_max_width_of_placeholder()
         # Remove Media Pane may not call self.color_widgets() because the database is already updated while the gui
         # is not. The key is already removed from the table in the database but the gui still has it. This would
         # lead to an error in the compare files function.
