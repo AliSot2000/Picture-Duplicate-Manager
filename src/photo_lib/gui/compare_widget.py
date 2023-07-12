@@ -43,7 +43,6 @@ class CompareRoot(QLabel):
     media_layout: QHBoxLayout
     media_panes: List[MediaPane]
     min_width: int = 300
-    max_needed_width: int = 0
     min_height = 870
 
     __updating_buttons: bool = False
@@ -219,7 +218,6 @@ class CompareRoot(QLabel):
 
         :return: (If duplicates were available to be loaded)
         """
-        self.max_needed_width = 10
         if self.media_layout.count() > 0:
             return False
 
@@ -247,7 +245,6 @@ class CompareRoot(QLabel):
         for pane in self.media_panes:
             pane.main_button.clicked.connect(button_wrapper(pane.main_button, self.button_state))
             pane.remove_media_button.clicked.connect(pain_wrapper(pane, self.remove_media_pane))
-            self.max_needed_width += pane.max_needed_width + 10  # TODO Better formula
             pane.media.clicked.connect(lambda: self.open_image_fn(pane.media.fpath))
             pane.change_tag_button.clicked.connect(lambda: self.open_datetime_modal_fn(pane))
 
