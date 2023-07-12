@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, Q
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.image_container import ResizingImage
-from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal
+from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType
 from photo_lib.gui.media_pane import MediaPane
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
 from typing import Union
