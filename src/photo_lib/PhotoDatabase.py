@@ -1583,63 +1583,6 @@ class PhotoDb:
 
         return success, msg
 
-    def index_files(self):
-        """
-        Go through database and check that all files have a key associated with them. Prints all files that are not in
-        database. (Needed because of bug in Program and not deleted images)
-
-        :return:
-        """
-        subdirs = os.listdir(self.root_dir)
-        not_to_index = (".thumbnails", ".trash", ".thumbnailsold", ".temp_thumbnails", "backup.photos.db", "backup2(before orignal_google_metadata).photos.db", ".photos.db")
-        files = []
-        errors = []
-
-        for n in not_to_index:
-            try:
-                subdirs.remove(n)
-            except ValueError:
-                pass
-
-        for subdir in subdirs:
-            path = os.path.join(self.root_dir, subdir)
-            files.extend(rec_list_all(path))
-
-        for file in files:
-            if self.file_name_to_key(os.path.basename(file)) == -1:
-                errors.append(file)
-
-        print(errors)
-
-    def dict_indexer(self):
-        """
-        Get all possible keys of the metadata dict n stuff
-        :return:
-        """
-        data_type = {}
-        data_sample = {}
-
-        path_type = {}
-        path_sample = {}
-
-        # get all data from database with google photos metadata
-        self.cur.execute("SELECT google_fotos_metadata FROM images WHERE google_fotos_metadata Is NOT NULL;")
-        md = self.cur.fetchall()
-
-        for x in md:
-            json_dict = self.__b64_to_dict(x[0])
-            rec_walker(json_dict, data_sample, data_type)
-            path_builder(target=json_dict, path="", path_val=path_sample, path_type=path_type)
-
-        print(data_type)
-        print(data_sample)
-
-        for key in path_type:
-            print(f"{key}: {path_sample[key]}, type: {path_type[key]}")
-
-        print(path_type)
-        print(path_sample)
-
     def rename_from_google_fotos_meta_data(self):
         """
         Go through all images which have their naming tag be something with file.
@@ -1718,3 +1661,84 @@ class PhotoDb:
         print(count)
         print(renams)
         self.con.commit()
+
+    # Error Fixing functions.
+
+    def fix_duplicate_chaining(self):
+        """
+        Moved images to duplicates without checking if they are the parent for duplicates. This fixes that.
+
+        :return:
+        """
+        self.cur.execute("SELECT successor FROM replaced LEFT JOIN  images ON images.key = replaced.successor WHERE images.key IS NULL;")
+        rows = self.cur.fetchall()
+        clean_rows = [x[0] for x in rows]
+
+        for key in clean_rows:
+            # verify the key is indeed in the replaced table
+            self.cur.execute(f"SELECT key, successor FROM replaced WHERE key = {key};")
+            matches = self.cur.fetchall()
+
+            assert len(matches) == 1, f"Key {key} is not in replaced table or is in there multiple times"
+
+            # self.cur.execute(f"UPDATE replaced SET successor = {matches[0][1]} WHERE successor = {key}" )
+            print(f"UPDATE replaced SET successor = {matches[0][1]} WHERE successor = {key}" )
+
+        self.con.commit()
+
+    def index_files(self):
+        """
+        Go through database and check that all files have a key associated with them. Prints all files that are not in
+        database. (Needed because of bug in Program and not deleted images)
+
+        :return:
+        """
+        subdirs = os.listdir(self.root_dir)
+        not_to_index = (".thumbnails", ".trash", ".thumbnailsold", ".temp_thumbnails", "backup.photos.db", "backup2(before orignal_google_metadata).photos.db", ".photos.db")
+        files = []
+        errors = []
+
+        for n in not_to_index:
+            try:
+                subdirs.remove(n)
+            except ValueError:
+                pass
+
+        for subdir in subdirs:
+            path = os.path.join(self.root_dir, subdir)
+            files.extend(rec_list_all(path))
+
+        for file in files:
+            if self.file_name_to_key(os.path.basename(file)) == -1:
+                errors.append(file)
+
+        print(errors)
+
+    def dict_indexer(self):
+        """
+        Get all possible keys of the metadata dict n stuff
+        :return:
+        """
+        data_type = {}
+        data_sample = {}
+
+        path_type = {}
+        path_sample = {}
+
+        # get all data from database with google photos metadata
+        self.cur.execute("SELECT google_fotos_metadata FROM images WHERE google_fotos_metadata Is NOT NULL;")
+        md = self.cur.fetchall()
+
+        for x in md:
+            json_dict = self.__b64_to_dict(x[0])
+            rec_walker(json_dict, data_sample, data_type)
+            path_builder(target=json_dict, path="", path_val=path_sample, path_type=path_type)
+
+        print(data_type)
+        print(data_sample)
+
+        for key in path_type:
+            print(f"{key}: {path_sample[key]}, type: {path_type[key]}")
+
+        print(path_type)
+        print(path_sample)
