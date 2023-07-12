@@ -426,6 +426,7 @@ class PhotoDb:
             os.makedirs(folder)
 
         os.rename(src=old_path, dst=new_path)
+        self.con.commit()
         return new_name
 
     def revert_import(self, tbl_name: str):
