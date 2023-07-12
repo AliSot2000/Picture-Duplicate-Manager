@@ -6,7 +6,13 @@ import sys
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.model import Model
 from typing import Union
+from enum import Enum
 
+class ButtonType(Enum):
+    NO_BUTTON = -1
+    CLOSE = 1
+    APPLY = 2
+    APPLY_CLOSE = 3
 
 class DateTimeModal(QWidget):
     tag_label: QLabel
