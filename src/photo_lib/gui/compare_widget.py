@@ -246,7 +246,7 @@ class CompareRoot(QLabel):
             pane.main_button.clicked.connect(button_wrapper(pane.main_button, self.button_state))
             pane.remove_media_button.clicked.connect(pain_wrapper(pane, self.remove_media_pane))
             pane.media.clicked.connect(lambda: self.open_image_fn(pane.media.fpath))
-            pane.change_tag_button.clicked.connect(lambda: self.open_datetime_modal_fn(pane))
+            pane.change_tag_button.clicked.connect(pain_wrapper(pane, self.open_datetime_modal_fn))
 
             # Add functions for the adding and removing of the target.
             pane.set_callback = self.set_target
