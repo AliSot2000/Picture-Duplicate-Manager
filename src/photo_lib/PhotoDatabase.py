@@ -21,7 +21,7 @@ import sys
 import ffmpeg
 from .errors_and_warnings import *
 from fast_diff_py import fastDif
-from photo_lib.utils import rec_list_all
+from photo_lib.utils import rec_list_all, rec_walker, path_builder
 
 
 # INFO: If you run the img_ana_dup_search from another file and not the gui, MAKE SURE TO EMPTY THE PIPE.
@@ -1606,3 +1606,111 @@ class PhotoDb:
                 errors.append(file)
 
         print(errors)
+
+    def dict_indexer(self):
+        """
+        Get all possible keys of the metadata dict n stuff
+        :return:
+        """
+        data_type = {}
+        data_sample = {}
+
+        path_type = {}
+        path_sample = {}
+
+        # get all data from database with google photos metadata
+        self.cur.execute("SELECT google_fotos_metadata FROM images WHERE google_fotos_metadata Is NOT NULL;")
+        md = self.cur.fetchall()
+
+        for x in md:
+            json_dict = self.__b64_to_dict(x[0])
+            rec_walker(json_dict, data_sample, data_type)
+            path_builder(target=json_dict, path="", path_val=path_sample, path_type=path_type)
+
+        print(data_type)
+        print(data_sample)
+
+        for key in path_type:
+            print(f"{key}: {path_sample[key]}, type: {path_type[key]}")
+
+        print(path_type)
+        print(path_sample)
+
+    def rename_from_google_fotos_meta_data(self):
+        """
+        Go through all images which have their naming tag be something with file.
+        If that's the case check if there's google foto metadata and rename with that if it is earlier than the
+        file data.
+        :return:
+        """
+        self.cur.execute("SELECT key FROM images WHERE google_fotos_metadata Is NOT NULL AND naming_tag LIKE 'File%'")
+        keys = self.cur.fetchall()
+        keys_only = [x[0] for x in keys]
+
+        dts = {}
+
+        gfdt = self.__db_str_to_datetime("2009-01-03 12.52.06")
+        count = 0
+        renams = 0
+
+        for key in keys_only:
+
+            dbe = self.gui_get_image(key=key)
+            gf_md = dbe.google_fotos_metadata
+
+            creation_time = None
+            photo_taken_time = None
+            photo_last_modified_time = None
+
+            if gf_md.get("creationTime") is not None:
+                creation_time = gf_md.get("creationTime").get("timestamp")
+
+            if gf_md.get("photoTakenTime") is not None:
+                photo_taken_time = gf_md.get("photoTakenTime").get("timestamp")
+
+            if gf_md.get("photoLastModifiedTime") is not None:
+                photo_last_modified_time = gf_md.get("photoLastModifiedTime").get("timestamp")
+
+            # loading the timestamps
+            if creation_time is not None:
+                dts["creationTime"] = datetime.datetime.fromtimestamp(int(creation_time))
+
+            if photo_taken_time is not None:
+                if datetime.datetime.fromtimestamp(int(photo_taken_time))!= gfdt:
+                    dts["photoTakenTime"] = datetime.datetime.fromtimestamp(int(photo_taken_time))
+                else:
+                    count += 1
+
+            if photo_last_modified_time is not None:
+                dts["photoLastModifiedTime"] = datetime.datetime.fromtimestamp(int(photo_last_modified_time))
+
+            vals = list(dts.values())
+            try:
+                lowest = min(vals)
+            except ValueError:
+                assert len(vals) == 0
+                continue
+
+            key = None
+            for k in dts.keys():
+                if dts[k] == lowest:
+                    key = k
+                    break
+
+            assert key is not None, "You are stupid how could the key be None ?!?!?!"
+
+            if lowest < dbe.datetime:
+                self.rename_file(entry=dbe, new_datetime=lowest,naming_tag=f"GoogleFotos:{key}")
+                print(f"File for Renaming: {dbe.new_name}, current_dt: {self.__datetime_to_db_str(dbe.datetime)}, new_dt: {self.__datetime_to_db_str(lowest)}" )
+                renams += 1
+            if lowest == dbe.datetime:
+                print(f"File Eqivalent DT: {dbe.new_name}, current_dt: {self.__datetime_to_db_str(dbe.datetime)}")
+            else:
+                print(f"File for google older: {dbe.new_name}, current_dt: {self.__datetime_to_db_str(dbe.datetime)}, new_dt: {self.__datetime_to_db_str(lowest)}")
+
+            # creationTime
+            # photoTakenTime
+            # photoLastModifiedTime
+        print(count)
+        print(renams)
+        self.con.commit()
