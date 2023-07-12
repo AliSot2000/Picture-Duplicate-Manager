@@ -52,7 +52,7 @@ class PhotoDb:
     con: sqlite3.Connection = None
 
     # allowed files in database:
-    allowed_files: set = {".jpeg", ".jpg", ".png", ".mov", ".m4v", ".mp4", '.gif'}
+    allowed_files: set = {".jpeg", ".jpg", ".png", ".mov", ".m4v", ".mp4", '.gif', '.3gp', '.dng', '.heic', '.heif', '.webp', '.tif', '.tiff'}
     __mda: MetadataAggregator = None
 
     __datetime_format = "%Y-%m-%d %H.%M.%S"
