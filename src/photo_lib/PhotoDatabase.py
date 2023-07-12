@@ -873,6 +873,9 @@ class PhotoDb:
         # is removed duplicate from main table because it could result in confusion
         self.cur.execute(f"DELETE FROM images WHERE key = {duplicate_image_id}")
 
+        # update children that have the target as successor
+        self.cur.execute(f"UPDATE replaced SET successor = {successor} WHERE successor = {data[0][0]}")
+
         self.con.commit()
 
         src = self.path_from_datetime(self.__db_str_to_datetime(data[0][5]), data[0][6])
