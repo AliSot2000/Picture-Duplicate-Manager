@@ -1147,35 +1147,6 @@ class PhotoDb:
 
         # only list keys
         return [row[0] for row in results]
-
-    # def hash_bin_dups(self, dryrun: bool = True):
-    #     hash_matches = self.find_hash_based_duplicates()
-    #
-    #     # iterate over list and search for files which match binary
-    #     for row in hash_matches:
-    #         matching_hashes = self.find_hash_in_pictures(row["file_hash"])
-    #
-    #         first_file = self.__path_from_datetime(self.__db_str_to_datetime(matching_hashes[0]["datetime"]),
-    #                                                matching_hashes[0]["new_name"])
-    #
-    #         # only matching to first image:
-    #         for i in range(1, len(matching_hashes)):
-    #             current_file = self.__path_from_datetime(self.__db_str_to_datetime(matching_hashes[i]["datetime"]),
-    #                                                      matching_hashes[i]["new_name"])
-    #
-    #             if not filecmp.cmp(first_file, current_file, shallow=False):
-    #                 print(f"{first_file} and {current_file} have matching hashes but not matching binary data")
-    #             else:
-    #                 if matching_hashes[0]['naming_tag'] == matching_hashes[i]['naming_tag']:
-    #                     print(f"{matching_hashes[0]['new_name']} and {matching_hashes[i]['new_name']} match binary")
-    #                 else:
-    #                     print(
-    #                         f"{matching_hashes[0]['new_name']} named {matching_hashes[0]['naming_tag']} and {matching_hashes[i]['new_name']} named {matching_hashes[0]['naming_tag']}  match binary")
-    #
-    #             if not dryrun:
-    #                 # here would be the deletion and shit.
-    #                 pass
-
     def mark_duplicate(self, successor: int, duplicate_image_id: int, delete: bool = False):
         """
         Given two keys of images, the function marks the duplicate_image_id as the duplicate, removing the image from
