@@ -204,7 +204,7 @@ class PhotoDb:
                                    "names": self.names_table_command,
                                    "replaced": self.replaced_table_command,
                                    "import_tables": self.import_tables_table_command,
-                                   "trash": self.trash_table_command}
+                                   }
 
         self.__connect()
 
