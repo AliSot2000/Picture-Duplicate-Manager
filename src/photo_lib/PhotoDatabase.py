@@ -987,31 +987,29 @@ class PhotoDb:
         successor_name = successor_in_images[0]
         return -1, "Found entry in database with matching hash", successor_name
 
-    def __create_import_table(self, folder_path: str) -> str:
-        table_name = os.path.basename(folder_path)
-        table_name = table_name.replace("-", "_ds_").replace(" ", "_sp_").replace(".", "_d_")
-        if table_name[0].isdigit():
-            table_name = "t" + table_name
-        print(table_name)
-        name_extension = -1
+    def __create_import_table(self, folder_path: str, msg: str = None) -> str:
+        """
+        Creates a temporary table for the import process.
 
-        try:
-            self.cur.execute(f"INSERT INTO import_tables (root_path, import_table_name) VALUES "
-                             f"('{folder_path}', '{table_name}')")
-            return table_name
-        except sqlite3.IntegrityError:
-            name_extension = 0
+        :param folder_path: path to folder we're importing
+        :param msg: message to be stored in the database associated with the folder
+        :return: name of the temporary table
+        """
 
-        # try 100 times to find a matching name
-        while 0 <= name_extension < 100:
+        if msg is None:
+            msg = os.path.basename(folder_path)
+
+        for i in range(100):
+            temp_table_name = str(hash(datetime.datetime.now()))
+
             try:
-                self.cur.execute(f"INSERT INTO import_tables (root_path, import_table_name) VALUES "
-                                 f"('{folder_path}', '{table_name}{name_extension}')")
-                return f"{table_name}{name_extension}"
+                self.cur.execute(f"INSERT INTO import_tables (root_path, import_table_name, import_table_description) VALUES "
+                                 f"('{folder_path}', '{temp_table_name}', '{msg}')")
+                return temp_table_name
             except sqlite3.IntegrityError:
-                name_extension += 1
+                pass
 
-        raise Exception("Couldn't create import table, to many matching names")
+        raise Exception("Couldn't create import table, to many matching names.")
 
     def find_hash_based_duplicates(self, only_key: bool = True):
         """
