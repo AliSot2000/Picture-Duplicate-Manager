@@ -1155,23 +1155,6 @@ class PhotoDb:
 
         return None
 
-    def get_metadata(self,  key: int = None, filename: str = None):
-        if key is None and filename is None:
-            raise ValueError("Key or Filename must be provided")
-
-        if key is not None:
-            self.cur.execute(f"SELECT metadata FROM images WHERE key is {key}")
-
-        else:
-            self.cur.execute(f"SELECT metadata FROM images WHERE new_name = '{filename}'")
-
-        res = self.cur.fetchone()
-
-        if res is not None:
-            return self.__b64_to_dict(res[0])
-
-        return None
-
     def create_vid_thumbnail(self, key: int = None, fname: str = None, max_pixel: int = 512,
                              overwrite: bool = False, inform: bool = False) -> bool:
         # both none
