@@ -1616,14 +1616,14 @@ class PhotoDb:
 
         self.create_duplicates_table()
 
-        duplicates = self.find_hash_based_duplicates(only_key=False)
+        duplicates = self.find_not_unique_hash(e)
 
         for i in range(len(duplicates)):
             if i % 100 == 0:
                 print(f"Processing {i} of {len(duplicates)}")
 
             d = duplicates[i]
-            matching_keys = self.find_hash_in_pictures(d["file_hash"], only_key=True)
+            matching_keys = self.find_all_idencial_hashes(d["file_hash"], only_key=True)
 
             self.cur.execute(f"INSERT INTO duplicates (match_type, matched_keys) "
                              f"VALUES ('hash', '{json.dumps(matching_keys)}')")
