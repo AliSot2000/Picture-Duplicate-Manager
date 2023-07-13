@@ -528,6 +528,286 @@ class PhotoDb:
         self.cur.execute(f"DROP TABLE {tbl_name}")
         self.con.commit()
 
+    def prepare_import(self, folder_path: str, allowed_file_types: Set[str] = None, tbl_name: str = None,
+                       recompute_metadata: bool = False):
+        """
+        Create the import table or update the import table. This will add all files to the table and retrieve all
+        metadata on the files.
+
+        :param recompute_metadata: if true metadata will be recomputed (necessary if you are reindexing the directory)
+        :param folder_path: Path to folder to import
+        :param allowed_file_types: Override allowed file types
+        :param tbl_name: Name of the import table. If None, a new one will be created.
+        :return: temp_table_name
+        """
+        folder_path = os.path.abspath(folder_path.rstrip("/"))
+
+        # Create table if no table is provided.
+        if tbl_name is None:
+            temp_table_name = self.__create_import_table(folder_path)
+            self.cur.execute(f"CREATE TABLE {temp_table_name}"
+                             f"(key INTEGER PRIMARY KEY AUTOINCREMENT,"
+                             f"org_fname TEXT NOT NULL,"
+                             f"org_fpath TEXT NOT NULL,"
+                             f"metadata TEXT,"
+                             f"google_fotos_metadata TEXT,"
+                             f"file_hash TEXT,"
+                             f"imported INTEGER DEFAULT 0 CHECK (imported in (0,1)),"
+                             f"allowed INTEGER DEFAULT 0 CHECK (allowed in (0,1)),"
+                             f"match_type INTEGER DEFAULT 0 CHECK (match_type in (0,1,2,3,4,5)),"
+                             f"message TEXT,"
+                             f"datetime TEXT,"
+                             f"match INTEGER DEFAULT NULL, --      the match found in the trash, images or replaced table\n"
+                             f"import_key INTEGER DEFAULT NULL, -- the key may not have foreign key constraint since we "
+                             f"                                    want to be able to move the image to the replaced table\n"
+                             f"UNIQUE (org_fpath, org_fname);"
+                             )
+
+            self.con.commit()
+            tbl_name = temp_table_name
+
+            # index the directory
+            # assertion we have enough ram to store the information
+            files = rec_list_all(folder_path)
+
+            metadata_needed = self.__insert_or_update_directory(tbl_name=tbl_name, files=files,
+                                                                allowed_file_types=allowed_file_types)
+
+            if recompute_metadata:
+                metadata_needed = files
+
+            # precondition - the files that need the metadata are already in the table and the table only needs to be
+            # updated.
+
+            # compute metadata
+            for file in metadata_needed:
+                # TODO metadata only for allowed files.
+                self.cur.execute(f"SELECT allowed FROM {tbl_name} WHERE org_fpath = '{file[0]}' AND org_fname = '{file[1]}'")
+                mdo = self.mda.process_file(file)
+
+                # update the import table
+                self.cur.execute(f"UPDATE {tbl_name} SET "
+                                 f"metadata = '{self.__dict_to_b64(mdo.metadata)}',"
+                                 f"google_fotos_metadata = '{self.__dict_to_b64(mdo.google_fotos_metadata)}',"
+                                 f"file_hash = '{mdo.file_hash}',"
+                                 f"naming_tag = '{mdo.naming_tag}',"
+                                 f"datetime = '{self.__datetime_to_db_str(mdo.datetime_object)}' "
+                                 f"WHERE org_fpath = '{mdo.org_fpath}' AND org_fname = '{mdo.org_fname}'")
+
+            self.con.commit()
+            return tbl_name
+
+    def find_matches_for_import_table(self, table: str, match_hash: bool = False, match_trash: bool = False,
+                                        match_replaced: bool = False):
+        """
+        Determines for all files in a given import table if the files can be imported or if they are existing in some
+        capacity. It sets the match_type field of the database and the message
+
+        If everything is false - the most rudimentary check is performed. Check if a file exists at the same date and
+        time and if so, check the files if they are identical (binary).
+
+        If match_hash is true: The import also checks against the hash of the file. That is, if there's a file in the
+        database that has the same hash and file size, it will be considered a match.
+
+        If match_trash is true: The import will check if the file is in the trash (by matching the hash stored with the
+        trash.). If so, it will be considered a match.
+
+        If match_replaced is true: The import will check if the file is in the replaced table (by matching the hash
+        stored with the replaced table.). If so, it will be considered a match.
+
+        :param table: prepared import table to take for determining the match state.
+        :param match_hash:
+        :param match_trash:
+        :param match_replaced:
+        :return:
+        """
+        self.cur.execute(f"UPDATE {table} SET match_type = 0, message = '{message_lookup[0]}' WHERE allowed = 1")
+        self.cur.execute(f"SELECT key, org_fpath, org_fname, datetime, file_hash, metadata FROM {table} WHERE allowed = 1")
+        targets = self.cur.fetchall()
+
+        for row in targets:
+            key = row[0]
+            file_path = os.path.join(row[1], row[2])
+            dt_obj = self.__db_str_to_datetime(row[3])
+            file_hash = row[4]
+            file_size = self.__b64_to_dict(row[5])["File:FileSize"]
+
+            # check if there's a match on datetime and binary check
+            m_found, m_key, m_type = self.__date_time_checker(to_import_file_path=file_path, target_datetime=dt_obj)
+
+            # if no match was found, check if there's a match by hash in the images.
+            if not m_found and match_hash:
+                m_found, m_key, m_type = self.__check_hash_images(target_file=file_path,
+                                                                  target_hash=file_hash,
+                                                                  target_file_size=file_size,
+                                                                  trash=False)
+
+            # if no match was found, check if there's a match in the trash
+            if not m_found and match_trash:
+                m_found, m_key, m_type = self.__check_hash_images(target_file=file_path,
+                                                                  target_hash=file_hash,
+                                                                  target_file_size=file_size,
+                                                                  trash=True)
+
+            # if no match was found, check if there's a match in the replaced table
+            if not m_found and match_replaced:
+                m_found, m_key, m_type = self.__check_hash_replaced(target_file=file_path,
+                                                                   target_hash=file_hash,
+                                                                   target_file_size=file_size)
+
+            if m_found:
+                self.cur.execute(f"UPDATE {table} SET "
+                                 f"match_type = {m_type.value}, "
+                                 f"match = {m_key}, "
+                                 f"message = '{message_lookup[m_type.value]}' "
+                                 f"WHERE key = {key}")
+
+        self.con.commit()
+
+
+    def __date_time_checker(self, to_import_file_path: str, target_datetime: datetime.datetime) \
+            -> Tuple[bool, Union[None, int], MatchTypes]:
+        """
+        Go through the files in the images database and check if there's a file with the same datetime and if so,
+        check if the files are identical.
+
+        :param to_import_file_path: the file path of the file we want to impoprt
+        :param target_datetime: the datetime of the file we want to import
+
+        :return: bool - true <-> there's a match, int / none - the key of the match in the database,match-type
+        """
+        self.cur.execute(f"SELECT key, new_name FROM images "
+                         f"WHERE datetime = '{self.__datetime_to_db_str(target_datetime)}'")
+
+        results = self.cur.fetchall()
+        for result in results:
+            # check if the files are identical
+            if filecmp.cmp(to_import_file_path,
+                           self.path_from_datetime(dt_obj=target_datetime, file_name=result[1]),
+                           shallow=False):
+                return True, result[0], MatchTypes.Binary_Match_Images
+
+        return False, None, MatchTypes.NO_MATCH
+
+    def __check_hash_images(self, target_file: str, target_hash: str, target_file_size: int, trash: bool)\
+            -> Tuple[bool, Union[None, int], MatchTypes]:
+        """
+        Check if there's a file in the images table with the same hash and file size.
+
+        :param target_file: the file path of the file we want to import
+        :param target_hash: the hash of the file we want to import
+        :param target_file_size: the file size of the file we want to import
+        :param trash: if true, the trashed images are checked instead of the images table.
+
+        :return: bool - true <-> there's a match, int / none - the key of the match in the database, matchtype
+        """
+        self.cur.execute(f"SELECT key, metadata, new_name, datetime FROM images "
+                         f"WHERE file_hash = '{target_hash}' AND trashed = {1 if trash else 0}")
+
+        results = self.cur.fetchall()
+        for result in results:
+            metadata = self.__b64_to_dict(result[1])
+
+            # file size needs to match
+            if metadata["File:FileSize"] != target_file_size:
+                continue
+
+            # check if the file is in the trash and if so,
+            if trash:
+                match_path = self.trash_path(result[2])
+                if not os.path.exists(match_path):
+                    return True, result[0], MatchTypes.Hash_Match_Trash
+
+                if filecmp.cmp(target_file, match_path, shallow=False):
+                    return True, result[0], MatchTypes.Binary_Match_Trash
+
+                # TODO Logging
+                raise ValueError("File with matching hash and file size found but not matching binary.")
+
+            # check if the files are identical
+            pm_dt = self.__db_str_to_datetime(result[3])
+            if filecmp.cmp(target_file,
+                           self.path_from_datetime(dt_obj=pm_dt, file_name=result[2]),
+                           shallow=False):
+                return True, result[0], MatchTypes.Binary_Match_Images
+
+        return False, None, MatchTypes.NO_MATCH
+
+    def __check_hash_replaced(self, target_file: str, target_hash: str, target_file_size: int) \
+            -> Tuple[bool, Union[None, int], MatchTypes]:
+        """
+        Check if there's a file in the replaced table with the same hash and file size.
+
+        :param target_file: the file path of the file we want to import
+        :param target_hash: the hash of the file we want to import
+        :param target_file_size: the file size of the file we want to import
+
+        :return: bool - true <-> there's a match, int / none - the key of the match in the database, matchtype
+        """
+        self.cur.execute(f"SELECT key, metadata, former_name FROM replaced "
+                         f"WHERE file_hash = '{target_hash}'")
+
+        results = self.cur.fetchall()
+        for result in results:
+            metadata = self.__b64_to_dict(result[1])
+
+            # file size needs to match
+            if metadata["File:FileSize"] != target_file_size:
+                continue
+
+            # We don't have a file in the trash to compare against, so use only the hash and return
+            pm_path = self.trash_path(result[2])
+            if not os.path.exists(pm_path):
+                return True, result[0], MatchTypes.Hash_Match_Replaced
+
+            # check if the files are identical, and return
+            if filecmp.cmp(target_file, pm_path, shallow=False):
+                return True, result[0], MatchTypes.Binary_Match_Replaced
+
+            # TODO logging
+            raise ValueError("File with matching hash and file size found but not matching binary.")
+
+        return False, None, MatchTypes.NO_MATCH
+
+    def __insert_or_update_directory(self, tbl_name: str, files: list, allowed_file_types: Set[str] = None,):
+        """
+        Insert or update the directory. This will add all files to the table and update the allowed column.
+        :param tbl_name: name of the table to perform action in
+        :param files: list of file paths to add or update
+        :param allowed_file_types: set of files that are allowed needs to be like .ending, and ending needs to be lower
+        case.
+        :return:
+        """
+        metadata_needed = []
+        count = 0
+
+        if allowed_file_types is None:
+            allowed_file_types = self.allowed_files
+
+        for file in files:
+            # compute the allowed
+            f_allowed = 1 if os.path.splitext(file)[1].lower() in allowed_file_types else 0
+            fname = os.path.basename(file)
+            fpath = os.path.dirname(file)
+
+            # if exists, update the table
+            self.cur.execute(f"SELECT key FROM {tbl_name} WHERE org_fname = '{fname}' AND org_fpath = '{fpath}'")
+
+            result = self.cur.fetchone()
+            if result is not None:
+                self.cur.execute(f"UPDATE {tbl_name} SET allowed = {f_allowed} WHERE key = {result[0]}")
+
+                continue
+
+            # otherwise - perform insert and add to metadata_needed
+            self.cur.execute(f"INSERT INTO {tbl_name} (org_fname, org_fpath, allowed) "
+                             f"VALUES ('{fname}', '{fpath}', {f_allowed})")
+            metadata_needed.append(file)
+            count += 1
+
+        print(f"Added {count} files to the import table.\nTotal Files: {len(files)}")
+        return metadata_needed
+
     def import_folder(self, folder_path: str, al_fl: Set[str] = None, ignore_deleted: bool = False):
         folder_path = os.path.abspath(folder_path.rstrip("/"))
         temp_table_name = self.__create_import_table(folder_path)
