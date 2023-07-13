@@ -10,14 +10,13 @@ from enum import Enum
 import cv2
 from .metadataagregator import MetadataAggregator, FileMetaData
 import shutil
-from typing import Set, Union
 import warnings
 from dataclasses import dataclass
 from difPy.dif import dif
 from _queue import Empty
 import multiprocessing as mp
 import multiprocessing.connection as mpconn
-from typing import Tuple
+from typing import Tuple, List, Set, Union
 import sys
 import ffmpeg
 from .errors_and_warnings import *
