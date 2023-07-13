@@ -1594,10 +1594,14 @@ class PhotoDb:
         pipe_in.close()
         print("Results processor done")
 
-    def duplicates_from_hash(self, overwrite: bool = False) -> tuple:
+    def duplicates_from_hash(self, overwrite: bool = False, trash: bool = False) -> tuple:
         """
         Populates the duplicates table based on duplicates detected by identical hash
+
         :param overwrite: do not ask if existing duplicate computations should be preserved.
+        :param trash: if None, all duplicates are considered. If True, only duplicates in trash are considered.
+            If False, only the ones not in trash default False
+
         :return:
         """
         msg = ""
@@ -1613,14 +1617,14 @@ class PhotoDb:
 
         self.create_duplicates_table()
 
-        duplicates = self.find_not_unique_hash(e)
+        duplicates = self.find_not_unique_hash()
 
         for i in range(len(duplicates)):
             if i % 100 == 0:
                 print(f"Processing {i} of {len(duplicates)}")
 
             d = duplicates[i]
-            matching_keys = self.find_all_idencial_hashes(d["file_hash"], only_key=True)
+            matching_keys = self.find_all_identical_hashes(d["file_hash"], trash=trash)
 
             self.cur.execute(f"INSERT INTO duplicates (match_type, matched_keys) "
                              f"VALUES ('hash', '{json.dumps(matching_keys)}')")
