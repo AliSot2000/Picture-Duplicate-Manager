@@ -818,148 +818,65 @@ class PhotoDb:
 
         return False, None, MatchTypes.NO_MATCH
 
-    def import_folder(self, folder_path: str, al_fl: Set[str] = None, ignore_deleted: bool = False):
+    def import_folder(self, table_name: str, match_types: List[MatchTypes] = None,
+                      copy_gfmd: bool = True) -> None:
         """
-        Import a folder into the database. This will create a temporary table and add all files to it.
-        :param folder_path:
-        :param al_fl:
-        :param ignore_deleted:
+        From a given table, import all files which are marked with a match_type in the match_types list and which have
+        not yet been imported.
+
+        :param table_name: the name of the table to import from
+        :param match_types: the match types to import, given None, assumed is MatchTypes.NO_MATCH
+        :param copy_gfmd: if true, the google fotos metadata is copied to the new file if it is a binary match.
+
         :return:
         """
-        folder_path = os.path.abspath(folder_path.rstrip("/"))
-        temp_table_name = self.__create_import_table(folder_path)
 
-        # add all files which aren't in allowed files already.
-        if al_fl is None:
-            al_fl = self.allowed_files
+        if match_types is None:
+            match_types = [MatchTypes.NO_MATCH]
 
-        # Step 1: Create Database
-        self.cur.execute(f"CREATE TABLE {temp_table_name}"
-                         f"(key INTEGER PRIMARY KEY AUTOINCREMENT,"
-                         f"org_fname TEXT NOT NULL,"
-                         f"org_fpath TEXT NOT NULL,"
-                         f"metadata TEXT,"
-                         f"google_fotos_metadata TEXT,"
-                         f"file_hash TEXT,"
-                         f"new_name TEXT,"
-                         f"imported INTEGER DEFAULT 0 CHECK (imported in (0,1, 2)),"
-                         f"allowed INTEGER DEFAULT 0 CHECK (allowed in (0,1)),"
-                         f"message TEXT,"
-                         f"match_or_imported_key INTEGER DEFAULT NULL,"
-                         f"FOREIGN KEY (match_or_imported_key) REFERENCES images(key))"
-                         )
+        self.cur.execute(f"SELECT "
+                         f"org_fname, org_fpath, metadata, google_fotos_metadata, file_hash, datetime, naming_tag "
+                         f"FROM {table_name} " 
+                         f"WHERE allowed = 1 AND imported = 0 "
+                         f"AND match_type IN ({','.join([str(x.value) for x in match_types])})")
 
-        self.con.commit()
+        # Assume all rows fit in memory
+        rows = self.cur.fetchall()
 
-        # import all files in subdirectory and count them
-        number_of_files = self.__rec_list(path=folder_path, table=temp_table_name, allowed_files=al_fl)
-        self.con.commit()
-
-        for i in range(number_of_files):
+        for i in range(len(rows)):
             if i % 100 == 0:
+                # TODO logging
                 print(i)
 
-            # fetch a not processed file from import table
-            self.cur.execute(
-                f"SELECT org_fname, org_fpath, key FROM {temp_table_name} WHERE allowed = 1 AND processed = 0")
-            cur_file = self.cur.fetchone()
+            fmd = FileMetaData(
+                org_fname=rows[i][0],
+                org_fpath=rows[i][1],
+                metadata=self.__b64_to_dict(rows[i][2]),
+                google_fotos_metadata=self.__b64_to_dict(rows[i][3]),
+                file_hash=rows[i][4],
+                datetime_object=self.__db_str_to_datetime(rows[i][5]),
+                naming_tag=rows[i][6],
+                verify=rows[i][6][:4] == "File"
+            )
 
-            # all files which are allowed processed. stopping
-            if cur_file is None:
-                break
+            self.__handle_import(fmd=fmd, table=table_name)
 
-            # perform the metadata aggregation
-            file_metadata = self.mda.process_file(os.path.join(cur_file[1], cur_file[0]))
-            # imported_file_name = self.__file_name_generator(file_metadata.datetime_object, file_metadata.org_fname)
+        self.con.commit()
 
-            # should be imported?
-            should_import, message, successor = self.determine_import(file_metadata)
+        if copy_gfmd:
+            # TODO handle importing of metadata.
+            pass
 
-            # DEBUG AID
-            # assert 0 <= should_import <= 2
+        return
 
-            # 0 equal to not import, already present
-            if should_import <= 0:
-                self.__handle_preset(table=temp_table_name, file_metadata=file_metadata, msg=message,
-                                     present_file_name=successor, update_key=cur_file[2], status_code=should_import,
-                                     successor=successor)
-
-            # straight import
-            elif should_import == 1:
-                self.__handle_import(fmd=file_metadata, table=temp_table_name, msg=message, update_key=cur_file[2])
-
-        return temp_table_name
-
-    def __rec_list(self, path, table: str, allowed_files: set):
-        count = 0
-        sub = os.listdir(path)
-        for f in sub:
-            np = os.path.join(path, f)
-            if os.path.isfile(np):
-                # compute the allowed
-                f_allowed = 1 if os.path.splitext(np)[1].lower() in allowed_files else 0
-                fname = os.path.basename(np)
-                fpath = os.path.dirname(np)
-
-                # insert into temporary database
-                self.cur.execute(f"INSERT INTO {table} (org_fname, org_fpath, allowed) "
-                                 f"VALUES ('{fname}', '{fpath}', {f_allowed})")
-                count += 1
-            elif os.path.isdir(np):
-                count += self.__rec_list(np, table, allowed_files)
-        return count
-
-    def __handle_preset(self, table: str, file_metadata: FileMetaData, msg: str,
-                        present_file_name: str, update_key: int, status_code: int, successor: str):
+    def __handle_import(self, fmd: FileMetaData, table: str):
         """
-        Handler to be called if a file which is to be imported is already present in the database.
+        Handles the import of the file. Moves the file to the database and adds it to the main table.
 
-        :param table: import_table for the currently imported folder
-        :param file_metadata: metadata from MetadataAggregator of current file
-        :param msg: Message from determine import
-        :param present_file_name: id of the
-        :param update_key:
+        :param fmd: metadata object
+        :param table: table from which import is occuring
         :return:
         """
-        if file_metadata.google_fotos_metadata is None:
-            self.cur.execute(f"UPDATE {table} "
-                             f"SET metadata = '{self.__dict_to_b64(file_metadata.metadata)}', "
-                             f"file_hash = '{file_metadata.file_hash}', "
-                             f"imported = 0, "
-                             f"processed=1, "
-                             f"message = '{msg}', "
-                             f"hash_based_duplicate = '{present_file_name}' WHERE key = {update_key}")
-            self.con.commit()
-        else:
-            self.cur.execute(f"UPDATE {table} "
-                             f"SET metadata = '{self.__dict_to_b64(file_metadata.metadata)}', "
-                             f"file_hash = '{file_metadata.file_hash}', "
-                             f"imported = 0, "
-                             f"processed=1, "
-                             f"message = '{msg}', "
-                             f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
-                             f"hash_based_duplicate = '{present_file_name}' WHERE key = {update_key}")
-            self.con.commit()
-
-
-            # TODO simplify the two if blocks.
-            if status_code == 0:
-                self.cur.execute(f"UPDATE images SET "
-                                 f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
-                                 f"original_google_metadata = 0 WHERE new_name = '{successor}'")
-
-                self.con.commit()
-
-            elif status_code == -1:
-                self.cur.execute(f"UPDATE images SET "
-                                 f"google_fotos_metadata = '{self.__dict_to_b64(file_metadata.google_fotos_metadata)}', "
-                                 f"original_google_metadata = 0 WHERE new_name = '{successor}'")
-
-                self.con.commit()
-                # raise NotImplementedError("Updating of google fotos metadata if file is in replaced not implemented.")
-
-    def __handle_import(self, fmd: FileMetaData, table: str, msg: str, update_key: int):
-
         # create subdirectory
         if not os.path.exists(self.__folder_from_datetime(fmd.datetime_object)):
             os.makedirs(self.__folder_from_datetime(fmd.datetime_object))
@@ -977,43 +894,33 @@ class PhotoDb:
         if fmd.google_fotos_metadata is None:
             # create entry in images database
             self.cur.execute("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
-                             "file_hash, new_name, datetime, present, verify) "
+                             "file_hash, new_name, datetime, present, verify, timestamp) "
                              f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
                              f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
                              f"'{fmd.file_hash}', '{new_file_name}',"
                              f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
-                             f"1, {1 if fmd.verify else 0})")
+                             f"1, {1 if fmd.verify else 0}, {str(fmd.datetime_object.timestamp()).split('.')[0]})")
 
-            # create entry in temporary database
-            self.cur.execute(f"UPDATE {table} "
-                             f"SET metadata = '{self.__dict_to_b64(fmd.metadata)}', "
-                             f"file_hash = '{fmd.file_hash}', "
-                             f"new_name = '{new_file_name}', "
-                             f"imported = 1, "
-                             f"processed = 1, "
-                             f"message = '{msg}' WHERE key = {update_key}")
         else:
             # create entry in images database
             self.cur.execute("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
-                             "file_hash, new_name, datetime, present, verify,google_fotos_metadata ) "
+                             "file_hash, new_name, datetime, present, verify,google_fotos_metadata, timestamp) "
                              f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
                              f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
                              f"'{fmd.file_hash}', '{new_file_name}',"
                              f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
                              f"1, {1 if fmd.verify else 0},"
-                             f"'{self.__dict_to_b64(fmd.google_fotos_metadata)}')")
+                             f"'{self.__dict_to_b64(fmd.google_fotos_metadata)}, "
+                             f"{str(fmd.datetime_object.timestamp()).split('.')[0]}')")
 
-            # create entry in temporary database
-            self.cur.execute(f"UPDATE {table} "
-                             f"SET metadata = '{self.__dict_to_b64(fmd.metadata)}', "
-                             f"file_hash = '{fmd.file_hash}', "
-                             f"new_name = '{new_file_name}', "
-                             f"imported = 1, "
-                             f"processed = 1, "
-                             f"google_fotos_metadata = '{self.__dict_to_b64(fmd.google_fotos_metadata)}', "
-                             f"message = '{msg}' WHERE key = {update_key}")
+        self.cur.execute(f"SELECT key FROM images WHERE new_name = '{new_file_name}'")
+        update_key = self.cur.fetchone()[0]
 
-        self.con.commit()
+        # create entry in temporary database
+        self.cur.execute(f"UPDATE {table} "
+                         f"SET import_key = '{self.__dict_to_b64(fmd.metadata)}', "
+                         f"imported = 1, "
+                         f"processed = 1, WHERE key = {update_key}")
 
     def determine_import(self, file_metadata: FileMetaData, current_file_path: str = None) -> tuple:
         # Verify existence in the database
