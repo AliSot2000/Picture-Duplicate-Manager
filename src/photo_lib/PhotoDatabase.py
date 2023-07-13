@@ -449,6 +449,10 @@ class PhotoDb:
 
         self.con.commit()
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # Main Functions
+    # ------------------------------------------------------------------------------------------------------------------
+
     def rename_file(self, entry: DatabaseEntry, new_datetime: datetime.datetime, naming_tag: str):
         """
         Performs renaming action of a file
