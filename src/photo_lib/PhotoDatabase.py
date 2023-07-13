@@ -1030,7 +1030,6 @@ class PhotoDb:
 
         return duplicates
 
-
     def find_all_identical_hashes(self, hash_str: str, trash: bool = None) -> list:
         """
         Returns a list of all images with identical hash
