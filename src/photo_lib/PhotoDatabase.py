@@ -340,6 +340,13 @@ class PhotoDb:
         return tables
 
     def __get_table_definition(self, table: str):
+        """
+        Fetches the definition of a table from sqlite master.
+
+        :param table: name of the table (must exist, no error checking)
+
+        :return: definition string
+        """
         # precondition, table exists already.
         self.cur.execute(f"SELECT sql FROM sqlite_master WHERE tbl_name = '{table}' AND type = 'table'")
         return self.cur.fetchone()[0]
