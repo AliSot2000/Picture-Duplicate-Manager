@@ -421,6 +421,11 @@ class PhotoDb:
         return all_present, all_correctly_formatted
 
     def create_db(self):
+        """
+        Create all necessary tables for database.
+
+        :return:
+        """
         try:
             self.cur.execute(self.images_table_command)
         except sqlite3.OperationalError as e:
@@ -434,9 +439,6 @@ class PhotoDb:
         self.cur.execute(self.replaced_table_command)
 
         self.cur.execute(self.import_tables_table_command)
-
-        # Todo: Think about trash -> once removed images not reimported?
-        self.cur.execute(self.trash_table_command)
 
         self.con.commit()
 
