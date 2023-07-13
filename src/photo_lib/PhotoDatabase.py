@@ -581,8 +581,18 @@ class PhotoDb:
 
             # compute metadata
             for file in metadata_needed:
-                # TODO metadata only for allowed files.
-                self.cur.execute(f"SELECT allowed FROM {tbl_name} WHERE org_fpath = '{file[0]}' AND org_fname = '{file[1]}'")
+                fname = os.path.basename(file)
+                fpath = os.path.dirname(file)
+                self.cur.execute(f"SELECT allowed FROM {tbl_name} "
+                                 f"WHERE org_fpath = '{fpath}' AND org_fname = '{fname}'")
+
+                res = self.cur.fetchone()
+                assert res is not None, f"File {file} not found in the import table."
+
+                # Not allowed, we continue
+                if res[0] == 0:
+                    continue
+
                 mdo = self.mda.process_file(file)
 
                 query = (
