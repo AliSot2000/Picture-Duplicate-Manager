@@ -1002,8 +1002,8 @@ class PhotoDb:
             temp_table_name = str(hash(datetime.datetime.now()))
 
             try:
-                self.cur.execute(f"INSERT INTO import_tables (root_path, import_table_name, import_table_description) VALUES "
-                                 f"('{folder_path}', '{temp_table_name}', '{msg}')")
+                self.cur.execute(f"INSERT INTO import_tables (root_path, import_table_name, import_table_description) "
+                                 f"VALUES ('{folder_path}', '{temp_table_name}', '{msg}')")
                 return temp_table_name
             except sqlite3.IntegrityError:
                 pass
