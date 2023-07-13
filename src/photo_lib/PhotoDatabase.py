@@ -597,6 +597,46 @@ class PhotoDb:
             self.con.commit()
             return tbl_name
 
+    def __insert_or_update_directory(self, tbl_name: str, files: list, allowed_file_types: Set[str] = None,):
+        """
+        Insert or update the directory. This will add all files to the table and update the allowed column.
+        :param tbl_name: name of the table to perform action in
+        :param files: list of file paths to add or update
+        :param allowed_file_types: set of files that are allowed needs to be like .ending, and ending needs to be lower
+        case.
+        :return:
+        """
+        metadata_needed = []
+        count = 0
+
+        if allowed_file_types is None:
+            allowed_file_types = self.allowed_files
+
+        for file in files:
+            # compute the allowed
+            f_allowed = 1 if os.path.splitext(file)[1].lower() in allowed_file_types else 0
+            fname = os.path.basename(file)
+            fpath = os.path.dirname(file)
+
+            # if exists, update the table
+            self.cur.execute(f"SELECT key FROM {tbl_name} WHERE org_fname = '{fname}' AND org_fpath = '{fpath}'")
+
+            result = self.cur.fetchone()
+            if result is not None:
+                self.cur.execute(f"UPDATE {tbl_name} SET allowed = {f_allowed} WHERE key = {result[0]}")
+
+                continue
+
+            # otherwise - perform insert and add to metadata_needed
+            self.cur.execute(f"INSERT INTO {tbl_name} (org_fname, org_fpath, allowed) "
+                             f"VALUES ('{fname}', '{fpath}', {f_allowed})")
+            metadata_needed.append(file)
+            count += 1
+
+        print(f"Added {count} files to the import table.\nTotal Files: {len(files)}")
+        return metadata_needed
+
+
     def find_matches_for_import_table(self, table: str, match_hash: bool = False, match_trash: bool = False,
                                         match_replaced: bool = False):
         """
@@ -769,46 +809,14 @@ class PhotoDb:
 
         return False, None, MatchTypes.NO_MATCH
 
-    def __insert_or_update_directory(self, tbl_name: str, files: list, allowed_file_types: Set[str] = None,):
+    def import_folder(self, folder_path: str, al_fl: Set[str] = None, ignore_deleted: bool = False):
         """
-        Insert or update the directory. This will add all files to the table and update the allowed column.
-        :param tbl_name: name of the table to perform action in
-        :param files: list of file paths to add or update
-        :param allowed_file_types: set of files that are allowed needs to be like .ending, and ending needs to be lower
-        case.
+        Import a folder into the database. This will create a temporary table and add all files to it.
+        :param folder_path:
+        :param al_fl:
+        :param ignore_deleted:
         :return:
         """
-        metadata_needed = []
-        count = 0
-
-        if allowed_file_types is None:
-            allowed_file_types = self.allowed_files
-
-        for file in files:
-            # compute the allowed
-            f_allowed = 1 if os.path.splitext(file)[1].lower() in allowed_file_types else 0
-            fname = os.path.basename(file)
-            fpath = os.path.dirname(file)
-
-            # if exists, update the table
-            self.cur.execute(f"SELECT key FROM {tbl_name} WHERE org_fname = '{fname}' AND org_fpath = '{fpath}'")
-
-            result = self.cur.fetchone()
-            if result is not None:
-                self.cur.execute(f"UPDATE {tbl_name} SET allowed = {f_allowed} WHERE key = {result[0]}")
-
-                continue
-
-            # otherwise - perform insert and add to metadata_needed
-            self.cur.execute(f"INSERT INTO {tbl_name} (org_fname, org_fpath, allowed) "
-                             f"VALUES ('{fname}', '{fpath}', {f_allowed})")
-            metadata_needed.append(file)
-            count += 1
-
-        print(f"Added {count} files to the import table.\nTotal Files: {len(files)}")
-        return metadata_needed
-
-    def import_folder(self, folder_path: str, al_fl: Set[str] = None, ignore_deleted: bool = False):
         folder_path = os.path.abspath(folder_path.rstrip("/"))
         temp_table_name = self.__create_import_table(folder_path)
 
@@ -817,19 +825,20 @@ class PhotoDb:
             al_fl = self.allowed_files
 
         # Step 1: Create Database
-        self.cur.execute(f"CREATE TABLE {temp_table_name} "
+        self.cur.execute(f"CREATE TABLE {temp_table_name}"
                          f"(key INTEGER PRIMARY KEY AUTOINCREMENT,"
-                         f" org_fname TEXT NOT NULL, "
-                         f" org_fpath TEXT NOT NULL, "
-                         f" metadata TEXT, "
-                         f" google_fotos_metadata TEXT,"
-                         f" file_hash TEXT, "
-                         f" new_name TEXT,"
-                         f" imported INTEGER DEFAULT 0 CHECK ({temp_table_name}.imported >= 0 AND {temp_table_name}.imported < 2),"
-                         f" allowed INTEGER DEFAULT 0 CHECK ({temp_table_name}.allowed >= 0 AND {temp_table_name}.allowed < 2),"
-                         f" processed INTEGER DEFAULT 0 CHECK ({temp_table_name}.processed >= 0 AND {temp_table_name}.processed < 2),"
-                         f" message TEXT,"
-                         f" hash_based_duplicate TEXT)")
+                         f"org_fname TEXT NOT NULL,"
+                         f"org_fpath TEXT NOT NULL,"
+                         f"metadata TEXT,"
+                         f"google_fotos_metadata TEXT,"
+                         f"file_hash TEXT,"
+                         f"new_name TEXT,"
+                         f"imported INTEGER DEFAULT 0 CHECK (imported in (0,1, 2)),"
+                         f"allowed INTEGER DEFAULT 0 CHECK (allowed in (0,1)),"
+                         f"message TEXT,"
+                         f"match_or_imported_key INTEGER DEFAULT NULL,"
+                         f"FOREIGN KEY (match_or_imported_key) REFERENCES images(key))"
+                         )
 
         self.con.commit()
 
