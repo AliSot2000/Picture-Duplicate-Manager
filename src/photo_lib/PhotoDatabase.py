@@ -974,14 +974,15 @@ class PhotoDb:
         else:
             # create entry in images database
             self.cur.execute("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
-                             "file_hash, new_name, datetime, present, verify,google_fotos_metadata, timestamp) "
+                             "file_hash, new_name, datetime, present, verify,google_fotos_metadata, timestamp, "
+                             "original_google_metadata) "
                              f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
                              f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
                              f"'{fmd.file_hash}', '{new_file_name}',"
                              f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
                              f"1, {1 if fmd.verify else 0},"
                              f"'{self.__dict_to_b64(fmd.google_fotos_metadata)}, "
-                             f"{str(fmd.datetime_object.timestamp()).split('.')[0]}')")
+                             f"{str(fmd.datetime_object.timestamp()).split('.')[0]}', 1)")
 
         self.cur.execute(f"SELECT key FROM images WHERE new_name = '{new_file_name}'")
         update_key = self.cur.fetchone()[0]
@@ -990,7 +991,7 @@ class PhotoDb:
         self.cur.execute(f"UPDATE {table} "
                          f"SET import_key = '{self.__dict_to_b64(fmd.metadata)}', "
                          f"imported = 1, "
-                         f"processed = 1, WHERE key = {update_key}")
+                         f"WHERE key = {update_key}")
 
     def determine_import(self, file_metadata: FileMetaData, current_file_path: str = None) -> tuple:
         # Verify existence in the database
