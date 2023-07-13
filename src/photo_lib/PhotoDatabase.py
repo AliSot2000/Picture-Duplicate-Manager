@@ -639,10 +639,12 @@ class PhotoDb:
     def __insert_or_update_directory(self, tbl_name: str, files: list, allowed_file_types: Set[str] = None,):
         """
         Insert or update the directory. This will add all files to the table and update the allowed column.
+
         :param tbl_name: name of the table to perform action in
         :param files: list of file paths to add or update
         :param allowed_file_types: set of files that are allowed needs to be like .ending, and ending needs to be lower
         case.
+
         :return:
         """
         metadata_needed = []
