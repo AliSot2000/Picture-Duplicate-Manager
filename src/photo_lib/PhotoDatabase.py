@@ -1030,41 +1030,27 @@ class PhotoDb:
 
         return duplicates
 
-        return [row[0] for row in results]
 
-    def find_hash_in_pictures(self, hash_str: str, only_key: bool = True) -> list:
+    def find_all_identical_hashes(self, hash_str: str, trash: bool = None) -> list:
         """
         Returns a list of all images with identical hash
-        :param only_key: only returns a list of the keys with the same hash, not entire rows
+
         :param hash_str: hash to search for
+        :param trash: none search both images and trash, true - only trash, false only images
+
         :return:
         """
-        self.cur.execute(f"SELECT * FROM images WHERE file_hash = '{hash_str}'")
+        if trash is None:
+            self.cur.execute(f"SELECT key FROM images WHERE file_hash = '{hash_str}'")
+        elif trash:
+            self.cur.execute(f"SELECT key FROM images WHERE file_hash = '{hash_str}' AND trashed = 1")
+        else:
+            self.cur.execute(f"SELECT key FROM images WHERE file_hash = '{hash_str}' AND trashed = 0")
 
         results = self.cur.fetchall()
 
-        duplicates = []
-
-        if not only_key:
-            for row in results:
-                duplicates.append({
-                    "key": row[0],
-                    "org_fname": row[1],
-                    "org_fpath": row[2],
-                    "metadata": row[3],
-                    "naming_tag": row[4],
-                    "file_hash": row[5],
-                    "new_name": row[6],
-                    "datetime": row[7],
-                    "present": row[8],
-                    "verify": row[9],
-                    "google_fotos_metadata": row[10],
-                })
-
-            return duplicates
-
-        # only list keys
         return [row[0] for row in results]
+
     def mark_duplicate(self, successor: int, duplicate_image_id: int, delete: bool = False):
         """
         Given two keys of images, the function marks the duplicate_image_id as the duplicate, removing the image from
