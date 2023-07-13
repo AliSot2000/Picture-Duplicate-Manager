@@ -329,13 +329,13 @@ class PhotoDb:
         self.con.commit()
 
     def __list_present_tables(self) -> list:
+        """
+        Get a list of all names of the tables present in the database
+        :return:
+        """
         self.cur.execute("SELECT name FROM sqlite_master WHERE type ='table'")
         result = self.cur.fetchall()
-        tables = []
-
-        # fill all table names into a single list
-        for t in result:
-            tables.append(t[0])
+        tables = [ res[0] for res in result]
 
         return tables
 
