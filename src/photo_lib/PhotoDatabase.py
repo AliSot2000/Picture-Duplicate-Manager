@@ -1010,35 +1010,25 @@ class PhotoDb:
 
         raise Exception("Couldn't create import table, to many matching names.")
 
-    def find_hash_based_duplicates(self, only_key: bool = True):
+    def find_not_unique_hash(self):
         """
         Finds all hashes that occur more than once and provides one full image each.
         :return:
         """
-        self.cur.execute("SELECT *, COUNT(key) FROM images GROUP BY file_hash HAVING COUNT(key) > 1")
+        self.cur.execute("SELECT key, file_hash, COUNT(key) FROM images GROUP BY file_hash HAVING COUNT(key) > 1")
 
         results = self.cur.fetchall()
 
         duplicates = []
 
-        if not only_key:
-            for row in results:
-                duplicates.append({
-                    "key": row[0],
-                    "org_fname": row[1],
-                    "org_fpath": row[2],
-                    "metadata": row[3],
-                    "naming_tag": row[4],
-                    "file_hash": row[5],
-                    "new_name": row[6],
-                    "datetime": row[7],
-                    "present": row[8],
-                    "verify": row[9],
-                    "google_fotos_metadata": row[10],
-                    "count": row[11]
-                })
+        for row in results:
+            duplicates.append({
+                "key": row[0],
+                "file_hash": row[1],
+                "count": row[2]
+            })
 
-            return duplicates
+        return duplicates
 
         return [row[0] for row in results]
 
