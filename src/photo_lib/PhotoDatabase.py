@@ -874,8 +874,46 @@ class PhotoDb:
         self.con.commit()
 
         if copy_gfmd:
-            # TODO handle importing of metadata.
-            pass
+            # Get all google fotos metadata from the images table
+            self.cur.execute("SELECT match, google_fotos_metadata FROM {table_name} "
+                             "WHERE match_type > 0 AND match_type < 4 AND google_fotos_metadata IS NOT NULL")
+
+            rows = self.cur.fetchall()
+            for row in rows:
+                self.cur.execute(f"SELECT google_fotos_metadata "
+                                 f"FROM images WHERE key = {row[0]}")
+
+                res = self.cur.fetchone()
+                assert res is not None, f"Inconsistent data, found match in {table_name} but not in images table."
+
+                # There already exists metadata, continuing
+                if res[0] is not None:
+                    continue
+
+                self.cur.execute(f"UPDATE images SET google_fotos_metadata = '{row[1]}', original_google_metadata = 0 "
+                                 f"WHERE key = {row[0]}")
+
+            # Get all google fotos metadata from the replaced table
+            self.cur.execute("SELECT match, google_fotos_metadata FROM {table_name} "
+                             "WHERE match_type > 3  AND google_fotos_metadata IS NOT NULL")
+
+            rows = self.cur.fetchall()
+            for row in rows:
+                self.cur.execute(f"SELECT google_fotos_metadata "
+                                 f"FROM replaced WHERE key = {row[0]}")
+
+                res = self.cur.fetchone()
+                assert res is not None, f"Inconsistent data, found match in {table_name} but not in replaced table."
+
+                # There already exists metadata, continuing
+                if res[0] is not None:
+                    continue
+
+                self.cur.execute(
+                    f"UPDATE replaced SET google_fotos_metadata = '{row[1]}', original_google_metadata = 0 "
+                    f"WHERE key = {row[0]}")
+
+        self.con.commit()
 
         return
 
