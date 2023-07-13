@@ -474,37 +474,20 @@ class PhotoDb:
         :return:
         """
 
-        fmd = FileMetaData(org_fname=entry.org_fname,
-                           org_fpath=entry.org_fpath,
-                           metadata=entry.metadata,
-                           naming_tag=naming_tag,
-                           file_hash=entry.file_hash,
-                           datetime_object=new_datetime,
-                           verify=entry.verify == 1,
-                           google_fotos_metadata=entry.google_fotos_metadata)
+        new_name = self.__file_name_generator(dt_obj=new_datetime, old_fname=entry.org_fname)
+        new_path = self.path_from_datetime(dt_obj=new_datetime, file_name=new_name)
 
-        imp, msg, successor = self.determine_import(file_metadata=fmd,
-                                                    current_file_path=self.path_from_datetime(entry.datetime,
-                                                                                              entry.new_name))
-
-        new_name = self.__file_name_generator(new_datetime, entry.org_fname)
-        new_path = self.path_from_datetime(new_datetime, new_name)
-
-        old_path = self.path_from_datetime(entry.datetime, entry.new_name)
+        old_path = self.path_from_datetime(dt_obj=entry.datetime, file_name=entry.new_name)
 
         # free file name
         self.cur.execute(f"DELETE FROM names WHERE name = '{entry.new_name}'")
-
-        # warning -> if a match was found.
-        if imp <= 0:
-            print(f"While Renaming: {msg}")
 
         # update images table
         self.cur.execute(f"UPDATE images SET "
                          f"new_name = '{new_name}', "
                          f"naming_tag = '{naming_tag}', "
                          f"datetime = '{self.__datetime_to_db_str(new_datetime)}', "
-                         f"verify = {1 - imp} "
+                         f"timestamp = {str(new_datetime.timestamp()).split('.')[0]}, "
                          f"WHERE key = {entry.key}")
 
         # update the names table
