@@ -1716,33 +1716,6 @@ class PhotoDb:
 
             return None
 
-    def fill_names(self):
-        index = 0
-        self.cur.execute(f"SELECT new_name FROM images WHERE key >= {index}")
-        result = self.cur.fetchone()
-
-        count = 0
-
-        while result is not None:
-            # increment index
-            index += 1
-
-            # check if name is already present
-            self.cur.execute(f"SELECT name FROM names WHERE name = '{result[0]}'")
-            found = self.cur.fetchone()
-
-            # if not, insert into db
-            if found is None:
-                self.cur.execute(f"INSERT INTO names (name) VALUES ('{result[0]}')")
-                count += 1
-
-            # fetch next new_name
-            self.cur.execute(f"SELECT new_name FROM images WHERE key >= {index}")
-            result = self.cur.fetchone()
-
-        self.con.commit()
-        print(f"Added {count} non-tracked names to names table of {index} entries")
-
     def thumbnail_creation(self):
         index = 0
         self.cur.execute(f"SELECT key FROM images WHERE key >= {index}")
@@ -1968,3 +1941,30 @@ class PhotoDb:
 
         print(path_type)
         print(path_sample)
+
+    def fill_names(self):
+        index = 0
+        self.cur.execute(f"SELECT new_name FROM images WHERE key >= {index}")
+        result = self.cur.fetchone()
+
+        count = 0
+
+        while result is not None:
+            # increment index
+            index += 1
+
+            # check if name is already present
+            self.cur.execute(f"SELECT name FROM names WHERE name = '{result[0]}'")
+            found = self.cur.fetchone()
+
+            # if not, insert into db
+            if found is None:
+                self.cur.execute(f"INSERT INTO names (name) VALUES ('{result[0]}')")
+                count += 1
+
+            # fetch next new_name
+            self.cur.execute(f"SELECT new_name FROM images WHERE key >= {index}")
+            result = self.cur.fetchone()
+
+        self.con.commit()
+        print(f"Added {count} non-tracked names to names table of {index} entries")
