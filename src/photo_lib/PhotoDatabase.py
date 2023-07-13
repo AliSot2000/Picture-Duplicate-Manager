@@ -556,6 +556,7 @@ class PhotoDb:
                              f"match_type INTEGER DEFAULT 0 CHECK (match_type in (0,1,2,3,4,5)),"
                              f"message TEXT,"
                              f"datetime TEXT,"
+                             f"naming_tag TEXT,"
                              f"match INTEGER DEFAULT NULL, --      the match found in the trash, images or replaced table\n"
                              f"import_key INTEGER DEFAULT NULL, -- the key may not have foreign key constraint since we "
                              f"                                    want to be able to move the image to the replaced table\n"
