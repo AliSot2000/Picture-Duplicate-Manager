@@ -1290,7 +1290,7 @@ class PhotoDb:
         img_half = cv2.resize(img, dsize=(px, py))
 
         # store image
-        cv2.imwrite(self.thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key), img_half)
+        cv2.imwrite(self.thumbnail_name(ext=".jpeg" , key=img_key), img_half)
 
         return True
 
