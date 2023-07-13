@@ -465,7 +465,9 @@ class PhotoDb:
 
     def rename_file(self, entry: DatabaseEntry, new_datetime: datetime.datetime, naming_tag: str):
         """
-        Performs renaming action of a file
+        Performs renaming action of renaming a file. This action specifically CHECKS NOT if the file exists in any
+        other table. It is assumed that during the step if importing deduplication on hashes is already performed.
+
         :param entry: DatabaseEntry provided from g ui
         :param new_datetime: the new datetime generated from a tag
         :param naming_tag: the naming tag
