@@ -83,7 +83,7 @@ class PhotoDb:
     proc_handles: list = []
 
     # Table Creation Commands
-    images_table_command: str = \
+    old_images_table_command: str = \
         ("CREATE TABLE images "
          "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
          "org_fname TEXT NOT NULL, "
@@ -99,10 +99,10 @@ class PhotoDb:
          "original_google_metadata INTEGER DEFAULT 1 "
          "CHECK (images.original_google_metadata >= 0 AND images.original_google_metadata < 2))")
 
-    names_table_command: str = \
+    old_names_table_command: str = \
         "CREATE TABLE names (key INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)"
 
-    replaced_table_command: str = \
+    old_replaced_table_command: str = \
         ("CREATE TABLE replaced "
          "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
          " org_fname TEXT,"
@@ -112,13 +112,13 @@ class PhotoDb:
          " datetime TEXT,"
          " successor INTEGER NOT NULL)")
 
-    import_tables_table_command: str = \
+    old_import_tables_table_command: str = \
         ("CREATE TABLE import_tables "
          "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
          " root_path TEXT NOT NULL, "
          " import_table_name TEXT UNIQUE NOT NULL)")
 
-    trash_table_command: str = \
+    old_trash_table_command: str = \
         ("CREATE TABLE trash "
          "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
          "org_fname TEXT NOT NULL, "
@@ -132,7 +132,50 @@ class PhotoDb:
          "original_google_metadata INTEGER DEFAULT 1 "
          "CHECK (trash.original_google_metadata >= 0 AND trash.original_google_metadata < 2))")
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # New Table definitions.
+    # ------------------------------------------------------------------------------------------------------------------
+
     table_command_dict: dict
+
+    images_table_command: str = \
+        ("CREATE TABLE images "
+         "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
+         "org_fname TEXT NOT NULL, "
+         "org_fpath TEXT NOT NULL, "
+         "metadata TEXT NOT NULL, "
+         "google_fotos_metadata TEXT,"
+         "naming_tag TEXT, "
+         "file_hash TEXT, "
+         "new_name TEXT UNIQUE , "
+         "datetime TEXT, "
+         "present INTEGER DEFAULT 1 CHECK (present in (0, 1) ), "
+         "verify INTEGER DEFAULT 0 CHECK (verify in (0, 1)),"
+         "trashed INTEGER DEFAULT 0 CHECK (trash in (0, 1)),"
+         "original_google_metadata INTEGER DEFAULT 1 CHECK (original_google_metadata in (0, 1)),"
+         "timestamp INTEGER DEFAULT 0)")
+
+    names_table_command: str = \
+        "CREATE TABLE names (key INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)"
+
+    replaced_table_command: str = \
+        ("CREATE TABLE replaced "
+         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
+         " org_fname TEXT,"
+         " metadata TEXT,"
+         " google_fotos_metadata TEXT,"
+         " file_hash TEXT, "
+         " datetime TEXT,"
+         " successor INTEGER,"
+         " former_name TEXT DEFAULT NULL,"
+         " FOREIGN KEY (successor) REFERENCES images(key))")
+
+    import_tables_table_command: str = \
+        ("CREATE TABLE import_tables "
+         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
+         " root_path TEXT NOT NULL, "
+         " import_table_name TEXT UNIQUE NOT NULL,"
+         "import_table_description TEXT)")
 
     def __init__(self, root_dir: str, db_path: str = None):
 
