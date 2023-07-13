@@ -233,9 +233,19 @@ class PhotoDb:
         return datetime.datetime.strptime(dt_str, self.__datetime_format)
 
     def __file_name_generator(self, dt_obj: datetime.datetime, old_fname: str):
+        """
+        Generates a new file name based on the datetime that is provided. The old fname is used for the extension.
+        A given second may have up to 1000 files at the same time.
+
+        :param dt_obj: datetime when the file needs to be inserted
+        :param old_fname: old file name used for file extension.
+
+        :return:
+        """
+        base = dt_obj.strftime(self.__datetime_format)
+        extension = os.path.splitext(old_fname)[1].lower()
+
         for i in range(1000):
-            base = dt_obj.strftime(self.__datetime_format)
-            extension = os.path.splitext(old_fname)[1].lower()
             name = f"{base}_{i:03}{extension}"
 
             self.cur.execute(f"SELECT * FROM names WHERE name = '{name}'")
