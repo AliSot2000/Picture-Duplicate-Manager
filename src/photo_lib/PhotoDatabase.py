@@ -673,28 +673,26 @@ class PhotoDb:
         return metadata_needed
 
 
-    def find_matches_for_import_table(self, table: str, match_hash: bool = False, match_trash: bool = False,
-                                        match_replaced: bool = False):
+    def find_matches_for_import_table(self, table: str):
         """
         Determines for all files in a given import table if the files can be imported or if they are existing in some
         capacity. It sets the match_type field of the database and the message
 
-        If everything is false - the most rudimentary check is performed. Check if a file exists at the same date and
+        The most rudimentary check is performed first. Check if a file exists at the same date and
         time and if so, check the files if they are identical (binary).
 
-        If match_hash is true: The import also checks against the hash of the file. That is, if there's a file in the
-        database that has the same hash and file size, it will be considered a match.
+        If this doesn't produce a match: The import also checks against the hash of the file. That is, if there's a
+        file in the database that has the same hash and file size, if will be checked if they are identical (binary).
 
-        If match_trash is true: The import will check if the file is in the trash (by matching the hash stored with the
-        trash.). If so, it will be considered a match.
+        If this doesn't produce a match: The import will check if the file is in the trash (by matching the hash stored
+        with the trash.). If so, it will be considered a match. It also checks to trash folder if the image still
+        exists there and if so, it will be checked if they are identical (binary).
 
-        If match_replaced is true: The import will check if the file is in the replaced table (by matching the hash
-        stored with the replaced table.). If so, it will be considered a match.
+        If this doesn't produce a match: The import will check if the file is in the replaced table (by matching the hash
+        stored with the replaced table.). If so, it will be considered a match. It also checks to trash folder if the
+        image still exists there and if so, it will be checked if they are identical (binary).
 
         :param table: prepared import table to take for determining the match state.
-        :param match_hash:
-        :param match_trash:
-        :param match_replaced:
         :return:
         """
         self.cur.execute(f"UPDATE {table} SET match_type = 0, message = '{message_lookup[0]}' WHERE allowed = 1")
@@ -712,21 +710,21 @@ class PhotoDb:
             m_found, m_key, m_type = self.__date_time_checker(to_import_file_path=file_path, target_datetime=dt_obj)
 
             # if no match was found, check if there's a match by hash in the images.
-            if not m_found and match_hash:
+            if not m_found:
                 m_found, m_key, m_type = self.__check_hash_images(target_file=file_path,
                                                                   target_hash=file_hash,
                                                                   target_file_size=file_size,
                                                                   trash=False)
 
             # if no match was found, check if there's a match in the trash
-            if not m_found and match_trash:
+            if not m_found:
                 m_found, m_key, m_type = self.__check_hash_images(target_file=file_path,
                                                                   target_hash=file_hash,
                                                                   target_file_size=file_size,
                                                                   trash=True)
 
             # if no match was found, check if there's a match in the replaced table
-            if not m_found and match_replaced:
+            if not m_found:
                 m_found, m_key, m_type = self.__check_hash_replaced(target_file=file_path,
                                                                    target_hash=file_hash,
                                                                    target_file_size=file_size)
