@@ -1072,25 +1072,40 @@ class PhotoDb:
 
         # get data from the target to be marked as duplicate from the main table
         self.cur.execute(
-            f"SELECT key, org_fname, metadata, google_fotos_metadata, file_hash, datetime, new_name FROM images "
-            f"WHERE key is {duplicate_image_id}")
+            f"SELECT key, org_fname, metadata, google_fotos_metadata, file_hash, datetime, new_name, "
+            f"original_google_metadata "
+            f"FROM images WHERE key is {duplicate_image_id}")
         data = self.cur.fetchall()
 
         # would violate SQL but just put it in here because I might be stupid
-        assert len(data) == 1
+        assert len(data) == 1, "Multiple images matching key!!!"
 
         # insert duplicate into replaced table
         self.cur.execute(f"INSERT INTO replaced "
-                         f"(key, org_fname, metadata, google_fotos_metadata, file_hash, successor, datetime) "
-                         f"VALUES "
-                         f"({data[0][0]}, '{data[0][1]}', '{data[0][2]}', '{data[0][3]}', '{data[0][4]}', {successor}, "
-                         f"'{data[0][5]}')")
-
-        # is removed duplicate from main table because it could result in confusion
-        self.cur.execute(f"DELETE FROM images WHERE key = {duplicate_image_id}")
+                         f"(key, "
+                         f"org_fname, "
+                         f"metadata, "
+                         f"google_fotos_metadata, "
+                         f"file_hash, "
+                         f"successor, "
+                         f"datetime, "
+                         f"former_name, "
+                         f"original_google_metadata) VALUES "
+                         f"({data[0][0]}, "
+                         f"'{data[0][1]}', "
+                         f"'{data[0][2]}', "
+                         f"'{data[0][3]}', "
+                         f"'{data[0][4]}', "
+                         f"{successor}, "
+                         f"'{data[0][5]}', "
+                         f"'{data[0][6]}', "
+                         f"'{data[0][7]}')")
 
         # update children that have the target as successor
         self.cur.execute(f"UPDATE replaced SET successor = {successor} WHERE successor = {data[0][0]}")
+
+        # is removed duplicate from main table because it could result in confusion
+        self.cur.execute(f"DELETE FROM images WHERE key = {duplicate_image_id}")
 
         self.con.commit()
 
