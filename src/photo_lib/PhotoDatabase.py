@@ -5,6 +5,7 @@ import sqlite3
 import json
 import base64
 import time
+from enum import Enum
 
 import cv2
 from .metadataagregator import MetadataAggregator, FileMetaData
@@ -23,6 +24,26 @@ from .errors_and_warnings import *
 from fast_diff_py import fastDif
 from photo_lib.utils import rec_list_all, rec_walker, path_builder
 
+
+class MatchTypes(Enum):
+    """
+    Enum to indicate the type of match found in the database.
+    """
+    NO_MATCH = 0
+    Binary_Match_Images = 1
+    Binary_Match_Trash = 2
+    Hash_Match_Trash = 3
+    Binary_Match_Replaced = 4
+    Hash_Match_Replaced = 5
+
+message_lookup = [
+    "No Match found in Database",
+    "Found a Binary Match in the Database",
+    "Found a Binary Match in the Trash",
+    "Found a Hash Match in the Trash",
+    "Found a Binary Match in the Replaced Files",
+    "Found a Hash Match in the Replaced Files"
+]
 
 # INFO: If you run the img_ana_dup_search from another file and not the gui, MAKE SURE TO EMPTY THE PIPE.
 # After around 1000 Calls, the pipe will be full and the program will freeze !!!
