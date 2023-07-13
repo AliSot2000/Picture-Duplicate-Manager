@@ -555,6 +555,7 @@ class PhotoDb:
         :param folder_path: Path to folder to import
         :param allowed_file_types: Override allowed file types
         :param tbl_name: Name of the import table. If None, a new one will be created.
+
         :return: temp_table_name
         """
         folder_path = os.path.abspath(folder_path.rstrip("/"))
@@ -575,9 +576,10 @@ class PhotoDb:
                              f"message TEXT,"
                              f"datetime TEXT,"
                              f"naming_tag TEXT,"
-                             f"match INTEGER DEFAULT NULL, --      the match found in the trash, images or replaced table\n"
-                             f"import_key INTEGER DEFAULT NULL, -- the key may not have foreign key constraint since we "
-                             f"                                    want to be able to move the image to the replaced table\n"
+                             f"match INTEGER DEFAULT NULL,"  # the match found in the trash, images or replaced table
+                             f"import_key INTEGER DEFAULT NULL," # the key may not have foreign key constraint since we 
+                                                                 # want to be able to move the image to the replaced 
+                                                                 # table
                              f"UNIQUE (org_fpath, org_fname);"
                              )
 
