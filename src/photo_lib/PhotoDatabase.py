@@ -585,14 +585,23 @@ class PhotoDb:
                 self.cur.execute(f"SELECT allowed FROM {tbl_name} WHERE org_fpath = '{file[0]}' AND org_fname = '{file[1]}'")
                 mdo = self.mda.process_file(file)
 
+                query = (
+                    f"UPDATE {tbl_name} SET "
+                    f"metadata = '{self.__dict_to_b64(mdo.metadata)}',"
+                )
+
+                if mdo.google_fotos_metadata is not None:
+                    query += f"google_fotos_metadata = '{self.__dict_to_b64(mdo.google_fotos_metadata)}',"
+
+                query +=  (
+                    f"file_hash = '{mdo.file_hash}',"
+                    f"naming_tag = '{mdo.naming_tag}',"
+                    f"datetime = '{self.__datetime_to_db_str(mdo.datetime_object)}' "
+                    f"WHERE org_fpath = '{mdo.org_fpath}' AND org_fname = '{mdo.org_fname}'"
+                )
+
                 # update the import table
-                self.cur.execute(f"UPDATE {tbl_name} SET "
-                                 f"metadata = '{self.__dict_to_b64(mdo.metadata)}',"
-                                 f"google_fotos_metadata = '{self.__dict_to_b64(mdo.google_fotos_metadata)}',"
-                                 f"file_hash = '{mdo.file_hash}',"
-                                 f"naming_tag = '{mdo.naming_tag}',"
-                                 f"datetime = '{self.__datetime_to_db_str(mdo.datetime_object)}' "
-                                 f"WHERE org_fpath = '{mdo.org_fpath}' AND org_fname = '{mdo.org_fname}'")
+                self.cur.execute(query)
 
             self.con.commit()
             return tbl_name
