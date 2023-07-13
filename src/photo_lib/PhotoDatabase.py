@@ -511,23 +511,29 @@ class PhotoDb:
     def revert_import(self, tbl_name: str):
         """
         In case an import failed, revert the import and remove the images from the database and stuff.
+
         :param tbl_name: name of the import table
+
         :return:
         """
-        self.cur.execute(f"SELECT * FROM {tbl_name}")
+        self.cur.execute(f"SELECT key, imported, impoprt_key FROM {tbl_name}")
         rows = self.cur.fetchall()
 
         for row in rows:
             # imported is 1
-            if row[7] == 1:
-                dt = row[6].split("_")[0]
+            if row[1] == 1:
+
+                assert row[2] is not None, "Imported is 1 but import_key is None"
+
+                self.cur.execute(f"SELECT datetime, new_name FROM images WHERE key = {row[2]}")
+                dt_str, new_name = self.cur.fetchone()
                 try:
-                    os.remove(self.path_from_datetime(self.__db_str_to_datetime(dt), row[6]))
+                    os.remove(self.path_from_datetime(self.__db_str_to_datetime(dt_str), new_name))
                 except FileNotFoundError:
-                    print(f"File {row[6]} not found. Skipping.")
+                    print(f"File {new_name} not found. Skipping.")
 
                 # remove from the images table
-                self.cur.execute(f"DELETE FROM images WHERE new_name = '{row[6]}'")
+                self.cur.execute(f"DELETE FROM images WHERE key = {row[2]}")
 
             # deleting the row from the import table
             self.cur.execute(f"DELETE FROM {tbl_name} WHERE key = {row[0]}")
