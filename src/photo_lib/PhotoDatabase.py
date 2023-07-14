@@ -675,7 +675,6 @@ class PhotoDb:
             # otherwise - perform insert and add to metadata_needed
             self.cur.execute(f"INSERT INTO `{tbl_name}` (org_fname, org_fpath, allowed) "
                              f"VALUES ('{fname}', '{fpath}', {f_allowed})")
-            metadata_needed.append(file)
             count += 1
 
         print(f"Added {count} files to the import table.\nTotal Files: {len(files)}")
