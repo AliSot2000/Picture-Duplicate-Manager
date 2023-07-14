@@ -426,7 +426,7 @@ class PhotoDb:
 
     def verify_tables(self) -> Tuple[bool, bool]:
         existing_tables = self.__list_present_tables()
-        tables = ("images", "names", "replaced", "import_tables", "trash")
+        tables = ("images", "names", "replaced", "import_tables")
         all_correctly_formatted = True
         all_present = True
 
