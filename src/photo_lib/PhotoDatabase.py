@@ -150,7 +150,7 @@ class PhotoDb:
          "datetime TEXT, "
          "present INTEGER DEFAULT 1 CHECK (present in (0, 1) ), "
          "verify INTEGER DEFAULT 0 CHECK (verify in (0, 1)),"
-         "trashed INTEGER DEFAULT 0 CHECK (trash in (0, 1)),"
+         "trashed INTEGER DEFAULT 0 CHECK (trashed in (0, 1)),"
          "original_google_metadata INTEGER DEFAULT -1 CHECK (original_google_metadata in (0, 1, -1)),"
          "timestamp INTEGER DEFAULT 0)")
 
