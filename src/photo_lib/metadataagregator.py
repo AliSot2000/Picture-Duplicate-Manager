@@ -51,6 +51,7 @@ def general_parser(dt_str: str, preferred: str = None, retry: bool = True):
 
     patterns:
     ':: ::z'
+    ':: :: z'
     '-- :: z'
     '-- ::z'
     '--T::z'
@@ -77,6 +78,17 @@ def general_parser(dt_str: str, preferred: str = None, retry: bool = True):
     if preferred is None or preferred == ":: ::z":
         try:
             return anti_utc(dt_str, "%Y:%m:%d %H:%M:%S%z")
+        except ValueError:
+            if preferred is not None:
+                if retry:
+                    return general_parser(dt_str)
+                return None
+
+    # format YYYY:MM:DD HH:MM:SS +HH:MM
+    # format YYYY:MM:DD HH:MM:SS +HHMM
+    if preferred is None or preferred == ":: :: z":
+        try:
+            return anti_utc(dt_str, "%Y:%m:%d %H:%M:%S %z")
         except ValueError:
             if preferred is not None:
                 if retry:
