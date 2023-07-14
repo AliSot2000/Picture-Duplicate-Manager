@@ -660,6 +660,9 @@ class PhotoDb:
             fname = os.path.basename(file)
             fpath = os.path.dirname(file)
 
+            if f_allowed:
+                metadata_needed.append(file)
+
             # if exists, update the table
             self.cur.execute(f"SELECT key FROM `{tbl_name}` WHERE org_fname = '{fname}' AND org_fpath = '{fpath}'")
 
