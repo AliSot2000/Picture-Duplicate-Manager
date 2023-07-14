@@ -581,58 +581,61 @@ class PhotoDb:
             self.con.commit()
             tbl_name = temp_table_name
 
-            # index the directory
-            # assertion we have enough ram to store the information
-            files = rec_list_all(folder_path)
+        # index the directory
+        # assertion we have enough ram to store the information
+        files = rec_list_all(folder_path)
 
-            metadata_needed = self.__insert_or_update_directory(tbl_name=tbl_name, files=files,
-                                                                allowed_file_types=allowed_file_types)
+        metadata_needed = self.__insert_or_update_directory(tbl_name=tbl_name, files=files,
+                                                            allowed_file_types=allowed_file_types)
 
-            if recompute_metadata:
-                metadata_needed = files
+        if recompute_metadata:
+            metadata_needed = files
 
-            # precondition - the files that need the metadata are already in the table and the table only needs to be
-            # updated.
+        # precondition - the files that need the metadata are already in the table and the table only needs to be
+        # updated.
 
-            # compute metadata
-            for i in range(len(metadata_needed)):
-                if i % 100 == 0:
-                    print(f"Computing metadata for file {i} of {len(metadata_needed)}")
-                file = metadata_needed[i]
-                fname = os.path.basename(file)
-                fpath = os.path.dirname(file)
-                self.cur.execute(f"SELECT allowed FROM `{tbl_name}` "
-                                 f"WHERE org_fpath = '{fpath}' AND org_fname = '{fname}'")
+        # compute metadata
+        for i in range(len(metadata_needed)):
+            if i % 100 == 0:
+                print(f"Computing metadata for file {i} of {len(metadata_needed)}")
+            file = metadata_needed[i]
+            fname = os.path.basename(file)
+            fpath = os.path.dirname(file)
+            self.cur.execute(f"SELECT allowed, metadata FROM `{tbl_name}` "
+                             f"WHERE org_fpath = '{fpath}' AND org_fname = '{fname}'")
 
-                res = self.cur.fetchone()
-                assert res is not None, f"File {file} not found in the import table."
+            res = self.cur.fetchone()
+            assert res is not None, f"File {file} not found in the import table."
 
-                # Not allowed, we continue
-                if res[0] == 0:
-                    continue
+            # Not allowed, we continue
+            if res[0] == 0:
+                continue
 
-                mdo = self.mda.process_file(file)
+            if res[1] is not None and not recompute_metadata:
+                continue
 
-                query = (
-                    f"UPDATE `{tbl_name}` SET "
-                    f"metadata = '{self.__dict_to_b64(mdo.metadata)}',"
-                )
+            mdo = self.mda.process_file(file)
 
-                if mdo.google_fotos_metadata is not None:
-                    query += f"google_fotos_metadata = '{self.__dict_to_b64(mdo.google_fotos_metadata)}',"
+            query = (
+                f"UPDATE `{tbl_name}` SET "
+                f"metadata = '{self.__dict_to_b64(mdo.metadata)}',"
+            )
 
-                query +=  (
-                    f"file_hash = '{mdo.file_hash}',"
-                    f"naming_tag = '{mdo.naming_tag}',"
-                    f"datetime = '{self.__datetime_to_db_str(mdo.datetime_object)}' "
-                    f"WHERE org_fpath = '{mdo.org_fpath}' AND org_fname = '{mdo.org_fname}'"
-                )
+            if mdo.google_fotos_metadata is not None:
+                query += f"google_fotos_metadata = '{self.__dict_to_b64(mdo.google_fotos_metadata)}',"
 
-                # update the import table
-                self.cur.execute(query)
+            query +=  (
+                f"file_hash = '{mdo.file_hash}',"
+                f"naming_tag = '{mdo.naming_tag}',"
+                f"datetime = '{self.__datetime_to_db_str(mdo.datetime_object)}' "
+                f"WHERE org_fpath = '{mdo.org_fpath}' AND org_fname = '{mdo.org_fname}'"
+            )
 
-            self.con.commit()
-            return tbl_name
+            # update the import table
+            self.cur.execute(query)
+
+        self.con.commit()
+        return tbl_name
 
     def __insert_or_update_directory(self, tbl_name: str, files: list, allowed_file_types: Set[str] = None,):
         """
