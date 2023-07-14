@@ -190,27 +190,48 @@ class CompareRoot(QLabel):
         Go through target panes and trigger a click on the main_button
         :return:
         """
+        to_del = []
         for target in self.target_panes:
             target: MediaPane
-            target.main_button.click()
+            try:
+                target.main_button.click()
+            except RuntimeError:
+                to_del.append(target)
+
+        for target in to_del:
+            self.target_panes.remove(target)
 
     def change_target_tag(self):
         """
         Go through target panes and trigger a click on the change_tag_button
         :return:
         """
+        to_del = []
         for target in self.target_panes:
             target: MediaPane
-            target.change_tag_button.click()
+            try:
+                target.change_tag_button.click()
+            except RuntimeError:
+                to_del.append(target)
+
+        for target in to_del:
+            self.target_panes.remove(target)
 
     def remove_target_from_cluster(self):
         """
         Go through target panes and trigger a click on the remove_media_button
         :return:
         """
+        to_del = []
         for target in self.target_panes:
             target: MediaPane
-            target.remove_media_button.click()
+            try:
+                target.remove_media_button.click()
+            except RuntimeError:
+                to_del.append(target)
+
+        for target in to_del:
+            self.target_panes.remove(target)
 
     def load_elements(self) -> bool:
         """
