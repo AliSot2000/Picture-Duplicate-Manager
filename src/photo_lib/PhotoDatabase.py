@@ -898,14 +898,14 @@ class PhotoDb:
 
             rows = self.cur.fetchall()
             for row in rows:
-                self.cur.execute(f"SELECT google_fotos_metadata "
+                self.cur.execute(f"SELECT google_fotos_metadata, original_google_metadata "
                                  f"FROM images WHERE key = {row[0]}")
 
                 res = self.cur.fetchone()
                 assert res is not None, f"Inconsistent data, found match in {table_name} but not in images table."
 
                 # There already exists metadata, continuing
-                if res[0] is not None:
+                if res[0] is not None or res[1] != -1:
                     continue
 
                 self.cur.execute(f"UPDATE images SET google_fotos_metadata = '{row[1]}', original_google_metadata = 0 "
@@ -917,14 +917,14 @@ class PhotoDb:
 
             rows = self.cur.fetchall()
             for row in rows:
-                self.cur.execute(f"SELECT google_fotos_metadata "
+                self.cur.execute(f"SELECT google_fotos_metadata, original_google_metadata "
                                  f"FROM replaced WHERE key = {row[0]}")
 
                 res = self.cur.fetchone()
                 assert res is not None, f"Inconsistent data, found match in {table_name} but not in replaced table."
 
                 # There already exists metadata, continuing
-                if res[0] is not None:
+                if res[0] is not None or res[1] != -1:
                     continue
 
                 self.cur.execute(
