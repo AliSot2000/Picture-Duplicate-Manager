@@ -595,7 +595,10 @@ class PhotoDb:
             # updated.
 
             # compute metadata
-            for file in metadata_needed:
+            for i in range(len(metadata_needed)):
+                if i % 100 == 0:
+                    print(f"Computing metadata for file {i} of {len(metadata_needed)}")
+                file = metadata_needed[i]
                 fname = os.path.basename(file)
                 fpath = os.path.dirname(file)
                 self.cur.execute(f"SELECT allowed FROM {tbl_name} "
