@@ -1294,10 +1294,10 @@ class PhotoDb:
         # calculate new size
         if max_pix == img.shape[0]:
             py = max_pixel
-            px = int(max_pixel / max_pix * img.shape[1])
+            px = max(1, int(max_pixel / max_pix * img.shape[1]))
         else:
             px = max_pixel
-            py = int(max_pixel / max_pix * img.shape[0])
+            py = max(1, int(max_pixel / max_pix * img.shape[0]))
 
         # resize image to new size
         img_half = cv2.resize(img, dsize=(px, py))
