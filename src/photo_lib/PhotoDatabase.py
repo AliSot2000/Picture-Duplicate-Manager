@@ -601,7 +601,7 @@ class PhotoDb:
                 file = metadata_needed[i]
                 fname = os.path.basename(file)
                 fpath = os.path.dirname(file)
-                self.cur.execute(f"SELECT allowed FROM {tbl_name} "
+                self.cur.execute(f"SELECT allowed FROM `{tbl_name}` "
                                  f"WHERE org_fpath = '{fpath}' AND org_fname = '{fname}'")
 
                 res = self.cur.fetchone()
@@ -614,7 +614,7 @@ class PhotoDb:
                 mdo = self.mda.process_file(file)
 
                 query = (
-                    f"UPDATE {tbl_name} SET "
+                    f"UPDATE `{tbl_name}` SET "
                     f"metadata = '{self.__dict_to_b64(mdo.metadata)}',"
                 )
 
@@ -658,16 +658,16 @@ class PhotoDb:
             fpath = os.path.dirname(file)
 
             # if exists, update the table
-            self.cur.execute(f"SELECT key FROM {tbl_name} WHERE org_fname = '{fname}' AND org_fpath = '{fpath}'")
+            self.cur.execute(f"SELECT key FROM `{tbl_name}` WHERE org_fname = '{fname}' AND org_fpath = '{fpath}'")
 
             result = self.cur.fetchone()
             if result is not None:
-                self.cur.execute(f"UPDATE {tbl_name} SET allowed = {f_allowed} WHERE key = {result[0]}")
+                self.cur.execute(f"UPDATE `{tbl_name}` SET allowed = {f_allowed} WHERE key = {result[0]}")
 
                 continue
 
             # otherwise - perform insert and add to metadata_needed
-            self.cur.execute(f"INSERT INTO {tbl_name} (org_fname, org_fpath, allowed) "
+            self.cur.execute(f"INSERT INTO `{tbl_name}` (org_fname, org_fpath, allowed) "
                              f"VALUES ('{fname}', '{fpath}', {f_allowed})")
             metadata_needed.append(file)
             count += 1
@@ -698,8 +698,8 @@ class PhotoDb:
         :param table: prepared import table to take for determining the match state.
         :return:
         """
-        self.cur.execute(f"UPDATE {table} SET match_type = 0, message = '{message_lookup[0]}' WHERE allowed = 1")
-        self.cur.execute(f"SELECT key, org_fpath, org_fname, datetime, file_hash, metadata FROM {table} WHERE allowed = 1")
+        self.cur.execute(f"UPDATE `{table}` SET match_type = 0, message = '{message_lookup[0]}' WHERE allowed = 1")
+        self.cur.execute(f"SELECT key, org_fpath, org_fname, datetime, file_hash, metadata FROM `{table}` WHERE allowed = 1")
         targets = self.cur.fetchall()
 
         for row in targets:
@@ -733,7 +733,7 @@ class PhotoDb:
                                                                    target_file_size=file_size)
 
             if m_found:
-                self.cur.execute(f"UPDATE {table} SET "
+                self.cur.execute(f"UPDATE `{table}` SET "
                                  f"match_type = {m_type.value}, "
                                  f"match = {m_key}, "
                                  f"message = '{message_lookup[m_type.value]}' "
@@ -863,8 +863,8 @@ class PhotoDb:
             match_types = [MatchTypes.NO_MATCH]
 
         self.cur.execute(f"SELECT "
-                         f"org_fname, org_fpath, metadata, google_fotos_metadata, file_hash, datetime, naming_tag "
-                         f"FROM {table_name} " 
+                         f"key, org_fname, org_fpath, metadata, google_fotos_metadata, file_hash, datetime, naming_tag "
+                         f"FROM `{table_name}` " 
                          f"WHERE allowed = 1 AND imported = 0 "
                          f"AND match_type IN ({','.join([str(x.value) for x in match_types])})")
 
@@ -893,8 +893,8 @@ class PhotoDb:
 
         if copy_gfmd:
             # Get all google fotos metadata from the images table
-            self.cur.execute("SELECT match, google_fotos_metadata FROM {table_name} "
-                             "WHERE match_type > 0 AND match_type < 4 AND google_fotos_metadata IS NOT NULL")
+            self.cur.execute(f"SELECT match, google_fotos_metadata FROM `{table_name}` "
+                             f"WHERE match_type > 0 AND match_type < 4 AND google_fotos_metadata IS NOT NULL")
 
             rows = self.cur.fetchall()
             for row in rows:
@@ -912,8 +912,8 @@ class PhotoDb:
                                  f"WHERE key = {row[0]}")
 
             # Get all google fotos metadata from the replaced table
-            self.cur.execute("SELECT match, google_fotos_metadata FROM {table_name} "
-                             "WHERE match_type > 3  AND google_fotos_metadata IS NOT NULL")
+            self.cur.execute(f"SELECT match, google_fotos_metadata FROM `{table_name}` "
+                             f"WHERE match_type > 3  AND google_fotos_metadata IS NOT NULL")
 
             rows = self.cur.fetchall()
             for row in rows:
@@ -984,10 +984,10 @@ class PhotoDb:
         update_key = self.cur.fetchone()[0]
 
         # create entry in temporary database
-        self.cur.execute(f"UPDATE {table} "
-                         f"SET import_key = '{self.__dict_to_b64(fmd.metadata)}', "
-                         f"imported = 1, "
-                         f"WHERE key = {update_key}")
+        self.cur.execute(f"UPDATE `{table}` "
+                         f"SET import_key = {update_key}, "
+                         f"imported = 1 "
+                         f"WHERE key == {update_it_key}")
 
     def __create_import_table(self, folder_path: str, msg: str = None) -> str:
         """
@@ -1002,7 +1002,7 @@ class PhotoDb:
             msg = os.path.basename(folder_path)
 
         for i in range(100):
-            temp_table_name = str(hash(datetime.datetime.now()))
+            temp_table_name = f"tbl_{str(hash(datetime.datetime.now()))}"
 
             try:
                 self.cur.execute(f"INSERT INTO import_tables (root_path, import_table_name, import_table_description) "
