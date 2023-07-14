@@ -1340,18 +1340,32 @@ class PhotoDb:
 
             assert len(results) <= 1, "more results than allowed, Database configuration is wrong, should be unique or "
 
-
         # Parse the result of the Database
         key = results[0][0]
         new_name = results[0][1]
-        dt_str = results[0][2]
+        dt_obj = self.__db_str_to_datetime(results[0][2])
+        trashed = bool(results[0][3])
+        present = bool(results[0][4])
+
+        if trashed and not delete:
+            print(f"WARNING: Image {results[0][0]} is already in trash folder")
+            return
+        # Image is still in db if not delete
+
+        if delete and not present:
+            print(f"WARNING: Image {results[0][0]} is already deleted")
+            return
+        # Image is still in trash if delete
+
+
 
         # make sure thumbnail exists
-        self.create_img_thumbnail(key=key)
+        if not trashed and present:
+            self.create_img_thumbnail(key=key)
 
         # move file
         if not delete:
-            src = self.path_from_datetime(self.__db_str_to_datetime(dt_str), new_name)
+            src = self.path_from_datetime(dt_obj, new_name)
             dst = self.trash_path(new_name)
 
             if os.path.exists(dst):
@@ -1359,10 +1373,17 @@ class PhotoDb:
 
             os.rename(src, dst)
         else:
-            os.remove(self.path_from_datetime(self.__db_str_to_datetime(dt_str), new_name))
+            # Trashed
+            if not trashed:
+                os.remove(self.path_from_datetime(dt_obj, new_name))
+            else:
+                try:
+                    os.remove(self.trash_path(new_name))
+                except FileNotFoundError:
+                    print(f"WARNING: File {new_name} not found in trash folder.")
 
         # update the image table
-        self.cur.execute(f"UPDATE image SET trash = 1, present = 0 WHERE key = {key}")
+        self.cur.execute(f"UPDATE images SET trashed = 1, present = {0 if delete else 1} WHERE key = {key}")
 
         self.con.commit()
 
