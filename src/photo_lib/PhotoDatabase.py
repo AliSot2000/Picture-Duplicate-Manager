@@ -683,6 +683,9 @@ class PhotoDb:
 
     def find_matches_for_import_table(self, table: str):
         """
+        The import is only looked at for files that have not been imported. If a file has been imported, it won't be
+        updated since then the match would be the same as the import_key field.
+
         Determines for all files in a given import table if the files can be imported or if they are existing in some
         capacity. It sets the match_type field of the database and the message
 
@@ -704,7 +707,7 @@ class PhotoDb:
         :return:
         """
         self.cur.execute(f"UPDATE `{table}` SET match_type = 0, message = '{message_lookup[0]}' WHERE allowed = 1")
-        self.cur.execute(f"SELECT key, org_fpath, org_fname, datetime, file_hash, metadata FROM `{table}` WHERE allowed = 1")
+        self.cur.execute(f"SELECT key, org_fpath, org_fname, datetime, file_hash, metadata FROM `{table}` WHERE allowed = 1 AND imported = 0")
         targets = self.cur.fetchall()
 
         for row in targets:
