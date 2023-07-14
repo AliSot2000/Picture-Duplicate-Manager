@@ -178,8 +178,9 @@ class Model:
             raise NoDbException("No Database selected")
 
         self.files = []
-        self.pdb.delete_duplicate_row(self.current_row)
-        self.current_row = None
+        if self.current_row is not None:
+            self.pdb.delete_duplicate_row(self.current_row)
+            self.current_row = None
 
     def remove_file(self, dbe: DatabaseEntry):
         """
