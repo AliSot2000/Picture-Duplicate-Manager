@@ -767,10 +767,12 @@ class PhotoDb:
         results = self.cur.fetchall()
         for result in results:
             # check if the files are identical
-            if filecmp.cmp(to_import_file_path,
-                           self.path_from_datetime(dt_obj=target_datetime, file_name=result[1]),
-                           shallow=False):
-                return True, result[0], MatchTypes.Binary_Match_Images
+            # file needs to exist first:
+            if os.path.exists(self.path_from_datetime(dt_obj=target_datetime, file_name=result[1])):
+                if filecmp.cmp(to_import_file_path,
+                               self.path_from_datetime(dt_obj=target_datetime, file_name=result[1]),
+                               shallow=False):
+                    return True, result[0], MatchTypes.Binary_Match_Images
 
         return False, None, MatchTypes.NO_MATCH
 
@@ -1325,7 +1327,7 @@ class PhotoDb:
             raise ValueError("Key or file name must be provided")
         elif key is None:
             self.cur.execute(
-                f"SELECT key, new_name, datetime FROM images WHERE new_name IS '{file_name}'")
+                f"SELECT key, new_name, datetime, trashed, present FROM images WHERE new_name IS '{file_name}'")
             results = self.cur.fetchall()
 
             assert len(results) <= 1, "more results than allowed, Database configuration is wrong, should be unique or "
@@ -1333,7 +1335,7 @@ class PhotoDb:
         # key provided -> overrules a secondary fname
         else:
             self.cur.execute(
-                f"SELECT key, new_name, datetime FROM images WHERE key = {key}")
+                f"SELECT key, new_name, datetime, trashed, present FROM images WHERE key = {key}")
             results = self.cur.fetchall()
 
             assert len(results) <= 1, "more results than allowed, Database configuration is wrong, should be unique or "
