@@ -558,7 +558,7 @@ class PhotoDb:
         # Create table if no table is provided.
         if tbl_name is None:
             temp_table_name = self.__create_import_table(folder_path)
-            self.cur.execute(f"CREATE TABLE {temp_table_name}"
+            self.cur.execute(f"CREATE TABLE `{temp_table_name}`"
                              f"(key INTEGER PRIMARY KEY AUTOINCREMENT,"
                              f"org_fname TEXT NOT NULL,"
                              f"org_fpath TEXT NOT NULL,"
@@ -575,7 +575,7 @@ class PhotoDb:
                              f"import_key INTEGER DEFAULT NULL," # the key may not have foreign key constraint since we 
                                                                  # want to be able to move the image to the replaced 
                                                                  # table
-                             f"UNIQUE (org_fpath, org_fname);"
+                             f"UNIQUE (org_fpath, org_fname));"
                              )
 
             self.con.commit()
