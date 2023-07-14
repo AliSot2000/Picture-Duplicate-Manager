@@ -1307,7 +1307,7 @@ class PhotoDb:
 
         return True
 
-    def image_to_trash(self, key: int = None, file_name: str = None, delete: bool = False):
+    def media_file_to_trash(self, key: int = None, file_name: str = None, delete: bool = False):
         """
         Moves an image to trash folder or deletes it directly. The image is retained in the database. The file hash is
         kept to prevent future re-imports of the same image again.
