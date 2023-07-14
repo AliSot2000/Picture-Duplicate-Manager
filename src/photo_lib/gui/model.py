@@ -225,7 +225,7 @@ class Model:
 
         # Other thing
         # success, pipe = self.pdb.img_ana_dup_search(overwrite=True, level=self.search_level)
-        success, pipe = self.pdb.img_ana_dup_search(overwrite=True, level=self.search_level, new=False)
+        success, pipe = self.pdb.img_ana_dup_search(overwrite=True, level=self.search_level, new=True)
 
         if not success:
             print(pipe)
