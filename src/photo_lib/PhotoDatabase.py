@@ -877,17 +877,17 @@ class PhotoDb:
                 print(i)
 
             fmd = FileMetaData(
-                org_fname=rows[i][0],
-                org_fpath=rows[i][1],
-                metadata=self.__b64_to_dict(rows[i][2]),
-                google_fotos_metadata=self.__b64_to_dict(rows[i][3]),
-                file_hash=rows[i][4],
-                datetime_object=self.__db_str_to_datetime(rows[i][5]),
-                naming_tag=rows[i][6],
-                verify=rows[i][6][:4] == "File"
+                org_fname=rows[i][1],
+                org_fpath=rows[i][2],
+                metadata=self.__b64_to_dict(rows[i][3]),
+                google_fotos_metadata=self.__b64_to_dict(rows[i][4]),
+                file_hash=rows[i][5],
+                datetime_object=self.__db_str_to_datetime(rows[i][6]),
+                naming_tag=rows[i][7],
+                verify=rows[i][7][:4] == "File"
             )
 
-            self.__handle_import(fmd=fmd, table=table_name)
+            self.__handle_import(fmd=fmd, table=table_name, update_it_key=rows[i][0])
 
         self.con.commit()
 
@@ -935,12 +935,14 @@ class PhotoDb:
 
         return
 
-    def __handle_import(self, fmd: FileMetaData, table: str):
+    def __handle_import(self, fmd: FileMetaData, table: str, update_it_key: int):
         """
         Handles the import of the file. Moves the file to the database and adds it to the main table.
 
         :param fmd: metadata object
-        :param table: table from which import is occuring
+        :param table: table from which import is occurring
+        :param update_it_key: key of the row in the import table to update
+
         :return:
         """
         # create subdirectory
