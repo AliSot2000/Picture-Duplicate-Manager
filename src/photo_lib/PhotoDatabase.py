@@ -1299,62 +1299,61 @@ class PhotoDb:
 
         return True
 
-    def image_to_trash(self, key: int = None, file_name: str = None):
+    def image_to_trash(self, key: int = None, file_name: str = None, delete: bool = False):
+        """
+        Moves an image to trash folder or deletes it directly. The image is retained in the database. The file hash is
+        kept to prevent future re-imports of the same image again.
+
+        Either key or file_name can be provided. key overrules file_name if both are present.
+
+        :param key: key of the target image
+        :param file_name: file name of the target image
+        :param delete: if true the image is deleted directly, otherwise it is moved to trash folder
+
+        :return:
+        """
         # both none
         if key is None and file_name is None:
             raise ValueError("Key or file name must be provided")
         elif key is None:
             self.cur.execute(
-                f"SELECT key, org_fname, org_fpath, metadata, google_fotos_metadata, naming_tag, file_hash,"
-                f" new_name, datetime, original_google_metadata FROM images WHERE new_name IS '{file_name}'")
+                f"SELECT key, new_name, datetime FROM images WHERE new_name IS '{file_name}'")
             results = self.cur.fetchall()
 
-            if len(results) > 1:
-                raise ValueError("Corrupted Database - multiple images with identical name")
+            assert len(results) <= 1, "more results than allowed, Database configuration is wrong, should be unique or "
 
         # key provided -> overrules a secondary fname
         else:
             self.cur.execute(
-                f"SELECT key, org_fname, org_fpath, metadata, google_fotos_metadata, naming_tag, file_hash,"
-                f" new_name, datetime, original_google_metadata FROM images WHERE key = {key}")
+                f"SELECT key, new_name, datetime FROM images WHERE key = {key}")
             results = self.cur.fetchall()
 
-            if len(results) > 1:
-                raise ValueError("Corrupted Database - multiple images with identical key")
+            assert len(results) <= 1, "more results than allowed, Database configuration is wrong, should be unique or "
+
 
         # Parse the result of the Database
         key = results[0][0]
-        org_fname = results[0][1]
-        org_fpath = results[0][2]
-        metadata = results[0][3]
-        google_fotos_metadata = results[0][4]
-        naming_tag = results[0][5]
-        file_hash = results[0][6]
-        new_name = results[0][7]
-        datetime = results[0][8]
-        original_google_metadata = results[0][9]
+        new_name = results[0][1]
+        dt_str = results[0][2]
 
         # make sure thumbnail exists
         self.create_img_thumbnail(key=key)
 
         # move file
-        src = self.path_from_datetime(self.__db_str_to_datetime(datetime), new_name)
-        dst = self.trash_path(new_name)
+        if not delete:
+            src = self.path_from_datetime(self.__db_str_to_datetime(dt_str), new_name)
+            dst = self.trash_path(new_name)
 
-        if os.path.exists(dst):
-            raise ValueError("Image exists in trash already?")
+            if os.path.exists(dst):
+                raise ValueError("Image exists in trash already?")
 
-        os.rename(src, dst)
+            os.rename(src, dst)
+        else:
+            os.remove(self.path_from_datetime(self.__db_str_to_datetime(dt_str), new_name))
 
-        # create entries in databases
-        self.cur.execute("INSERT into trash "
-                         "(key, org_fname, org_fpath, metadata, google_fotos_metadata, naming_tag, file_hash,"
-                         f" new_name, datetime, original_google_metadata) "
-                         "VALUES "
-                         f"({key}, '{org_fname}', '{org_fpath}', '{metadata}', '{google_fotos_metadata}', "
-                         f"'{naming_tag}', '{file_hash}', '{new_name}', '{datetime}', {original_google_metadata})")
+        # update the image table
+        self.cur.execute(f"UPDATE image SET trash = 1, present = 0 WHERE key = {key}")
 
-        self.cur.execute(f"DELETE FROM images WHERE key = {key}")
         self.con.commit()
 
     def img_ana_dup_search(self, level: str, procs: int = 16, overwrite: bool = False, new: bool = True, separate_process: bool = True):
