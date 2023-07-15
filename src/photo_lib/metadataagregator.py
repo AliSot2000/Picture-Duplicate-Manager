@@ -354,7 +354,11 @@ class MetadataAggregator:
         cur_date: datetime.datetime = None
         cur_tag: str = ""
 
-        metadata = self.ethp.get_metadata(path)[0]
+        try:
+            metadata = self.ethp.get_metadata(path)[0]
+        except Exception as e:
+            print(f"Error while processing {path}")
+            raise e
         not_known = False
         not_parsed = False
 
