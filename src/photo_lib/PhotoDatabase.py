@@ -298,21 +298,21 @@ class PhotoDb:
         return os.path.join(self.trash_dir, file_name)
 
     def duplicate_table_exists(self) -> bool:
-        self.cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='duplicates'")
+        self.debug_exec("SELECT name FROM sqlite_master WHERE type='table' AND name='duplicates'")
         dups = self.cur.fetchone()
         return dups is not None
 
     def create_duplicates_table(self):
-        self.cur.execute("CREATE TABLE duplicates ("
+        self.debug_exec("CREATE TABLE duplicates ("
                          "key INTEGER PRIMARY KEY AUTOINCREMENT,"
                          "match_type TEXT,"
                          "matched_keys TEXT)")
 
     def delete_duplicates_table(self):
-        self.cur.execute("DROP TABLE IF EXISTS duplicates")
+        self.debug_exec("DROP TABLE IF EXISTS duplicates")
 
     def get_duplicate_table_size(self):
-        self.cur.execute("SELECT COUNT(key) FROM duplicates")
+        self.debug_exec("SELECT COUNT(key) FROM duplicates")
         return self.cur.fetchone()[0]
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -335,20 +335,20 @@ class PhotoDb:
         self.cur = self.con.cursor()
 
     def purge_import_tables(self):
-        self.cur.execute("SELECT import_table_name FROM import_tables")
+        self.debug_exec("SELECT import_table_name FROM import_tables")
         ttd = self.cur.fetchone()
 
         while ttd is not None:
             try:
-                self.cur.execute(f"DROP TABLE {ttd[0]}")
+                self.debug_exec(f"DROP TABLE {ttd[0]}")
                 print(f"Successfully droped '{ttd[0]}'")
             except sqlite3.OperationalError as e:
                 if "no such table:" in str(e):
                     print(f"table '{ttd[0]}' already deleted")
 
-            self.cur.execute(f"DELETE FROM import_Tables WHERE import_table_name = '{ttd[0]}'")
+            self.debug_exec(f"DELETE FROM import_Tables WHERE import_table_name = '{ttd[0]}'")
 
-            self.cur.execute("SELECT import_table_name FROM import_tables")
+            self.debug_exec("SELECT import_table_name FROM import_tables")
             ttd = self.cur.fetchone()
 
         self.con.commit()
@@ -358,7 +358,7 @@ class PhotoDb:
         Get a list of all names of the tables present in the database
         :return:
         """
-        self.cur.execute("SELECT name FROM sqlite_master WHERE type ='table'")
+        self.debug_exec("SELECT name FROM sqlite_master WHERE type ='table'")
         result = self.cur.fetchall()
         tables = [ res[0] for res in result]
 
@@ -373,7 +373,7 @@ class PhotoDb:
         :return: definition string
         """
         # precondition, table exists already.
-        self.cur.execute(f"SELECT sql FROM sqlite_master WHERE tbl_name = '{table}' AND type = 'table'")
+        self.debug_exec(f"SELECT sql FROM sqlite_master WHERE tbl_name = '{table}' AND type = 'table'")
         return self.cur.fetchone()[0]
 
     @staticmethod
@@ -459,18 +459,18 @@ class PhotoDb:
         :return:
         """
         try:
-            self.cur.execute(self.images_table_command)
+            self.debug_exec(self.images_table_command)
         except sqlite3.OperationalError as e:
             print("*** You still try to initialize the database. Do not set init arg when instantiating class ***")
             raise e
 
-        self.cur.execute(self.names_table_command)
+        self.debug_exec(self.names_table_command)
 
         # naming_tag, new_name, from images table, drop path info because not needed anymore,
         # TODO: Database needs a new replaced table -> Datetime and file_hash
-        self.cur.execute(self.replaced_table_command)
+        self.debug_exec(self.replaced_table_command)
 
-        self.cur.execute(self.import_tables_table_command)
+        self.debug_exec(self.import_tables_table_command)
 
         self.con.commit()
 
@@ -495,10 +495,10 @@ class PhotoDb:
         old_path = self.path_from_datetime(dt_obj=entry.datetime, file_name=entry.new_name)
 
         # free file name
-        self.cur.execute(f"DELETE FROM names WHERE name = '{entry.new_name}'")
+        self.debug_exec(f"DELETE FROM names WHERE name = '{entry.new_name}'")
 
         # update images table
-        self.cur.execute(f"UPDATE images SET "
+        self.debug_exec(f"UPDATE images SET "
                          f"new_name = '{new_name}', "
                          f"naming_tag = '{naming_tag}', "
                          f"datetime = '{self.__datetime_to_db_str(new_datetime)}', "
@@ -506,7 +506,7 @@ class PhotoDb:
                          f"WHERE key = {entry.key}")
 
         # update the names table
-        self.cur.execute(f"INSERT INTO names (name) VALUES ('{new_name}')")
+        self.debug_exec(f"INSERT INTO names (name) VALUES ('{new_name}')")
 
         print(f"Renaming: {old_path}\nto      : {new_path}")
 
@@ -526,7 +526,7 @@ class PhotoDb:
 
         :return:
         """
-        self.cur.execute(f"SELECT key, imported, impoprt_key FROM {tbl_name}")
+        self.debug_exec(f"SELECT key, imported, impoprt_key FROM {tbl_name}")
         rows = self.cur.fetchall()
 
         for row in rows:
@@ -535,7 +535,7 @@ class PhotoDb:
 
                 assert row[2] is not None, "Imported is 1 but import_key is None"
 
-                self.cur.execute(f"SELECT datetime, new_name FROM images WHERE key = {row[2]}")
+                self.debug_exec(f"SELECT datetime, new_name FROM images WHERE key = {row[2]}")
                 dt_str, new_name = self.cur.fetchone()
                 try:
                     os.remove(self.path_from_datetime(self.__db_str_to_datetime(dt_str), new_name))
@@ -543,16 +543,16 @@ class PhotoDb:
                     print(f"File {new_name} not found. Skipping.")
 
                 # remove from the images table
-                self.cur.execute(f"DELETE FROM images WHERE key = {row[2]}")
+                self.debug_exec(f"DELETE FROM images WHERE key = {row[2]}")
 
             # deleting the row from the import table
-            self.cur.execute(f"DELETE FROM {tbl_name} WHERE key = {row[0]}")
+            self.debug_exec(f"DELETE FROM {tbl_name} WHERE key = {row[0]}")
 
         # deleting the import table
-        self.cur.execute(f"DELETE FROM import_tables WHERE import_table_name = '{tbl_name}'")
+        self.debug_exec(f"DELETE FROM import_tables WHERE import_table_name = '{tbl_name}'")
 
         # dropping the table
-        self.cur.execute(f"DROP TABLE {tbl_name}")
+        self.debug_exec(f"DROP TABLE {tbl_name}")
         self.con.commit()
 
     def prepare_import(self, folder_path: str, allowed_file_types: Set[str] = None, tbl_name: str = None,
@@ -609,7 +609,7 @@ class PhotoDb:
             file = metadata_needed[i]
             fname = os.path.basename(file)
             fpath = os.path.dirname(file)
-            self.cur.execute(f"SELECT allowed, metadata FROM `{tbl_name}` "
+            self.debug_exec(f"SELECT allowed, metadata FROM `{tbl_name}` "
                              f"WHERE org_fpath = '{fpath}' AND org_fname = '{fname}'")
 
             res = self.cur.fetchone()
@@ -640,7 +640,7 @@ class PhotoDb:
             )
 
             # update the import table
-            self.cur.execute(query)
+            self.debug_exec(query)
 
         self.con.commit()
         return tbl_name
@@ -672,16 +672,16 @@ class PhotoDb:
                 metadata_needed.append(file)
 
             # if exists, update the table
-            self.cur.execute(f"SELECT key FROM `{tbl_name}` WHERE org_fname = '{fname}' AND org_fpath = '{fpath}'")
+            self.debug_exec(f"SELECT key FROM `{tbl_name}` WHERE org_fname = '{fname}' AND org_fpath = '{fpath}'")
 
             result = self.cur.fetchone()
             if result is not None:
-                self.cur.execute(f"UPDATE `{tbl_name}` SET allowed = {f_allowed} WHERE key = {result[0]}")
+                self.debug_exec(f"UPDATE `{tbl_name}` SET allowed = {f_allowed} WHERE key = {result[0]}")
 
                 continue
 
             # otherwise - perform insert and add to metadata_needed
-            self.cur.execute(f"INSERT INTO `{tbl_name}` (org_fname, org_fpath, allowed) "
+            self.debug_exec(f"INSERT INTO `{tbl_name}` (org_fname, org_fpath, allowed) "
                              f"VALUES ('{fname}', '{fpath}', {f_allowed})")
             count += 1
 
@@ -715,8 +715,8 @@ class PhotoDb:
         :param table: prepared import table to take for determining the match state.
         :return:
         """
-        self.cur.execute(f"UPDATE `{table}` SET match_type = 0, message = '{message_lookup[0]}' WHERE allowed = 1")
-        self.cur.execute(f"SELECT key, org_fpath, org_fname, datetime, file_hash, metadata FROM `{table}` WHERE allowed = 1 AND imported = 0")
+        self.debug_exec(f"UPDATE `{table}` SET match_type = 0, message = '{message_lookup[0]}' WHERE allowed = 1")
+        self.debug_exec(f"SELECT key, org_fpath, org_fname, datetime, file_hash, metadata FROM `{table}` WHERE allowed = 1 AND imported = 0")
         targets = self.cur.fetchall()
 
         if com is not None:
@@ -764,7 +764,7 @@ class PhotoDb:
                                                                    target_file_size=file_size)
 
             if m_found:
-                self.cur.execute(f"UPDATE `{table}` SET "
+                self.debug_exec(f"UPDATE `{table}` SET "
                                  f"match_type = {m_type.value}, "
                                  f"match = {m_key}, "
                                  f"message = '{message_lookup[m_type.value]}' "
@@ -784,7 +784,7 @@ class PhotoDb:
 
         :return: bool - true <-> there's a match, int / none - the key of the match in the database,match-type
         """
-        self.cur.execute(f"SELECT key, new_name FROM images "
+        self.debug_exec(f"SELECT key, new_name FROM images "
                          f"WHERE datetime = '{self.__datetime_to_db_str(target_datetime)}'")
 
         results = self.cur.fetchall()
@@ -811,7 +811,7 @@ class PhotoDb:
 
         :return: bool - true <-> there's a match, int / none - the key of the match in the database, matchtype
         """
-        self.cur.execute(f"SELECT key, metadata, new_name, datetime FROM images "
+        self.debug_exec(f"SELECT key, metadata, new_name, datetime FROM images "
                          f"WHERE file_hash = '{target_hash}' AND trashed = {1 if trash else 0}")
 
         results = self.cur.fetchall()
@@ -854,7 +854,7 @@ class PhotoDb:
 
         :return: bool - true <-> there's a match, int / none - the key of the match in the database, matchtype
         """
-        self.cur.execute(f"SELECT key, metadata, former_name FROM replaced "
+        self.debug_exec(f"SELECT key, metadata, former_name FROM replaced "
                          f"WHERE file_hash = '{target_hash}'")
 
         results = self.cur.fetchall()
@@ -897,7 +897,7 @@ class PhotoDb:
         if match_types is None:
             match_types = [MatchTypes.NO_MATCH]
 
-        self.cur.execute(f"SELECT "
+        self.debug_exec(f"SELECT "
                          f"key, org_fname, org_fpath, metadata, google_fotos_metadata, file_hash, datetime, naming_tag "
                          f"FROM `{table_name}` " 
                          f"WHERE allowed = 1 AND imported = 0 "
@@ -938,7 +938,7 @@ class PhotoDb:
 
         if copy_gfmd and msg != GUICommandTypes.QUIT:
             # Get all google fotos metadata from the images table
-            self.cur.execute(f"SELECT match, google_fotos_metadata FROM `{table_name}` "
+            self.debug_exec(f"SELECT match, google_fotos_metadata FROM `{table_name}` "
                              f"WHERE match_type > 0 AND match_type < 4 AND google_fotos_metadata IS NOT NULL")
 
             rows = self.cur.fetchall()
@@ -964,11 +964,11 @@ class PhotoDb:
                 if res[0] is not None or res[1] != -1:
                     continue
 
-                self.cur.execute(f"UPDATE images SET google_fotos_metadata = '{row[1]}', original_google_metadata = 0 "
+                self.debug_exec(f"UPDATE images SET google_fotos_metadata = '{row[1]}', original_google_metadata = 0 "
                                  f"WHERE key = {row[0]}")
 
             # Get all google fotos metadata from the replaced table
-            self.cur.execute(f"SELECT match, google_fotos_metadata FROM `{table_name}` "
+            self.debug_exec(f"SELECT match, google_fotos_metadata FROM `{table_name}` "
                              f"WHERE match_type > 3  AND google_fotos_metadata IS NOT NULL")
 
             rows = self.cur.fetchall()
@@ -995,7 +995,7 @@ class PhotoDb:
                 if res[0] is not None or res[1] != -1:
                     continue
 
-                self.cur.execute(
+                self.debug_exec(
                     f"UPDATE replaced SET google_fotos_metadata = '{row[1]}', original_google_metadata = 0 "
                     f"WHERE key = {row[0]}")
 
@@ -1020,7 +1020,7 @@ class PhotoDb:
         new_file_name = self.__file_name_generator(fmd.datetime_object, fmd.org_fname)
         new_file_path = self.path_from_datetime(fmd.datetime_object, new_file_name)
 
-        self.cur.execute(f"INSERT INTO names (name) VALUES ('{new_file_name}')")
+        self.debug_exec(f"INSERT INTO names (name) VALUES ('{new_file_name}')")
 
         # copy file and preserve metadata
         shutil.copy2(src=os.path.join(fmd.org_fpath, fmd.org_fname),
@@ -1029,7 +1029,7 @@ class PhotoDb:
 
         if fmd.google_fotos_metadata is None:
             # create entry in images database
-            self.cur.execute("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
+            self.debug_exec("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
                              "file_hash, new_name, datetime, present, verify, timestamp) "
                              f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
                              f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
@@ -1039,22 +1039,22 @@ class PhotoDb:
 
         else:
             # create entry in images database
-            self.cur.execute("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
-                             "file_hash, new_name, datetime, present, verify,google_fotos_metadata, timestamp, "
+            self.debug_exec("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
+                             "file_hash, new_name, datetime, present, verify, google_fotos_metadata, timestamp, "
                              "original_google_metadata) "
                              f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
                              f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
                              f"'{fmd.file_hash}', '{new_file_name}',"
                              f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
                              f"1, {1 if fmd.verify else 0},"
-                             f"'{self.__dict_to_b64(fmd.google_fotos_metadata)}, "
-                             f"{str(fmd.datetime_object.timestamp()).split('.')[0]}', 1)")
+                             f"'{self.__dict_to_b64(fmd.google_fotos_metadata)}', "
+                             f"'{str(fmd.datetime_object.timestamp()).split('.')[0]}', 1)")
 
-        self.cur.execute(f"SELECT key FROM images WHERE new_name = '{new_file_name}'")
+        self.debug_exec(f"SELECT key FROM images WHERE new_name = '{new_file_name}'")
         update_key = self.cur.fetchone()[0]
 
         # create entry in temporary database
-        self.cur.execute(f"UPDATE `{table}` "
+        self.debug_exec(f"UPDATE `{table}` "
                          f"SET import_key = {update_key}, "
                          f"imported = 1 "
                          f"WHERE key == {update_it_key}")
@@ -1116,7 +1116,7 @@ class PhotoDb:
         Finds all hashes that occur more than once and provides one full image each.
         :return:
         """
-        self.cur.execute("SELECT key, file_hash, COUNT(key) FROM images GROUP BY file_hash HAVING COUNT(key) > 1")
+        self.debug_exec("SELECT key, file_hash, COUNT(key) FROM images GROUP BY file_hash HAVING COUNT(key) > 1")
 
         results = self.cur.fetchall()
 
@@ -1141,11 +1141,11 @@ class PhotoDb:
         :return:
         """
         if trash is None:
-            self.cur.execute(f"SELECT key FROM images WHERE file_hash = '{hash_str}'")
+            self.debug_exec(f"SELECT key FROM images WHERE file_hash = '{hash_str}'")
         elif trash:
-            self.cur.execute(f"SELECT key FROM images WHERE file_hash = '{hash_str}' AND trashed = 1")
+            self.debug_exec(f"SELECT key FROM images WHERE file_hash = '{hash_str}' AND trashed = 1")
         else:
-            self.cur.execute(f"SELECT key FROM images WHERE file_hash = '{hash_str}' AND trashed = 0")
+            self.debug_exec(f"SELECT key FROM images WHERE file_hash = '{hash_str}' AND trashed = 0")
 
         results = self.cur.fetchall()
 
@@ -1165,14 +1165,14 @@ class PhotoDb:
         """
 
         # verify original is not a duplicate itself
-        self.cur.execute(f"SELECT successor FROM replaced WHERE key is {successor}")
+        self.debug_exec(f"SELECT successor FROM replaced WHERE key is {successor}")
         result = self.cur.fetchone()
 
         if result is not None:
             raise DuplicateChainingError(f"Original is duplicate itself, successor of original is {result[0]}")
 
         # get data from the target to be marked as duplicate from the main table
-        self.cur.execute(
+        self.debug_exec(
             f"SELECT key, org_fname, metadata, google_fotos_metadata, file_hash, datetime, new_name, "
             f"original_google_metadata "
             f"FROM images WHERE key is {duplicate_image_id}")
@@ -1182,7 +1182,7 @@ class PhotoDb:
         assert len(data) == 1, "Multiple images matching key!!!"
 
         # insert duplicate into replaced table
-        self.cur.execute(f"INSERT INTO replaced "
+        self.debug_exec(f"INSERT INTO replaced "
                          f"(key, "
                          f"org_fname, "
                          f"metadata, "
@@ -1203,10 +1203,10 @@ class PhotoDb:
                          f"'{data[0][7]}')")
 
         # update children that have the target as successor
-        self.cur.execute(f"UPDATE replaced SET successor = {successor} WHERE successor = {data[0][0]}")
+        self.debug_exec(f"UPDATE replaced SET successor = {successor} WHERE successor = {data[0][0]}")
 
         # is removed duplicate from main table because it could result in confusion
-        self.cur.execute(f"DELETE FROM images WHERE key = {duplicate_image_id}")
+        self.debug_exec(f"DELETE FROM images WHERE key = {duplicate_image_id}")
 
         self.con.commit()
 
@@ -1232,11 +1232,11 @@ class PhotoDb:
             raise ValueError("Key or Filename must be provided")
 
         if key is not None:
-            self.cur.execute(f"SELECT key, org_fname , org_fpath, metadata, google_fotos_metadata, naming_tag, "
+            self.debug_exec(f"SELECT key, org_fname , org_fpath, metadata, google_fotos_metadata, naming_tag, "
                              f"file_hash, new_name , datetime, present, verify FROM images WHERE key is {key}")
 
         else:
-            self.cur.execute(f"SELECT key, org_fname , org_fpath, metadata, google_fotos_metadata, naming_tag, "
+            self.debug_exec(f"SELECT key, org_fname , org_fpath, metadata, google_fotos_metadata, naming_tag, "
                              f"file_hash, new_name , datetime, present, verify FROM images WHERE new_name = '{filename}'")
 
         res = self.cur.fetchone()
@@ -1262,7 +1262,7 @@ class PhotoDb:
         if key is None and fname is None:
             raise ValueError("Key or fname must be provided")
         elif key is None:
-            self.cur.execute(f"SELECT key, new_name, datetime FROM images WHERE new_name IS '{fname}'")
+            self.debug_exec(f"SELECT key, new_name, datetime FROM images WHERE new_name IS '{fname}'")
             results = self.cur.fetchall()
 
             if len(results) > 1:
@@ -1270,7 +1270,7 @@ class PhotoDb:
 
         # key provided -> overrules a secondary fname
         else:
-            self.cur.execute(f"SELECT key, new_name, datetime FROM images WHERE key = {key}")
+            self.debug_exec(f"SELECT key, new_name, datetime FROM images WHERE key = {key}")
             results = self.cur.fetchall()
 
             if len(results) > 1:
@@ -1334,7 +1334,7 @@ class PhotoDb:
         if key is None and fname is None:
             raise ValueError("Key or fname must be provided")
         elif key is None:
-            self.cur.execute(f"SELECT key, new_name, datetime FROM images WHERE new_name IS '{fname}'")
+            self.debug_exec(f"SELECT key, new_name, datetime FROM images WHERE new_name IS '{fname}'")
             results = self.cur.fetchall()
 
             if len(results) > 1:
@@ -1342,7 +1342,7 @@ class PhotoDb:
 
         # key provided -> overrules a secondary fname
         else:
-            self.cur.execute(f"SELECT key, new_name, datetime FROM images WHERE key = {key}")
+            self.debug_exec(f"SELECT key, new_name, datetime FROM images WHERE key = {key}")
             results = self.cur.fetchall()
 
             if len(results) > 1:
@@ -1412,7 +1412,7 @@ class PhotoDb:
         if key is None and file_name is None:
             raise ValueError("Key or file name must be provided")
         elif key is None:
-            self.cur.execute(
+            self.debug_exec(
                 f"SELECT key, new_name, datetime, trashed, present FROM images WHERE new_name IS '{file_name}'")
             results = self.cur.fetchall()
 
@@ -1420,7 +1420,7 @@ class PhotoDb:
 
         # key provided -> overrules a secondary fname
         else:
-            self.cur.execute(
+            self.debug_exec(
                 f"SELECT key, new_name, datetime, trashed, present FROM images WHERE key = {key}")
             results = self.cur.fetchall()
 
@@ -1469,7 +1469,7 @@ class PhotoDb:
                     print(f"WARNING: File {new_name} not found in trash folder.")
 
         # update the image table
-        self.cur.execute(f"UPDATE images SET trashed = 1, present = {0 if delete else 1} WHERE key = {key}")
+        self.debug_exec(f"UPDATE images SET trashed = 1, present = {0 if delete else 1} WHERE key = {key}")
 
         self.con.commit()
 
@@ -1580,7 +1580,7 @@ class PhotoDb:
                 for d in val["duplicates"]:
                     keys.append(self.file_name_to_key(os.path.basename(d)))
 
-                self.cur.execute(f"INSERT INTO duplicates (match_type, matched_keys) "
+                self.debug_exec(f"INSERT INTO duplicates (match_type, matched_keys) "
                                  f"VALUES ('{info}', '{json.dumps(keys)}')")
             self.con.commit()
             pipe_in.send((i, initial_size))
@@ -1671,7 +1671,7 @@ class PhotoDb:
         return True, pipe_out
 
     def file_name_to_key(self, file_name: str):
-        self.cur.execute(f"SELECT key FROM images WHERE new_name = '{file_name}'")
+        self.debug_exec(f"SELECT key FROM images WHERE new_name = '{file_name}'")
         res = self.cur.fetchall()
 
         # if len(res) > 1:
@@ -1706,7 +1706,7 @@ class PhotoDb:
                 for d in val["duplicates"]:
                     keys.append(self.file_name_to_key(os.path.basename(d)))
 
-                self.cur.execute(f"INSERT INTO duplicates (match_type, matched_keys) "
+                self.debug_exec(f"INSERT INTO duplicates (match_type, matched_keys) "
                                  f"VALUES ('{info}', '{json.dumps(keys)}')")
             self.con.commit()
             pipe_in.send((count, initial_size))
@@ -1747,7 +1747,7 @@ class PhotoDb:
             d = duplicates[i]
             matching_keys = self.find_all_identical_hashes(d["file_hash"], trash=trash)
 
-            self.cur.execute(f"INSERT INTO duplicates (match_type, matched_keys) "
+            self.debug_exec(f"INSERT INTO duplicates (match_type, matched_keys) "
                              f"VALUES ('hash', '{json.dumps(matching_keys)}')")
 
         print(f"Done Processing")
@@ -1756,7 +1756,7 @@ class PhotoDb:
         return True, msg + f"Successfully found {len(duplicates)} duplicates"
 
     def delete_duplicate_row(self, key: int):
-        self.cur.execute(f"DELETE FROM duplicates WHERE key = {key}")
+        self.debug_exec(f"DELETE FROM duplicates WHERE key = {key}")
         self.con.commit()
 
     def get_duplicate_entry(self):
@@ -1765,7 +1765,7 @@ class PhotoDb:
         :return:
         """
         try:
-            self.cur.execute("SELECT matched_keys, key FROM duplicates")
+            self.debug_exec("SELECT matched_keys, key FROM duplicates")
         except sqlite3.OperationalError:
             print("No Duplicates Table found.")
             return False, [], None
@@ -1839,7 +1839,7 @@ class PhotoDb:
 
     def thumbnail_creation(self):
         index = 0
-        self.cur.execute(f"SELECT key FROM images WHERE key >= {index}")
+        self.debug_exec(f"SELECT key FROM images WHERE key >= {index}")
         result = self.cur.fetchone()
 
         count = 0
@@ -1855,7 +1855,7 @@ class PhotoDb:
                 count += 1
 
             # fetch next new_name
-            self.cur.execute(f"SELECT key FROM images WHERE key >= {index}")
+            self.debug_exec(f"SELECT key FROM images WHERE key >= {index}")
             result = self.cur.fetchone()
 
             if count > last and count % 100 == 0:
@@ -1876,7 +1876,7 @@ class PhotoDb:
         message: Message on what went wrong or result of comparison
         """
         # Locate Entry a
-        self.cur.execute(f"SELECT new_name, datetime FROM images WHERE key = {a_key}")
+        self.debug_exec(f"SELECT new_name, datetime FROM images WHERE key = {a_key}")
         res_a = self.cur.fetchall()
 
         if len(res_a) == 0:
@@ -1886,7 +1886,7 @@ class PhotoDb:
             raise CorruptDatabase("Multiple entries with identical key")
 
         # Locate Entry b
-        self.cur.execute(f"SELECT new_name, datetime FROM images WHERE key = {b_key}")
+        self.debug_exec(f"SELECT new_name, datetime FROM images WHERE key = {b_key}")
         res_b = self.cur.fetchall()
 
         if len(res_a) == 0:
@@ -1910,7 +1910,7 @@ class PhotoDb:
         file data.
         :return:
         """
-        self.cur.execute("SELECT key FROM images WHERE google_fotos_metadata Is NOT NULL AND naming_tag LIKE 'File%'")
+        self.debug_exec("SELECT key FROM images WHERE google_fotos_metadata Is NOT NULL AND naming_tag LIKE 'File%'")
         keys = self.cur.fetchall()
         keys_only = [x[0] for x in keys]
 
@@ -1990,18 +1990,18 @@ class PhotoDb:
 
         :return:
         """
-        self.cur.execute("SELECT successor FROM replaced LEFT JOIN  images ON images.key = replaced.successor WHERE images.key IS NULL;")
+        self.debug_exec("SELECT successor FROM replaced LEFT JOIN  images ON images.key = replaced.successor WHERE images.key IS NULL;")
         rows = self.cur.fetchall()
         clean_rows = [x[0] for x in rows]
 
         for key in clean_rows:
             # verify the key is indeed in the replaced table
-            self.cur.execute(f"SELECT key, successor FROM replaced WHERE key = {key};")
+            self.debug_exec(f"SELECT key, successor FROM replaced WHERE key = {key};")
             matches = self.cur.fetchall()
 
             assert len(matches) == 1, f"Key {key} is not in replaced table or is in there multiple times"
 
-            # self.cur.execute(f"UPDATE replaced SET successor = {matches[0][1]} WHERE successor = {key}" )
+            # self.debug_exec(f"UPDATE replaced SET successor = {matches[0][1]} WHERE successor = {key}" )
             print(f"UPDATE replaced SET successor = {matches[0][1]} WHERE successor = {key}" )
 
         self.con.commit()
@@ -2046,7 +2046,7 @@ class PhotoDb:
         path_sample = {}
 
         # get all data from database with google photos metadata
-        self.cur.execute("SELECT google_fotos_metadata FROM images WHERE google_fotos_metadata Is NOT NULL;")
+        self.debug_exec("SELECT google_fotos_metadata FROM images WHERE google_fotos_metadata Is NOT NULL;")
         md = self.cur.fetchall()
 
         for x in md:
@@ -2065,7 +2065,7 @@ class PhotoDb:
 
     def fill_names(self):
         index = 0
-        self.cur.execute(f"SELECT new_name FROM images WHERE key >= {index}")
+        self.debug_exec(f"SELECT new_name FROM images WHERE key >= {index}")
         result = self.cur.fetchone()
 
         count = 0
@@ -2075,16 +2075,16 @@ class PhotoDb:
             index += 1
 
             # check if name is already present
-            self.cur.execute(f"SELECT name FROM names WHERE name = '{result[0]}'")
+            self.debug_exec(f"SELECT name FROM names WHERE name = '{result[0]}'")
             found = self.cur.fetchone()
 
             # if not, insert into db
             if found is None:
-                self.cur.execute(f"INSERT INTO names (name) VALUES ('{result[0]}')")
+                self.debug_exec(f"INSERT INTO names (name) VALUES ('{result[0]}')")
                 count += 1
 
             # fetch next new_name
-            self.cur.execute(f"SELECT new_name FROM images WHERE key >= {index}")
+            self.debug_exec(f"SELECT new_name FROM images WHERE key >= {index}")
             result = self.cur.fetchone()
 
         self.con.commit()
