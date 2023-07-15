@@ -541,11 +541,12 @@ class PhotoDb:
         self.con.commit()
 
     def prepare_import(self, folder_path: str, allowed_file_types: Set[str] = None, tbl_name: str = None,
-                       recompute_metadata: bool = False):
+                       recompute_metadata: bool = False, com: mp.connection.Connection = None):
         """
         Create the import table or update the import table. This will add all files to the table and retrieve all
         metadata on the files.
 
+        :param com: Used for progress communication with the gui
         :param recompute_metadata: if true metadata will be recomputed (necessary if you are reindexing the directory)
         :param folder_path: Path to folder to import
         :param allowed_file_types: Override allowed file types
@@ -594,10 +595,24 @@ class PhotoDb:
         # precondition - the files that need the metadata are already in the table and the table only needs to be
         # updated.
 
+        if com is not None:
+            com.send(Progress(type=ProcessComType.MESSAGE, value="Importing Metadata"))
+            com.send(Progress(type=ProcessComType.MAX, value=len(metadata_needed)))
+
         # compute metadata
         for i in range(len(metadata_needed)):
             if i % 100 == 0:
+                # TODO logging
                 print(f"Computing metadata for file {i} of {len(metadata_needed)}")
+            if com is not None:
+                # Handle Communication with gui
+                if com.poll():
+                    msg = com.recv()
+
+                    if msg.type == GUICommandTypes.QUIT:
+                        break
+                com.send(Progress(type=ProcessComType.CURRENT, value=i))
+
             file = metadata_needed[i]
             fname = os.path.basename(file)
             fpath = os.path.dirname(file)
