@@ -24,6 +24,21 @@ from fast_diff_py import fastDif
 from photo_lib.utils import rec_list_all, rec_walker, path_builder
 
 
+class GUICommandTypes(Enum):
+    NONE = 0
+    QUIT = 1
+
+class ProcessComType(Enum):
+    MAX = 1
+    CURRENT = 2
+    MESSAGE = 3
+
+@dataclass
+class Progress:
+    type: ProcessComType
+    value: Union[int, str]
+
+
 class MatchTypes(Enum):
     """
     Enum to indicate the type of match found in the database.
