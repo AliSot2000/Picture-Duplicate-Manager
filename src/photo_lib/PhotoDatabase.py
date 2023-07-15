@@ -902,17 +902,19 @@ class PhotoDb:
         return False, None, MatchTypes.NO_MATCH
 
     def import_folder(self, table_name: str, match_types: List[MatchTypes] = None,
-                      copy_gfmd: bool = True) -> None:
+                      copy_gfmd: bool = True, com: mp.connection.Connection = None) -> None:
         """
         From a given table, import all files which are marked with a match_type in the match_types list and which have
         not yet been imported.
 
+        :param com: Used for progress communication with the gui
         :param table_name: the name of the table to import from
         :param match_types: the match types to import, given None, assumed is MatchTypes.NO_MATCH
         :param copy_gfmd: if true, the google fotos metadata is copied to the new file if it is a binary match.
 
         :return:
         """
+        msg = GUICommandTypes.NONE
 
         if match_types is None:
             match_types = [MatchTypes.NO_MATCH]
@@ -926,7 +928,17 @@ class PhotoDb:
         # Assume all rows fit in memory
         rows = self.cur.fetchall()
 
+        if com is not None:
+            com.send(Progress(type=ProcessComType.MESSAGE, value="Copying Files to DB"))
+            com.send(Progress(type=ProcessComType.MAX, value=len(rows)))
+
         for i in range(len(rows)):
+            if com is not None:
+                if com.poll():
+                    msg = com.recv()
+                    if msg == GUICommandTypes.QUIT:
+                        break
+                com.send(Progress(type=ProcessComType.CURRENT, value=i))
             if i % 100 == 0:
                 # TODO logging
                 print(i)
@@ -946,14 +958,25 @@ class PhotoDb:
 
         self.con.commit()
 
-        if copy_gfmd:
+        if copy_gfmd and msg != GUICommandTypes.QUIT:
             # Get all google fotos metadata from the images table
             self.cur.execute(f"SELECT match, google_fotos_metadata FROM `{table_name}` "
                              f"WHERE match_type > 0 AND match_type < 4 AND google_fotos_metadata IS NOT NULL")
 
             rows = self.cur.fetchall()
-            for row in rows:
-                self.cur.execute(f"SELECT google_fotos_metadata, original_google_metadata "
+            if com is not None:
+                com.send(Progress(type=ProcessComType.MESSAGE, value="Updating Google Fotos Metadata in Main Table"))
+                com.send(Progress(type=ProcessComType.MAX, value=len(rows)))
+
+            for i in range(len(rows)):
+                if com is not None:
+                    if com.poll():
+                        msg = com.recv()
+                        if msg == GUICommandTypes.QUIT:
+                            break
+                    com.send(Progress(type=ProcessComType.CURRENT, value=i))
+                row = rows[i]
+                self.debug_exec(f"SELECT google_fotos_metadata, original_google_metadata "
                                  f"FROM images WHERE key = {row[0]}")
 
                 res = self.cur.fetchone()
@@ -971,8 +994,20 @@ class PhotoDb:
                              f"WHERE match_type > 3  AND google_fotos_metadata IS NOT NULL")
 
             rows = self.cur.fetchall()
-            for row in rows:
-                self.cur.execute(f"SELECT google_fotos_metadata, original_google_metadata "
+            if com is not None:
+                com.send(Progress(type=ProcessComType.MESSAGE, value="Updating Google Fotos Metadata in Duplicates "
+                                                                     "Table"))
+                com.send(Progress(type=ProcessComType.MAX, value=len(rows)))
+
+            for i in range(len(rows)):
+                if com is not None:
+                    if com.poll():
+                        msg = com.recv()
+                        if msg == GUICommandTypes.QUIT:
+                            break
+                    com.send(Progress(type=ProcessComType.CURRENT, value=i))
+                row = rows[i]
+                self.debug_exec(f"SELECT google_fotos_metadata, original_google_metadata "
                                  f"FROM replaced WHERE key = {row[0]}")
 
                 res = self.cur.fetchone()
