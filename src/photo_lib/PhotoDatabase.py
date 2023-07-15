@@ -711,7 +711,7 @@ class PhotoDb:
         return metadata_needed
 
 
-    def find_matches_for_import_table(self, table: str):
+    def find_matches_for_import_table(self, table: str, com: mp.connection.Connection = None):
         """
         The import is only looked at for files that have not been imported. If a file has been imported, it won't be
         updated since then the match would be the same as the import_key field.
@@ -733,6 +733,7 @@ class PhotoDb:
         stored with the replaced table.). If so, it will be considered a match. It also checks to trash folder if the
         image still exists there and if so, it will be checked if they are identical (binary).
 
+        :param com: Used for progress communication with the gui
         :param table: prepared import table to take for determining the match state.
         :return:
         """
@@ -740,7 +741,18 @@ class PhotoDb:
         self.cur.execute(f"SELECT key, org_fpath, org_fname, datetime, file_hash, metadata FROM `{table}` WHERE allowed = 1 AND imported = 0")
         targets = self.cur.fetchall()
 
+        if com is not None:
+            com.send(Progress(type=ProcessComType.MESSAGE, value="Matching Files with DB"))
+            com.send(Progress(type=ProcessComType.MAX, value=len(targets)))
+
         for i in range(len(targets)):
+            if com is not None:
+                if com.poll():
+                    msg = com.recv()
+                    if msg.type == GUICommandTypes.QUIT:
+                        break
+                com.send(Progress(type=ProcessComType.CURRENT, value=i))
+
             if i % 100 == 0:
                 print(f"Matched: {i} of {len(targets)}")
             row = targets[i]
