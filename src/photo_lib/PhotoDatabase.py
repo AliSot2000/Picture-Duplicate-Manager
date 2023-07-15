@@ -710,7 +710,10 @@ class PhotoDb:
         self.cur.execute(f"SELECT key, org_fpath, org_fname, datetime, file_hash, metadata FROM `{table}` WHERE allowed = 1 AND imported = 0")
         targets = self.cur.fetchall()
 
-        for row in targets:
+        for i in range(len(targets)):
+            if i % 100 == 0:
+                print(f"Matched: {i} of {len(targets)}")
+            row = targets[i]
             key = row[0]
             file_path = os.path.join(row[1], row[2])
             dt_obj = self.__db_str_to_datetime(row[3])
