@@ -573,29 +573,7 @@ class PhotoDb:
 
         # Create table if no table is provided.
         if tbl_name is None:
-            temp_table_name = self.__create_import_table(folder_path)
-            self.cur.execute(f"CREATE TABLE `{temp_table_name}`"
-                             f"(key INTEGER PRIMARY KEY AUTOINCREMENT,"
-                             f"org_fname TEXT NOT NULL,"
-                             f"org_fpath TEXT NOT NULL,"
-                             f"metadata TEXT,"
-                             f"google_fotos_metadata TEXT,"
-                             f"file_hash TEXT,"
-                             f"imported INTEGER DEFAULT 0 CHECK (imported in (0,1)),"
-                             f"allowed INTEGER DEFAULT 0 CHECK (allowed in (0,1)),"
-                             f"match_type INTEGER DEFAULT 0 CHECK (match_type in (0,1,2,3,4,5)),"
-                             f"message TEXT,"
-                             f"datetime TEXT,"
-                             f"naming_tag TEXT,"
-                             f"match INTEGER DEFAULT NULL,"  # the match found in the trash, images or replaced table
-                             f"import_key INTEGER DEFAULT NULL," # the key may not have foreign key constraint since we 
-                                                                 # want to be able to move the image to the replaced 
-                                                                 # table
-                             f"UNIQUE (org_fpath, org_fname));"
-                             )
-
-            self.con.commit()
-            tbl_name = temp_table_name
+            tbl_name = self.create_import_table(folder_path=folder_path)
 
         # index the directory
         # assertion we have enough ram to store the information
@@ -1081,7 +1059,7 @@ class PhotoDb:
                          f"imported = 1 "
                          f"WHERE key == {update_it_key}")
 
-    def __create_import_table(self, folder_path: str, msg: str = None) -> str:
+    def create_import_table(self, folder_path: str, msg: str = None) -> str:
         """
         Creates a temporary table for the import process.
 
@@ -1089,21 +1067,49 @@ class PhotoDb:
         :param msg: message to be stored in the database associated with the folder
         :return: name of the temporary table
         """
+        success = False
 
         if msg is None:
             msg = os.path.basename(folder_path)
+            msg = msg.replace("'", "''")
+            folder_path = folder_path.replace("'", "''")
 
         for i in range(100):
             temp_table_name = f"tbl_{str(hash(datetime.datetime.now()))}"
 
             try:
-                self.cur.execute(f"INSERT INTO import_tables (root_path, import_table_name, import_table_description) "
+                self.debug_exec(f"INSERT INTO import_tables (root_path, import_table_name, import_table_description) "
                                  f"VALUES ('{folder_path}', '{temp_table_name}', '{msg}')")
-                return temp_table_name
+                success = True
+                break
             except sqlite3.IntegrityError:
                 pass
 
-        raise Exception("Couldn't create import table, to many matching names.")
+        if not success:
+            raise Exception("Couldn't create import table, to many matching names.")
+
+        self.debug_exec(f"CREATE TABLE `{temp_table_name}`"
+                         f"(key INTEGER PRIMARY KEY AUTOINCREMENT,"
+                         f"org_fname TEXT NOT NULL,"
+                         f"org_fpath TEXT NOT NULL,"
+                         f"metadata TEXT,"
+                         f"google_fotos_metadata TEXT,"
+                         f"file_hash TEXT,"
+                         f"imported INTEGER DEFAULT 0 CHECK (imported in (0,1)),"
+                         f"allowed INTEGER DEFAULT 0 CHECK (allowed in (0,1)),"
+                         f"match_type INTEGER DEFAULT 0 CHECK (match_type in (0,1,2,3,4,5)),"
+                         f"message TEXT,"
+                         f"datetime TEXT,"
+                         f"naming_tag TEXT,"
+                         f"match INTEGER DEFAULT NULL,"  # the match found in the trash, images or replaced table
+                         f"import_key INTEGER DEFAULT NULL,"  # the key may not have foreign key constraint since we 
+                         # want to be able to move the image to the replaced 
+                         # table
+                         f"UNIQUE (org_fpath, org_fname));"
+                         )
+
+        self.con.commit()
+        return temp_table_name
 
     def find_not_unique_hash(self):
         """
