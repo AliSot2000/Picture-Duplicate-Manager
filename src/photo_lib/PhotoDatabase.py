@@ -2089,3 +2089,16 @@ class PhotoDb:
 
         self.con.commit()
         print(f"Added {count} non-tracked names to names table of {index} entries")
+
+    def debug_exec(self, command: str):
+        """
+        Execute a Command with sql cursor, in case of error print command string and raise error
+        :param command:
+        :return:
+        """
+        try:
+            self.cur.execute(command)
+        except Exception:
+            print("Error in command")
+            print(command)
+            raise Exception
