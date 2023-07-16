@@ -7,7 +7,7 @@ from photo_lib.gui.misc import QSquarePushButton
 from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.model import Model
-from photo_lib.PhotoDatabase import DatabaseEntry, PhotoDb
+from photo_lib.PhotoDatabase import DatabaseEntry
 from typing import Union, Callable
 import os.path
 
