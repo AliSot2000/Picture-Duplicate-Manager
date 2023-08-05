@@ -1,6 +1,9 @@
-from PyQt6.QtWidgets import QWidget
+from PyQt6.QtWidgets import QWidget, QApplication
 from PyQt6.QtGui import QPixmap, QPainter
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal
+import sys
+
+
 class ClickableImage(QWidget):
     clicked = pyqtSignal()
     pixmap = None
@@ -9,7 +12,7 @@ class ClickableImage(QWidget):
         self.load_image(file_path)
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit()
 
     def load_image(self, file_path: str):
@@ -31,8 +34,18 @@ class ClickableImage(QWidget):
             r = self.rect()
         else:
             r = QRect(QPoint(),
-                self.pixmap.size().scaled(self.size(), Qt.KeepAspectRatio))
+                self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
             r.moveCenter(self.rect().center())
         qp = QPainter(self)
         qp.drawPixmap(r, self.pixmap)
 
+def helper():
+    print("Helper called")
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = ClickableImage("/media/alisot2000/DumpStuff/Test128/2022-09-01 02.35.12_001.jpg")
+    window.clicked.connect(helper)
+    window.show()
+
+    sys.exit(app.exec())
