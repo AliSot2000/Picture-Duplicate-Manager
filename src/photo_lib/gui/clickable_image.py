@@ -1,9 +1,8 @@
 import os.path
 import warnings
-
-from PyQt6.QtWidgets import QLabel, QPushButton
+import sys
+from PyQt6.QtWidgets import QLabel, QPushButton, QApplication
 from PyQt6.QtGui import QPixmap, QIcon
-from PyQt6.QtCore import Qt
 from typing import Union
 
 class ClickableImage(QPushButton):
@@ -12,6 +11,8 @@ class ClickableImage(QPushButton):
     fpath: str
     width_div_height: float = 1.0
     count: int = 0
+
+    not_loaded_icon: QIcon = None
 
     def __init__(self, file_path: str):
         super().__init__()
@@ -32,7 +33,7 @@ class ClickableImage(QPushButton):
     def load_image(self, file_path: str):
         self.fpath = file_path
         self.pixmap = QPixmap(file_path)
-        if os.path.splitext(file_path)[1] not in [".png", ".jpg", ".jpeg", ".gif"]:
+        if os.path.splitext(file_path)[1].lower() not in [".png", ".jpg", ".jpeg", ".gif"]:
             warnings.warn("File must be an image.")
         else:
             try:
@@ -42,3 +43,32 @@ class ClickableImage(QPushButton):
         self.setIcon(QIcon(self.pixmap))
         self.setIconSize(self.size())
         self.setStyleSheet("border: none;")
+        self.setText("")
+
+    def unload_image(self):
+        """
+        Remove Image (remove it from RAM), set either a empty image or set a custom nothing here - icon.
+        :return:
+        """
+        self.pixmap = None
+        if self.not_loaded_icon is None:
+            self.setIcon(QIcon())
+            self.setStyleSheet("border: 1px solid black;")
+            self.setText("Media not Loaded...")
+        else:
+            self.setIcon(self.not_loaded_icon)
+            self.setStyleSheet("border: none;")
+
+    def reload_image(self):
+        """
+        Provided, the image was loaded before, reload it.
+        :return:
+        """
+        if self.fpath is not None:
+            self.load_image(self.fpath)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    widget = ClickableImage('/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2159.JPG')
+    widget.show()
+    sys.exit(app.exec())
