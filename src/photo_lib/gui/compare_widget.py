@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QFrame
 from PyQt6.QtGui import QResizeEvent, QAction, QIcon, QKeySequence
 from PyQt6.QtCore import Qt
 from photo_lib.gui.model import Model, NoDbException
@@ -38,7 +38,7 @@ def pain_wrapper(media_pane: MediaPane, func: Callable):
     return wrapper
 
 
-class CompareRoot(QLabel):
+class CompareRoot(QFrame):
     model: Model
     media_layout: QHBoxLayout
     media_panes: List[MediaPane]
