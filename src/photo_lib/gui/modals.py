@@ -223,6 +223,84 @@ class TaskSelectModal(QDialog):
         self.accept()
 
 
+class PrepareImportDialog(QDialog):
+    main_layout: QFormLayout
+
+    info_label: QLabel
+    folder_button: QPushButton
+    folder_label: QLabel
+
+    cancel_button: QPushButton
+    import_button: QPushButton
+
+    model: Model
+
+    def __init__(self, *args, model: Model, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setWindowTitle("Prepare Media Import")
+
+        self.main_layout = QFormLayout()
+        self.setLayout(self.main_layout)
+
+        self.info_label = QLabel("Select the folder to import media from.")
+
+        self.folder_button = QPushButton("Select Folder")
+        self.folder_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_F))
+        self.folder_button.setToolTip("Select the folder to import media from.")
+        self.folder_button.clicked.connect(self.select_folder)
+
+        self.folder_label = QLabel("No folder selected.")
+        self.folder_label.setMinimumWidth(300)
+
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.setShortcut(QKeySequence(Qt.Key.Key_Escape))
+        self.cancel_button.setToolTip("Cancel and close the modal.")
+        self.cancel_button.clicked.connect(self.cancel)
+
+        self.import_button = QPushButton("Prepare")
+        self.import_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_I))
+        self.import_button.setToolTip("Import the media from the selected folder.")
+        self.import_button.clicked.connect(self.import_media)
+
+        self.main_layout.addRow(self.info_label)
+        self.main_layout.addRow(self.folder_label, self.folder_button)
+        self.main_layout.addRow(self.cancel_button, self.import_button)
+
+        self.model = model
+
+    def cancel(self):
+        """
+        Cancel and close the modal
+        :return:
+        """
+        self.reject()
+
+    def select_folder(self):
+        """
+        Open a QFileDialog to select a folder.
+        :return:
+        """
+        dialog = FolderSelectModal()
+        dialog.fileSelected.connect(self.set_folder)
+        dialog.exec()
+
+    def set_folder(self, folder: str):
+        """
+        Set the folder label to the selected folder.
+        :param folder: folder path
+        :return:
+        """
+        self.folder_label.setText(folder)
+
+    def import_media(self):
+        """
+        Import the media from the selected folder.
+        :return:
+        """
+        self.model.import_folder = self.folder_label.text()
+        self.accept()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # window = DateTimeModal()
