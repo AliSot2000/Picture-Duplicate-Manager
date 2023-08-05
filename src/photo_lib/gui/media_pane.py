@@ -29,7 +29,7 @@ def bake_attribute(name: str, func: Callable):
     return baked_attribute_func
 
 
-class MediaPane(QLabel):
+class MediaPane(QFrame):
     """
     This Widget holds a piece of media, and it's associated metadata.
     """
