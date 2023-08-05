@@ -26,5 +26,8 @@ class ResizingImage(QPushButton):
     def load_image(self, file_path: str):
         self.fpath = file_path
         self.pxmap = QPixmap(file_path)
-        self.width_div_height = self.pxmap.width() / self.pxmap.height()
+        try:
+            self.width_div_height = self.pxmap.width() / self.pxmap.height()
+        except ZeroDivisionError:
+            self.width_div_height = 1
         self.img_lbl.setPixmap(self.pxmap.scaled(self.size(), aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio))
