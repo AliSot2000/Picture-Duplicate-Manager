@@ -305,7 +305,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     # window = DateTimeModal()
     # window.show()
-    window = TaskSelectModal(model=Model())
+    # window = TaskSelectModal(model=Model())
+    window = PrepareImportDialog(model=Model())
     window.show()
 
     sys.exit(app.exec())
