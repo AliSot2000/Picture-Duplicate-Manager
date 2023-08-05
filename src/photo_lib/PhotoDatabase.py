@@ -34,6 +34,12 @@ class ProcessComType(Enum):
     MESSAGE = 3
 
 @dataclass
+class TileInfo:
+    key: int
+    path: str
+    table: str
+
+@dataclass
 class Progress:
     type: ProcessComType
     value: Union[int, str]
