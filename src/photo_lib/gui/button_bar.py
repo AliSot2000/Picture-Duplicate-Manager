@@ -1,8 +1,8 @@
-from PyQt6.QtWidgets import QHBoxLayout, QLabel
+from PyQt6.QtWidgets import QHBoxLayout, QFrame, QLabel
 from photo_lib.gui.action_button import QActionButton
 
 
-class ButtonBar(QLabel):
+class ButtonBar(QFrame):
 
     next_button: QActionButton
     commit_all: QActionButton
