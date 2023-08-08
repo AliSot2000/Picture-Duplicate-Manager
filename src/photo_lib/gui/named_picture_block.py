@@ -134,15 +134,25 @@ class PictureBlock(QFrame):
         #     self.v_layout.addStretch()
 
 
-class CheckableNamedPictureBlock(QLabel):
+class CheckNamedPictureBlock(QFrame):
     import_checkbox: QCheckBox
+    match_type: MatchTypes = None
+    picture_block: PictureBlock = None
 
-    def __init__(self):
+    def __init__(self, mt: MatchTypes, tile_infos: List[TileInfo] = None):
         super().__init__()
-        self.import_checkbox = QCheckBox("Import Section")
+        self.match_type = mt
+        self.import_checkbox = QCheckBox(f"Import: {mt.name.replace('_', ' ').title()}")
+        self.import_checkbox.setStyleSheet("padding: 10px; "
+                                           "border: 2px solid black;")
 
         self.v_layout = QVBoxLayout()
-        self.v_layout.addLayout(self.import_checkbox)
+        self.v_layout.addWidget(self.import_checkbox)
+        # self.v_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.picture_block = PictureBlock(tile_infos=tile_infos)
+        # self.picture_block.setFrameStyle(QFrame.Shape.Box)
+        self.v_layout.addWidget(self.picture_block)
 
         self.setLayout(self.v_layout)
 
@@ -158,13 +168,19 @@ class CheckableNamedPictureBlock(QLabel):
     def set_imported(self):
         self.import_checkbox.setChecked(True)
         self.import_checkbox.setDisabled(True)
+        # Set color green
         self.setStyleSheet("background-color: rgb(200, 255, 200);")
 
     def marked_for_import(self):
+        # Set color yellow
         self.setStyleSheet("background-color: rgb(255, 255, 200);")
 
     def marked_not_for_import(self):
+        # Set color red
         self.setStyleSheet("background-color: rgb(255, 200, 200);")
+
+    def reset_mark(self):
+        self.setStyleSheet("")
 
 
 class TempRoow(QMainWindow):
