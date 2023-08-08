@@ -11,9 +11,17 @@ from photo_lib.PhotoDatabase import TileInfo, MatchTypes
 
 
 class Row(QFrame):
+    """
+    Simple class to represent a single row of image tiles.
+    """
     h_layout: QHBoxLayout
 
-    def __init__(self, tiles: List[ImageTile]):
+    def __init__(self, tiles: List[Union[QWidget, ImageTile]]):
+        """
+        Initialize and add a list of image tiles.
+
+        :param tiles: List of ImageTiles and empty images.
+        """
         super().__init__()
         self.h_layout = QHBoxLayout()
         self.h_layout.setContentsMargins(0, 0, 0, 0)
