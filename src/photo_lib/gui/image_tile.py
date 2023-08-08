@@ -33,7 +33,7 @@ class ImageTile(QFrame):
 
         self.b_layout.addWidget(self.clickable_image)
         self.b_layout.addWidget(self.file_nane_lbl)
-        self.b_layout.setContentsMargins(0, 0, 0, 0)
+        # self.b_layout.setContentsMargins(0, 0, 0, 0)
         self.b_layout.setSpacing(5)
         self.setLayout(self.b_layout)
 
