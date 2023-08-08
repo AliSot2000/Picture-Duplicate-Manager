@@ -114,7 +114,16 @@ class PictureBlock(QFrame):
         # Loop through rows
         for i in range(0, len(self.img_tiles), n_h_tiles):
             # Create a new horizontal layout for row
-            row = Row(self.img_tiles[i:i + n_h_tiles])
+            tiles = self.img_tiles[i:i + n_h_tiles]
+
+            # Padding last row.
+            if len(tiles) < n_h_tiles:
+                for _ in range(n_h_tiles - len(tiles)):
+                    w = QWidget()
+                    w.setFixedSize(QSize(self.tile_size, self.tile_size))
+                    tiles.append(w)
+
+            row = Row(tiles)
 
             # Add the row to the main layout.
             self.v_layout.addWidget(row)
