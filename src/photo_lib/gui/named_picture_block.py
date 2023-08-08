@@ -34,6 +34,11 @@ class Row(QFrame):
 
 
 class PictureBlock(QFrame):
+    """
+    Block of images that belong together. Class tries to layout the images in a way that maximizes the number
+    of displayed images.
+    """
+
     # TODO needs to go into config or something.
     tile_size: int = 200
     last_n_h_tiles: int = -1
@@ -42,8 +47,12 @@ class PictureBlock(QFrame):
     v_layout: QVBoxLayout
 
     def __init__(self, tile_infos: List[TileInfo] = None):
+        """
+        Provide a list of tiles to be displayed in a block
+        :param tile_infos: List of TileInfo objects. These contain the relevant information tied to the database to
+        display the images.
+        """
         super().__init__()
-        # self.setText("Have some text here")
         self.v_layout = QVBoxLayout()
         self.setLayout(self.v_layout)
 
