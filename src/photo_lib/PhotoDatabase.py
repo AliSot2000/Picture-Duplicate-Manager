@@ -16,7 +16,7 @@ from difPy.dif import dif
 from _queue import Empty
 import multiprocessing as mp
 import multiprocessing.connection as mpconn
-from typing import Tuple, List, Set, Union
+from typing import Tuple, List, Set, Union, Dict
 import sys
 import ffmpeg
 from .errors_and_warnings import *
@@ -33,28 +33,31 @@ class ProcessComType(Enum):
     CURRENT = 2
     MESSAGE = 3
 
+
+class MatchTypes(Enum):
+    """
+    Enum to indicate the type of match found in the database.
+    """
+    No_Match = 0
+    Binary_Match_Images = 1
+    Binary_Match_Trash = 2
+    Hash_Match_Trash = 3
+    Binary_Match_Replaced = 4
+    Hash_Match_Replaced = 5
+
 @dataclass
 class TileInfo:
     key: int
     path: str
-    table: str
+    allowed: bool
+    imported: bool
+    match_type: MatchTypes
 
 @dataclass
 class Progress:
     type: ProcessComType
     value: Union[int, str]
 
-
-class MatchTypes(Enum):
-    """
-    Enum to indicate the type of match found in the database.
-    """
-    NO_MATCH = 0
-    Binary_Match_Images = 1
-    Binary_Match_Trash = 2
-    Hash_Match_Trash = 3
-    Binary_Match_Replaced = 4
-    Hash_Match_Replaced = 5
 
 message_lookup = [
     "No Match found in Database",
@@ -177,6 +180,7 @@ class PhotoDb:
 
     names_table_command: str = \
         "CREATE TABLE names (key INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)"
+    # New name doesn't have a FOREIGN KEY because it might be that it is in replaced or in images table
 
     replaced_table_command: str = \
         ("CREATE TABLE replaced "
@@ -199,7 +203,6 @@ class PhotoDb:
          "import_table_description TEXT)")
 
     def __init__(self, root_dir: str, db_path: str = None):
-
         if os.path.exists(root_dir):
             self.root_dir = root_dir
             self.thumbnail_dir = os.path.join(root_dir, ".thumbnails")
@@ -235,7 +238,8 @@ class PhotoDb:
             self.create_db()
 
         if existence and not correctness:
-            raise CorruptDatabase("Database is not correctly formatted and might not work. Check the logs.")
+            # raise CorruptDatabase("Database is not correctly formatted and might not work. Check the logs.")
+            warnings.warn("Database is not correctly formatted and might not work. Proceed with caution")
 
     # ------------------------------------------------------------------------------------------------------------------
     # UTILITY CONVERTERS
@@ -310,9 +314,9 @@ class PhotoDb:
 
     def create_duplicates_table(self):
         self.debug_exec("CREATE TABLE duplicates ("
-                         "key INTEGER PRIMARY KEY AUTOINCREMENT,"
-                         "match_type TEXT,"
-                         "matched_keys TEXT)")
+                        "key INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        "match_type TEXT,"
+                        "matched_keys TEXT)")
 
     def delete_duplicates_table(self):
         self.debug_exec("DROP TABLE IF EXISTS duplicates")
@@ -505,11 +509,11 @@ class PhotoDb:
 
         # update images table
         self.debug_exec(f"UPDATE images SET "
-                         f"new_name = '{new_name}', "
-                         f"naming_tag = '{naming_tag}', "
-                         f"datetime = '{self.__datetime_to_db_str(new_datetime)}', "
-                         f"timestamp = {str(new_datetime.timestamp()).split('.')[0]}, "
-                         f"WHERE key = {entry.key}")
+                        f"new_name = '{new_name}', "
+                        f"naming_tag = '{naming_tag}', "
+                        f"datetime = '{self.__datetime_to_db_str(new_datetime)}', "
+                        f"timestamp = {str(new_datetime.timestamp()).split('.')[0]}, "
+                        f"WHERE key = {entry.key}")
 
         # update the names table
         self.debug_exec(f"INSERT INTO names (name) VALUES ('{new_name}')")
@@ -616,7 +620,7 @@ class PhotoDb:
             fname = os.path.basename(file)
             fpath = os.path.dirname(file)
             self.debug_exec(f"SELECT allowed, metadata FROM `{tbl_name}` "
-                             f"WHERE org_fpath = '{fpath}' AND org_fname = '{fname}'")
+                            f"WHERE org_fpath = '{fpath}' AND org_fname = '{fname}'")
 
             res = self.cur.fetchone()
             assert res is not None, f"File {file} not found in the import table."
@@ -688,7 +692,7 @@ class PhotoDb:
 
             # otherwise - perform insert and add to metadata_needed
             self.debug_exec(f"INSERT INTO `{tbl_name}` (org_fname, org_fpath, allowed) "
-                             f"VALUES ('{fname}', '{fpath}', {f_allowed})")
+                            f"VALUES ('{fname}', '{fpath}', {f_allowed})")
             count += 1
 
         print(f"Added {count} files to the import table.\nTotal Files: {len(files)}")
@@ -766,15 +770,15 @@ class PhotoDb:
             # if no match was found, check if there's a match in the replaced table
             if not m_found:
                 m_found, m_key, m_type = self.__check_hash_replaced(target_file=file_path,
-                                                                   target_hash=file_hash,
-                                                                   target_file_size=file_size)
+                                                                    target_hash=file_hash,
+                                                                    target_file_size=file_size)
 
             if m_found:
                 self.debug_exec(f"UPDATE `{table}` SET "
-                                 f"match_type = {m_type.value}, "
-                                 f"match = {m_key}, "
-                                 f"message = '{message_lookup[m_type.value]}' "
-                                 f"WHERE key = {key}")
+                                f"match_type = {m_type.value}, "
+                                f"match = {m_key}, "
+                                f"message = '{message_lookup[m_type.value]}' "
+                                f"WHERE key = {key}")
 
         self.con.commit()
 
@@ -791,7 +795,7 @@ class PhotoDb:
         :return: bool - true <-> there's a match, int / none - the key of the match in the database,match-type
         """
         self.debug_exec(f"SELECT key, new_name FROM images "
-                         f"WHERE datetime = '{self.__datetime_to_db_str(target_datetime)}'")
+                        f"WHERE datetime = '{self.__datetime_to_db_str(target_datetime)}'")
 
         results = self.cur.fetchall()
         for result in results:
@@ -803,9 +807,9 @@ class PhotoDb:
                                shallow=False):
                     return True, result[0], MatchTypes.Binary_Match_Images
 
-        return False, None, MatchTypes.NO_MATCH
+        return False, None, MatchTypes.No_Match
 
-    def __check_hash_images(self, target_file: str, target_hash: str, target_file_size: int, trash: bool)\
+    def __check_hash_images(self, target_file: str, target_hash: str, target_file_size: int, trash: bool) \
             -> Tuple[bool, Union[None, int], MatchTypes]:
         """
         Check if there's a file in the images table with the same hash and file size.
@@ -818,7 +822,7 @@ class PhotoDb:
         :return: bool - true <-> there's a match, int / none - the key of the match in the database, matchtype
         """
         self.debug_exec(f"SELECT key, metadata, new_name, datetime FROM images "
-                         f"WHERE file_hash = '{target_hash}' AND trashed = {1 if trash else 0}")
+                        f"WHERE file_hash = '{target_hash}' AND trashed = {1 if trash else 0}")
 
         results = self.cur.fetchall()
         for result in results:
@@ -847,7 +851,7 @@ class PhotoDb:
                            shallow=False):
                 return True, result[0], MatchTypes.Binary_Match_Images
 
-        return False, None, MatchTypes.NO_MATCH
+        return False, None, MatchTypes.No_Match
 
     def __check_hash_replaced(self, target_file: str, target_hash: str, target_file_size: int) \
             -> Tuple[bool, Union[None, int], MatchTypes]:
@@ -861,7 +865,7 @@ class PhotoDb:
         :return: bool - true <-> there's a match, int / none - the key of the match in the database, matchtype
         """
         self.debug_exec(f"SELECT key, metadata, former_name FROM replaced "
-                         f"WHERE file_hash = '{target_hash}'")
+                        f"WHERE file_hash = '{target_hash}'")
 
         results = self.cur.fetchall()
         for result in results:
@@ -883,7 +887,7 @@ class PhotoDb:
             # TODO logging
             raise ValueError("File with matching hash and file size found but not matching binary.")
 
-        return False, None, MatchTypes.NO_MATCH
+        return False, None, MatchTypes.No_Match
 
     def import_folder(self, table_name: str, match_types: List[MatchTypes] = None,
                       copy_gfmd: bool = True, com: mp.connection.Connection = None) -> None:
@@ -901,13 +905,13 @@ class PhotoDb:
         msg = GUICommandTypes.NONE
 
         if match_types is None:
-            match_types = [MatchTypes.NO_MATCH]
+            match_types = [MatchTypes.No_Match]
 
         self.debug_exec(f"SELECT "
-                         f"key, org_fname, org_fpath, metadata, google_fotos_metadata, file_hash, datetime, naming_tag "
-                         f"FROM `{table_name}` " 
-                         f"WHERE allowed = 1 AND imported = 0 "
-                         f"AND match_type IN ({','.join([str(x.value) for x in match_types])})")
+                        f"key, org_fname, org_fpath, metadata, google_fotos_metadata, file_hash, datetime, naming_tag "
+                        f"FROM `{table_name}` "
+                        f"WHERE allowed = 1 AND imported = 0 "
+                        f"AND match_type IN ({','.join([str(x.value) for x in match_types])})")
 
         # Assume all rows fit in memory
         rows = self.cur.fetchall()
@@ -945,7 +949,7 @@ class PhotoDb:
         if copy_gfmd and msg != GUICommandTypes.QUIT:
             # Get all google fotos metadata from the images table
             self.debug_exec(f"SELECT match, google_fotos_metadata FROM `{table_name}` "
-                             f"WHERE match_type > 0 AND match_type < 4 AND google_fotos_metadata IS NOT NULL")
+                            f"WHERE match_type > 0 AND match_type < 4 AND google_fotos_metadata IS NOT NULL")
 
             rows = self.cur.fetchall()
             if com is not None:
@@ -961,7 +965,7 @@ class PhotoDb:
                     com.send(Progress(type=ProcessComType.CURRENT, value=i))
                 row = rows[i]
                 self.debug_exec(f"SELECT google_fotos_metadata, original_google_metadata "
-                                 f"FROM images WHERE key = {row[0]}")
+                                f"FROM images WHERE key = {row[0]}")
 
                 res = self.cur.fetchone()
                 assert res is not None, f"Inconsistent data, found match in {table_name} but not in images table."
@@ -971,11 +975,11 @@ class PhotoDb:
                     continue
 
                 self.debug_exec(f"UPDATE images SET google_fotos_metadata = '{row[1]}', original_google_metadata = 0 "
-                                 f"WHERE key = {row[0]}")
+                                f"WHERE key = {row[0]}")
 
             # Get all google fotos metadata from the replaced table
             self.debug_exec(f"SELECT match, google_fotos_metadata FROM `{table_name}` "
-                             f"WHERE match_type > 3  AND google_fotos_metadata IS NOT NULL")
+                            f"WHERE match_type > 3  AND google_fotos_metadata IS NOT NULL")
 
             rows = self.cur.fetchall()
             if com is not None:
@@ -992,7 +996,7 @@ class PhotoDb:
                     com.send(Progress(type=ProcessComType.CURRENT, value=i))
                 row = rows[i]
                 self.debug_exec(f"SELECT google_fotos_metadata, original_google_metadata "
-                                 f"FROM replaced WHERE key = {row[0]}")
+                                f"FROM replaced WHERE key = {row[0]}")
 
                 res = self.cur.fetchone()
                 assert res is not None, f"Inconsistent data, found match in {table_name} but not in replaced table."
@@ -1036,34 +1040,34 @@ class PhotoDb:
         if fmd.google_fotos_metadata is None:
             # create entry in images database
             self.debug_exec("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
-                             "file_hash, new_name, datetime, present, verify, timestamp) "
-                             f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
-                             f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
-                             f"'{fmd.file_hash}', '{new_file_name}',"
-                             f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
-                             f"1, {1 if fmd.verify else 0}, {str(fmd.datetime_object.timestamp()).split('.')[0]})")
+                            "file_hash, new_name, datetime, present, verify, timestamp) "
+                            f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
+                            f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
+                            f"'{fmd.file_hash}', '{new_file_name}',"
+                            f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
+                            f"1, {1 if fmd.verify else 0}, {str(fmd.datetime_object.timestamp()).split('.')[0]})")
 
         else:
             # create entry in images database
             self.debug_exec("INSERT INTO images (org_fname, org_fpath, metadata, naming_tag, "
-                             "file_hash, new_name, datetime, present, verify, google_fotos_metadata, timestamp, "
-                             "original_google_metadata) "
-                             f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
-                             f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
-                             f"'{fmd.file_hash}', '{new_file_name}',"
-                             f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
-                             f"1, {1 if fmd.verify else 0},"
-                             f"'{self.__dict_to_b64(fmd.google_fotos_metadata)}', "
-                             f"'{str(fmd.datetime_object.timestamp()).split('.')[0]}', 1)")
+                            "file_hash, new_name, datetime, present, verify, google_fotos_metadata, timestamp, "
+                            "original_google_metadata) "
+                            f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
+                            f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
+                            f"'{fmd.file_hash}', '{new_file_name}',"
+                            f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
+                            f"1, {1 if fmd.verify else 0},"
+                            f"'{self.__dict_to_b64(fmd.google_fotos_metadata)}', "
+                            f"'{str(fmd.datetime_object.timestamp()).split('.')[0]}', 1)")
 
         self.debug_exec(f"SELECT key FROM images WHERE new_name = '{new_file_name}'")
         update_key = self.cur.fetchone()[0]
 
         # create entry in temporary database
         self.debug_exec(f"UPDATE `{table}` "
-                         f"SET import_key = {update_key}, "
-                         f"imported = 1 "
-                         f"WHERE key == {update_it_key}")
+                        f"SET import_key = {update_key}, "
+                        f"imported = 1 "
+                        f"WHERE key == {update_it_key}")
 
     def create_import_table(self, folder_path: str, msg: str = None) -> str:
         """
@@ -1085,7 +1089,7 @@ class PhotoDb:
 
             try:
                 self.debug_exec(f"INSERT INTO import_tables (root_path, import_table_name, import_table_description) "
-                                 f"VALUES ('{folder_path}', '{temp_table_name}', '{msg}')")
+                                f"VALUES ('{folder_path}', '{temp_table_name}', '{msg}')")
                 success = True
                 break
             except sqlite3.IntegrityError:
@@ -1095,24 +1099,24 @@ class PhotoDb:
             raise Exception("Couldn't create import table, to many matching names.")
 
         self.debug_exec(f"CREATE TABLE `{temp_table_name}`"
-                         f"(key INTEGER PRIMARY KEY AUTOINCREMENT,"
-                         f"org_fname TEXT NOT NULL,"
-                         f"org_fpath TEXT NOT NULL,"
-                         f"metadata TEXT,"
-                         f"google_fotos_metadata TEXT,"
-                         f"file_hash TEXT,"
-                         f"imported INTEGER DEFAULT 0 CHECK (imported in (0,1)),"
-                         f"allowed INTEGER DEFAULT 0 CHECK (allowed in (0,1)),"
-                         f"match_type INTEGER DEFAULT 0 CHECK (match_type in (0,1,2,3,4,5)),"
-                         f"message TEXT,"
-                         f"datetime TEXT,"
-                         f"naming_tag TEXT,"
-                         f"match INTEGER DEFAULT NULL,"  # the match found in the trash, images or replaced table
-                         f"import_key INTEGER DEFAULT NULL,"  # the key may not have foreign key constraint since we 
-                         # want to be able to move the image to the replaced 
-                         # table
-                         f"UNIQUE (org_fpath, org_fname));"
-                         )
+                        f"(key INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        f"org_fname TEXT NOT NULL,"
+                        f"org_fpath TEXT NOT NULL,"
+                        f"metadata TEXT,"
+                        f"google_fotos_metadata TEXT,"
+                        f"file_hash TEXT,"
+                        f"imported INTEGER DEFAULT 0 CHECK (imported in (0,1)),"
+                        f"allowed INTEGER DEFAULT 0 CHECK (allowed in (0,1)),"
+                        f"match_type INTEGER DEFAULT 0 CHECK (match_type in (0,1,2,3,4,5)),"
+                        f"message TEXT,"
+                        f"datetime TEXT,"
+                        f"naming_tag TEXT,"
+                        f"match INTEGER DEFAULT NULL,"  # the match found in the trash, images or replaced table
+                        f"import_key INTEGER DEFAULT NULL,"  # the key may not have foreign key constraint since we 
+                        # want to be able to move the image to the replaced 
+                        # table
+                        f"UNIQUE (org_fpath, org_fname));"
+                        )
 
         self.con.commit()
         return temp_table_name
@@ -1189,24 +1193,24 @@ class PhotoDb:
 
         # insert duplicate into replaced table
         self.debug_exec(f"INSERT INTO replaced "
-                         f"(key, "
-                         f"org_fname, "
-                         f"metadata, "
-                         f"google_fotos_metadata, "
-                         f"file_hash, "
-                         f"successor, "
-                         f"datetime, "
-                         f"former_name, "
-                         f"original_google_metadata) VALUES "
-                         f"({data[0][0]}, "
-                         f"'{data[0][1]}', "
-                         f"'{data[0][2]}', "
-                         f"'{data[0][3]}', "
-                         f"'{data[0][4]}', "
-                         f"{successor}, "
-                         f"'{data[0][5]}', "
-                         f"'{data[0][6]}', "
-                         f"'{data[0][7]}')")
+                        f"(key, "
+                        f"org_fname, "
+                        f"metadata, "
+                        f"google_fotos_metadata, "
+                        f"file_hash, "
+                        f"successor, "
+                        f"datetime, "
+                        f"former_name, "
+                        f"original_google_metadata) VALUES "
+                        f"({data[0][0]}, "
+                        f"'{data[0][1]}', "
+                        f"'{data[0][2]}', "
+                        f"'{data[0][3]}', "
+                        f"'{data[0][4]}', "
+                        f"{successor}, "
+                        f"'{data[0][5]}', "
+                        f"'{data[0][6]}', "
+                        f"'{data[0][7]}')")
 
         # update children that have the target as successor
         self.debug_exec(f"UPDATE replaced SET successor = {successor} WHERE successor = {data[0][0]}")
@@ -1221,7 +1225,7 @@ class PhotoDb:
         if not delete:
             # move file
             dst = self.trash_path(data[0][6])
-            
+
             if os.path.exists(dst):
                 raise ValueError(f"Image exists in trash already? {dst}")
 
@@ -1239,11 +1243,11 @@ class PhotoDb:
 
         if key is not None:
             self.debug_exec(f"SELECT key, org_fname , org_fpath, metadata, google_fotos_metadata, naming_tag, "
-                             f"file_hash, new_name , datetime, present, verify FROM images WHERE key is {key}")
+                            f"file_hash, new_name , datetime, present, verify FROM images WHERE key is {key}")
 
         else:
             self.debug_exec(f"SELECT key, org_fname , org_fpath, metadata, google_fotos_metadata, naming_tag, "
-                             f"file_hash, new_name , datetime, present, verify FROM images WHERE new_name = '{filename}'")
+                            f"file_hash, new_name , datetime, present, verify FROM images WHERE new_name = '{filename}'")
 
         res = self.cur.fetchone()
 
@@ -1587,7 +1591,7 @@ class PhotoDb:
                     keys.append(self.file_name_to_key(os.path.basename(d)))
 
                 self.debug_exec(f"INSERT INTO duplicates (match_type, matched_keys) "
-                                 f"VALUES ('{info}', '{json.dumps(keys)}')")
+                                f"VALUES ('{info}', '{json.dumps(keys)}')")
             self.con.commit()
             pipe_in.send((i, initial_size))
 
@@ -1713,7 +1717,7 @@ class PhotoDb:
                     keys.append(self.file_name_to_key(os.path.basename(d)))
 
                 self.debug_exec(f"INSERT INTO duplicates (match_type, matched_keys) "
-                                 f"VALUES ('{info}', '{json.dumps(keys)}')")
+                                f"VALUES ('{info}', '{json.dumps(keys)}')")
             self.con.commit()
             pipe_in.send((count, initial_size))
 
@@ -1754,7 +1758,7 @@ class PhotoDb:
             matching_keys = self.find_all_identical_hashes(d["file_hash"], trash=trash)
 
             self.debug_exec(f"INSERT INTO duplicates (match_type, matched_keys) "
-                             f"VALUES ('hash', '{json.dumps(matching_keys)}')")
+                            f"VALUES ('hash', '{json.dumps(matching_keys)}')")
 
         print(f"Done Processing")
 
@@ -2108,3 +2112,71 @@ class PhotoDb:
             print("Error in command")
             print(command)
             raise Exception
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # FUNCTIONS TO BUILD TILE INFORMATION FOR IMPORT VIEW
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def tiles_from_import_table(self, tbl_name: str) -> Dict[str, List[TileInfo]]:
+        """
+        Build TileInformation from import table. Assumption RAM is large enough to hold all tiles. Converts entire table
+        to tile information.
+
+        :param tbl_name: table to convert
+        :return: TileInfos
+        """
+        output = {}
+        t = self.tiles_from_not_allowed(tbl_name=tbl_name)
+        output["not_allowed"] = t
+
+        for mt in MatchTypes:
+            t = self.tiles_from_match_type(tbl_name=tbl_name, mt=mt)
+            output[mt.name.lower()] = t
+
+        return output
+
+    def tiles_from_match_type(self, tbl_name: str, mt: MatchTypes) -> List[TileInfo]:
+        """
+        Given a Match_Type, fetches all images from the import table which are allowed and have said match type.
+
+        :param tbl_name: import table name
+        :param mt: match type to filer for
+        :return:
+        """
+
+        self.debug_exec(f"SELECT key, org_fname, org_fpath, imported, allowed, match_type FROM `{tbl_name}` "
+                        f"WHERE match_type = {mt.value} and allowed = 1")
+        return self.__tiles_from_cursor()
+
+    def tiles_from_not_allowed(self, tbl_name) -> List[TileInfo]:
+        """
+        Get all images from import table which are not allowed.
+
+        :param tbl_name: import table name
+        :return:
+        """
+        self.debug_exec(f"SELECT key, org_fname, org_fpath, imported, allowed, match_type FROM `{tbl_name}` "
+                        f"WHERE allowed = 0")
+        return self.__tiles_from_cursor()
+
+
+    def __tiles_from_cursor(self) -> List[TileInfo]:
+        """
+        Function builds tiles from the current result in the cursor. This function must be called by
+        tiles_from_not_allowed or tiles_from_match_type.
+
+        :return:
+        """
+        results = self.cur.fetchall()
+        output = []
+
+        for row in results:
+            t = TileInfo(
+                key=row[0],
+                path=os.path.join(row[2], row[1]),
+                imported=bool(row[3]),
+                allowed=bool(row[4]),
+                match_type=MatchTypes(row[5])
+            )
+            output.append(t)
+        return output
