@@ -192,11 +192,10 @@ class TempRoow(QMainWindow):
 
         self.sca = QScrollArea()
         self.sca.setWidgetResizable(True)
-        self.sca.setWidget(PictureBlock(tile_infos=sample_tiles))
+        self.sca.setWidget(CheckNamedPictureBlock(mt=MatchTypes.Hash_Match_Replaced, tile_infos=sample_tiles))
         self.setCentralWidget(self.sca)
 
 if __name__ == "__main__":
-
     app = QApplication(sys.argv)
     root = TempRoow()
     root.show()
