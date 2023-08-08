@@ -25,7 +25,7 @@ class Row(QFrame):
         """
         super().__init__()
         self.h_layout = QHBoxLayout()
-        self.h_layout.setContentsMargins(0, 0, 0, 0)
+        # self.h_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.h_layout)
 
         for i in range(len(tiles)):
