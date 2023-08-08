@@ -1,12 +1,12 @@
 import sys
 import os
 from typing import Union
-from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QSizePolicy, QMainWindow, QWidget
+from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QSizePolicy, QMainWindow, QFrame, QWidget
 from PyQt6.QtCore import Qt
 from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.PhotoDatabase import TileInfo
 
-class ImageTile(QWidget):
+class ImageTile(QFrame):
 
     tile_info: Union[TileInfo, None] = None
 
@@ -20,8 +20,6 @@ class ImageTile(QWidget):
         super().__init__()
         self.tile_info = info
 
-        self.setStyleSheet("background-color: #00ff00;")
-
         self.file_nane_lbl = QLabel()
         self.b_layout = QVBoxLayout()
         self.clickable_image = ClickableImage(self.tile_info.path)
@@ -33,6 +31,8 @@ class ImageTile(QWidget):
 
         self.b_layout.addWidget(self.clickable_image)
         self.b_layout.addWidget(self.file_nane_lbl)
+        self.b_layout.setContentsMargins(0, 0, 0, 0)
+        self.b_layout.setSpacing(5)
         self.setLayout(self.b_layout)
 
         self.clickable_image.clicked.connect(self.open_image)
