@@ -59,6 +59,16 @@ class ImageTile(QFrame):
         return self.width()
 
 
+class ImportImageTile(ImageTile):
+    """
+    Image tile with the expressed purpose of being used for importing. It has a variable that indicates if it is marked
+    for import.
+    """
+    marked_for_import: bool = False
+
+    def __init__(self, info: TileInfo):
+        super().__init__(info=info)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
