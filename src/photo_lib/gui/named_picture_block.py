@@ -28,10 +28,12 @@ class Row(QFrame):
         self.h_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.h_layout)
 
-        self.h_layout.addStretch()
-        for tile in tiles:
+        for i in range(len(tiles)):
+            tile = tiles[i]
             self.h_layout.addWidget(tile)
-            self.h_layout.addStretch()
+
+            if i < len(tiles) -1:
+                self.h_layout.addStretch()
 
 
 class PictureBlock(QFrame):
