@@ -111,8 +111,6 @@ class PictureBlock(QFrame):
         while self.v_layout.count():
             self.v_layout.takeAt(0)
 
-        self.v_layout.addStretch()
-
         # Loop through rows
         for i in range(0, len(self.img_tiles), n_h_tiles):
             # Create a new horizontal layout for row
@@ -120,8 +118,8 @@ class PictureBlock(QFrame):
 
             # Add the row to the main layout.
             self.v_layout.addWidget(row)
-
-            self.v_layout.addStretch()
+            if i < len(self.img_tiles) - n_h_tiles:
+                self.v_layout.addStretch()
         # for tile in self.img_tiles:
         #     self.v_layout.addWidget(QLabel("Test"))
         #     self.v_layout.addStretch()
