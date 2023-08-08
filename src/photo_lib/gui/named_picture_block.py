@@ -148,7 +148,7 @@ class CheckNamedPictureBlock(QFrame):
 
         self.v_layout = QVBoxLayout()
         self.v_layout.addWidget(self.import_checkbox)
-        # self.v_layout.setContentsMargins(0, 0, 0, 0)
+        self.v_layout.setContentsMargins(0, 0, 0, 0)
 
         self.picture_block = PictureBlock(tile_infos=tile_infos)
         # self.picture_block.setFrameStyle(QFrame.Shape.Box)
