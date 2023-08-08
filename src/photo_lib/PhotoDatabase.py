@@ -1069,6 +1069,19 @@ class PhotoDb:
                         f"imported = 1 "
                         f"WHERE key == {update_it_key}")
 
+    def import_table_message(self, tbl_name: str) -> Union[None, str]:
+        """
+        Return the table description of the given import table. If the table does not exist, return None.
+        :param tbl_name: table to fetch description from
+        :return: None or table description.
+        """
+        self.debug_exec(f"SELECT import_table_description FROM import_tables WHERE import_table_name = '{tbl_name}'")
+        res = self.cur.fetchone()
+        if res is None:
+            return None
+
+        return res[0]
+
     def create_import_table(self, folder_path: str, msg: str = None) -> str:
         """
         Creates a temporary table for the import process.
