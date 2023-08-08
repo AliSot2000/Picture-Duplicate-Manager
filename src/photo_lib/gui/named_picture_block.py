@@ -188,7 +188,8 @@ class TempRoow(QMainWindow):
         super().__init__()
         target = "/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images"
         images = os.listdir(target)
-        sample_tiles = [TileInfo(key=1, path=os.path.join(target, image), table="TEST") for image in images]
+        sample_tiles = [TileInfo(key=1, path=os.path.join(target, image), imported=False, allowed=False,
+                                 match_type=MatchTypes.NO_MATCH) for image in images]
 
         self.sca = QScrollArea()
         self.sca.setWidgetResizable(True)
