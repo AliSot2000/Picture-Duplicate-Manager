@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog, QMenu, QProgressDialog
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
-from photo_lib.gui.image_container import ResizingImage
+from photo_lib.gui.new_click_image import ClickableImage
 from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType
 from photo_lib.gui.media_pane import MediaPane
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
@@ -14,7 +14,6 @@ from typing import Union
 #  - Logging
 
 # TODO Features
-#  - Highlighting for the currently selected media-pane when shortcut is activated.
 #  - Time line selection
 #  - Images in windows needed at some point
 #  - No import required, just list the images in folders
@@ -28,7 +27,7 @@ class RootWindow(QMainWindow):
     stacked_layout: QStackedLayout
 
     # Fill Screen Image
-    full_screen_image: ResizingImage = None
+    full_screen_image: ClickableImage = None
 
     # Compare stuff
     compare_root: CompareRoot
@@ -138,11 +137,12 @@ class RootWindow(QMainWindow):
         :return:
         """
         if self.full_screen_image is None:
-            self.full_screen_image = ResizingImage(path)
+            self.full_screen_image = ClickableImage()
+            self.full_screen_image.file_path = path
             self.full_screen_image.clicked.connect(self.open_compare_root)
             self.stacked_layout.addWidget(self.full_screen_image)
         else:
-            self.full_screen_image.load_image(path)
+            self.full_screen_image.file_path = path
 
         self.set_view(self.full_screen_image)
 
@@ -212,7 +212,7 @@ class RootWindow(QMainWindow):
 
         self.open_compare_root()
 
-    def set_view(self, target: Union[CompareRoot, FolderSelectModal, ResizingImage]):
+    def set_view(self, target: Union[CompareRoot, FolderSelectModal, ClickableImage]):
         """
         Set the view to the target.
         :param target: Target to set the view to.
@@ -224,7 +224,7 @@ class RootWindow(QMainWindow):
             self.close_compare_root()
         elif type(current_view) is FolderSelectModal:
             self.close_folder_select()
-        elif type(current_view) is ResizingImage:
+        elif type(current_view) is ClickableImage:
             self.close_full_screen_image()
 
         self.stacked_layout.setCurrentWidget(target)
