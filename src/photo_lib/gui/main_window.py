@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog, QMenu, QProgressDialog
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
-from photo_lib.gui.new_click_image import ClickableImage
+from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType
 from photo_lib.gui.media_pane import MediaPane
 from PyQt6.QtGui import QAction, QIcon, QKeySequence

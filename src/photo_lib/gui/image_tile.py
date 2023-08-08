@@ -3,7 +3,7 @@ import os
 from typing import Union
 from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QSizePolicy, QMainWindow, QWidget
 from PyQt6.QtCore import Qt
-from photo_lib.gui.new_click_image import ClickableImage
+from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.PhotoDatabase import TileInfo
 
 class ImageTile(QWidget):

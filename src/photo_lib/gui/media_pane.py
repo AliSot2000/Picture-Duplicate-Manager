@@ -4,7 +4,7 @@ from PyQt6.QtGui import QPixmap, QFontMetrics, QEnterEvent, QIcon
 from PyQt6.QtCore import Qt, QEvent, QSize
 
 from photo_lib.gui.misc import QSquarePushButton
-from photo_lib.gui.new_click_image import ClickableImage
+from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.model import Model
 from photo_lib.PhotoDatabase import DatabaseEntry
