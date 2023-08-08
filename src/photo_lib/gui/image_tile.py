@@ -20,6 +20,8 @@ class ImageTile(QFrame):
         super().__init__()
         self.tile_info = info
 
+        self.setFrameStyle(QFrame.Shape.Box)
+
         self.file_nane_lbl = QLabel()
         self.b_layout = QVBoxLayout()
         self.clickable_image = ClickableImage(self.tile_info.path)
