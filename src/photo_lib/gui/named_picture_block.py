@@ -57,7 +57,7 @@ class PictureBlock(QFrame):
         """
         super().__init__()
         self.v_layout = QVBoxLayout()
-        self.v_layout.setContentsMargins(0, 0, 0, 0)
+        # self.v_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.v_layout)
 
         self.setMinimumWidth(self.tile_size + 20)
