@@ -1,9 +1,9 @@
 import datetime
 import os.path
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Dict
 import multiprocessing as mp
 
-from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry
+from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo
 from photo_lib.metadataagregator import key_lookup_dir
 
 
@@ -16,14 +16,49 @@ class NoDbException(Exception):
 
 class Model:
     pdb:  Union[PhotoDb, None] = None
+
+    # Compare Layout for deduplication
     files: List[DatabaseEntry]
     current_row: Union[int, None] = None
+
     search_level: Union[str, None] = None
     resources: str = os.path.join(os.path.dirname(__file__), "resources")
+
+    current_import_table_name: Union[str, None] = None
+    tile_infos: Union[None, Dict[str, List[TileInfo]]] = None
 
     def __init__(self, folder_path: str = None):
         if folder_path is not None:
             self.pdb = PhotoDb(root_dir=folder_path)
+
+    def get_current_import_table_name(self, table_name: str = None):
+        """
+        Get the name of the current import table.
+
+        :param table_name: name of the import table. Can be set to None to use the current table name.
+
+        :return:
+        """
+        if table_name is not None:
+            self.current_import_table_name = table_name
+        elif self.current_import_table_name is None:
+            return
+
+        return self.pdb.import_table_message(tbl_name=self.current_import_table_name)
+
+    def build_tiles_from_table(self, table_name: str = None):
+        """
+        Given the name of an import table, build the tiles for the images in the table.
+
+        :param table_name: name of the import table. Can be set to None to use the current table name.
+        :return:
+        """
+        if table_name is not None:
+            self.current_import_table_name = table_name
+        elif self.current_import_table_name is None:
+            return
+
+        self.tile_infos = self.pdb.tiles_from_import_table(tbl_name=self.current_import_table_name)
 
     def set_folder_path(self, folder_path: str):
         """
