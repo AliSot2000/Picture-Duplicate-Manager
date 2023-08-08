@@ -2140,7 +2140,7 @@ class PhotoDb:
         """
         output = {}
         t = self.tiles_from_not_allowed(tbl_name=tbl_name)
-        output["not_allowed"] = t
+        output["Not_Allowed"] = t
 
         for mt in MatchTypes:
             t = self.tiles_from_match_type(tbl_name=tbl_name, mt=mt)
