@@ -88,6 +88,7 @@ class PictureBlock(QFrame):
             tile = ImageTile(tile_info)
             tile.setFixedHeight(self.tile_size)
             tile.setFixedWidth(self.tile_size)
+            tile.b_layout.setContentsMargins(0, 0, 0, 0)
             self.img_tiles.append(tile)
 
     def layout_tiles(self):
@@ -124,6 +125,7 @@ class PictureBlock(QFrame):
                     tiles.append(w)
 
             row = Row(tiles)
+            row.h_layout.setContentsMargins(0, 0, 0, 0)
 
             # Add the row to the main layout.
             self.v_layout.addWidget(row)
@@ -151,6 +153,7 @@ class CheckNamedPictureBlock(QFrame):
         # self.v_layout.setContentsMargins(0, 0, 0, 0)
 
         self.picture_block = PictureBlock(tile_infos=tile_infos)
+        self.picture_block.v_layout.setContentsMargins(0, 0, 0, 0)
         # self.picture_block.setFrameStyle(QFrame.Shape.Box)
         self.v_layout.addWidget(self.picture_block)
 
@@ -189,7 +192,7 @@ class TempRoow(QMainWindow):
         target = "/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images"
         images = os.listdir(target)
         sample_tiles = [TileInfo(key=1, path=os.path.join(target, image), imported=False, allowed=False,
-                                 match_type=MatchTypes.NO_MATCH) for image in images]
+                                 match_type=MatchTypes.No_Match) for image in images]
 
         self.sca = QScrollArea()
         self.sca.setWidgetResizable(True)
