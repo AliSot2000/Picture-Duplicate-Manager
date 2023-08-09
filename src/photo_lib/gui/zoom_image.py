@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QApplication
 from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent
-from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF
+from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer
 import sys
 import os
 from typing import Union
@@ -95,16 +95,18 @@ class ZoomImage(QWidget):
         :return:
         """
         if p is not None and not p.isNull():
-            print(self.__offset)
+            # New equation
+            # (center - cursor) - (offset * scale) = (center - cursor) - (offset_new * scale_new)
+            print(f"Offset {self.__offset}")
             old_s = 2 ** (1 + self.__scale_offset / 100)
             new_s = 2 ** (1 + (self.__scale_offset + d) / 100)
+            print(f"Old Scale {old_s}")
+            print(f"New Scale {new_s}")
 
-            dtc = self.rect().center().toPointF() + p
+            dtc = self.rect().center().toPointF() - p
             img_c = (dtc - self.__offset) * old_s / new_s
             self.__offset = img_c - dtc
-            print(self.__offset)
-            print(old_s)
-            print(new_s)
+            print(f"New Offset {self.__offset}")
         self.__scale_offset += d
         self.update()
 
