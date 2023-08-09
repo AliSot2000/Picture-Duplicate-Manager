@@ -223,12 +223,45 @@ class TaskSelectModal(QDialog):
         self.accept()
 
 
+class FileExtensionDialog(QDialog):
+    def __init__(self, *args, current_type: str,  **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setWindowTitle("Set Allowed File Extensions")
+
+        self.main_layout = QFormLayout()
+        self.setLayout(self.main_layout)
+
+        self.file_ext_label: QLabel = QLabel("File Extensions:")
+        self.file_ext_input: QLineEdit = QLineEdit()
+        self.file_ext_input.setPlaceholderText("Enter file extensions separated by commas.")
+        # self.file_ext_input.setText("jpeg, jpg, png, mov, m4v, mp4, gif, 3gp, dng, heic, heif, webp, tif, tiff")
+        self.file_ext_input.setText(current_type)
+        self.file_ext_input.setToolTip("Enter file extensions separated by commas.")
+
+        self.setMinimumWidth(300)
+
+        self.apply_button = QPushButton("Apply")
+        self.apply_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_Enter))
+        self.apply_button.clicked.connect(self.accept)
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.setShortcut(QKeySequence(Qt.Key.Key_Escape))
+        self.cancel_button.clicked.connect(self.reject)
+
+        self.main_layout.addRow(self.file_ext_label)
+        self.main_layout.addRow(self.file_ext_input)
+        self.main_layout.addRow(self.cancel_button, self.apply_button)
+
+
 class PrepareImportDialog(QDialog):
     main_layout: QFormLayout
 
     info_label: QLabel
     folder_button: QPushButton
     folder_label: QLabel
+
+    file_ext_label: QLabel
+    file_ext_input: QPushButton
+    extensions: str
 
     cancel_button: QPushButton
     import_button: QPushButton
@@ -252,6 +285,13 @@ class PrepareImportDialog(QDialog):
         self.folder_label = QLabel("No folder selected.")
         self.folder_label.setMinimumWidth(300)
 
+        self.file_ext_label = QLabel("File Extensions:")
+        self.file_ext_input = QPushButton("Edit")
+        self.file_ext_input.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_E))
+        self.file_ext_input.setToolTip("Edit the file extensions to import.")
+        self.file_ext_input.clicked.connect(self.edit_file_extensions)
+        self.extensions = "jpeg, jpg, png, mov, m4v, mp4, gif, 3gp, dng, heic, heif, webp, tif, tiff"
+
         self.cancel_button = QPushButton("Cancel")
         self.cancel_button.setShortcut(QKeySequence(Qt.Key.Key_Escape))
         self.cancel_button.setToolTip("Cancel and close the modal.")
@@ -263,10 +303,21 @@ class PrepareImportDialog(QDialog):
         self.import_button.clicked.connect(self.import_media)
 
         self.main_layout.addRow(self.info_label)
+        self.main_layout.addRow(self.file_ext_label, self.file_ext_input)
         self.main_layout.addRow(self.folder_label, self.folder_button)
         self.main_layout.addRow(self.cancel_button, self.import_button)
 
         self.model = model
+
+    def edit_file_extensions(self):
+        """
+        Open a FileExtensionDialog to edit the file extensions.
+        :return:
+        """
+        dialog = FileExtensionDialog(current_type=self.extensions)
+        dialog.exec()
+        if dialog.result() == QDialog.DialogCode.Accepted:
+            self.extensions = dialog.file_ext_input.text()
 
     def cancel(self):
         """
