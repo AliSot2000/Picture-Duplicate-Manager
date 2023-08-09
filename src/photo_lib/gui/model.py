@@ -32,13 +32,13 @@ class Model:
     def get_default_extensions(self):
         """
         Get the default extensions from the database.
-        # TODO should be in conifg!
+        # TODO should be in config!
         :return:
         """
         if self.pdb is None:
             return ""
 
-        return ",".join([x.replace(".", "") for x in list(self.pdb.allowed_files)])
+        return ", ".join([x.replace(".", "") for x in list(self.pdb.allowed_files)])
 
     def __init__(self, folder_path: str = None):
         if folder_path is not None:
