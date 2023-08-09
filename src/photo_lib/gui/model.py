@@ -24,6 +24,8 @@ class Model:
     search_level: Union[str, None] = None
     resources: str = os.path.join(os.path.dirname(__file__), "resources")
 
+    # Stuff for importing
+    import_folder: Union[str, None] = None
     current_import_table_name: Union[str, None] = None
     tile_infos: Union[None, Dict[str, List[TileInfo]]] = None
 
