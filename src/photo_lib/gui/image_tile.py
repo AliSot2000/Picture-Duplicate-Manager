@@ -4,7 +4,7 @@ from typing import Union
 from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QSizePolicy, QMainWindow, QFrame, QWidget
 from PyQt6.QtCore import Qt
 from photo_lib.gui.clickable_image import ClickableImage
-from photo_lib.PhotoDatabase import TileInfo
+from photo_lib.PhotoDatabase import TileInfo, MatchTypes
 
 class ImageTile(QFrame):
 
@@ -73,7 +73,7 @@ class ImportImageTile(ImageTile):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     widget = ImageTile(TileInfo(1, '/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2159.JPG',
-                                'None'))
+                                False, False, MatchTypes.No_Match))
     root = QMainWindow()
     root.setCentralWidget(widget)
     root.show()
