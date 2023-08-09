@@ -1921,7 +1921,11 @@ class PhotoDb:
         path_a = self.path_from_datetime(self.__db_str_to_datetime(res_a[0][1]), res_a[0][0])
         path_b = self.path_from_datetime(self.__db_str_to_datetime(res_b[0][1]), res_b[0][0])
 
-        success = filecmp.cmp(path_a, path_b, shallow=False)
+        try:
+            success = filecmp.cmp(path_a, path_b, shallow=False)
+        except FileNotFoundError:
+            return False, "File not found on disk"
+
         msg = f"'{res_a[0][0]}' is{'' if success else ' FUCKING NOT'} identical to '{res_b[0][0]}'"
 
         return success, msg
