@@ -290,7 +290,7 @@ class PrepareImportDialog(QDialog):
         self.file_ext_input.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_E))
         self.file_ext_input.setToolTip("Edit the file extensions to import.")
         self.file_ext_input.clicked.connect(self.edit_file_extensions)
-        self.extensions = "jpeg, jpg, png, mov, m4v, mp4, gif, 3gp, dng, heic, heif, webp, tif, tiff"
+        self.extensions = self.model.get_default_extensions()
 
         self.cancel_button = QPushButton("Cancel")
         self.cancel_button.setShortcut(QKeySequence(Qt.Key.Key_Escape))
