@@ -8,7 +8,6 @@ import math
 import warnings
 
 
-# TODO zoom relative to mouse position
 # TODO zoom out, recentering of image.
 
 class ZoomImage(QWidget):
@@ -100,13 +99,16 @@ class ZoomImage(QWidget):
             print(f"Offset {self.__offset}")
             old_s = 2 ** (1 + self.__scale_offset / 100)
             new_s = 2 ** (1 + (self.__scale_offset + d) / 100)
+            mtc = self.rect().center().toPointF() - p
+            current_t = mtc / old_s + self.__offset
+            new_t = mtc / new_s + self.__offset
+
             print(f"Old Scale {old_s}")
             print(f"New Scale {new_s}")
-
-            dtc = self.rect().center().toPointF() - p
-            img_c = (dtc - self.__offset) * old_s / new_s
-            self.__offset = img_c - dtc
-            print(f"New Offset {self.__offset}")
+            print(f"Current target: {mtc / old_s + self.__offset}")
+            print(f"New     target: {mtc / new_s + self.__offset}")
+            print(f"Compensation  : {new_t - current_t}")
+            self.__offset -= new_t - current_t
         self.__scale_offset += d
         self.update()
 
