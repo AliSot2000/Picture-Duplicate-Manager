@@ -93,18 +93,20 @@ class ZoomImage(QWidget):
         :param d: amount to increase absolute size of image
         :return:
         """
-        if p is not None and not p.isNull():
+        old_s = 2 ** (1 + self.__scale_offset / 100)
+        new_s = 2 ** (1 + (self.__scale_offset + d) / 100)
+        if p is not None and not p.isNull() and self.__fitting_scale < self.__scale_offset + d:
             # New equation
             # (center - cursor) - (offset * scale) = (center - cursor) - (offset_new * scale_new)
             print(f"Offset {self.__offset}")
-            old_s = 2 ** (1 + self.__scale_offset / 100)
-            new_s = 2 ** (1 + (self.__scale_offset + d) / 100)
+
             mtc = self.rect().center().toPointF() - p
             current_t = mtc / old_s + self.__offset
             new_t = mtc / new_s + self.__offset
 
-            print(f"Old Scale {old_s}")
-            print(f"New Scale {new_s}")
+            print(f"fitting scale   {self.__fitting_scale}")
+            print(f"Old Scale       {old_s}")
+            print(f"New Scale       {new_s}")
             print(f"Current target: {mtc / old_s + self.__offset}")
             print(f"New     target: {mtc / new_s + self.__offset}")
             print(f"Compensation  : {new_t - current_t}")
