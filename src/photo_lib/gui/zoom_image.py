@@ -58,8 +58,6 @@ class ZoomImage(QWidget):
         :param event: Click event
         :return:
         """
-        print(event.position())
-        print(self.size())
         if not self.__capture:
             event.ignore()
             return
