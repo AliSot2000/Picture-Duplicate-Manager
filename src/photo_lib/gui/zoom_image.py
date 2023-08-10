@@ -133,6 +133,11 @@ class ZoomImage(QWidget):
         super().mousePressEvent(a0)
 
     def mouseReleaseEvent(self, a0: QMouseEvent) -> None:
+        """
+        When mouse is released, reset the last position
+        :param a0:
+        :return:
+        """
         if a0.button() == Qt.MouseButton.LeftButton:
             self.last_pos = None
 
@@ -141,6 +146,11 @@ class ZoomImage(QWidget):
             self.update()
 
     def mouseMoveEvent(self, a0: QMouseEvent) -> None:
+        """
+        When mouse is moved, move the image accordingly
+        :param a0:
+        :return:
+        """
         if self.last_pos is not None:
             delta = a0.globalPosition() - self.last_pos
             if a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
@@ -150,6 +160,10 @@ class ZoomImage(QWidget):
         self.last_pos = a0.globalPosition()
 
     def resetImage(self):
+        """
+        Reset Scale and Offset of image.
+        :return:
+        """
         self.__offset = QPointF(0, 0)
 
         if self.pixmap.isNull():
