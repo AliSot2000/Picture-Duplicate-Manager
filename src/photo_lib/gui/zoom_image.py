@@ -35,6 +35,7 @@ class ZoomImage(QWidget):
     def __init__(self, file_path: str = None):
         super().__init__()
         self.file_path = file_path
+        self.timer = QTimer(self)
 
     def enterEvent(self, event: QEnterEvent) -> None:
         """
@@ -95,24 +96,47 @@ class ZoomImage(QWidget):
         """
         old_s = 2 ** (1 + self.__scale_offset / 100)
         new_s = 2 ** (1 + (self.__scale_offset + d) / 100)
-        if p is not None and not p.isNull() and self.__fitting_scale < self.__scale_offset + d:
-            # New equation
-            # (center - cursor) - (offset * scale) = (center - cursor) - (offset_new * scale_new)
-            print(f"Offset {self.__offset}")
 
-            mtc = self.rect().center().toPointF() - p
-            current_t = mtc / old_s + self.__offset
-            new_t = mtc / new_s + self.__offset
+        if p is not None and not p.isNull():
+            # Post Condition - a different origin of scaling was provided.
+            if not self.constrain_offset:
+                # Different origin and we perform zoom with that origin regardless of image size.
+                self._zoomOffsetHandler(p, old_s, new_s)
+            else:
+                # We perform zooming with different origin only if the image is larger than the screen area.
+                if self.__fitting_scale > self.__scale_offset and d < 0:
+                    # Zooming out and image is smaller than screen area.
+                    r = QRect(QPoint(),
+                              self.pixmap.size().scaled(self.pixmap.size() * new_s, Qt.AspectRatioMode.KeepAspectRatio))
+                    r.moveCenter(self.rect().center() + self.__offset.toPoint() * old_s)
+                    if r.topLeft().x() < 0:
+                        self.__offset += QPointF(-r.topLeft().x(), 0) / old_s
+                    if r.topLeft().y() < 0:
+                        self.__offset += QPointF(0, -r.topLeft().y()) / old_s
+                    if r.bottomRight().x() > self.width():
+                        self.__offset -= QPointF(r.bottomRight().x() - self.width(), 0) / old_s
+                    if r.bottomRight().y() > self.height():
+                        self.__offset -= QPointF(0, r.bottomRight().y() - self.height()) / old_s
+                else:
+                    # Image is larger than screen area or we're zooming in.
+                    self._zoomOffsetHandler(p, old_s, new_s)
 
-            print(f"fitting scale   {self.__fitting_scale}")
-            print(f"Old Scale       {old_s}")
-            print(f"New Scale       {new_s}")
-            print(f"Current target: {mtc / old_s + self.__offset}")
-            print(f"New     target: {mtc / new_s + self.__offset}")
-            print(f"Compensation  : {new_t - current_t}")
-            self.__offset -= new_t - current_t
         self.__scale_offset += d
         self.update()
+
+    def _zoomOffsetHandler(self, p: QPointF, old_s: float, new_s: float):
+        """
+        Perform zoom with different origin of scaling.
+        :param new_s: new zoom in exponent form
+        :param old_s: old zoom in exponent form
+        :param p: point in screen coordinates where to zoom to.
+        :return:
+        """
+        mtc = self.rect().center().toPointF() - p
+        current_t = mtc / old_s + self.__offset
+        new_t = mtc / new_s + self.__offset
+        self.__offset -= new_t - current_t
+
 
     def moveImage(self, p: Union[QPoint, QPointF]):
         """
@@ -225,7 +249,7 @@ class ZoomImage(QWidget):
                 self.width_div_height = self.pixmap.width() / self.pixmap.height()
             except ZeroDivisionError:
                 self.width_div_height = 1.0
-
+        self.timer.singleShot(100, self.resetImage)
         self.updateGeometry()
         if not self.pixmap.isNull() and self.isVisible():
             self.update()
