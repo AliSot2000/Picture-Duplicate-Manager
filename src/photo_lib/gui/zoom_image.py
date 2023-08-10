@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QApplication
-from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent
+from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer
 import sys
 import os
