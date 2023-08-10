@@ -29,6 +29,8 @@ class ZoomImage(QWidget):
 
     __offset: QPointF = QPointF(0, 0)
     __scale_offset: int = 0
+    __fitting_scale: int = 0
+    constrain_offset: bool = True
 
     def __init__(self, file_path: str = None):
         super().__init__()
@@ -171,7 +173,19 @@ class ZoomImage(QWidget):
         r = QRect(QPoint(),
                   self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
         self.__scale_offset = int((math.log2( r.height() / self.pixmap.height()) - 1) * 100)
+        self.__fitting_scale = self.__scale_offset
 
+
+    def resizeEvent(self, a0: QResizeEvent) -> None:
+        """
+        When the widget is resized, recalculate the __fitting_scale
+        :param a0:
+        :return:
+        """
+        super().resizeEvent(a0)
+        r = QRect(QPoint(),
+                  self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
+        self.__scale_offset = int((math.log2(r.height() / self.pixmap.height()) - 1) * 100)
 
     @property
     def file_path(self):
