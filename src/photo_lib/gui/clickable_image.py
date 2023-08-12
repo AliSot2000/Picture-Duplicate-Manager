@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 import sys
 from typing import Union
 from photo_lib.gui.base_image import BaseImage
+from photo_lib.PhotoDatabase import BaseTileInfo
 
 # TODO font info from config.
 
@@ -60,6 +61,10 @@ class ClickableImage(BaseImage):
 
         if self.__file_path is not None and self.image_loaded:
             self._load_image()
+
+
+class ClickableTile(ClickableImage):
+    tile_info: Union[BaseTileInfo, None] = None
 
 
 def helper():
