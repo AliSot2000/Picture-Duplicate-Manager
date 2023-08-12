@@ -38,6 +38,19 @@ def pain_wrapper(media_pane: MediaPane, func: Callable):
     return wrapper
 
 
+def path_wrapper(path: str, func: Callable):
+    """
+    Given a path at time of creation, bakes the path into the function call since the function called in signals may not
+    have any arguments.
+    :param path: Path to bake in
+    :param func: function to call with it
+    :return:
+    """
+    def wrapper():
+        return func(path=path)
+    return wrapper
+
+
 class CompareRoot(QFrame):
     model: Model
     media_layout: QHBoxLayout
@@ -266,7 +279,7 @@ class CompareRoot(QFrame):
         for pane in self.media_panes:
             pane.main_button.clicked.connect(button_wrapper(pane.main_button, self.button_state))
             pane.remove_media_button.clicked.connect(pain_wrapper(pane, self.remove_media_pane))
-            pane.media.clicked.connect(lambda: self.open_image_fn(pane.media.fpath))
+            pane.media.clicked.connect(path_wrapper(pane.media.file_path, self.open_image_fn))
             pane.change_tag_button.clicked.connect(pain_wrapper(pane, self.open_datetime_modal_fn))
 
             # Add functions for the adding and removing of the target.
