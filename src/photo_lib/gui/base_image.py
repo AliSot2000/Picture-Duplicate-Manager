@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QApplication
+from PyQt6.QtWidgets import QWidget, QApplication, QFrame
 from PyQt6.QtGui import QPixmap, QPainter, QFont
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal
 import sys
@@ -6,7 +6,7 @@ import os
 from typing import Union
 import warnings
 
-class BaseImage(QWidget):
+class BaseImage(QFrame):
     pixmap = None
 
     __file_path: str = None
@@ -84,7 +84,7 @@ class BaseImage(QWidget):
         :param event:
         :return:
         """
-        if not self.pixmap or self.pixmap.isNull():
+        if self.pixmap is None or self.pixmap.isNull():
             self.empty_pixmap_painter()
             return
 
