@@ -1,10 +1,11 @@
 from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog, QMenu, QProgressDialog
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
-from photo_lib.gui.clickable_image import ClickableImage
+from photo_lib.gui.zoom_image import ZoomImage
 from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType
 from photo_lib.gui.media_pane import MediaPane
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
+from PyQt6.QtCore import Qt
 from typing import Union
 
 
@@ -27,7 +28,7 @@ class RootWindow(QMainWindow):
     stacked_layout: QStackedLayout
 
     # Fill Screen Image
-    full_screen_image: ClickableImage = None
+    full_screen_image: ZoomImage = None
 
     # Compare stuff
     compare_root: CompareRoot
@@ -41,9 +42,12 @@ class RootWindow(QMainWindow):
     commit_submenu: Union[None, QMenu] = None
     mark_submenu: Union[None, QMenu] = None
 
+    full_screen_image_menu: Union[None, QMenu] = None
+
     # Actions
     open_folder_select_action: QAction
     search_duplicates_action: QAction
+    close_full_screen_image_action: QAction
 
     progress_dialog: Union[QProgressDialog, None] = None
 
@@ -87,6 +91,11 @@ class RootWindow(QMainWindow):
         self.search_duplicates_action = QAction("&Search Duplicates", self)
         self.search_duplicates_action.triggered.connect(self.search_duplicates)
         self.search_duplicates_action.setToolTip("Start search for duplicates in the currently selected database.")
+
+        self.close_full_screen_image_action = QAction("&Close Image", self)
+        self.close_full_screen_image_action.triggered.connect(self.open_compare_root)
+        self.close_full_screen_image_action.setToolTip("Close full screen view of image")
+        self.close_full_screen_image_action.setShortcut(QKeySequence(Qt.Key.Key_Escape))
 
         menu_bar = self.menuBar()
 
@@ -137,12 +146,16 @@ class RootWindow(QMainWindow):
         :return:
         """
         if self.full_screen_image is None:
-            self.full_screen_image = ClickableImage()
+            self.full_screen_image = ZoomImage()
             self.full_screen_image.file_path = path
-            self.full_screen_image.clicked.connect(self.open_compare_root)
             self.stacked_layout.addWidget(self.full_screen_image)
         else:
             self.full_screen_image.file_path = path
+
+        menu_bar = self.menuBar()
+        if self.full_screen_image_menu is None:
+            self.full_screen_image_menu = menu_bar.addMenu("&Image")
+            self.full_screen_image_menu.addAction(self.close_full_screen_image_action)
 
         self.set_view(self.full_screen_image)
 
@@ -212,7 +225,7 @@ class RootWindow(QMainWindow):
 
         self.open_compare_root()
 
-    def set_view(self, target: Union[CompareRoot, FolderSelectModal, ClickableImage]):
+    def set_view(self, target: Union[CompareRoot, FolderSelectModal, ZoomImage]):
         """
         Set the view to the target.
         :param target: Target to set the view to.
@@ -224,7 +237,7 @@ class RootWindow(QMainWindow):
             self.close_compare_root()
         elif type(current_view) is FolderSelectModal:
             self.close_folder_select()
-        elif type(current_view) is ClickableImage:
+        elif type(current_view) is ZoomImage:
             self.close_full_screen_image()
 
         self.stacked_layout.setCurrentWidget(target)
@@ -258,7 +271,6 @@ class RootWindow(QMainWindow):
         Close the compare root.
         :return:
         """
-        print("Close")
         menubar = self.menuBar()
         menubar.removeAction(self.commit_submenu.menuAction())
         menubar.removeAction(self.mark_submenu.menuAction())
@@ -281,4 +293,7 @@ class RootWindow(QMainWindow):
         Close the full screen image. If more needs to be changed other than just the view, this is the place to do it.
         :return:
         """
-        pass
+
+        menubar = self.menuBar()
+        menubar.removeAction(self.full_screen_image_menu.menuAction())
+        self.full_screen_image_menu = None
