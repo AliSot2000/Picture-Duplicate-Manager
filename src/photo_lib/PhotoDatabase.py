@@ -46,9 +46,12 @@ class MatchTypes(Enum):
     Hash_Match_Replaced = 5
 
 @dataclass
-class TileInfo:
+class BaseTileInfo:
     key: int
     path: str
+
+@dataclass
+class TileInfo(BaseTileInfo):
     allowed: bool
     imported: bool
     match_type: MatchTypes
