@@ -52,49 +52,49 @@ class ImportView(QFrame):
         self.update_name()
 
         # Explicitly coding the different values for the match_types to allow for more verbose naming of subsections.
-        if self.model.tile_infos is None:
+        if len(self.model.tile_infos) == 0:
             return
 
         # Add Block for no match
-        if len(self.model.tile_infos[MatchTypes.No_Match.name.lower()]) > 0:
+        if len(self.model.get_import_no_match()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.No_Match,
-                                       tile_infos=self.model.tile_infos[MatchTypes.No_Match.name.lower()],
+                                       tile_infos=self.model.get_import_no_match(),
                                        title="Media Files without Match in the Database")
             self.inner_layout.addWidget(w)
 
-        if len(self.model.tile_infos[MatchTypes.Binary_Match_Images.name.lower()]) > 0:
+        if len(self.model.get_import_binary_match()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.Binary_Match_Images,
-                                       tile_infos=self.model.tile_infos[MatchTypes.Binary_Match_Images.name.lower()],
+                                       tile_infos=self.model.get_import_binary_match(),
                                        title="Media Files with Binary Match in Database")
             self.inner_layout.addWidget(w)
 
-        if len(self.model.tile_infos[MatchTypes.Binary_Match_Replaced.name.lower()]) > 0:
+        if len(self.model.get_import_binary_match_replaced()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.Binary_Match_Replaced,
-                                       tile_infos=self.model.tile_infos[MatchTypes.Binary_Match_Replaced.name.lower()],
+                                       tile_infos=self.model.get_import_binary_match_replaced(),
                                        title="Media Files with Binary Match in the known Duplicates")
             self.inner_layout.addWidget(w)
 
-        if len(self.model.tile_infos[MatchTypes.Binary_Match_Trash.name.lower()]) > 0:
+        if len(self.model.get_import_binary_match_trash()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.Binary_Match_Trash,
-                                       tile_infos=self.model.tile_infos[MatchTypes.Binary_Match_Trash.name.lower()],
+                                       tile_infos=self.model.get_import_binary_match_trash(),
                                        title="Media Files with Binary Match in the Trash")
             self.inner_layout.addWidget(w)
 
-        if len(self.model.tile_infos[MatchTypes.Hash_Match_Replaced.name.lower()]) > 0:
+        if len(self.model.get_import_hash_match_replaced()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.Hash_Match_Replaced,
-                                        tile_infos=self.model.tile_infos[MatchTypes.Hash_Match_Replaced.name.lower()],
+                                        tile_infos=self.model.get_import_hash_match_replaced(),
                                         title="Media Files with matching hash and filesize in the known Duplicates")
             self.inner_layout.addWidget(w)
 
-        if len(self.model.tile_infos[MatchTypes.Hash_Match_Trash.name.lower()]) > 0:
+        if len(self.model.get_import_hash_match_trash()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.Hash_Match_Trash,
-                                        tile_infos=self.model.tile_infos[MatchTypes.Hash_Match_Trash.name.lower()],
+                                        tile_infos=self.model.get_import_hash_match_trash(),
                                         title="Media Files with matching hash and filesize in the Trash")
             self.inner_layout.addWidget(w)
 
-        if len(self.model.tile_infos["not_allowed"]) > 0:
+        if len(self.model.get_import_not_allowed()) > 0:
             w = CheckNamedPictureBlock(mt=None,
-                                        tile_infos=self.model.tile_infos["not_allowed"],
+                                        tile_infos=self.model.get_import_not_allowed(),
                                         title="Media Files not allowed to be imported based on file extension")
             w.import_checkbox.setDisabled(True)
             self.inner_layout.addWidget(w)
