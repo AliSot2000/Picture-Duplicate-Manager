@@ -2,9 +2,33 @@ import datetime
 import os.path
 from typing import List, Union, Tuple, Dict
 import multiprocessing as mp
+from dataclasses import dataclass
 
-from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo
+from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo, MatchTypes
 from photo_lib.metadataagregator import key_lookup_dir
+
+
+@dataclass
+class Block:
+    """
+    Store information about list where a certain block if images is stored
+    """
+    start: int
+    length: int
+
+
+@dataclass
+class ImportManifest:
+    """
+    Manifest where every block of images is stored in the import table.
+    """
+    no_match: Block
+    binary_match: Block
+    binary_match_replaced: Block
+    binary_match_trash: Block
+    hash_match_replaced: Block
+    hash_match_trash: Block
+    not_allowed: Block
 
 
 class NoDbException(Exception):
@@ -27,7 +51,8 @@ class Model:
     # Stuff for importing
     import_folder: Union[str, None] = None
     current_import_table_name: Union[str, None] = None
-    tile_infos: Union[None, Dict[str, List[TileInfo]]] = None
+    __tile_infos: List[TileInfo] = None
+    __tile_indexes: ImportManifest = None
 
     def get_default_extensions(self):
         """
@@ -44,6 +69,15 @@ class Model:
         if folder_path is not None:
             self.pdb = PhotoDb(root_dir=folder_path)
 
+        self.__tile_infos = []
+        self.__tile_indexes = ImportManifest(no_match=             Block(start=0, length=0),
+                                             binary_match=         Block(start=0, length=0),
+                                             binary_match_replaced=Block(start=0, length=0),
+                                             binary_match_trash=   Block(start=0, length=0),
+                                             hash_match_replaced=  Block(start=0, length=0),
+                                             hash_match_trash=     Block(start=0, length=0),
+                                             not_allowed=          Block(start=0, length=0))
+
     def get_current_import_table_name(self, table_name: str = None):
         """
         Get the name of the current import table.
@@ -54,7 +88,7 @@ class Model:
         """
         if table_name is not None:
             self.current_import_table_name = table_name
-        elif self.current_import_table_name is None:
+        if self.current_import_table_name is None:
             return
 
         return self.pdb.import_table_message(tbl_name=self.current_import_table_name)
@@ -71,7 +105,44 @@ class Model:
         elif self.current_import_table_name is None:
             return
 
-        self.tile_infos = self.pdb.tiles_from_import_table(tbl_name=self.current_import_table_name)
+        tiles = self.pdb.tiles_from_import_table(tbl_name=self.current_import_table_name)
+        self.__tile_infos = tiles[MatchTypes.No_Match.name.lower()] + \
+                            tiles[MatchTypes.Binary_Match_Images.name.lower()] + \
+                            tiles[MatchTypes.Binary_Match_Replaced.name.lower()] + \
+                            tiles[MatchTypes.Binary_Match_Trash.name.lower()] + \
+                            tiles[MatchTypes.Hash_Match_Replaced.name.lower()] + \
+                            tiles[MatchTypes.Hash_Match_Trash.name.lower()] + \
+                            tiles["not_allowed"]
+
+        no_match =              Block(0,
+                                      len(tiles[MatchTypes.No_Match.name.lower()]))
+        binary_match =          Block(no_match.length,
+                                      len(tiles[MatchTypes.Binary_Match_Images.name.lower()]))
+        binary_match_replaced = Block(binary_match.start + binary_match.length,
+                                      len(tiles[MatchTypes.Binary_Match_Replaced.name.lower()]))
+        binary_match_trash =    Block(binary_match_replaced.start + binary_match_replaced.length,
+                                      len(tiles[MatchTypes.Binary_Match_Trash.name.lower()]))
+        hash_match_replaced =   Block(binary_match_trash.start + binary_match_trash.length,
+                                      len(tiles[MatchTypes.Hash_Match_Replaced.name.lower()]))
+        hash_match_trash =      Block(hash_match_replaced.start + hash_match_replaced.length,
+                                      len(tiles[MatchTypes.Hash_Match_Trash.name.lower()]))
+        not_allowed =           Block(hash_match_trash.start + hash_match_trash.length,
+                                      len(tiles["not_allowed"]))
+        self.__tile_indexes = ImportManifest(no_match=no_match,
+                                             binary_match=binary_match,
+                                             binary_match_replaced=binary_match_replaced,
+                                             binary_match_trash=binary_match_trash,
+                                             hash_match_replaced=hash_match_replaced,
+                                             hash_match_trash=hash_match_trash,
+                                             not_allowed=not_allowed)
+
+    @property
+    def tile_infos(self):
+        """
+        Give access to the tile info list.
+        :return:
+        """
+        return self.__tile_infos
 
     def set_folder_path(self, folder_path: str):
         """
@@ -296,3 +367,67 @@ class Model:
         :return:
         """
         pass
+
+    def get_import_not_allowed(self) -> List[TileInfo]:
+        """
+        Wrapper function so the view doesn't have to work with indexes in the list.
+        :return:
+        """
+        start = self.__tile_indexes.not_allowed.start
+        end = self.__tile_indexes.not_allowed.start + self.__tile_indexes.not_allowed.length
+        return self.__tile_infos[start:end]
+
+    def get_import_binary_match(self) -> List[TileInfo]:
+        """
+        Wrapper function so the view doesn't have to work with indexes in the list.
+        :return:
+        """
+        start = self.__tile_indexes.binary_match.start
+        end = self.__tile_indexes.binary_match.start + self.__tile_indexes.binary_match.length
+        return self.__tile_infos[start:end]
+
+    def get_import_binary_match_replaced(self) -> List[TileInfo]:
+        """
+        Wrapper function so the view doesn't have to work with indexes in the list.
+        :return:
+        """
+        start = self.__tile_indexes.binary_match_replaced.start
+        end = self.__tile_indexes.binary_match_replaced.start + self.__tile_indexes.binary_match_replaced.length
+        return self.__tile_infos[start:end]
+
+    def get_import_binary_match_trash(self) -> List[TileInfo]:
+        """
+        Wrapper function so the view doesn't have to work with indexes in the list.
+        :return:
+        """
+        start = self.__tile_indexes.binary_match_trash.start
+        end = self.__tile_indexes.binary_match_trash.start + self.__tile_indexes.binary_match_trash.length
+        return self.__tile_infos[start:end]
+
+    def get_import_hash_match_replaced(self) -> List[TileInfo]:
+        """
+        Wrapper function so the view doesn't have to work with indexes in the list.
+        :return:
+        """
+        start = self.__tile_indexes.hash_match_replaced.start
+        end = self.__tile_indexes.hash_match_replaced.start + self.__tile_indexes.hash_match_replaced.length
+        return self.__tile_infos[start:end]
+
+    def get_import_hash_match_trash(self) -> List[TileInfo]:
+        """
+        Wrapper function so the view doesn't have to work with indexes in the list.
+        :return:
+        """
+        start = self.__tile_indexes.hash_match_trash.start
+        end = self.__tile_indexes.hash_match_trash.start + self.__tile_indexes.hash_match_trash.length
+        return self.__tile_infos[start:end]
+
+    def get_import_no_match(self) -> List[TileInfo]:
+        """
+        Wrapper function so the view doesn't have to work with indexes in the list.
+        :return:
+        """
+        start = self.__tile_indexes.no_match.start
+        end = self.__tile_indexes.no_match.start + self.__tile_indexes.no_match.length
+        return self.__tile_infos[start:end]
+
