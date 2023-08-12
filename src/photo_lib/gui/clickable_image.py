@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt, pyqtSignal
 import sys
 from typing import Union
-from base_image import BaseImage
+from photo_lib.gui.base_image import BaseImage
 
 # TODO font info from config.
 
