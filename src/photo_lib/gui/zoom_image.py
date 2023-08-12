@@ -6,7 +6,7 @@ import os
 from typing import Union
 import math
 import warnings
-from base_image import BaseImage
+from photo_lib.gui.base_image import BaseImage
 
 
 # TODO zoom out, recentering of image.
@@ -225,7 +225,7 @@ class ZoomImage(BaseImage):
         :param event:
         :return:
         """
-        if not self.pixmap or self.pixmap.isNull():
+        if self.pixmap is None or self.pixmap.isNull():
             self.empty_pixmap_painter()
             return
 
