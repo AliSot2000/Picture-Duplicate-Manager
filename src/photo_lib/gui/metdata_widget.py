@@ -123,6 +123,7 @@ class ImportMetadataWidget(QFrame):
         self.match_type_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 
         self.dummy_widget = QWidget()
+        self.dummy_widget.setFixedHeight(self.single_line_size)
         self.info_hbox = QHBoxLayout()
         self.info_hbox.setContentsMargins(0, 0, 0, 0)
         self.dummy_widget.setLayout(self.info_hbox)
@@ -169,6 +170,33 @@ class ImportMetadataWidget(QFrame):
         self.build_metadata_widget()
         self.file_changed.emit()
 
+    def hide_widgets(self):
+        self.file_name_lbl.setVisible(False)
+        self.file_name_val.setVisible(False)
+
+        self.file_path_lbl.setVisible(False)
+        self.file_path_val.setVisible(False)
+
+        self.file_hash_lbl.setVisible(False)
+        self.file_hash_val.setVisible(False)
+
+        self.datetime_lbl.setVisible(False)
+        self.datetime_val.setVisible(False)
+
+        self.naming_tag_lbl.setVisible(False)
+        self.naming_tag_val.setVisible(False)
+
+        self.import_lbl.setVisible(False)
+        self.import_checkbox.setVisible(False)
+        self.allowed_label.setVisible(False)
+        self.match_type_label.setVisible(False)
+
+        self.metadata_lbl.setVisible(False)
+        self.metadata_val.setVisible(False)
+
+        self.google_fotos_metadata_lbl.setVisible(False)
+        self.google_fotos_metadata_val.setVisible(False)
+
     def build_metadata_widget(self):
         """
         Build the metadata widget from the current tile_info from the model.
@@ -182,6 +210,7 @@ class ImportMetadataWidget(QFrame):
         while self.info_hbox.count() > 0:
             self.info_hbox.takeAt(0)
 
+        self.hide_widgets()
         # btn = QPushButton("Import")
         # btn.clicked.connect(self.helper)
         # self.v_layout.addWidget(btn)
@@ -190,6 +219,10 @@ class ImportMetadataWidget(QFrame):
         self.file_name_val.text_label.setText(self._entry.org_fname)
         self.file_path_val.text_label.setText(self._entry.org_fpath)
 
+        self.file_name_lbl.setVisible(True)
+        self.file_name_val.setVisible(True)
+        self.file_path_lbl.setVisible(True)
+        self.file_path_val.setVisible(True)
         self.v_layout.addWidget(self.file_name_lbl)
         self.v_layout.addWidget(self.file_name_val)
         self.v_layout.addWidget(self.file_path_lbl)
@@ -200,15 +233,18 @@ class ImportMetadataWidget(QFrame):
             self.v_layout.addWidget(self.dummy_widget)
 
             self.allowed_label.setText("Not Allowed")
+            self.allowed_label.setVisible(True)
             self.info_hbox.addWidget(self.allowed_label)
 
             # Might be we imported it at some point but now updated the allowed files.
             if self._entry.imported:
                 self.import_lbl.setText("Imported")
+                self.import_lbl.setVisible(True)
                 self.info_hbox.addWidget(self.import_lbl)
 
             if self._entry.match_type is not None:
                 self.match_type_label.setText(self._entry.match_type.name.replace('_', ' ').title())
+                self.match_type_label.setVisible(True)
                 self.info_hbox.addWidget(self.match_type_label)
 
             return
@@ -227,33 +263,47 @@ class ImportMetadataWidget(QFrame):
         self.v_layout.addWidget(self.naming_tag_lbl)
         self.v_layout.addWidget(self.naming_tag_val)
 
+        self.file_hash_lbl.setVisible(True)
+        self.file_hash_val.setVisible(True)
+        self.datetime_lbl.setVisible(True)
+        self.datetime_val.setVisible(True)
+        self.naming_tag_lbl.setVisible(True)
+        self.naming_tag_val.setVisible(True)
+
         # Box about import, allowed and match type
         self.v_layout.addWidget(self.dummy_widget)
+
         self.allowed_label.setText("Allowed")
+        self.allowed_label.setVisible(True)
         self.info_hbox.addWidget(self.allowed_label)
 
         if self._entry.imported:
             self.import_lbl.setText("Imported")
+            self.import_lbl.setVisible(True)
             self.info_hbox.addWidget(self.import_lbl)
         else:
             self.import_checkbox.setText("Import File")
+            self.import_checkbox.setVisible(True)
             self.import_checkbox.setCheckState(Qt.CheckState.Unchecked)
             self.info_hbox.addWidget(self.import_checkbox)
 
         # Should not be None technically
         if self._entry.match_type is not None:
             self.match_type_label.setText(self._entry.match_type.name.replace('_', ' ').title())
+            self.match_type_label.setVisible(True)
             self.info_hbox.addWidget(self.match_type_label)
 
         # Add the Metadata
         if self._entry.metadata is not None:
             self.metadata_val.text_label.setText(self.model.process_metadata(self._entry.metadata)[0])
+            self.metadata_val.setVisible(True)
             self.v_layout.addWidget(self.metadata_lbl)
             self.v_layout.addWidget(self.metadata_val)
 
         # Add the Google Fotos Metadata
         if self._entry.google_fotos_metadata is not None:
             self.google_fotos_metadata_val.text_label.setText(json.dumps(self._entry.google_fotos_metadata, indent=4))
+            self.google_fotos_metadata_val.setVisible(True)
             self.v_layout.addWidget(self.google_fotos_metadata_lbl)
             self.v_layout.addWidget(self.google_fotos_metadata_val)
 
@@ -265,27 +315,27 @@ if __name__ == "__main__":
 
     window = ImportMetadataWidget(Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/"))
     window.model.current_import_table_name = "tbl_1998737548188488947"
-    # window.tile_info = TileInfo(
-    #     key=1,
-    #     path="",
-    #     imported=False,
-    #     allowed=False,
-    #     match_type=MatchTypes.No_Match
-    # )
-    # window.tile_info = TileInfo(
-    #     key=20,
-    #     path="",
-    #     imported=False,
-    #     allowed=False,
-    #     match_type=MatchTypes.No_Match
-    # )
     window.tile_info = TileInfo(
-        key=72,
+        key=20,
         path="",
         imported=False,
         allowed=False,
         match_type=MatchTypes.No_Match
     )
+    # window.tile_info = TileInfo(
+    #     key=72,
+    #     path="",
+    #     imported=False,
+    #     allowed=False,
+    #     match_type=MatchTypes.No_Match
+    # )
+    # window.tile_info = TileInfo(
+    #     key=134,
+    #     path="",
+    #     imported=False,
+    #     allowed=False,
+    #     match_type=MatchTypes.No_Match
+    # )
     # window.tile_info = TileInfo(
     #     key=10,
     #     path="",
