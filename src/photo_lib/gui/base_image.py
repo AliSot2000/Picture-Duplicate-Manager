@@ -110,7 +110,10 @@ class BaseImage(QFrame):
         if self.pixmap is not None and self.pixmap.isNull():
 
             # Draw the text in the middle of the widget
-            text = "Couldn't load file"
+            if self.file_path is not None:
+                text = f"Couldn't load {os.path.basename(self.file_path)}"
+            else:
+                text = "Empty file path"
             font = QFont("Arial", 12, QFont.Weight.Bold)
             pt.setFont(font)
             text_rect = pt.boundingRect(self.rect(), 0, text)
