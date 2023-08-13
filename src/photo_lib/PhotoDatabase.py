@@ -95,14 +95,14 @@ class FullImportTableEntry:
     key: int
     org_fname: str
     org_fpath: str
-    metadata: dict
-    file_hash: str
+    metadata: Union[None, dict]
+    file_hash: Union[None, str]
     imported: bool
     allowed: bool
-    message: str
-    datetime: datetime.datetime
-    naming_tag: str
-    match: int
+    message: Union[None, str]
+    datetime: Union[None, datetime.datetime]
+    naming_tag: Union[None, str]
+    match: Union[int, None]
     match_type: Union[None, MatchTypes] = None
     import_key: Union[int, None] = None
     google_fotos_metadata: Union[dict, None] = None
