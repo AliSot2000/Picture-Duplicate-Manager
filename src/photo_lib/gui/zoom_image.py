@@ -207,6 +207,8 @@ class ZoomImage(BaseImage):
         :return:
         """
         super().resizeEvent(a0)
+        if self.pixmap is None or self.pixmap.isNull():
+            return
         r = QRect(QPoint(),
                   self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
         self.__scale_offset = int((math.log2(r.height() / self.pixmap.height()) - 1) * 100)
