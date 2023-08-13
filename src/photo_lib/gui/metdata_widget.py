@@ -265,13 +265,41 @@ if __name__ == "__main__":
 
     window = ImportMetadataWidget(Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/"))
     window.model.current_import_table_name = "tbl_1998737548188488947"
+    # window.tile_info = TileInfo(
+    #     key=1,
+    #     path="",
+    #     imported=False,
+    #     allowed=False,
+    #     match_type=MatchTypes.No_Match
+    # )
+    # window.tile_info = TileInfo(
+    #     key=20,
+    #     path="",
+    #     imported=False,
+    #     allowed=False,
+    #     match_type=MatchTypes.No_Match
+    # )
     window.tile_info = TileInfo(
-        key=1,
+        key=72,
         path="",
         imported=False,
         allowed=False,
         match_type=MatchTypes.No_Match
     )
+    # window.tile_info = TileInfo(
+    #     key=10,
+    #     path="",
+    #     imported=False,
+    #     allowed=False,
+    #     match_type=MatchTypes.No_Match
+    # )
+    # window.tile_info = TileInfo(
+    #     key=11,
+    #     path="",
+    #     imported=False,
+    #     allowed=False,
+    #     match_type=MatchTypes.No_Match
+    # )
 
 
 
