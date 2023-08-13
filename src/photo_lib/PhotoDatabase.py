@@ -108,56 +108,6 @@ class PhotoDb:
 
     proc_handles: list = []
 
-    # Table Creation Commands
-    old_images_table_command: str = \
-        ("CREATE TABLE images "
-         "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
-         "org_fname TEXT NOT NULL, "
-         "org_fpath TEXT NOT NULL, "
-         "metadata TEXT NOT NULL, "
-         "google_fotos_metadata TEXT,"
-         "naming_tag TEXT, "
-         "file_hash TEXT, "
-         "new_name TEXT UNIQUE , "
-         "datetime TEXT, "
-         "present INTEGER DEFAULT 1 CHECK (images.present >= 0 AND images.present < 2), "
-         "verify INTEGER DEFAULT 0 CHECK (images.verify >= 0 AND images.verify < 2),"
-         "original_google_metadata INTEGER DEFAULT 1 "
-         "CHECK (images.original_google_metadata >= 0 AND images.original_google_metadata < 2))")
-
-    old_names_table_command: str = \
-        "CREATE TABLE names (key INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)"
-
-    old_replaced_table_command: str = \
-        ("CREATE TABLE replaced "
-         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
-         " org_fname TEXT,"
-         " metadata TEXT,"
-         " google_fotos_metadata TEXT,"
-         " file_hash TEXT, "
-         " datetime TEXT,"
-         " successor INTEGER NOT NULL)")
-
-    old_import_tables_table_command: str = \
-        ("CREATE TABLE import_tables "
-         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
-         " root_path TEXT NOT NULL, "
-         " import_table_name TEXT UNIQUE NOT NULL)")
-
-    old_trash_table_command: str = \
-        ("CREATE TABLE trash "
-         "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
-         "org_fname TEXT NOT NULL, "
-         "org_fpath TEXT NOT NULL, "
-         "metadata TEXT NOT NULL, "
-         "google_fotos_metadata TEXT,"
-         "naming_tag TEXT, "
-         "file_hash TEXT, "
-         "new_name TEXT UNIQUE , "
-         "datetime TEXT, "
-         "original_google_metadata INTEGER DEFAULT 1 "
-         "CHECK (trash.original_google_metadata >= 0 AND trash.original_google_metadata < 2))")
-
     # ------------------------------------------------------------------------------------------------------------------
     # New Table definitions.
     # ------------------------------------------------------------------------------------------------------------------
