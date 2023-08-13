@@ -2168,3 +2168,32 @@ class PhotoDb:
             )
             output.append(t)
         return output
+
+    def get_full_import_table_entry_from_key(self, key: int, table: str) -> FullImportTableEntry:
+        """
+        Given an import table and a key, returns the full entry from the table.
+        :param key: key in the import table
+        :param table: table to select from
+        :return:
+        """
+        self.debug_exec(f"SELECT key, org_fname, org_fpath, metadata, google_fotos_metadata, file_hash, imported, "
+                        f"allowed, match_type, message, datetime, naming_tag, `match`, import_key "
+                        f"FROM `{table}` WHERE key = {key}")
+
+        result = self.cur.fetchone()
+        return FullImportTableEntry(
+            key=result[0],
+            org_fname=result[1],
+            org_fpath=result[2],
+            metadata=self.__b64_to_dict(result[3]),
+            google_fotos_metadata=self.__b64_to_dict(result[4]),
+            file_hash=result[5],
+            imported=bool(result[6]),
+            allowed=bool(result[7]),
+            match_type=MatchTypes(result[8]),
+            message=result[9],
+            datetime=self.__db_str_to_datetime(result[10]),
+            naming_tag=result[11],
+            match=result[12],
+            import_key=result[13]
+        )
