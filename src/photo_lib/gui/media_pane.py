@@ -40,7 +40,6 @@ class MediaPane(QFrame):
 
     # Child Widgets, and associated attributes
     media: Union[ClickableImage, QMediaPlayer]
-    pixmap: QPixmap = None
     original_name_lbl: TextScroller
     original_path_lbl: TextScroller
     tag_lbl: QLabel
