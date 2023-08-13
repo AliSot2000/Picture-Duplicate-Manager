@@ -4,7 +4,7 @@ from typing import List, Union, Tuple, Dict
 import multiprocessing as mp
 from dataclasses import dataclass
 
-from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo, MatchTypes
+from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo, MatchTypes, FullImportTableEntry
 from photo_lib.metadataagregator import key_lookup_dir
 
 
@@ -431,3 +431,15 @@ class Model:
         end = self.__tile_indexes.no_match.start + self.__tile_indexes.no_match.length
         return self.__tile_infos[start:end]
 
+    def get_file_import_full_entry(self, key: int) -> FullImportTableEntry:
+        """
+        Get the full import table entry for the current file.
+        :return:
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        if self.current_import_table_name is None:
+            raise ValueError("No import table selected")
+
+        return self.pdb.get_full_import_table_entry_from_key(key=key, table=self.current_import_table_name)
