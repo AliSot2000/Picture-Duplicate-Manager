@@ -70,6 +70,9 @@ class TextScroller(QScrollArea):
         :return:
         """
         super().scrollContentsBy(dx, dy)
+        if not self.call_share_scroll:
+            return
+
         y = self.verticalScrollBar().value()
         x = self.horizontalScrollBar().value()
 
@@ -79,6 +82,6 @@ class TextScroller(QScrollArea):
         # print(f"Scrolling Contents TextScroller      : {x}, {y}")
         # print(f"Scrolling Contents TextScroller Ratio: {x_ratio}, {y_ratio}")
 
-        if self.call_share_scroll and self.share_scroll is not None:
+        if self.share_scroll is not None:
             self.share_scroll(caller=self, rx=x_ratio, ry=y_ratio)
 
