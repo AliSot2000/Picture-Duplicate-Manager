@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction
 
 from photo_lib.PhotoDatabase import FullImportTableEntry, TileInfo, MatchTypes
+from photo_lib.gui.action_button import QActionButton
 from photo_lib.gui.metdata_widget import ImportMetadataWidget
 from photo_lib.gui.model import Model
 from photo_lib.gui.zoom_image import ZoomImage
@@ -28,9 +29,10 @@ class ImportImageView(QFrame):
     model: Model = None
     __tile_info: TileInfo = None
 
-    open_metadata_btn: QPushButton
+    open_metadata_btn: QActionButton
 
     open_metadata_action: QAction
+    open_match_action: QAction
 
     load_match: bool = False
     show_metadata: bool = False
@@ -62,23 +64,105 @@ class ImportImageView(QFrame):
 
         self.global_splitter = QSplitter()
 
-        self.build_layout()
+        self.open_metadata_action = QAction("Show Metadata")
+        self.open_metadata_action.setToolTip("Show the metadata of the image (and match in database)")
+        self.open_metadata_action.setCheckable(True)
+        self.open_metadata_action.toggled.connect(self.update_show_metadata)
 
-    def build_layout(self):
+        self.open_match_action = QAction("Show Match")
+        self.open_match_action.setToolTip("Show the match and its metadata if there exists one in the database.")
+        self.open_match_action.setCheckable(True)
+        self.open_metadata_action.toggled.connect(self.update_show_metadata)
+
+        self.open_metadata_btn = QActionButton()
+        self.open_metadata_btn.target_action = self.open_metadata_action
+
+        self.build_main_layout()
+
+    def build_main_layout(self):
         """
         Build up the layout of the widget
         :return:
         """
+        # TODO update visibility
+
+        # Empty splitter
+        self.global_splitter = QSplitter(Qt.Orientation.Vertical)
+
+        # Empty layout
+        while self.h_layout.count() > 0:
+            self.h_layout.takeAt(0)
+
         if self.show_metadata:
             if self.load_match:
-                pass
+                self.h_layout.addWidget(self.global_splitter)
+                self.global_splitter.addWidget(self.big_image)
+                self.global_splitter.addWidget(self.metadata_area)
             else:
-                pass
+                self.h_layout.addWidget(self.global_splitter)
+                self.global_splitter.addWidget(self.match_image)
+                self.global_splitter.addWidget(self.big_image)
+                self.global_splitter.addWidget(self.metadata_area)
         else:
             if self.load_match:
-                pass
+                self.global_splitter.addWidget(self.match_image)
+                self.global_splitter.addWidget(self.big_image)
+                self.h_layout.addWidget(self.global_splitter)
+                self.h_layout.addWidget(self.open_metadata_btn)
             else:
-                pass
+                self.h_layout.addWidget(self.big_image)
+                self.h_layout.addWidget(self.open_metadata_btn)
+
+    def build_metadata_layout(self):
+        """
+        Fill the metadata layout according to self.load_match and update visibility.
+        :return:
+        """
+        # TODO update visibility.
+
+        # Empty layout
+        while self.metadata_layout.count() > 0:
+            self.metadata_layout.takeAt(0)
+
+        # Add widgets again.
+        if self.load_match:
+            self.metadata_layout.addWidget(self.main_metadata_widget)
+            self.metadata_layout.addWidget(self.match_metadata_widget)
+            self.match_metadata_widget.setVisible(True)
+
+        else:
+            self.metadata_layout.addWidget(self.main_metadata_widget)
+            self.match_metadata_widget.setVisible(False)
+
+    def update_show_match(self):
+        """
+        Performs update action after the show_match action was toggled
+        :return:
+        """
+        self.load_match = self.open_match_action.isChecked()
+        if self.load_match:
+            self.fetch_match()
+        self.build_main_layout()
+        self.build_metadata_layout()
+
+    def fetch_match(self):
+        """
+        Fetch information associated with match
+        :return:
+        """
+        pass
+        # Get Metadata
+        # Crate Metadata Widget
+        # Load Image
+
+    def update_show_metadata(self):
+        """
+        Performs update action after the show_metadata action was toggled
+        :return:
+        """
+        self.show_metadata = self.open_metadata_action.isChecked()
+        self.build_main_layout()
+        self.build_metadata_layout()
 
     @property
     def tile_info(self):
@@ -86,6 +170,7 @@ class ImportImageView(QFrame):
 
     @tile_info.setter
     def tile_info(self, value: TileInfo):
+        # TODO take care of match
         self.__tile_info = value
         if value is not None:
             self.metadata_area.setVisible(True)
@@ -97,6 +182,7 @@ class ImportImageView(QFrame):
         else:
             self.metadata_area.setVisible(False)
             self.big_image.setVisible(False)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
