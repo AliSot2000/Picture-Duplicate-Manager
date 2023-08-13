@@ -19,7 +19,7 @@ def anti_utc(dt_str: str, fmt_str: str):
     return unaware + dt_obj.utcoffset()
 
 
-def hash_file(path):
+def hash_file(path) -> str:
     """
     Hashes a file with sha256
     :param path: file_path to hash
