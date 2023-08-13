@@ -30,8 +30,8 @@ class ZoomImage(BaseImage):
 
     def __init__(self, file_path: str = None):
         super().__init__()
-        self.file_path = file_path
         self.timer = QTimer(self)
+        self.file_path = file_path
 
     def enterEvent(self, event: QEnterEvent) -> None:
         """
