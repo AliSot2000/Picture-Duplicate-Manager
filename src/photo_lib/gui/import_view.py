@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QHBoxLayout, QScrollArea, QPushButton, QLabel
+from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QHBoxLayout, QScrollArea, QPushButton, QLabel, QSplitter
 import sys
 from photo_lib.gui.named_picture_block import CheckNamedPictureBlock
 from photo_lib.gui.model import Model
@@ -15,6 +15,10 @@ class ImportView(QFrame):
     outer_layout: QVBoxLayout
 
     def __init__(self, model: Model):
+        """
+        Create all layout and widgets needed for the import view.
+        :param model: model that holds the data.
+        """
         super().__init__()
         self.model = model
 
@@ -62,36 +66,42 @@ class ImportView(QFrame):
                                        title="Media Files without Match in the Database")
             self.inner_layout.addWidget(w)
 
+        # Add block for binary match
         if len(self.model.get_import_binary_match()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.Binary_Match_Images,
                                        tile_infos=self.model.get_import_binary_match(),
                                        title="Media Files with Binary Match in Database")
             self.inner_layout.addWidget(w)
 
+        # Add block for binary match in replaced
         if len(self.model.get_import_binary_match_replaced()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.Binary_Match_Replaced,
                                        tile_infos=self.model.get_import_binary_match_replaced(),
                                        title="Media Files with Binary Match in the known Duplicates")
             self.inner_layout.addWidget(w)
 
+        # Add block for binary match in trash
         if len(self.model.get_import_binary_match_trash()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.Binary_Match_Trash,
                                        tile_infos=self.model.get_import_binary_match_trash(),
                                        title="Media Files with Binary Match in the Trash")
             self.inner_layout.addWidget(w)
 
+        # Add block for hash match in replaced
         if len(self.model.get_import_hash_match_replaced()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.Hash_Match_Replaced,
                                         tile_infos=self.model.get_import_hash_match_replaced(),
                                         title="Media Files with matching hash and filesize in the known Duplicates")
             self.inner_layout.addWidget(w)
 
+        # Add block for hash match in trash
         if len(self.model.get_import_hash_match_trash()) > 0:
             w = CheckNamedPictureBlock(mt=MatchTypes.Hash_Match_Trash,
                                         tile_infos=self.model.get_import_hash_match_trash(),
                                         title="Media Files with matching hash and filesize in the Trash")
             self.inner_layout.addWidget(w)
 
+        # Add block for not allowed files.
         if len(self.model.get_import_not_allowed()) > 0:
             w = CheckNamedPictureBlock(mt=None,
                                         tile_infos=self.model.get_import_not_allowed(),
@@ -101,7 +111,7 @@ class ImportView(QFrame):
 
     def update_name(self):
         """
-        Updates the name of the current import.
+        Updates the name of the current import. Fetch it from the database.
         :return:
         """
         table_desc = self.model.get_current_import_table_name()
@@ -111,6 +121,7 @@ class ImportView(QFrame):
             self.import_name.setText(self.model.current_import_table_name)
         else:
             self.import_name.setText("Import Source Unknown")
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
