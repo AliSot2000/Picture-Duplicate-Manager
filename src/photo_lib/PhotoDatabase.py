@@ -90,6 +90,24 @@ class DatabaseEntry:
     verify: int
 
 
+@dataclass
+class FullImportTableEntry:
+    key: int
+    org_fname: str
+    org_fpath: str
+    metadata: dict
+    file_hash: str
+    imported: bool
+    allowed: bool
+    message: str
+    datetime: datetime.datetime
+    naming_tag: str
+    match: int
+    match_type: Union[None, MatchTypes] = None
+    import_key: Union[int, None] = None
+    google_fotos_metadata: Union[dict, None] = None
+
+
 class PhotoDb:
     root_dir: str
     img_db: str
