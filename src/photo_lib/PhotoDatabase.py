@@ -2192,7 +2192,7 @@ class PhotoDb:
             allowed=bool(result[7]),
             match_type=MatchTypes(result[8]),
             message=result[9],
-            datetime=self.__db_str_to_datetime(result[10]),
+            datetime=self.__db_str_to_datetime(result[10]) if result[10] is not None else None ,
             naming_tag=result[11],
             match=result[12],
             import_key=result[13]
