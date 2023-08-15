@@ -14,7 +14,12 @@ import json
 
 
 class ImportImageView(QFrame):
-    metadata_area: QScrollArea
+
+    # For config:
+    # TODO move to config
+    metadata_in_scrollarea: bool = False
+
+    metadata_area: Union[QWidget, QScrollArea]
     main_metadata_widget: ImportMetadataWidget = None
     match_metadata_widget: Union[None, ImportMetadataWidget] = None
 
@@ -48,13 +53,17 @@ class ImportImageView(QFrame):
         self.h_layout.setSpacing(0)
         self.setLayout(self.h_layout)
 
-        self.metadata_area = QScrollArea()
-        self.metadata_area.setWidgetResizable(True)
-
         self.metadata_dummy_widget = QWidget()
 
         self.metadata_layout = QHBoxLayout()
         self.metadata_dummy_widget.setLayout(self.metadata_layout)
+
+        self.metadata_area = self.metadata_dummy_widget
+        if self.metadata_in_scrollarea:
+            self.metadata_area = QScrollArea()
+            self.metadata_area.setMinimumWidth(400)
+            self.metadata_area.setWidgetResizable(True)
+            self.metadata_area.setWidget(self.metadata_dummy_widget)
 
         self.main_metadata_widget = ImportMetadataWidget(model=model)
         self.main_metadata_widget = ImportMetadataWidget(model=model) # TODO needs to be different MetadataWidget
