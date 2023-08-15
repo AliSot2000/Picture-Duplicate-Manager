@@ -166,7 +166,8 @@ class ImportMetadataWidget(QFrame):
     @tile_info.setter
     def tile_info(self, value: TileInfo):
         self.__tile_info = value
-        self._entry = self.model.get_file_import_full_entry(value.key)
+        if value is not None:
+            self._entry = self.model.get_file_import_full_entry(value.key)
         self.build_metadata_widget()
         self.file_changed.emit()
 
@@ -214,6 +215,13 @@ class ImportMetadataWidget(QFrame):
         # btn = QPushButton("Import")
         # btn.clicked.connect(self.helper)
         # self.v_layout.addWidget(btn)
+
+        # Handle in case when we don't have a tile_info
+        if self.tile_info is None:
+            lbl = QLabel("No File Selected")
+            lbl.setFixedHeight(self.single_line_size)
+            self.v_layout.addWidget(lbl)
+            return
 
         # Set values
         self.file_name_val.text_label.setText(self._entry.org_fname)
