@@ -211,7 +211,10 @@ class ZoomImage(BaseImage):
             return
         r = QRect(QPoint(),
                   self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
-        self.__scale_offset = int((math.log2(r.height() / self.pixmap.height()) - 1) * 100)
+        try:
+            self.__scale_offset = int((math.log2(r.height() / self.pixmap.height()) - 1) * 100)
+        except ValueError:
+            self.__scale_offset = 1
 
     def _load_image(self):
         """
