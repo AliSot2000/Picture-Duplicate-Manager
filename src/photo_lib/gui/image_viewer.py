@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QVBoxLayout, QCheckBox, QPushButton, QWidget, QApplication, QHBoxLayout, QFrame, QLabel, QScrollArea, QSplitter
+from PyQt6.QtWidgets import QVBoxLayout, QCheckBox, QPushButton, QWidget, QApplication, QHBoxLayout, QFrame, QLabel, QScrollArea, QSplitter, QMainWindow
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction
 
@@ -170,34 +170,48 @@ class ImportImageView(QFrame):
 
     @tile_info.setter
     def tile_info(self, value: TileInfo):
-        # TODO take care of match
+        """
+        Set the tile info that's currently displayed and update the widgets.
+        :param value:
+        :return:
+        """
         self.__tile_info = value
+        self.main_metadata_widget.tile_info = value
         if value is not None:
-            self.metadata_area.setVisible(True)
-            self.big_image.setVisible(True)
-
-            self.main_metadata_widget.tile_info = value
             self.big_image.file_path = value.path
 
-        else:
-            self.metadata_area.setVisible(False)
-            self.big_image.setVisible(False)
+            if self.load_match:
+                self.fetch_match()
+
+class TestWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.model = Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/")
+        self.model.current_import_table_name = "tbl_1998737548188488947"
+
+        self.setWindowTitle("Import View")
+        self.import_view = ImportImageView(model=self.model)
+        self.setCentralWidget(self.import_view)
+
+        self.import_view.tile_info = TileInfo(
+            key=20,
+            path="/media/alisot2000/DumpStuff/Test128/2022-09-01 02.35.18_000.jpg",
+            imported=False,
+            allowed=False,
+            match_type=MatchTypes.No_Match
+        )
+
+        self.show()
+
+        submenu = self.menuBar().addMenu("Image Actions")
+        submenu.addAction(self.import_view.open_metadata_action)
+        submenu.addAction(self.import_view.open_match_action)
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    window = ImportMetadataWidget(Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/"))
-    window.model.current_import_table_name = "tbl_1998737548188488947"
-    window.tile_info = TileInfo(
-        key=20,
-        path="",
-        imported=False,
-        allowed=False,
-        match_type=MatchTypes.No_Match
-    )
-
-
+    window = TestWindow()
 
     window.show()
     sys.exit(app.exec())
