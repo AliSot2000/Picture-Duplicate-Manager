@@ -113,6 +113,38 @@ class ImportImageView(QFrame):
                 self.h_layout.addWidget(self.big_image)
                 self.h_layout.addWidget(self.open_metadata_btn)
 
+        self.update_visibility()
+
+    def update_visibility(self):
+        """
+        Update the visibility of the widgets.
+        :return:
+        """
+        if self.show_metadata:
+            self.open_metadata_btn.setVisible(False)
+            if self.load_match:
+                self.global_splitter.setVisible(True)
+                self.metadata_area.setVisible(True)
+                self.big_image.setVisible(True)
+                self.match_image.setVisible(True)
+            else:
+                self.global_splitter.setVisible(True)
+                self.metadata_area.setVisible(True)
+                self.big_image.setVisible(True)
+                self.match_image.setVisible(False)
+        else:
+            self.open_metadata_btn.setVisible(True)
+            if self.load_match:
+                self.global_splitter.setVisible(True)
+                self.metadata_area.setVisible(False)
+                self.big_image.setVisible(True)
+                self.match_image.setVisible(True)
+            else:
+                self.global_splitter.setVisible(False)
+                self.metadata_area.setVisible(False)
+                self.big_image.setVisible(True)
+                self.match_image.setVisible(False)
+
     def build_metadata_layout(self):
         """
         Fill the metadata layout according to self.load_match and update visibility.
