@@ -201,6 +201,10 @@ class ImportImageView(QFrame):
 
     @property
     def tile_info(self):
+        """
+        Return the tile_info that's being currently displayed.
+        :return:
+        """
         return self.__tile_info
 
     @tile_info.setter
