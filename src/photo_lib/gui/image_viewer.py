@@ -69,9 +69,12 @@ class ImportImageView(QFrame):
         self.main_metadata_widget = ImportMetadataWidget(model=model) # TODO needs to be different MetadataWidget
 
         self.big_image = ZoomImage()
+        self.big_image.setMinimumSize(100, 100)
         self.match_image = ZoomImage()
+        self.match_image.setMinimumSize(100, 100)
 
-        self.global_splitter = QSplitter()
+        self.global_splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.global_splitter.setHandleWidth(5)
 
         self.open_metadata_action = QAction("Show Metadata")
         self.open_metadata_action.setToolTip("Show the metadata of the image (and match in database)")
