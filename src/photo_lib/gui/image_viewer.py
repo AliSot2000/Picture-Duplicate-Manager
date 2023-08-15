@@ -87,7 +87,9 @@ class ImportImageView(QFrame):
         # TODO update visibility
 
         # Empty splitter
-        self.global_splitter = QSplitter(Qt.Orientation.Vertical)
+        if self.global_splitter.layout() is not None:
+            while self.global_splitter.layout().count() > 0:
+                self.global_splitter.layout().takeAt(0)
 
         # Empty layout
         while self.h_layout.count() > 0:
@@ -96,11 +98,11 @@ class ImportImageView(QFrame):
         if self.show_metadata:
             if self.load_match:
                 self.h_layout.addWidget(self.global_splitter)
+                self.global_splitter.addWidget(self.match_image)
                 self.global_splitter.addWidget(self.big_image)
                 self.global_splitter.addWidget(self.metadata_area)
             else:
                 self.h_layout.addWidget(self.global_splitter)
-                self.global_splitter.addWidget(self.match_image)
                 self.global_splitter.addWidget(self.big_image)
                 self.global_splitter.addWidget(self.metadata_area)
         else:
