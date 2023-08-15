@@ -84,7 +84,7 @@ class ImportImageView(QFrame):
         self.open_match_action = QAction("Show Match")
         self.open_match_action.setToolTip("Show the match and its metadata if there exists one in the database.")
         self.open_match_action.setCheckable(True)
-        self.open_metadata_action.toggled.connect(self.update_show_metadata)
+        self.open_match_action.toggled.connect(self.update_show_match)
 
         self.open_metadata_btn = QActionButton()
         self.open_metadata_btn.target_action = self.open_metadata_action
