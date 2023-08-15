@@ -185,6 +185,7 @@ class ImportImageView(QFrame):
         :return:
         """
         pass
+        # self.match_image.file_path = os.path.join(os.path.dirname(self.tile_info.path), "2022-09-01 02.35.12_001")
         # Get Metadata
         # Crate Metadata Widget
         # Load Image
