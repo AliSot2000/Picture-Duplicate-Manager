@@ -113,14 +113,21 @@ class ImportImageView(QFrame):
                 self.global_splitter.addWidget(self.match_image)
                 self.global_splitter.addWidget(self.big_image)
                 self.global_splitter.addWidget(self.metadata_area)
+                self.global_splitter.setStretchFactor(0, 1)
+                self.global_splitter.setStretchFactor(1, 1)
+                self.global_splitter.setStretchFactor(2, 1)
             else:
                 self.h_layout.addWidget(self.global_splitter)
                 self.global_splitter.addWidget(self.big_image)
                 self.global_splitter.addWidget(self.metadata_area)
+                self.global_splitter.setStretchFactor(0, 1)
+                self.global_splitter.setStretchFactor(1, 1)
         else:
             if self.load_match:
                 self.global_splitter.addWidget(self.match_image)
                 self.global_splitter.addWidget(self.big_image)
+                self.global_splitter.setStretchFactor(0, 1)
+                self.global_splitter.setStretchFactor(1, 1)
                 self.h_layout.addWidget(self.global_splitter)
                 self.h_layout.addWidget(self.open_metadata_btn)
             else:
