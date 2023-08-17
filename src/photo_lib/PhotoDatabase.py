@@ -380,8 +380,6 @@ class PhotoDb:
 
         self.debug_exec(self.names_table_command)
 
-        # naming_tag, new_name, from images table, drop path info because not needed anymore,
-        # TODO: Database needs a new replaced table -> Datetime and file_hash
         self.debug_exec(self.replaced_table_command)
 
         self.debug_exec(self.import_tables_table_command)
