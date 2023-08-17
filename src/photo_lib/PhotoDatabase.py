@@ -2128,3 +2128,80 @@ class PhotoDb:
             match=result[12],
             import_key=result[13]
         )
+
+    def get_full_images_entry_from_key(self, key: int) -> Union[FullDatabaseEntry, None]:
+        """
+        Given a key, returns the full entry from the images table in a FullDatabaseEntry Object. If the key's not found
+        returns None.
+        :param key: key in the images table
+        :return: None or Row
+        """
+        self.debug_exec(f"SELECT key, org_fname, org_fpath, metadata, google_fotos_metadata, naming_tag, file_hash, "
+                        f"new_name, datetime, present, verify, trashed, original_google_metadata "
+                        f"FROM images WHERE key = {key}")
+
+        result = self.cur.fetchone()
+        if result is None:
+            return None
+
+        return FullDatabaseEntry(
+            key=result[0],
+            org_fname=result[1],
+            org_fpath=result[2],
+            metadata=self.__b64_to_dict(result[3]),
+            google_fotos_metadata=self.__b64_to_dict(result[4]),
+            naming_tag=result[5],
+            file_hash=result[6],
+            new_name=result[7],
+            datetime=self.__db_str_to_datetime(result[8]),
+            present=bool(result[9]),
+            verify=bool(result[10]),
+            trashed=bool(result[11]),
+            original_google_metadata=GoogleFotosMetadataStatus(result[12])
+        )
+
+    def get_full_duplicates_entry_from_key(self, key: int) -> Union[None, FullReplacedEntry]:
+        """
+        Given a key, returns the full entry from the duplicates table in a FullDatabaseEntry Object. If the key's not
+        found returns None.
+        :param key: key to get row from
+        :return: Row or None
+        """
+
+        self.debug_exec(f"SELECT key, org_fname, metadata, google_fotos_metadata, file_hash, datetime, successor, "
+                        f"former_name, original_google_metadata FROM replaced WHERE key = {key}")
+
+        result = self.cur.fetchone()
+        if result is None:
+            return None
+
+        return FullReplacedEntry(
+            key=result[0],
+            org_fname=result[1],
+            metadata=self.__b64_to_dict(result[2]),
+            google_fotos_metadata=self.__b64_to_dict(result[3]),
+            file_hash=result[4],
+            datetime=self.__db_str_to_datetime(result[5]),
+            successor=result[6],
+            former_name=result[7],
+            original_google_metadata=GoogleFotosMetadataStatus(result[8])
+        )
+
+    def get_highest_res_image(self, key: int) -> str:
+        """
+        Given a key, returns the path to the highest resolution image.
+
+        Database -> returns path to image
+        Replaced -> checks trash for image, then successor in Dababase, then thumbnails
+        Trash -> checks trash, then thumbnails
+
+        :param key: key to get path for
+        :return: path to highest res image
+        """
+        self.debug_exec(f"SELECT new_name FROM import WHERE key = {key}")
+        result = self.cur.fetchone()
+        if result is None:
+            return None
+
+        path = os.path.join(result[1], result[0])
+        # TODO not done
