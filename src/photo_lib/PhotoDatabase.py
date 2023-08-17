@@ -1223,7 +1223,7 @@ class PhotoDb:
         img_fpath = self.path_from_datetime(img_dt, img_fname)
 
         # don't create a thumbnail if it already exists.
-        if os.path.exists(self.thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key)) and not overwrite:
+        if os.path.exists(self.thumbnail_name(ext=".jpeg", key=img_key)) and not overwrite:
             return False
 
         try:
@@ -1243,7 +1243,7 @@ class PhotoDb:
                 ffmpeg
                 .input(img_fpath, ss=time)
                 .filter('scale', width, -1)
-                .output(self.thumbnail_name(ext=".jpg", key=img_key), vframes=1)
+                .output(self.thumbnail_name(ext=".jpeg", key=img_key), vframes=1)
                 .overwrite_output()
                 .run(capture_stdout=True, capture_stderr=True)
             )
