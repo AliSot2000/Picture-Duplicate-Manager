@@ -106,6 +106,7 @@ class Model:
             return
 
         tiles = self.pdb.tiles_from_import_table(tbl_name=self.current_import_table_name)
+        # Concatinate all lists returned from the database
         self.__tile_infos = tiles[MatchTypes.No_Match.name.lower()] + \
                             tiles[MatchTypes.Binary_Match_Images.name.lower()] + \
                             tiles[MatchTypes.Binary_Match_Replaced.name.lower()] + \
@@ -114,6 +115,7 @@ class Model:
                             tiles[MatchTypes.Hash_Match_Trash.name.lower()] + \
                             tiles["not_allowed"]
 
+        # Determine the indexes of the different blocks
         no_match =              Block(0,
                                       len(tiles[MatchTypes.No_Match.name.lower()]))
         binary_match =          Block(no_match.length,
@@ -128,6 +130,8 @@ class Model:
                                       len(tiles[MatchTypes.Hash_Match_Trash.name.lower()]))
         not_allowed =           Block(hash_match_trash.start + hash_match_trash.length,
                                       len(tiles["not_allowed"]))
+
+        # Store the blocks in the manifest
         self.__tile_indexes = ImportManifest(no_match=no_match,
                                              binary_match=binary_match,
                                              binary_match_replaced=binary_match_replaced,
