@@ -38,7 +38,7 @@ class Carousel(QScrollArea):
     h_layout: QHBoxLayout
     images: List[ClickableTile]
     current_select: ClickableTile = None
-    image_changed = pyqtSignal(BaseTileInfo)
+    image_changed = pyqtSignal()
 
     model = Model
 
@@ -110,7 +110,7 @@ class Carousel(QScrollArea):
         """
         self.ensureWidgetVisible(image)
         self.mark_image(image)
-        self.image_changed.emit(image.tile_info)
+        self.image_changed.emit()
 
     def mark_image(self, image: ClickableTile):
         """
