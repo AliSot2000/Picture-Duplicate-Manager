@@ -5,13 +5,12 @@ import sqlite3
 import json
 import base64
 import time
-from enum import Enum
+from photo_lib.data_objects import *
 
 import cv2
 from .metadataagregator import MetadataAggregator, FileMetaData
 import shutil
 import warnings
-from dataclasses import dataclass
 from difPy.dif import dif
 from _queue import Empty
 import multiprocessing as mp
@@ -24,42 +23,12 @@ from fast_diff_py import fastDif
 from photo_lib.utils import rec_list_all, rec_walker, path_builder
 
 
-class GUICommandTypes(Enum):
-    NONE = 0
-    QUIT = 1
-
-class ProcessComType(Enum):
-    MAX = 1
-    CURRENT = 2
-    MESSAGE = 3
-
-
-class MatchTypes(Enum):
-    """
-    Enum to indicate the type of match found in the database.
-    """
-    No_Match = 0
-    Binary_Match_Images = 1
-    Binary_Match_Trash = 2
-    Hash_Match_Trash = 3
-    Binary_Match_Replaced = 4
-    Hash_Match_Replaced = 5
-
-@dataclass
-class BaseTileInfo:
-    key: int
-    path: str
-
-@dataclass
-class TileInfo(BaseTileInfo):
-    allowed: bool
-    imported: bool
-    match_type: MatchTypes
-
-@dataclass
-class Progress:
-    type: ProcessComType
-    value: Union[int, str]
+# TODO Tables to add:
+#   - Thunbmails Table
+#   - Known duplicates table
+# TODO Account for cases when a file is modified - keep track of the new hash. So we need an initial hash and file size.
+# INFO: If you run the img_ana_dup_search from another file and not the gui, MAKE SURE TO EMPTY THE PIPE.
+# After around 1000 Calls, the pipe will be full and the program will freeze !!!
 
 
 message_lookup = [
@@ -70,42 +39,6 @@ message_lookup = [
     "Found a Binary Match in the Replaced Files",
     "Found a Hash Match in the Replaced Files"
 ]
-
-# INFO: If you run the img_ana_dup_search from another file and not the gui, MAKE SURE TO EMPTY THE PIPE.
-# After around 1000 Calls, the pipe will be full and the program will freeze !!!
-
-
-# TODO Account for cases when a file is modified - keep track of the new hash. So we need an initial hash and file size.
-@dataclass
-class DatabaseEntry:
-    key: int
-    org_fname: str
-    org_fpath: str
-    metadata: dict
-    google_fotos_metadata: dict
-    naming_tag: str
-    file_hash: str
-    new_name: str
-    datetime: datetime.datetime
-    verify: int
-
-
-@dataclass
-class FullImportTableEntry:
-    key: int
-    org_fname: str
-    org_fpath: str
-    metadata: Union[None, dict]
-    file_hash: Union[None, str]
-    imported: bool
-    allowed: bool
-    message: Union[None, str]
-    datetime: Union[None, datetime.datetime]
-    naming_tag: Union[None, str]
-    match: Union[int, None]
-    match_type: Union[None, MatchTypes] = None
-    import_key: Union[int, None] = None
-    google_fotos_metadata: Union[dict, None] = None
 
 
 class PhotoDb:
