@@ -1288,7 +1288,7 @@ class PhotoDb:
         if os.path.splitext(img_fname)[1] not in {".jpeg", ".jpg", ".png", ".tiff"}:
             if inform:
                 # TODO logging debug
-                # print(f"{img_fname} was not of supported type to create thumbnails with cv2 lib.")
+                print(f"{img_fname} was not of supported type to create thumbnails with cv2 lib.")
                 pass
             return False
 
