@@ -849,7 +849,7 @@ class PhotoDb:
         self.con.commit()
 
         if copy_gfmd and msg != GUICommandTypes.QUIT:
-            # Get all google fotos metadata from the images table
+            # Get all google fotos metadata from the images table, binary match, binary_match_trash, hash_match_trash
             self.debug_exec(f"SELECT match, google_fotos_metadata FROM `{table_name}` "
                             f"WHERE match_type > 0 AND match_type < 4 AND google_fotos_metadata IS NOT NULL")
 
