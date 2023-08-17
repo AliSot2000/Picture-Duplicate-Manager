@@ -17,7 +17,7 @@ class ImportImageView(QFrame):
 
     # For config:
     # TODO move to config
-    metadata_in_scrollarea: bool = False
+    metadata_in_scroll_area: bool = False
 
     metadata_area: Union[QWidget, QScrollArea]
     main_metadata_widget: ImportMetadataWidget = None
@@ -60,7 +60,7 @@ class ImportImageView(QFrame):
         self.metadata_dummy_widget.setLayout(self.metadata_layout)
 
         self.metadata_area = self.metadata_dummy_widget
-        if self.metadata_in_scrollarea:
+        if self.metadata_in_scroll_area:
             self.metadata_area = QScrollArea()
             self.metadata_area.setMinimumWidth(400)
             self.metadata_area.setWidgetResizable(True)
@@ -179,8 +179,6 @@ class ImportImageView(QFrame):
         Fill the metadata layout according to self.load_match and update visibility.
         :return:
         """
-        # TODO update visibility.
-
         # Empty layout
         while self.metadata_layout.count() > 0:
             self.metadata_layout.takeAt(0)
