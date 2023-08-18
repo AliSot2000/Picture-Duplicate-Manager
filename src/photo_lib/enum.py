@@ -26,3 +26,11 @@ class GoogleFotosMetadataStatus(Enum):
     No_Metadata = -1
     Copied_Metadata = 0
     Original_Metadata = 1
+
+class SourceTable(Enum):
+    Images = 0
+    Replaced = 1
+    Import_Tables = 2
+    Last_Import = 3
+    Any_Import_Tabel = 4
+    Thumbnails = 5
