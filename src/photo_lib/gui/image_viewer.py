@@ -209,7 +209,10 @@ class ImportImageView(QFrame):
         Fetch information associated with match
         :return:
         """
-        pass
+        any_match_key = self.model.get_any_match(self.tile_info)
+        if any_match_key is not None:
+            self.match_metadata_widget.tile_info = self.model.get_metadata_of_key(any_match_key)
+            self.match_image.file_path = self.model.get_any_image_of_key(any_match_key)
         # self.match_image.file_path = os.path.join(os.path.dirname(self.tile_info.path), "2022-09-01 02.35.12_001")
         # Get Metadata
         # Crate Metadata Widget
