@@ -1,10 +1,13 @@
 import datetime
 import os.path
+import warnings
 from typing import List, Union, Tuple, Dict
 import multiprocessing as mp
 from dataclasses import dataclass
 
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo, MatchTypes, FullImportTableEntry
+from photo_lib.enum import SourceTable
+from photo_lib.data_objects import FullDatabaseEntry, FullReplacedEntry
 from photo_lib.metadataagregator import key_lookup_dir
 
 
@@ -447,3 +450,66 @@ class Model:
             raise ValueError("No import table selected")
 
         return self.pdb.get_full_import_table_entry_from_key(key=key, table=self.current_import_table_name)
+
+    def get_any_match(self, tile: TileInfo) -> Union[None, int]:
+        """
+        Get the key of the match in the database
+
+        :param tile: for which the match is to be found
+        :return:
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        if not tile.allowed:
+            return None
+
+        if tile.match_type == MatchTypes.No_Match:
+            return None
+
+        # get the match from the database
+        return self.pdb.get_match_from_import_table(tile.key, self.current_import_table_name)
+
+    def get_metadata_of_key(self, key: int) -> Union[FullDatabaseEntry, FullReplacedEntry]:
+        """
+        Get the metadata of a key from the database.
+        :param key: key of the image
+
+        :raises NoDbException: if no database is selected
+        :raises ValueError: if the key is not in the images or replaced table.
+
+        :return:
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        table = self.pdb.get_parent_table_from_key(key)
+        if table is SourceTable.Replaced:
+            return self.pdb.get_full_duplicates_entry_from_key(key)
+        elif table is SourceTable.Images:
+            return self.pdb.get_full_images_entry_from_key(key)
+        else:
+            raise ValueError("Not valid Database Source.")
+
+    def get_any_image_of_key(self, key: int):
+        """
+        Given the key, returns the path of the image.
+        If that doesn't exist, returns the path of the successor
+        If that doesn't exist, returns the path of the thumbnail
+        :param key:
+        :return:
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        source = self.pdb.get_source_image_path(key)
+        # Try to get source image first
+        if source is not None:
+            return source
+
+        thumbnail = self.pdb.get_thumbnail_path(key)
+        if thumbnail is not None:
+            return thumbnail
+
+        warnings.warn("Couldn't find image in file system.")
+        return None
