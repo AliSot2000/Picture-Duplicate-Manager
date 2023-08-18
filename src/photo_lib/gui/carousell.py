@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QHBoxLayout, QFrame, QLabel
-from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent
+from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent, QWheelEvent
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer
 import sys
 import os
@@ -33,6 +33,10 @@ class Carousel(QScrollArea):
     """
     Carousel widget that displays a list of images and allows the user to scroll through them.
     """
+
+    # Todo config
+    # Number of times the size of the scroll area to preload teh images for scrolling.
+    preload_amount: int = 10
 
     child_dummy: QWidget
     h_layout: QHBoxLayout
@@ -139,6 +143,15 @@ class Carousel(QScrollArea):
         """
         self.current_select.setStyleSheet("padding: 10px; ")
 
+    def wheelEvent(self, a0: QWheelEvent) -> None:
+        # TODO update the loaded images
+        # Todo placeholders.
+        super().wheelEvent(a0)
+        print("Wheel event.")
+
+    # Get the position of a widget relative to window origin:
+    # widget_pos = label.mapTo(window, label.rect().topLeft())
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -148,8 +161,6 @@ if __name__ == "__main__":
     window.model.build_tiles_from_table()
     window.setWindowTitle("Carousel Test")
     window.build_carousel()
-
     window.image_changed.connect(lambda x: print(x))
-
     window.show()
     sys.exit(app.exec())
