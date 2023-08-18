@@ -380,6 +380,9 @@ class Model:
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
         """
+        if self.__tile_indexes is None:
+            return []
+
         start = self.__tile_indexes.not_allowed.start
         end = self.__tile_indexes.not_allowed.start + self.__tile_indexes.not_allowed.length
         return self.__tile_infos[start:end]
@@ -389,6 +392,9 @@ class Model:
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
         """
+        if self.__tile_indexes is None:
+            return []
+
         start = self.__tile_indexes.binary_match.start
         end = self.__tile_indexes.binary_match.start + self.__tile_indexes.binary_match.length
         return self.__tile_infos[start:end]
@@ -398,6 +404,9 @@ class Model:
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
         """
+        if self.__tile_indexes is None:
+            return []
+
         start = self.__tile_indexes.binary_match_replaced.start
         end = self.__tile_indexes.binary_match_replaced.start + self.__tile_indexes.binary_match_replaced.length
         return self.__tile_infos[start:end]
@@ -407,6 +416,9 @@ class Model:
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
         """
+        if self.__tile_indexes is None:
+            return []
+
         start = self.__tile_indexes.binary_match_trash.start
         end = self.__tile_indexes.binary_match_trash.start + self.__tile_indexes.binary_match_trash.length
         return self.__tile_infos[start:end]
@@ -416,6 +428,9 @@ class Model:
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
         """
+        if self.__tile_indexes is None:
+            return []
+
         start = self.__tile_indexes.hash_match_replaced.start
         end = self.__tile_indexes.hash_match_replaced.start + self.__tile_indexes.hash_match_replaced.length
         return self.__tile_infos[start:end]
@@ -425,6 +440,9 @@ class Model:
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
         """
+        if self.__tile_indexes is None:
+            return []
+
         start = self.__tile_indexes.hash_match_trash.start
         end = self.__tile_indexes.hash_match_trash.start + self.__tile_indexes.hash_match_trash.length
         return self.__tile_infos[start:end]
@@ -434,6 +452,9 @@ class Model:
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
         """
+        if self.__tile_indexes is None:
+            return []
+
         start = self.__tile_indexes.no_match.start
         end = self.__tile_indexes.no_match.start + self.__tile_indexes.no_match.length
         return self.__tile_infos[start:end]
