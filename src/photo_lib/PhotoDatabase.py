@@ -2217,19 +2217,94 @@ class PhotoDb:
 
     def get_source_image(self, key: int) -> Union[str, None]:
         """
-        Given a key, returns the path to the highest resolution image.
-
-        Database -> returns path to image
-        Replaced -> checks trash for image, then successor in Dababase, then thumbnails
-        Trash -> checks trash, then thumbnails
-
-        :param key: key to get path for
-        :return: path to highest res image
+        Get the path to the images in the original resolution. For Images in the replaced table, check the trash folder
+        otherwise, get the successor of that image.
+        
+        :param key: key of image -> in Database (Replaced or Images)
+        :return: path to image. Guaranteed to exist. otherwise None
         """
-        self.debug_exec(f"SELECT new_name FROM import WHERE key = {key}")
+        self.debug_exec(f"SELECT key, former_name, successor FROM replaced WHERE key = {key}")
         result = self.cur.fetchone()
+        
+        # Found a result in the replaced table
+        if result is not None:
+            # File still exists in trash
+            path = os.path.join(self.trash_dir, result[1])
+            if os.path.exists(path):
+                return path
+            else:
+                # replace the key with the successor
+                key = result[2]
+
+        
+        self.debug_exec(f"SELECT key, new_name, datetime, trashed, present FROM images WHERE key = {key}")
+        result = self.cur.fetchone()
+
+        # No entry found
+        if result is None:
+            warnings.warn("Key not found in database")
+            return None
+
+        dt = self.__db_str_to_datetime(result[2])
+
+        # trashed and present, check the trash.
+        if result[3] and result[4]:
+            path = os.path.join(self.trash_dir, result[1])
+            if os.path.exists(path):
+                return path
+            else:
+                warnings.warn("File removed from trash without updating database")
+                return None
+
+        # trashed and not present
+        if result[3] and not result[4]:
+            # Once definitely trashed files should not return.
+            assert not os.path.exists(os.path.join(self.trash_dir, result[1])), \
+                "File trashed, marked as deleted but still present."
+            return None
+
+        # not trashed and not present
+        assert not result[3], "Bug, now should only be not trashed"
+
+        if not result[4]:
+            warnings.warn("File not present but not trashed. This should not happen.")
+            return None
+
+        # default location.
+        path = self.path_from_datetime(dt, result[1])
+        if not os.path.exists(path):
+            warnings.warn("File not present but not marked in database.")
+            return None
+
+        return path
+
+    def get_thumbnail_path(self, key: int):
+        """
+        Get the thumbnail path of the image. For images in the replaced table, the thumbnail from the successor is
+        considered as well.
+
+        :param key: key to get the thumbnail from
+        :return: path to thumbnail - exists, otherwise None.
+        """
+
+        thumbnail_path = self.thumbnail_name(ext=".jpeg", key=key)
+
+        # Path exists, return it
+        if os.path.exists(thumbnail_path):
+            return thumbnail_path
+
+        # test successor
+        self.debug_exec(f"SELECT successor FROM replaced WHERE key = {key}")
+        result = self.cur.fetchone()
+
+        # No successor, return None
         if result is None:
             return None
 
-        path = os.path.join(result[1], result[0])
-        # TODO not done
+        # test thumbnail of successor
+        thumbnail_path = self.thumbnail_name(ext=".jpeg", key=result[0])
+        if os.path.exists(thumbnail_path):
+            return thumbnail_path
+
+        # No path found
+        return None
