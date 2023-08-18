@@ -2215,7 +2215,7 @@ class PhotoDb:
             raise ValueError("Key not found in database")
 
 
-    def get_source_image(self, key: int) -> Union[str, None]:
+    def get_source_image_path(self, key: int) -> Union[str, None]:
         """
         Get the path to the images in the original resolution. For Images in the replaced table, check the trash folder
         otherwise, get the successor of that image.
