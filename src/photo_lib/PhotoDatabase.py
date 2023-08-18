@@ -2308,3 +2308,46 @@ class PhotoDb:
 
         # No path found
         return None
+
+    def get_match_from_import_table(self, import_key: int, tbl_name: str) -> int:
+        """
+        Given a key and an import table name, get the match key from the database.
+
+        :param import_key: key from which we are interested in the match type
+        :param tbl_name: import table to select from
+        :return: key in database
+        :raises: ValueError if the key not found or the match is Null
+        """
+
+        self.debug_exec(f"SELECT match FROM `{tbl_name}` WHERE key = {import_key}")
+        res = self.cur.fetchone()
+
+        if res is None:
+            raise ValueError(f"Key: {import_key} not found in import table {tbl_name}")
+
+        if res[0] is None:
+            raise ValueError(f"Match of key {import_key} is None")
+
+        return res[0]
+
+    def number_of_known_duplicates(self, key: int):
+        """
+        Given a key in the images table, may be trashed or not. Return the number of known duplicates.
+
+        :param key: to get the number of duplicates from
+        :return: number of duplicates found
+        """
+
+        self.debug_exec(f"SELECT COUNT(key) FROM replaced WHERE successor = {key}")
+        res = self.cur.fetchone()
+        return res[0]
+
+    def get_duplicate_keys(self, key: int) -> List[int]:
+        """
+        Given a key, gets all keys which are a known duplicate of it.
+        :param key: key to get duplicates from
+        :return: List of keys
+        """
+        self.debug_exec(f"SELECT key FROM replaced WHERE successor = {key}")
+        res = self.cur.fetchall()
+        return [x[0] for x in res]
