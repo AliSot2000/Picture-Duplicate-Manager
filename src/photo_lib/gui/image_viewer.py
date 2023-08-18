@@ -68,19 +68,19 @@ class ImportImageView(QFrame):
 
         self.main_metadata_widget = ImportMetadataWidget(model=model)
         self.main_metadata_widget.v_layout.setContentsMargins(0, 0, 0, 0)
-        self.main_metadata_widget.setFrameStyle(QFrame.Shape.Box)
+        # self.main_metadata_widget.setFrameStyle(QFrame.Shape.Box)
+
         self.match_metadata_widget = ImportMetadataWidget(model=model) # TODO needs to be different MetadataWidget
         self.match_metadata_widget.tile_info = None
-        self.match_metadata_widget.setFrameStyle(QFrame.Shape.Box)
+        # self.match_metadata_widget.setFrameStyle(QFrame.Shape.Box)
 
 
         self.big_image = ZoomImage()
         self.big_image.setMinimumSize(100, 100)
-        self.big_image.setFrameStyle(QFrame.Shape.Box)
+        # self.big_image.setFrameStyle(QFrame.Shape.Box)
         self.match_image = ZoomImage()
         self.match_image.setMinimumSize(100, 100)
-        self.match_image.setFrameStyle(QFrame.Shape.Box)
-
+        # self.match_image.setFrameStyle(QFrame.Shape.Box)
         self.global_splitter = QSplitter(Qt.Orientation.Horizontal)
         self.global_splitter.setHandleWidth(5)
 
