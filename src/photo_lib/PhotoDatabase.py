@@ -2187,7 +2187,35 @@ class PhotoDb:
             original_google_metadata=GoogleFotosMetadataStatus(result[8])
         )
 
-    def get_highest_res_image(self, key: int) -> str:
+    def get_parent_table_from_key(self, key: int) -> SourceTable:
+        """
+        Given a key check if it is in the replaced table or in the images table
+
+        :param key: key to check, needs to exist.
+        :return: SourceTable Enum
+
+        :raise: ValueError, when key not found.
+        """
+        self.debug_exec(f"SELECT key FROM replaced WHERE key = {key}")
+        res_a = self.cur.fetchone()
+
+        self.debug_exec(f"SELECT key FROM images WHERE key = {key}")
+        res_b = self.cur.fetchone()
+
+        if res_a is not None and res_b is None:
+            return SourceTable.Replaced
+
+        elif res_a is None and res_b is not None:
+            return SourceTable.Images
+
+        elif res_a is not None and res_b is not None:
+            raise CorruptDatabase("Key in both tables")
+
+        else:
+            raise ValueError("Key not found in database")
+
+
+    def get_source_image(self, key: int) -> Union[str, None]:
         """
         Given a key, returns the path to the highest resolution image.
 
