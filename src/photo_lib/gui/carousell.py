@@ -2,13 +2,11 @@ from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QHBoxLayout, QFr
 from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent, QWheelEvent
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer
 import sys
-import os
-from typing import Union, List, Callable
-import math
-import warnings
+from typing import List
 from photo_lib.PhotoDatabase import BaseTileInfo
 from photo_lib.gui.clickable_image import ClickableTile
 from photo_lib.gui.model import Model
+from photo_lib.gui.gui_utils import image_wrapper
 
 """
 Information:
@@ -17,17 +15,6 @@ This is the first implementation of a basic carousel widget. Features that are m
 - Abstraction (if the images are outside the displayed area, they should be unloaded. Eventually a large swat of images
 should be replaced by a single widget to free even more space.
 """
-
-def image_wrapper(image: ClickableTile, fn: Callable):
-    """
-    Given a function and a tile, bake tile as argument into function call for signal.
-    :param image: tile to bake in
-    :param fn: function to call
-    :return:
-    """
-    def wrapper():
-        fn(image=image)
-    return wrapper
 
 class Carousel(QScrollArea):
     """
