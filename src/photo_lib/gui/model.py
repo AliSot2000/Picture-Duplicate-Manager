@@ -534,3 +534,22 @@ class Model:
 
         warnings.warn("Couldn't find image in file system.")
         return None
+
+    def get_full_database_entry(self, key: int) -> Union[FullDatabaseEntry, FullReplacedEntry]:
+        """
+        Get the full database entry for the target key.
+
+        :param key: file to get full row from
+        :return:
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        tbl = self.pdb.get_parent_table_from_key(key)
+
+        if tbl == SourceTable.Images:
+            return self.pdb.get_full_images_entry_from_key(key)
+        elif tbl == SourceTable.Replaced:
+            return self.pdb.get_full_duplicates_entry_from_key(key)
+        else:
+            raise ValueError("Not valid Database Source.")
