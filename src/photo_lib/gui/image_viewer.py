@@ -250,6 +250,7 @@ class ImportImageView(QFrame):
             if self.load_match:
                 self.fetch_match()
 
+
 class TestWindow(QMainWindow):
     def __init__(self):
         super().__init__()
