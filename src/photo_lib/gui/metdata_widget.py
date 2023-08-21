@@ -389,7 +389,7 @@ class DualMetadataWidget(QFrame):
         return self.__show_match
 
     @show_match.setter
-    def show_file(self, value: bool):
+    def show_match(self, value: bool):
         self.__show_match = value
         self.build_metadata_widget()
         self.show_file_changed.emit()
