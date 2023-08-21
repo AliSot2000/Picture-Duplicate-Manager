@@ -711,17 +711,21 @@ class DualMetadataWidget(QFrame):
             self.no_file_label.setVisible(True)
             return
 
+        self._build_row_column_header()
+        self._set_row_column_header_visibility()
+
         # Tile info but no match
         if not self.show_match:
             self._build_layout_import_only()
         elif self._match_entry is None:
             self._build_layout_import_only()
-        elif type(self._match_entry) is FullReplacedEntry:
-            self._build_layout_import_and_replaced()
-        elif type(self._match_entry) is FullDatabaseEntry:
-            self._build_layout_import_and_database()
         else:
-            raise Exception("Unknown Match Type")
+            self._build_match_layout()
+            self._set_match_visible()
+
+            self._build_import_layout_match()
+            self._set_visibility_import()
+
 
     # ------------------------------------------------------------------------------------------------------------------
     # Building Match Only
