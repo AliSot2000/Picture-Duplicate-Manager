@@ -1222,44 +1222,55 @@ if __name__ == "__main__":
 
     # window = ImportMetadataWidget(Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/"))
     window = DualMetadataWidget(Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/"))
+    window.show_match = True
     window.model.current_import_table_name = "tbl_1998737548188488947"
-    # window.tile_info = TileInfo(
-    #     key=20,
-    #     path="",
-    #     imported=False,
-    #     allowed=False,
-    #     match_type=MatchTypes.No_Match
-    # )
-    # window.tile_info = TileInfo(
-    #     key=72,
-    #     path="",
-    #     imported=False,
-    #     allowed=False,
-    #     match_type=MatchTypes.No_Match
-    # )
-    window.tile_info = TileInfo(
-        key=134,
+    tiles = [TileInfo(
+        key=20,
+        path="",
+        imported=False,
+        allowed=False,
+        match_type=MatchTypes.No_Match
+    ),
+    TileInfo(
+            key=20,
+            path="",
+            imported=False,
+            allowed=False,
+            match_type=MatchTypes.No_Match
+        ),
+        TileInfo(
+            key=72,
+            path="",
+            imported=False,
+            allowed=False,
+            match_type=MatchTypes.No_Match
+        ),
+        TileInfo(
+            key=134,
+            path="",
+            imported=False,
+            allowed=False,
+            match_type=MatchTypes.No_Match
+        ), TileInfo(
+        key=10,
+        path="",
+        imported=False,
+        allowed=False,
+        match_type=MatchTypes.No_Match
+    ),
+    TileInfo(
+        key=11,
         path="",
         imported=False,
         allowed=False,
         match_type=MatchTypes.No_Match
     )
-    # window.tile_info = TileInfo(
-    #     key=10,
-    #     path="",
-    #     imported=False,
-    #     allowed=False,
-    #     match_type=MatchTypes.No_Match
-    # )
-    # window.tile_info = TileInfo(
-    #     key=11,
-    #     path="",
-    #     imported=False,
-    #     allowed=False,
-    #     match_type=MatchTypes.No_Match
-    # )
+    ]
+    # thread = threading.Thread(target=switcher, args=(window, tiles))
+    # thread.start()
 
-
+    window.tile_info = tiles[0]
+    window.tile_info = tiles[1]
 
     window.show()
     sys.exit(app.exec())
