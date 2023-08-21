@@ -7,6 +7,7 @@ from photo_lib.gui.misc import QSquarePushButton
 from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.model import Model
+from photo_lib.gui.gui_utils import bake_attribute
 from photo_lib.PhotoDatabase import DatabaseEntry
 from typing import Union, Callable
 import os.path
@@ -21,12 +22,6 @@ import os.path
 #     pixmap = pixmap.transformed(rm);
 #     my_label->setPixmap(pixmap);
 # }
-
-def bake_attribute(name: str, func: Callable):
-    def baked_attribute_func(*args, **kwargs):
-        return func(*args, name=name,**kwargs)
-
-    return baked_attribute_func
 
 
 class MediaPane(QFrame):
