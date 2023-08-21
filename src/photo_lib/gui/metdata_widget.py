@@ -835,20 +835,17 @@ class DualMetadataWidget(QFrame):
         self.i_file_path_val.setVisible(True)
 
         self.i_file_match_type_label.setVisible(True)
+        self.i_file_allowed_label.setVisible(True)
 
         # File not allowed
         if not self._import_entry.allowed:
             self.i_file_import_label.setVisible(True)
-
             return
 
         # Set more Values that should be set if allowed
         self.i_file_hash_val.setVisible(True)
         self.i_file_datetime_val.setVisible(True)
         self.i_file_naming_tag_val.setVisible(True)
-
-        # File allowed
-        self.i_file_allowed_label.setVisible(True)
 
         # Import checkbox
         if self._import_entry.imported:
@@ -862,62 +859,6 @@ class DualMetadataWidget(QFrame):
 
         if self._import_entry.google_fotos_metadata is not None:
             self.i_file_google_fotos_metadata_val.setVisible(True)
-
-    def _build_layout_import_only(self):
-        """
-        Build the layout if only the import file is shown.
-
-        Precondition, that self._import_entry is not None.
-        :return:
-        """
-        self._assign_import_file_texts()
-
-        # Set Column Header
-        self.g_layout.addWidget(self.import_file_lbl, 0, 1, 1, 3)
-
-        # Add the labels so far to the layout
-        self.g_layout.addWidget(self.i_file_name_val, 1, 1, 1, 3)
-        self.g_layout.addWidget(self.i_file_path_val, 2, 1, 1, 3)
-
-        # File not allowed
-        if not self._import_entry.allowed:
-            self.g_layout.addWidget(self.i_file_allowed_label, 3, 1)
-            self.g_layout.addWidget(self.i_file_import_label, 3, 2)
-            self.g_layout.addWidget(self.i_file_match_type_label, 3, 3)
-
-            self._set_visibility_import()
-            self._set_stretch_import_only()
-            return
-
-        # Set more Values that should be set if allowed
-        self.g_layout.addWidget(self.i_file_hash_val, 3, 1, 1, 3)
-        self.g_layout.addWidget(self.i_file_datetime_val, 4, 1, 1, 3)
-        self.g_layout.addWidget(self.i_file_naming_tag_val, 5, 1, 1, 3)
-
-        # Build options
-        self.g_layout.addWidget(self.options, 6, 0)
-
-        # File allowed
-        self.g_layout.addWidget(self.i_file_allowed_label, 6, 1)
-
-        # Import checkbox
-        if self._import_entry.imported:
-            self.g_layout.addWidget(self.i_file_import_label, 6, 2)
-        else:
-            self.i_file_import_checkbox.setCheckState(Qt.CheckState.Unchecked)
-            self.g_layout.addWidget(self.i_file_import_checkbox, 6, 2)
-
-        self.g_layout.addWidget(self.i_file_match_type_label, 6, 3)
-
-        # Add the Metadata
-        if self._import_entry.metadata is not None:
-            self.g_layout.addWidget(self.i_file_metadata_val, 7, 1, 1, 3)
-
-        if self._import_entry.google_fotos_metadata is not None:
-            self.g_layout.addWidget(self.i_file_google_fotos_metadata_val, 8, 1, 1, 3)
-
-        self._set_visibility_import()
-        self._set_stretch_import_only()
 
     def _build_import_layout_match(self):
         """
