@@ -1202,8 +1202,20 @@ class DualMetadataWidget(QFrame):
                 if self._import_entry.google_fotos_metadata is not None:
                     self.google_fotos_metadata_lbl.setVisible(True)
 
-    def _build_layout_import_and_database(self):
-        pass
+def switcher(window, tiles):
+    """
+    Switcher function to switch between the different tiles.
+
+    :param window:
+    :param tiles:
+    :return:
+    """
+    while True:
+        window.show_match = not window.show_match
+        for tile in tiles:
+            window.tile_info = tile
+            time.sleep(1)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
