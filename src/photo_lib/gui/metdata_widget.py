@@ -351,6 +351,8 @@ class DualMetadataWidget(QFrame):
     new_file_lbl: QLabel
     successor_lbl: QLabel
 
+    no_file_label: QLabel
+
     # Row values
     i_file_name_val: TextScroller
     i_file_path_val: TextScroller
@@ -646,6 +648,8 @@ class DualMetadataWidget(QFrame):
         self.new_file_lbl.setVisible(False)
         self.successor_lbl.setVisible(False)
 
+        self.no_file_label.setVisible(False)
+
         self.i_file_name_val.setVisible(False)
         self.i_file_path_val.setVisible(False)
         self.i_file_hash_val.setVisible(False)
@@ -689,9 +693,8 @@ class DualMetadataWidget(QFrame):
 
         # Case, when we got no tile_info
         if self.tile_info is None:
-            label = QLabel("No File Selected")
-            label.setFixedHeight(self.single_line_size)
-            self.g_layout.addWidget(label, 0, 0)
+            self.g_layout.addWidget(self.no_file_label, 0, 0)
+            self.no_file_label.setVisible(True)
             return
 
         # Tile info but no match
