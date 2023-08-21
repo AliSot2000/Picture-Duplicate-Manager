@@ -498,7 +498,9 @@ class DualMetadataWidget(QFrame):
         self.successor_lbl.setText("Successor ID:")
         self.import_file_lbl.setText("Import File:")
         self.match_file_lbl.setText("Match:")
+
         self.i_file_import_checkbox.setText("Import File")
+        self.no_file_label.setText("No File Selected")
 
     def _init_formatting(self):
         """
@@ -535,6 +537,9 @@ class DualMetadataWidget(QFrame):
 
         self.successor_lbl.setFixedHeight(self.single_line_size)
         self.successor_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+
+        self.no_file_label.setFixedHeight(self.single_line_size)
+        self.no_file_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 
         # Set the formatting of the Import Row Values
         self.i_file_name_val.setFixedHeight(self.single_line_size)
