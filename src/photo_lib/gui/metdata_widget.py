@@ -447,6 +447,8 @@ class DualMetadataWidget(QFrame):
         self.new_file_lbl = QLabel()
         self.successor_lbl = QLabel()
 
+        self.no_file_label = QLabel()
+
         self.i_file_name_val = TextScroller()
         self.i_file_path_val = TextScroller()
         self.i_file_hash_val = TextScroller()
