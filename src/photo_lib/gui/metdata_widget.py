@@ -991,25 +991,23 @@ class DualMetadataWidget(QFrame):
             if self._match_entry.google_fotos_metadata is not None:
                 self.m_file_google_fotos_metadata_val.setVisible(True)
 
-        elif (self._import_entry.google_fotos_metadata is not None
-              or self._match_entry.google_fotos_metadata is not None):
-            self.g_layout.addWidget(self.google_fotos_metadata_lbl, 9, 0)
+    def _assign_match_file_texts(self):
+        """
+        Assign all possible values to the match file.
 
-        # --------------------------------------------------------------------------------------------------------------
-
-        # Build match values
+        Precondition: self._match_entry is not None
+        :return:
+        """
         self.m_file_org_name_val.text_label.setText(self._match_entry.org_fname)
         self.m_file_hash_val.text_label.setText(self._match_entry.file_hash)
         self.m_file_datetime_val.setText(self._match_entry.datetime.strftime("%Y-%m-%d %H:%M:%S"))
-        self.m_file_successor_val.setText(str(self._match_entry.successor))
-        self.m_file_new_name_val.setText(self._match_entry.former_name)
         self.m_file_original_google_metadata_val.setText(
             self._match_entry.original_google_metadata.name.replace("_", " ").title())
 
         # Set the metadata values
         if self._match_entry.metadata is not None:
             self.m_file_metadata_val.text_label.setText(
-                self._match_entry.original_google_metadata.name.replace("_", " ").title())
+                self.model.process_metadata(self._match_entry.metadata)[0])
         else:
             self.m_file_metadata_val.text_label.setText("")
 
@@ -1020,69 +1018,189 @@ class DualMetadataWidget(QFrame):
         else:
             self.m_file_google_fotos_metadata_val.text_label.setText("")
 
-        # Add Match values to layout
+        if type(self._match_entry) is FullReplacedEntry:
+            # Build match values
+            self.m_file_successor_val.setText(str(self._match_entry.successor))
+            self.m_file_new_name_val.setText(self._match_entry.former_name)
+        else:
+            self.m_file_org_path_val.text_label.setText(self._match_entry.org_fpath)
+            self.m_file_new_name_val.setText(self._match_entry.new_name)
+            self.m_file_naming_tag_val.setText(self._match_entry.naming_tag)
+
+            trash_text = "Trashed" if self._match_entry.trashed else "Not Trashed"
+            present_text = "Present" if self._match_entry.present else "Not Present"
+            verify_text = "Verified" if self._match_entry.verify else "Not Verified"
+
+            self.m_file_trashed_val.setText(trash_text)
+            self.m_file_present_val.setText(present_text)
+            self.m_file_verify_val.setText(verify_text)
+
+    def _build_match_layout(self):
+        """
+        Build all labels for the match file. Also add the files to the grid layout.
+
+        Precondition: self._match_entry is not None
+        :return:
+        """
+        self._assign_match_file_texts()
+
+        # Those can be assigned already outside.
         self.g_layout.addWidget(self.m_file_org_name_val, 1, 1, 1, 4)
         self.g_layout.addWidget(self.m_file_hash_val, 3, 1, 1, 4)
         self.g_layout.addWidget(self.m_file_datetime_val, 4, 1, 1, 4)
         self.g_layout.addWidget(self.m_file_naming_tag_val, 5, 1, 1, 4)
-        self.g_layout.addWidget(self.m_file_successor_val, 6, 1, 1, 4)
+
+        if type(self._match_entry) is FullReplacedEntry:
+            # Add Match values to layout
+            self.g_layout.addWidget(self.m_file_successor_val, 6, 1, 1, 4)
+            self.g_layout.addWidget(self.m_file_new_name_val, 7, 1, 1, 4)
+            self.g_layout.addWidget(self.m_file_original_google_metadata_val, 8, 4)
+
+            offset = 8
+        else:
+            self.g_layout.addWidget(self.m_file_org_path_val, 2, 1, 1, 4)
+            self.g_layout.addWidget(self.m_file_new_name_val, 6, 1, 1, 4)
+
+            self.g_layout.addWidget(self.m_file_trashed_val, 7, 1)
+            self.g_layout.addWidget(self.m_file_present_val, 7, 2)
+            self.g_layout.addWidget(self.m_file_verify_val, 7, 3)
+            self.g_layout.addWidget(self.m_file_original_google_metadata_val, 7, 4)
+            offset = 7
 
         if self._match_entry.metadata is not None or self._import_entry.metadata is not None:
-            if self._match_entry.metadata is not None:
-                self.g_layout.addWidget(self.m_file_metadata_val, 7, 1, 1, 4)
+            offset += 1
+            self.g_layout.addWidget(self.m_file_metadata_val, offset, 1, 1, 4)
 
-            if self._match_entry.google_fotos_metadata is not None:
-                self.g_layout.addWidget(self.m_file_google_fotos_metadata_val, 8, 1, 1, 4)
-
-        elif (self._import_entry.google_fotos_metadata is not None
+        if (self._import_entry.google_fotos_metadata is not None
               or self._match_entry.google_fotos_metadata is not None):
-            if self._match_entry.google_fotos_metadata is not None:
-                self.g_layout.addWidget(self.google_fotos_metadata_lbl, 7, 1, 1, 4)
+            offset += 1
+            self.g_layout.addWidget(self.m_file_google_fotos_metadata_val, offset, 1, 1, 4)
 
-        # --------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    # Functions for Row and Column Headers
+    # ------------------------------------------------------------------------------------------------------------------
 
-        # Set Values of import file
-        self.i_file_name_val.text_label.setText(self._import_entry.org_fname)
-        self.i_file_path_val.text_label.setText(self._import_entry.org_fpath)
+    def _build_row_column_header(self):
+        """
+        Build the row and column headers of the layout.
 
-        if not self._import_entry.allowed:
-            self.i_file_allowed_label.setText("Not Allowed")
+        :return:
+        """
+        if self.show_match:
+            # Set Column headers
+            self.g_layout.addWidget(self.match_file_lbl, 0, 1, 1, 4)
+            self.g_layout.addWidget(self.import_file_lbl, 0, 5, 1, 3)
 
-            self.g_layout.addWidget(self.options, 3, 0)
-            self.g_layout.addWidget(self.i_file_allowed_label, 3, 1)
+            # Set Row Headers
+            self.g_layout.addWidget(self.file_name_lbl, 1, 0)
+            self.g_layout.addWidget(self.file_path_lbl, 2, 0)
+            self.g_layout.addWidget(self.file_hash_lbl, 3, 0)
+            self.g_layout.addWidget(self.datetime_lbl, 4, 0)
+            self.g_layout.addWidget(self.naming_tag_lbl, 5, 0)
 
-            if self._import_entry.imported:
-                self.i_file_import_label.setText("Imported")
-                self.g_layout.addWidget(self.i_file_import_label, 3, 2)
+            # ----------------------------------------------------------------------------------------------------------
+            # Case distinction for different rows for Replaced VS Database
+            if type(self._match_entry) is FullReplacedEntry:
+
+                self.g_layout.addWidget(self.successor_lbl, 6, 0)
+                self.g_layout.addWidget(self.new_file_lbl, 7, 0)
+                self.g_layout.addWidget(self.options, 8, 0)
+
+                offset = 8
+
+            # Otherwise FullDatabaseEntry
+            else:
+                self.g_layout.addWidget(self.new_file_lbl, 6, 0)
+                self.g_layout.addWidget(self.options, 7, 0)
+
+                offset = 7
+            # ----------------------------------------------------------------------------------------------------------
+
+            # Add Metadata
+            if self._match_entry.metadata is not None or self._import_entry.metadata is not None:
+                offset += 1
+                self.g_layout.addWidget(self.metadata_lbl, offset, 0)
+
+            # Add Google Fotos Metadata
+            if (self._import_entry.google_fotos_metadata is not None
+                  or self._match_entry.google_fotos_metadata is not None):
+                offset += 1
+                self.g_layout.addWidget(self.google_fotos_metadata_lbl, offset, 0)
 
         else:
-            self.i_file_allowed_label.setText("Allowed")
+            # We only show the import file
+            # Set Column Header
+            self.g_layout.addWidget(self.import_file_lbl, 0, 1, 1, 3)
 
-        if self._import_entry.match_type is not None:
-            self.i_file_match_type_label.setText(
-                self._import_entry.match_type.name.replace('_', ' ').title())
-            self.g_layout.addWidget(self.i_file_match_type_label, 3, 3)
+            # Add the labels so far to the layout
+            self.g_layout.addWidget(self.file_name_lbl, 1, 0)
+            self.g_layout.addWidget(self.file_path_lbl, 2, 0)
 
-        self.i_file_hash_val.text_label.setText(self._import_entry.file_hash)
-        self.i_file_datetime_val.setText(self._import_entry.datetime.strftime("%Y-%m-%d %H:%M:%S"))
-        self.i_file_naming_tag_val.setText(self._import_entry.naming_tag)
+            # File not allowed
+            if not self._import_entry.allowed:
+                self.g_layout.addWidget(self.options, 3, 0)
+                return
 
-        # Add the Metadata
-        if self._import_entry.metadata is not None:
-            self.i_file_metadata_val.text_label.setText(self.model.process_metadata(self._import_entry.metadata)[0])
+            self.g_layout.addWidget(self.file_hash_lbl, 3, 0)
+            self.g_layout.addWidget(self.datetime_lbl, 4, 0)
+            self.g_layout.addWidget(self.naming_tag_lbl, 5, 0)
+            self.g_layout.addWidget(self.options, 6, 0)
 
-            self.g_layout.addWidget(self.metadata_lbl, 7, 0)
-            self.g_layout.addWidget(self.i_file_metadata_val, 7, 1, 1, 3)
+            # Add the Metadata
+            if self._import_entry.metadata is not None:
+                self.g_layout.addWidget(self.metadata_lbl, 7, 0)
 
-        if self._import_entry.google_fotos_metadata is not None:
-            self.i_file_google_fotos_metadata_val.text_label.setText(
-                json.dumps(self._import_entry.google_fotos_metadata, indent=4))
+            if self._import_entry.google_fotos_metadata is not None:
+                self.g_layout.addWidget(self.google_fotos_metadata_lbl, 8, 0)
 
-            self.g_layout.addWidget(self.google_fotos_metadata_lbl, 8, 0)
-            self.g_layout.addWidget(self.i_file_google_fotos_metadata_val, 8, 1, 1, 3)
-    # ------------------------------------------------------------------------------------------------------------------
-    # Building Match and Images
-    # ------------------------------------------------------------------------------------------------------------------
+    def _set_row_column_header_visibility(self):
+        """
+        Set the visibility of the row and column headers.
+
+        :return:
+        """
+        # Always visible
+        self.import_file_lbl.setVisible(True)
+        self.file_name_lbl.setVisible(True)
+        self.file_path_lbl.setVisible(True)
+        self.options.setVisible(True)
+
+        if self.show_match:
+            # Set Column headers
+            self.match_file_lbl.setVisible(True)
+
+            # Set Row Headers
+            self.file_hash_lbl.setVisible(True)
+            self.datetime_lbl.setVisible(True)
+            self.naming_tag_lbl.setVisible(True)
+            self.new_file_lbl.setVisible(True)
+
+            if type(self._match_entry) is FullReplacedEntry:
+                self.successor_lbl.setVisible(True)
+
+            # Add Metadata
+            if self._match_entry.metadata is not None or self._import_entry.metadata is not None:
+                self.metadata_lbl.setVisible(True)
+
+            # Add Google Fotos Metadata
+            if (self._import_entry.google_fotos_metadata is not None
+                    or self._match_entry.google_fotos_metadata is not None):
+                self.google_fotos_metadata_lbl.setVisible(True)
+
+        else:
+            # File not allowed
+            if self._import_entry.allowed:
+                self.file_hash_lbl.setVisible(True)
+                self.datetime_lbl.setVisible(True)
+                self.naming_tag_lbl.setVisible(True)
+
+                # Add the Metadata
+                if self._import_entry.metadata is not None:
+                    self.metadata_lbl.setVisible(True)
+
+                # Add the Google Fotos Metadata
+                if self._import_entry.google_fotos_metadata is not None:
+                    self.google_fotos_metadata_lbl.setVisible(True)
 
     def _build_layout_import_and_database(self):
         pass
