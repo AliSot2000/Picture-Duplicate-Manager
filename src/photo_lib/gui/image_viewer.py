@@ -4,7 +4,7 @@ from PyQt6.QtGui import QAction
 
 from photo_lib.PhotoDatabase import FullImportTableEntry, TileInfo, MatchTypes
 from photo_lib.gui.action_button import QActionButton
-from photo_lib.gui.metdata_widget import ImportMetadataWidget
+from photo_lib.gui.metdata_widget import DualMetadataWidget
 from photo_lib.gui.model import Model
 from photo_lib.gui.zoom_image import ZoomImage
 
@@ -13,23 +13,21 @@ import sys
 import json
 
 
+# TODO bugfix, empty metadata when match not loaded
+# TODO formatting broken. Fix it.
+
 class ImportImageView(QFrame):
 
     # For config:
     # TODO move to config
     metadata_in_scroll_area: bool = False
 
-    metadata_area: Union[QWidget, QScrollArea]
-    main_metadata_widget: ImportMetadataWidget = None
-    match_metadata_widget: Union[None, ImportMetadataWidget] = None
+    metadata_widget: Union[DualMetadataWidget, None] = None
 
     big_image: ZoomImage
     match_image: ZoomImage
 
     h_layout: QHBoxLayout
-
-    metadata_dummy_widget: QWidget
-    metadata_layout = QHBoxLayout
 
     model: Model = None
     __tile_info: TileInfo = None
@@ -53,27 +51,13 @@ class ImportImageView(QFrame):
         # self.h_layout.setSpacing(0)
         self.setLayout(self.h_layout)
 
-        self.metadata_dummy_widget = QWidget()
-
-        self.metadata_layout = QHBoxLayout()
-        self.metadata_layout.setContentsMargins(0, 0, 0, 0)
-        self.metadata_dummy_widget.setLayout(self.metadata_layout)
-
-        self.metadata_area = self.metadata_dummy_widget
+        self.metadata_widget = DualMetadataWidget(model=model)
+        self.metadata_area = self.metadata_widget
         if self.metadata_in_scroll_area:
             self.metadata_area = QScrollArea()
             self.metadata_area.setMinimumWidth(400)
             self.metadata_area.setWidgetResizable(True)
-            self.metadata_area.setWidget(self.metadata_dummy_widget)
-
-        self.main_metadata_widget = ImportMetadataWidget(model=model)
-        self.main_metadata_widget.v_layout.setContentsMargins(0, 0, 0, 0)
-        # self.main_metadata_widget.setFrameStyle(QFrame.Shape.Box)
-
-        self.match_metadata_widget = ImportMetadataWidget(model=model) # TODO needs to be different MetadataWidget
-        self.match_metadata_widget.tile_info = None
-        # self.match_metadata_widget.setFrameStyle(QFrame.Shape.Box)
-
+            self.metadata_area.setWidget(self.metadata_widget)
 
         self.big_image = ZoomImage()
         self.big_image.setMinimumSize(100, 100)
@@ -174,35 +158,15 @@ class ImportImageView(QFrame):
                 self.big_image.setVisible(True)
                 self.match_image.setVisible(False)
 
-    def build_metadata_layout(self):
-        """
-        Fill the metadata layout according to self.load_match and update visibility.
-        :return:
-        """
-        # Empty layout
-        while self.metadata_layout.count() > 0:
-            self.metadata_layout.takeAt(0)
-
-        # Add widgets again.
-        if self.load_match:
-            self.metadata_layout.addWidget(self.main_metadata_widget)
-            self.metadata_layout.addWidget(self.match_metadata_widget)
-            self.match_metadata_widget.setVisible(True)
-
-        else:
-            self.metadata_layout.addWidget(self.main_metadata_widget)
-            self.match_metadata_widget.setVisible(False)
-
     def update_show_match(self):
         """
         Performs update action after the show_match action was toggled
         :return:
         """
-        self.load_match = self.open_match_action.isChecked()
+        self.metadata_widget.show_match = self.load_match = self.open_match_action.isChecked()
         if self.load_match:
             self.fetch_match()
         self.build_main_layout()
-        self.build_metadata_layout()
 
     def fetch_match(self):
         """
@@ -211,12 +175,7 @@ class ImportImageView(QFrame):
         """
         any_match_key = self.model.get_any_match(self.tile_info)
         if any_match_key is not None:
-            self.match_metadata_widget.tile_info = self.model.get_metadata_of_key(any_match_key)
             self.match_image.file_path = self.model.get_any_image_of_key(any_match_key)
-        # self.match_image.file_path = os.path.join(os.path.dirname(self.tile_info.path), "2022-09-01 02.35.12_001")
-        # Get Metadata
-        # Crate Metadata Widget
-        # Load Image
 
     def update_show_metadata(self):
         """
@@ -225,7 +184,6 @@ class ImportImageView(QFrame):
         """
         self.show_metadata = self.open_metadata_action.isChecked()
         self.build_main_layout()
-        self.build_metadata_layout()
 
     @property
     def tile_info(self):
@@ -243,7 +201,7 @@ class ImportImageView(QFrame):
         :return:
         """
         self.__tile_info = value
-        self.main_metadata_widget.tile_info = value
+        self.metadata_widget.tile_info = value
         if value is not None:
             self.big_image.file_path = value.path
 
