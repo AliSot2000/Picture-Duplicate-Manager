@@ -915,6 +915,7 @@ class DualMetadataWidget(QFrame):
         self.i_file_name_val.text_label.setText(self._import_entry.org_fname)
         self.i_file_path_val.text_label.setText(self._import_entry.org_fpath)
 
+        # Set Match Type
         if self._import_entry.match_type is not None:
             match_text = self._import_entry.match_type.name.replace('_', ' ').title()
         else:
@@ -943,6 +944,7 @@ class DualMetadataWidget(QFrame):
         else:
             self.i_file_metadata_val.text_label.setText("")
 
+        # Add google fotos metadata
         if self._import_entry.google_fotos_metadata is not None:
             self.i_file_google_fotos_metadata_val.text_label.setText(
                 json.dumps(self._import_entry.google_fotos_metadata, indent=4))
