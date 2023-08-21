@@ -956,39 +956,40 @@ class DualMetadataWidget(QFrame):
         else:
             self.i_file_google_fotos_metadata_val.text_label.setText("")
 
-
     # ------------------------------------------------------------------------------------------------------------------
-    # Building Match and Replaced
+    # Functions for the Part of the Table related to the match entry.
     # ------------------------------------------------------------------------------------------------------------------
-
-    def _build_layout_import_and_replaced(self):
+    def _set_match_visible(self):
         """
-        Build the layout if the import file and the match file are shown and the match is in the replaced table.
+        Set the visibility of all widgets if the match file is visible
 
-        Precondition, self._match_entry is not None and of type FullReplacedEntry
         :return:
         """
+        self.m_file_org_name_val.setVisible(True)
+        self.m_file_datetime_val.setVisible(True)
+        self.m_file_naming_tag_val.setVisible(True)
+        self.m_file_hash_val.setVisible(True)
+        self.m_file_new_name_val.setVisible(True)
+        self.m_file_original_google_metadata_val.setVisible(True)
 
-        # Set Column headers
-        self.g_layout.addWidget(self.match_file_lbl, 0, 1, 1, 4)
-        self.g_layout.addWidget(self.import_file_lbl, 0, 5, 1, 3)
+        # Set visibility that differs between the different layouts
+        if type(self._match_entry) is FullReplacedEntry:
+            self.m_file_successor_val.setVisible(True)
 
-        # Set Row Headers
-        self.g_layout.addWidget(self.file_name_lbl, 1, 0)
-        self.g_layout.addWidget(self.file_path_lbl, 2, 0)
-        self.g_layout.addWidget(self.file_hash_lbl, 3, 0)
-        self.g_layout.addWidget(self.datetime_lbl, 4, 0)
-        self.g_layout.addWidget(self.naming_tag_lbl, 5, 0)
-        self.g_layout.addWidget(self.successor_lbl, 6, 0)
-        self.g_layout.addWidget(self.new_file_lbl, 7, 0)
-        self.g_layout.addWidget(self.options, 8, 0)
+        else:
+            self.m_file_org_path_val.setVisible(True)
+            self.m_file_trashed_val.setVisible(True)
+            self.m_file_present_val.setVisible(True)
+            self.m_file_verify_val.setVisible(True)
 
         if self._match_entry.metadata is not None or self._import_entry.metadata is not None:
-            self.g_layout.addWidget(self.metadata_lbl, 9, 0)
+            if self._match_entry.metadata is not None:
+                self.m_file_metadata_val.setVisible(True)
 
-            if (self._import_entry.google_fotos_metadata is not None
-                    or self._match_entry.google_fotos_metadata is not None):
-                self.g_layout.addWidget(self.google_fotos_metadata_lbl, 10, 0)
+        if (self._import_entry.google_fotos_metadata is not None
+                or self._match_entry.google_fotos_metadata is not None):
+            if self._match_entry.google_fotos_metadata is not None:
+                self.m_file_google_fotos_metadata_val.setVisible(True)
 
         elif (self._import_entry.google_fotos_metadata is not None
               or self._match_entry.google_fotos_metadata is not None):
