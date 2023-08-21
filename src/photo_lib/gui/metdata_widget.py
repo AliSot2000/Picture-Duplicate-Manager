@@ -884,23 +884,21 @@ class DualMetadataWidget(QFrame):
 
         # Allow, import, matchtype
         self.g_layout.addWidget(self.i_file_allowed_label, offset, 5)
-        if not self._import_entry.allowed:
-            self.g_layout.addWidget(self.i_file_import_label, offset, 6)
-
-        else:
-            # Adding import checkbox or something else
-            if self._import_entry.imported:
-                self.g_layout.addWidget(self.i_file_import_label, offset, 6)
-            else:
-                self.i_file_import_checkbox.setCheckState(Qt.CheckState.Unchecked)
-                self.g_layout.addWidget(self.i_file_import_checkbox, offset, 6)
-
         self.g_layout.addWidget(self.i_file_match_type_label, offset, 7)
 
+        # Adding imported widget or checkbox
+        if not self._import_entry.allowed or self._import_entry.imported:
+            self.g_layout.addWidget(self.i_file_import_label, offset, 6)
+        else:
+            self.i_file_import_checkbox.setCheckState(Qt.CheckState.Unchecked)
+            self.g_layout.addWidget(self.i_file_import_checkbox, offset, 6)
+
+        # Add the Metadata
         if self._match_entry.metadata is not None or self._import_entry.metadata is not None:
             offset += 1
             self.g_layout.addWidget(self.i_file_metadata_val, offset, 5, 1, 3)
 
+        # Adding Google fotos Metadata
         if (self._import_entry.google_fotos_metadata is not None
                 or self._match_entry.google_fotos_metadata is not None):
             offset += 1
