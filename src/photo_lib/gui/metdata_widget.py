@@ -1,4 +1,3 @@
-import threading
 import time
 import warnings
 import threading as th
@@ -9,6 +8,7 @@ from photo_lib.PhotoDatabase import FullImportTableEntry, TileInfo, MatchTypes, 
 from photo_lib.enum import GoogleFotosMetadataStatus
 from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.model import Model
+from photo_lib.gui.gui_utils import bake_attribute
 
 from typing import Union
 import sys
@@ -391,6 +391,14 @@ class DualMetadataWidget(QFrame):
     @show_match.setter
     def show_match(self, value: bool):
         self.__show_match = value
+
+        if self._import_entry is not None:
+            if self._import_entry.match is not None:
+                new_match = self.model.get_full_database_entry(key=self._import_entry.match)
+            else:
+                new_match = None
+            self._match_entry = new_match
+
         self.build_metadata_widget()
         self.show_file_changed.emit()
 
@@ -405,22 +413,71 @@ class DualMetadataWidget(QFrame):
         if value is not None:
             self._import_entry = self.model.get_file_import_full_entry(value.key)
 
-        if self._import_entry.match is not None:
-            new_match = self.model.get_full_database_entry(key=self._import_entry.match)
-        else:
-            new_match = None
+        if self.show_match:
+            if self._import_entry.match is not None:
+                new_match = self.model.get_full_database_entry(key=self._import_entry.match)
+            else:
+                new_match = None
 
-        if type(new_match) is not type(self._match_entry):
-            self._match_entry = new_match
-            self.build_metadata_widget()
-        else:
-            self._match_entry = new_match
-            self._assign_match_file_texts()
-            self._assign_import_file_texts()
+            if type(new_match) is not type(self._match_entry):
+                self._match_entry = new_match
+                self.build_metadata_widget()
+            else:
+                self._match_entry = new_match
+                self._assign_match_file_texts()
 
+        self._assign_import_file_texts()
         self.import_file_changed.emit()
 
     # TODO share scroll needs to be implemented.
+
+    def synchronized_scroll(self, name: str, caller: TextScroller, rx: float, ry: float):
+        """
+        Go to the respective match and import widget and set the scroll to the given ratio.
+
+        The TextScrollers that are going to be affected are indicated by the name argument which specifies the
+        attribute name of the TextScroller.
+
+        The caller is needed to prevent a recursive self call with no termination.
+
+        :param name: The name of the attribute to synchronize.
+        :param caller: The TextScroller that called this function.
+        :param rx: The relative x scroll value.
+        :param ry: The relative y scroll value.
+        """
+        assert name in ("org_name", "org_path", "file_hash", "metadata", "google_fotos_metadata"), \
+            f"Invalid share scroll target {name}"
+
+        if name == "org_name":
+            if caller is not self.i_file_name_val:
+                self.i_file_name_val.scroll_from_ratio(rx, ry)
+            if caller is not self.m_file_org_name_val:
+                self.m_file_org_name_val.scroll_from_ratio(rx, ry)
+
+        elif name == "org_path":
+            if caller is not self.i_file_path_val.scroll_from_ratio(rx, ry):
+                self.i_file_path_val.scroll_from_ratio(rx, ry)
+            if caller is not self.m_file_org_path_val:
+                self.m_file_org_path_val.scroll_from_ratio(rx, ry)
+
+        elif name == "file_hash":
+            if caller is not self.i_file_hash_val:
+                self.i_file_hash_val.scroll_from_ratio(rx, ry)
+            if caller is not self.m_file_hash_val:
+                self.m_file_hash_val.scroll_from_ratio(rx, ry)
+
+        elif name == "metadata":
+            if caller is not self.i_file_metadata_val:
+                self.i_file_metadata_val.scroll_from_ratio(rx, ry)
+            if caller is not self.m_file_metadata_val:
+                self.m_file_metadata_val.scroll_from_ratio(rx, ry)
+
+        # Google fotos metadata
+        else:
+            if caller is not self.i_file_google_fotos_metadata_val:
+                self.i_file_google_fotos_metadata_val.scroll_from_ratio(rx, ry)
+            if caller is not self.m_file_google_fotos_metadata_val:
+                self.m_file_google_fotos_metadata_val.scroll_from_ratio(rx, ry)
 
     def __init__(self, model: Model):
         """
@@ -548,6 +605,7 @@ class DualMetadataWidget(QFrame):
         self.i_file_name_val.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.i_file_name_val.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.i_file_name_val.setFrameStyle(QFrame.Shape.NoFrame)
+        self.i_file_name_val.share_scroll = bake_attribute(name="org_name", func=self.synchronized_scroll)
 
         self.i_file_path_val.setFixedHeight(self.single_line_size)
         self.i_file_path_val.setWidgetResizable(True)
@@ -555,6 +613,7 @@ class DualMetadataWidget(QFrame):
         self.i_file_path_val.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.i_file_path_val.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.i_file_path_val.setFrameStyle(QFrame.Shape.NoFrame)
+        self.i_file_name_val.share_scroll = bake_attribute(name="org_path", func=self.synchronized_scroll)
 
         self.i_file_hash_val.setFixedHeight(self.single_line_size)
         self.i_file_hash_val.setWidgetResizable(True)
@@ -562,6 +621,7 @@ class DualMetadataWidget(QFrame):
         self.i_file_hash_val.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.i_file_hash_val.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.i_file_hash_val.setFrameStyle(QFrame.Shape.NoFrame)
+        self.i_file_hash_val.share_scroll = bake_attribute(name="file_hash", func=self.synchronized_scroll)
 
         self.i_file_datetime_val.setFixedHeight(self.single_line_size)
         self.i_file_datetime_val.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
@@ -580,9 +640,11 @@ class DualMetadataWidget(QFrame):
 
         self.i_file_metadata_val.setWidgetResizable(True)
         self.i_file_metadata_val.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.i_file_metadata_val.share_scroll = bake_attribute(name="metadata", func=self.synchronized_scroll)
 
         self.i_file_google_fotos_metadata_val.setWidgetResizable(True)
         self.i_file_google_fotos_metadata_val.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.i_file_google_fotos_metadata_val.share_scroll = bake_attribute(name="google_fotos_metadata", func=self.synchronized_scroll)
 
         # Set the formatting of the Match Row Values
         self.m_file_org_name_val.setFixedHeight(self.single_line_size)
@@ -591,6 +653,7 @@ class DualMetadataWidget(QFrame):
         self.m_file_org_name_val.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.m_file_org_name_val.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.m_file_org_name_val.setFrameStyle(QFrame.Shape.NoFrame)
+        self.m_file_org_name_val.share_scroll = bake_attribute(name="org_name", func=self.synchronized_scroll)
 
         self.m_file_org_path_val.setFixedHeight(self.single_line_size)
         self.m_file_org_path_val.setWidgetResizable(True)
@@ -598,6 +661,7 @@ class DualMetadataWidget(QFrame):
         self.m_file_org_path_val.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.m_file_org_path_val.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.m_file_org_path_val.setFrameStyle(QFrame.Shape.NoFrame)
+        self.m_file_org_path_val.share_scroll = bake_attribute(name="org_path", func=self.synchronized_scroll)
 
         self.m_file_hash_val.setFixedHeight(self.single_line_size)
         self.m_file_hash_val.setWidgetResizable(True)
@@ -605,6 +669,7 @@ class DualMetadataWidget(QFrame):
         self.m_file_hash_val.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.m_file_hash_val.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.m_file_hash_val.setFrameStyle(QFrame.Shape.NoFrame)
+        self.m_file_hash_val.share_scroll = bake_attribute(name="file_hash", func=self.synchronized_scroll)
 
         self.m_file_datetime_val.setFixedHeight(self.single_line_size)
         self.m_file_datetime_val.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
@@ -626,6 +691,7 @@ class DualMetadataWidget(QFrame):
 
         self.m_file_metadata_val.setWidgetResizable(True)
         self.m_file_metadata_val.text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.m_file_metadata_val.share_scroll = bake_attribute(name="metadata", func=self.synchronized_scroll)
 
         self.m_file_new_name_val.setFixedHeight(self.single_line_size)
         self.m_file_new_name_val.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
@@ -636,6 +702,7 @@ class DualMetadataWidget(QFrame):
         self.m_file_google_fotos_metadata_val.setWidgetResizable(True)
         self.m_file_google_fotos_metadata_val.text_label.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.m_file_google_fotos_metadata_val.share_scroll = bake_attribute(name="google_fotos_metadata", func=self.synchronized_scroll)
 
         # Set the formatting of the Column Headers
         self.import_file_lbl.setFixedHeight(self.single_line_size)
@@ -725,6 +792,8 @@ class DualMetadataWidget(QFrame):
 
             self._build_import_layout_match()
             self._set_visibility_import()
+
+            self._set_stretch_match_layout()
 
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -1194,6 +1263,55 @@ class DualMetadataWidget(QFrame):
                 # Add the Google Fotos Metadata
                 if self._import_entry.google_fotos_metadata is not None:
                     self.google_fotos_metadata_lbl.setVisible(True)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Setting Stretchs.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def _set_stretch_match_layout(self):
+        """
+        Set Column and Row stretch when we have the match view.
+        :return:
+        """
+        # Set column stretch
+        self.g_layout.setColumnStretch(0, 0)
+        self.g_layout.setColumnStretch(1, 1)
+        self.g_layout.setColumnStretch(2, 1)
+        self.g_layout.setColumnStretch(3, 1)
+        self.g_layout.setColumnStretch(4, 1)
+        self.g_layout.setColumnStretch(5, 1)
+        self.g_layout.setColumnStretch(6, 1)
+        self.g_layout.setColumnStretch(7, 1)
+
+        # Setting row stretch
+
+        # Set Column headers
+        self.g_layout.setRowStretch(0, 0)
+        self.g_layout.setRowStretch(1, 0)
+        self.g_layout.setRowStretch(2, 0)
+        self.g_layout.setRowStretch(3, 0)
+        self.g_layout.setRowStretch(4, 0)
+        self.g_layout.setRowStretch(5, 0)
+        self.g_layout.setRowStretch(6, 0)
+        self.g_layout.setRowStretch(7, 0)
+        offset = 7
+
+        if type(self._match_entry) is FullReplacedEntry:
+            self.g_layout.setRowStretch(8, 0)
+            offset = 8
+
+        # Add Metadata
+        if self._match_entry.metadata is not None or self._import_entry.metadata is not None:
+            offset += 1
+            self.g_layout.setRowStretch(offset, 1)
+
+        # Add Google Fotos Metadata
+        if (self._import_entry.google_fotos_metadata is not None
+              or self._match_entry.google_fotos_metadata is not None):
+            offset += 1
+            self.g_layout.setRowStretch(offset, 1)
+
+
 
 def switcher(window, tiles):
     """
