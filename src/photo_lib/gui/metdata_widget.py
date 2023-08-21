@@ -769,47 +769,29 @@ class DualMetadataWidget(QFrame):
             if self._import_entry.google_fotos_metadata is not None:
                 self.g_layout.setRowStretch(7, 0)
 
-    def _set_visibility_import_only(self):
+    def _set_visibility_import(self):
         """
-        Set the visibility of all widgets if only the import metadata is visible
+        Set the visibility of all import file widgets
 
         Precondition: self._import_entry is not None
 
         :return:
         """
-        self.import_file_lbl.setVisible(True)
-
-        self.file_name_lbl.setVisible(True)
-        self.file_path_lbl.setVisible(True)
-
         self.i_file_name_val.setVisible(True)
         self.i_file_path_val.setVisible(True)
 
+        self.i_file_match_type_label.setVisible(True)
+
         # File not allowed
         if not self._import_entry.allowed:
-            self.options.setVisible(True)
-            self.i_file_allowed_label.setVisible(True)
-
-            if self._import_entry.imported:
-                self.i_file_import_label.setVisible(True)
-
-            if self._import_entry.match_type is not None:
-                self.i_file_match_type_label.setVisible(True)
+            self.i_file_import_label.setVisible(True)
 
             return
 
         # Set more Values that should be set if allowed
-
-        self.file_hash_lbl.setVisible(True)
-        self.datetime_lbl.setVisible(True)
-        self.naming_tag_lbl.setVisible(True)
-
         self.i_file_hash_val.setVisible(True)
         self.i_file_datetime_val.setVisible(True)
         self.i_file_naming_tag_val.setVisible(True)
-
-        # Build options
-        self.options.setVisible(True)
 
         # File allowed
         self.i_file_allowed_label.setVisible(True)
@@ -820,16 +802,11 @@ class DualMetadataWidget(QFrame):
         else:
             self.i_file_import_checkbox.setVisible(True)
 
-        if self._import_entry.match_type is not None:
-            self.i_file_match_type_label.setVisible(True)
-
         # Add the Metadata
         if self._import_entry.metadata is not None:
-            self.metadata_lbl.setVisible(True)
             self.i_file_metadata_val.setVisible(True)
 
         if self._import_entry.google_fotos_metadata is not None:
-            self.google_fotos_metadata_lbl.setVisible(True)
             self.i_file_google_fotos_metadata_val.setVisible(True)
 
     def _build_layout_import_only(self):
