@@ -5,50 +5,10 @@ from photo_lib.gui.model import Model, NoDbException
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.button_bar import ButtonBar
+from photo_lib.gui.gui_utils import button_wrapper, pain_wrapper, path_wrapper
 
 from typing import Callable, List
 import warnings
-
-
-def button_wrapper(btn: QPushButton, func: Callable):
-    """
-    This function is used to wrap the button that calls the function into the function so that one function can be
-    used for many different buttons. Because Slots in QT don't communicate the caller of the function.
-
-    :param btn: button that calls the function
-    :param func: methode to execute that needs to have the button as a parameter
-    :return:
-    """
-    def wrapper():
-        return func(btn=btn)
-    return wrapper
-
-
-def pain_wrapper(media_pane: MediaPane, func: Callable):
-    """
-    This function is used to wrap the media pain that calls the function into the function so that one function can be
-    used for many different buttons. Because Slots in QT don't communicate the caller of the function.
-
-    :param media_pane: pain that calls the function
-    :param func: methode to execute that needs to have the button as a parameter
-    :return:
-    """
-    def wrapper():
-        return func(media_pane=media_pane)
-    return wrapper
-
-
-def path_wrapper(path: str, func: Callable):
-    """
-    Given a path at time of creation, bakes the path into the function call since the function called in signals may not
-    have any arguments.
-    :param path: Path to bake in
-    :param func: function to call with it
-    :return:
-    """
-    def wrapper():
-        return func(path=path)
-    return wrapper
 
 
 class CompareRoot(QFrame):
