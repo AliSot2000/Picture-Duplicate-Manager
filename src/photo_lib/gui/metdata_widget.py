@@ -865,6 +865,98 @@ class DualMetadataWidget(QFrame):
         self._set_visibility_import()
         self._set_stretch_import_only()
 
+    def _build_import_layout_match(self):
+        """
+        Build the import layout if the match is visible.
+
+        :return:
+        """
+        self._assign_import_file_texts()
+
+        self.g_layout.addWidget(self.i_file_name_val, 1, 5, 1, 3)
+        self.g_layout.addWidget(self.i_file_path_val, 2, 5, 1, 3)
+
+        if self._import_entry.allowed:
+            self.g_layout.addWidget(self.i_file_hash_val, 3, 5, 1, 3)
+            self.g_layout.addWidget(self.i_file_datetime_val, 4, 5, 1, 3)
+            self.g_layout.addWidget(self.i_file_naming_tag_val, 5, 5, 1, 3)
+
+        if type(self._match_entry) is FullDatabaseEntry:
+            offset = 7
+        # _match_entry is FullReplacedEntry
+        else:
+            offset = 8
+
+        # Allow, import, matchtype
+        self.g_layout.addWidget(self.i_file_allowed_label, offset, 5)
+        if not self._import_entry.allowed:
+            self.g_layout.addWidget(self.i_file_import_label, offset, 6)
+
+        else:
+            # Adding import checkbox or something else
+            if self._import_entry.imported:
+                self.g_layout.addWidget(self.i_file_import_label, offset, 6)
+            else:
+                self.i_file_import_checkbox.setCheckState(Qt.CheckState.Unchecked)
+                self.g_layout.addWidget(self.i_file_import_checkbox, offset, 6)
+
+        self.g_layout.addWidget(self.i_file_match_type_label, offset, 7)
+
+        if self._match_entry.metadata is not None or self._import_entry.metadata is not None:
+            offset += 1
+            self.g_layout.addWidget(self.i_file_metadata_val, offset, 5, 1, 3)
+
+        if (self._import_entry.google_fotos_metadata is not None
+                or self._match_entry.google_fotos_metadata is not None):
+            offset += 1
+            self.g_layout.addWidget(self.i_file_google_fotos_metadata_val, offset, 5, 1, 3)
+
+    def _assign_import_file_texts(self):
+        """
+        Assign all possible values to the import_file.
+
+        Precondition: self._import_entry is not None
+        :return:
+        """
+        # Set values
+        self.i_file_name_val.text_label.setText(self._import_entry.org_fname)
+        self.i_file_path_val.text_label.setText(self._import_entry.org_fpath)
+
+        if self._import_entry.match_type is not None:
+            match_text = self._import_entry.match_type.name.replace('_', ' ').title()
+        else:
+            match_text = "Not Matched"
+        self.i_file_match_type_label.setText(match_text)
+
+        # File not allowed
+        if not self._import_entry.allowed:
+            self.i_file_allowed_label.setText("Not Allowed")
+
+            import_text = "Imported" if self._import_entry.imported else "Not Imported"
+            self.i_file_import_label.setText(import_text)
+            return
+
+        # Set more Values that should be set if allowed
+        self.i_file_hash_val.text_label.setText(self._import_entry.file_hash)
+        self.i_file_datetime_val.setText(self._import_entry.datetime.strftime("%Y-%m-%d %H:%M:%S"))
+        self.i_file_naming_tag_val.setText(self._import_entry.naming_tag)
+
+        # File allowed
+        self.i_file_allowed_label.setText("Allowed")
+
+        # Add the Metadata
+        if self._import_entry.metadata is not None:
+            self.i_file_metadata_val.text_label.setText(self.model.process_metadata(self._import_entry.metadata)[0])
+        else:
+            self.i_file_metadata_val.text_label.setText("")
+
+        if self._import_entry.google_fotos_metadata is not None:
+            self.i_file_google_fotos_metadata_val.text_label.setText(
+                json.dumps(self._import_entry.google_fotos_metadata, indent=4))
+        else:
+            self.i_file_google_fotos_metadata_val.text_label.setText("")
+
+
     # ------------------------------------------------------------------------------------------------------------------
     # Building Match and Replaced
     # ------------------------------------------------------------------------------------------------------------------
