@@ -406,11 +406,18 @@ class DualMetadataWidget(QFrame):
             self._import_entry = self.model.get_file_import_full_entry(value.key)
 
         if self._import_entry.match is not None:
-            self._match_entry = self.model.get_full_database_entry(key=self._import_entry.match)
+            new_match = self.model.get_full_database_entry(key=self._import_entry.match)
         else:
-            self._match_entry = None
+            new_match = None
 
-        self.build_metadata_widget()
+        if type(new_match) is not type(self._match_entry):
+            self._match_entry = new_match
+            self.build_metadata_widget()
+        else:
+            self._match_entry = new_match
+            self._assign_match_file_texts()
+            self._assign_import_file_texts()
+
         self.import_file_changed.emit()
 
     # TODO share scroll needs to be implemented.
