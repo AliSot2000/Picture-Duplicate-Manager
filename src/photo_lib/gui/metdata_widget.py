@@ -978,13 +978,11 @@ class DualMetadataWidget(QFrame):
             self.m_file_verify_val.setVisible(True)
 
         if self._match_entry.metadata is not None or self._import_entry.metadata is not None:
-            if self._match_entry.metadata is not None:
-                self.m_file_metadata_val.setVisible(True)
+            self.m_file_metadata_val.setVisible(True)
 
         if (self._import_entry.google_fotos_metadata is not None
                 or self._match_entry.google_fotos_metadata is not None):
-            if self._match_entry.google_fotos_metadata is not None:
-                self.m_file_google_fotos_metadata_val.setVisible(True)
+            self.m_file_google_fotos_metadata_val.setVisible(True)
 
     def _assign_match_file_texts(self):
         """
