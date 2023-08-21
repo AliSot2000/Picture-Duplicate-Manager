@@ -715,10 +715,10 @@ class DualMetadataWidget(QFrame):
         self._set_row_column_header_visibility()
 
         # Tile info but no match
-        if not self.show_match:
+        if not self.show_match or self._match_entry is None:
             self._build_layout_import_only()
-        elif self._match_entry is None:
-            self._build_layout_import_only()
+            self._set_visibility_import()
+            self._set_stretch_import_only()
         else:
             self._build_match_layout()
             self._set_match_visible()
