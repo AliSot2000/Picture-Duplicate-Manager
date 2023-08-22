@@ -7,6 +7,7 @@ from photo_lib.data_objects import ImportTableEntry
 from typing import List
 from dataclasses import dataclass
 
+# TODO add option for last_import table.
 
 @dataclass
 class ImportTableEntryWidgets:
