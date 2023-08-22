@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo, MatchTypes, FullImportTableEntry
 from photo_lib.enum import SourceTable
-from photo_lib.data_objects import FullDatabaseEntry, FullReplacedEntry
+from photo_lib.data_objects import FullDatabaseEntry, FullReplacedEntry, ImportTableEntry
 from photo_lib.metadataagregator import key_lookup_dir
 
 
@@ -553,3 +553,49 @@ class Model:
             return self.pdb.get_full_duplicates_entry_from_key(key)
         else:
             raise ValueError("Not valid Database Source.")
+
+    def get_import_tables(self) -> List[ImportTableEntry]:
+        """
+        Get all import tables form the db
+        :return:
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        return self.pdb.list_import_tables()
+
+    def change_description(self, key: int, description: str):
+        """
+        Change the description of a file in the database.
+        :param key: key of the file
+        :param description: new description
+        :return:
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        if '"' in description:
+            raise ValueError("Description cannot contain \"")
+
+        self.pdb.change_import_table_desc(key=key, desc=description)
+
+    def delete_import_table(self, tbl_name: str):
+        """
+        Delete import table
+        :param key: key to delete from
+        :return:
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        self.pdb.remove_import_table(tbl_name=tbl_name)
+
+    def remove_all_import_tables(self):
+        """
+        Deletes all import tables.
+        :return:
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        self.pdb.purge_import_tables()
