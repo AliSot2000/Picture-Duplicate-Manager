@@ -255,8 +255,8 @@ class PhotoDb:
 
         while ttd is not None:
             try:
-                self.debug_exec(f"DROP TABLE {ttd[0]}")
-                print(f"Successfully droped '{ttd[0]}'")
+                self.debug_exec(f"DROP TABLE `{ttd[0]}`")
+                print(f"Successfully dropepd '{ttd[0]}'")
             except sqlite3.OperationalError as e:
                 if "no such table:" in str(e):
                     print(f"table '{ttd[0]}' already deleted")
