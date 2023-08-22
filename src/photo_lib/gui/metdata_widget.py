@@ -408,6 +408,7 @@ class DualMetadataWidget(QFrame):
 
     @tile_info.setter
     def tile_info(self, value: TileInfo):
+        build = (value is not None and self.__tile_info is None) or (value is None and self.__tile_info is not None)
         self.__tile_info = value
 
         if value is not None:
@@ -418,12 +419,14 @@ class DualMetadataWidget(QFrame):
                 new_match = self.model.get_full_database_entry(key=self._import_entry.match)
             else:
                 new_match = None
+            build = build or type(new_match) is not type(self._match_entry)
+            self._match_entry = new_match
 
-            if type(new_match) is not type(self._match_entry):
-                self._match_entry = new_match
-                self.build_metadata_widget()
-            else:
-                self._match_entry = new_match
+        if build:
+            self.build_metadata_widget()
+        else:
+            self._assign_import_file_texts()
+            if self._match_entry is not None:
                 self._assign_match_file_texts()
 
         self._assign_import_file_texts()
