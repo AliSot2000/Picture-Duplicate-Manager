@@ -83,3 +83,10 @@ class FullDatabaseEntry(BaseEntry):
 class FullReplacedEntry(BaseEntry):
     successor: Union[int, None]
     former_name: Union[str, None]
+
+@dataclass
+class ImportTableEntry:
+    key: int
+    root_path: str
+    table_name: str
+    table_desc: str
