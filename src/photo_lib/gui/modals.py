@@ -251,6 +251,41 @@ class FileExtensionDialog(QDialog):
         self.main_layout.addRow(self.file_ext_input)
         self.main_layout.addRow(self.cancel_button, self.apply_button)
 
+class RenameTableModal(QDialog):
+    main_layout: QFormLayout
+
+    info_label: QLabel
+    new_desc_input: QLineEdit
+
+    cancel_button: QPushButton
+    rename_button: QPushButton
+
+    def __init__(self, current_desc: str):
+        super().__init__()
+
+        self.setWindowTitle("Rename Import Table")
+        self.main_layout = QFormLayout()
+
+        self.setLayout(self.main_layout)
+
+        self.info_label = QLabel("New Description")
+        self.new_desc_input = QLineEdit()
+        self.new_desc_input.setText(current_desc)
+
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.setToolTip("Cancel and close the modal. Shortcut: Esc")
+        self.cancel_button.setShortcut(QKeySequence(Qt.Key.Key_Escape))
+        self.cancel_button.clicked.connect(self.reject)
+
+        self.rename_button = QPushButton("Rename")
+        self.rename_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_Enter))
+        self.rename_button.setToolTip("Rename the import table. Shortcut: Ctrl + Enter")
+        self.rename_button.clicked.connect(self.accept)
+
+        self.main_layout.addRow(self.info_label, self.new_desc_input)
+        self.main_layout.addRow(self.cancel_button, self.rename_button)
+
+
 
 class PrepareImportDialog(QDialog):
     main_layout: QFormLayout
