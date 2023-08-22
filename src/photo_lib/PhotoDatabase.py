@@ -27,6 +27,7 @@ from photo_lib.utils import rec_list_all, rec_walker, path_builder
 #   - Thunbmails Table
 #   - Known duplicates table
 # TODO Account for cases when a file is modified - keep track of the new hash. So we need an initial hash and file size.
+# TODO Add a row for the last_import table.
 # INFO: If you run the img_ana_dup_search from another file and not the gui, MAKE SURE TO EMPTY THE PIPE.
 # After around 1000 Calls, the pipe will be full and the program will freeze !!!
 
@@ -2369,3 +2370,34 @@ class PhotoDb:
         self.debug_exec(f"SELECT key FROM replaced WHERE successor = {key}")
         res = self.cur.fetchall()
         return [x[0] for x in res]
+
+    def list_import_tables(self):
+        """
+        Prepare all import tables to be displayed in the gui.
+        :return:
+        """
+        self.debug_exec("SELECT key, root_path, import_table_name, import_table_descriptio FROM import_tables")
+        tables = self.cur.fetchone()
+        return [ImportTableEntry(key=t[0], root_path=t[1], table_name=t[2], table_desc=t[3]) for t in tables]
+
+    def remove_import_table(self, tbl_name: str):
+        """
+        Removes the import table from the database and deletes the table.
+        :param tbl_name:
+        :return:
+        """
+        self.debug_exec(f"DELETE FROM import_tables WHERE import_table_name = '{tbl_name}'")
+        try:
+            self.debug_exec(f"DROP TABLE `{tbl_name}`")
+        except sqlite3.OperationalError as e:
+            if "no such table:" in str(e):
+                print(f"Table {tbl_name} already deleted.")
+
+    def change_import_table_desc(self, key: int, desc: str):
+        """
+        Change the description of an import table.
+        :param key: key to change description of
+        :param desc: string to change to.
+        :return:
+        """
+        self.debug_exec(f"UPDATE import_tables SET import_table_descriptio = {desc} WHERE key = {key}")
