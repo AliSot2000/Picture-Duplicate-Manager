@@ -10,12 +10,12 @@
 - [ ] Control click the image to set it to import.
 
 ## BigScreen
-- [ ] Create the side layout
-- [ ] Create separate version for import
-- [ ] Add button to show metadata of all duplicates along with this image
-- [ ] Add button to show image already in database for import
-- [ ] Add check button 
-- [ ] Show image in database when with button (show associated metadata as well)
+- [X] Create the side layout
+- [X] Create separate version for import
+- [X] Add button to show metadata of all duplicates along with this image
+- [X] Add button to show image already in database for import
+- [X] Add check button 
+- [X] Show image in database when with button (show associated metadata as well)
 
 # Caroussell
 - [X] Add functions to update the bigscreen
@@ -28,3 +28,6 @@
 
 # Compare Pane
 - [ ] Functionality to view known duplicates to compare the metadata
+
+# Features
+- [ ] Allow in import big screen to open the successor if the image is in the replaced table.
