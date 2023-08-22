@@ -223,7 +223,7 @@ class TestWindow(QMainWindow):
             key=20,
             path="/media/alisot2000/DumpStuff/Test128/2022-09-01 02.35.18_000.jpg",
             imported=False,
-            allowed=False,
+            allowed=True,
             match_type=MatchTypes.No_Match
         )
 
