@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QWidget, QScrollArea, QSplitter, QApplication
+from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QWidget, QScrollArea, QSplitter, QApplication, QMainWindow
 from PyQt6.QtCore import Qt
 from photo_lib.gui.model import Model
 from photo_lib.gui.carousell import Carousel
@@ -45,14 +45,30 @@ class BigScreen(QSplitter):
         self.carousel.build_carousel()
 
 
+class TestWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.model = Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/")
+        self.model.current_import_table_name = "tbl_1998737548188488947"
+        self.model.build_tiles_from_table()
+
+        self.setWindowTitle("BigScreen")
+        self.big_screen = BigScreen(model=self.model)
+        self.setCentralWidget(self.big_screen)
+
+        self.show()
+
+        submenu = self.menuBar().addMenu("Image Actions")
+        submenu.addAction(self.big_screen.image_viewer.open_metadata_action)
+        submenu.addAction(self.big_screen.image_viewer.open_match_action)
+
+        self.big_screen.build_all()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    window = BigScreen(Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/"))
-    window.model.current_import_table_name = "tbl_1998737548188488947"
-    window.model.build_tiles_from_table()
-    window.build_all()
+    window = TestWindow()
 
     window.setWindowTitle("Big Screen")
 
