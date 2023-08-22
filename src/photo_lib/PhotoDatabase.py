@@ -2376,8 +2376,8 @@ class PhotoDb:
         Prepare all import tables to be displayed in the gui.
         :return:
         """
-        self.debug_exec("SELECT key, root_path, import_table_name, import_table_descriptio FROM import_tables")
-        tables = self.cur.fetchone()
+        self.debug_exec("SELECT key, root_path, import_table_name, import_table_description FROM import_tables")
+        tables = self.cur.fetchall()
         return [ImportTableEntry(key=t[0], root_path=t[1], table_name=t[2], table_desc=t[3]) for t in tables]
 
     def remove_import_table(self, tbl_name: str):
@@ -2392,6 +2392,7 @@ class PhotoDb:
         except sqlite3.OperationalError as e:
             if "no such table:" in str(e):
                 print(f"Table {tbl_name} already deleted.")
+        self.con.commit()
 
     def change_import_table_desc(self, key: int, desc: str):
         """
@@ -2400,4 +2401,5 @@ class PhotoDb:
         :param desc: string to change to.
         :return:
         """
-        self.debug_exec(f"UPDATE import_tables SET import_table_descriptio = {desc} WHERE key = {key}")
+        self.debug_exec(f"UPDATE import_tables SET import_table_description = '{desc}' WHERE key = {key}")
+        self.con.commit()
