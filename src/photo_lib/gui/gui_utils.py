@@ -16,6 +16,18 @@ def bake_attribute(name: str, func: Callable):
 
     return baked_attribute_func
 
+# TODO test this
+def general_wrappper(func: Callable, **bake_kwargs):
+    """
+    Given a function and then keyword arguments bakes the keyword arguments in the function call for a signal.
+
+    :param func: function to decorate
+    :param bake_kwargs: arguments to bake in
+    :return:
+    """
+    def baked_argument_func(*args, **kwargs):
+        return func(*args, **bake_kwargs, **kwargs)
+    return baked_argument_func
 
 def image_wrapper(image: ClickableTile, fn: Callable):
     """
