@@ -564,7 +564,7 @@ class Model:
 
         return self.pdb.list_import_tables()
 
-    def change_description(self, key: int, description: str):
+    def change_import_table_description(self, key: int, description: str):
         """
         Change the description of a file in the database.
         :param key: key of the file
@@ -576,13 +576,15 @@ class Model:
 
         if '"' in description:
             raise ValueError("Description cannot contain \"")
+        elif "'" in description:
+            raise ValueError("Description cannot contain '")
 
         self.pdb.change_import_table_desc(key=key, desc=description)
 
     def delete_import_table(self, tbl_name: str):
         """
         Delete import table
-        :param key: key to delete from
+        :param tbl_name: table name to delete
         :return:
         """
         if self.pdb is None:
