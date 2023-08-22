@@ -17,7 +17,7 @@ def bake_attribute(name: str, func: Callable):
     return baked_attribute_func
 
 # TODO test this
-def general_wrappper(func: Callable, **bake_kwargs):
+def general_wrapper(func: Callable, **bake_kwargs):
     """
     Given a function and then keyword arguments bakes the keyword arguments in the function call for a signal.
 
