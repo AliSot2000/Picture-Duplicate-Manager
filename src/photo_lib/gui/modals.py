@@ -392,7 +392,8 @@ if __name__ == "__main__":
     # window = DateTimeModal()
     # window.show()
     # window = TaskSelectModal(model=Model())
-    window = PrepareImportDialog(model=Model())
+    # window = PrepareImportDialog(model=Model())
+    window = RenameTableModal("Test")
     window.show()
 
     sys.exit(app.exec())
