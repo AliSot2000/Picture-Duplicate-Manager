@@ -278,8 +278,8 @@ class RenameTableModal(QDialog):
         self.cancel_button.clicked.connect(self.reject)
 
         self.rename_button = QPushButton("Rename")
-        self.rename_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_Enter))
-        self.rename_button.setToolTip("Rename the import table. Shortcut: Ctrl + Enter")
+        self.rename_button.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_R))
+        self.rename_button.setToolTip("Rename the import table. Shortcut: Ctrl + R")
         self.rename_button.clicked.connect(self.accept)
 
         self.main_layout.addRow(self.info_label, self.new_desc_input)
