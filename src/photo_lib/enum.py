@@ -9,6 +9,8 @@ class ProcessComType(Enum):
     MAX = 1
     CURRENT = 2
     MESSAGE = 3
+    # EXIT may only be sent in the function that is started as a process!!!
+    EXIT = 4
 
 
 class MatchTypes(Enum):
@@ -43,3 +45,4 @@ class Views:
     Import_Big_Screen_View = 4
     Database_Big_Screen_View = 5
     Database_Tile_View = 6
+    Import_Tables_View = 7
