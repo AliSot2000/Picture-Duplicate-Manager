@@ -83,7 +83,7 @@ class RootWindow(QMainWindow):
 
         # Open folder select action.
         self.open_folder_select_action = QAction("&Open Database Folder", self)
-        self.open_folder_select_action.triggered.connect(self.open_folder_select)
+        self.open_folder_select_action.triggered.connect(self.open_folder_select_modal)
 
         self.search_duplicates_action = QAction("&Search Duplicates", self)
         self.search_duplicates_action.triggered.connect(self.search_duplicates)
