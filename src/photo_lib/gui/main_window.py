@@ -48,6 +48,10 @@ class RootWindow(QMainWindow):
 
     progress_dialog: Union[QProgressDialog, None] = None
 
+    no_db_selected: QLabel = None
+
+    __current_view: Views = None
+
     def __init__(self):
         super().__init__()
 
@@ -85,9 +89,6 @@ class RootWindow(QMainWindow):
         # Misc setup of the window
         self.setWindowTitle("Picture Duplicate Manager")
 
-        # Open the Folder Select Modal
-        self.open_folder_select(init=True)
-
         # Open folder select action.
         self.open_folder_select_action = QAction("&Open Database Folder", self)
         self.open_folder_select_action.triggered.connect(self.open_folder_select_modal)
@@ -111,6 +112,9 @@ class RootWindow(QMainWindow):
         file_menu = menu_bar.addMenu("&File")
         file_menu.addAction(self.open_folder_select_action)
         file_menu.addAction(self.search_duplicates_action)
+
+        # Open the Folder Select Modal
+        self.open_folder_select_modal()
 
     def search_duplicates(self):
         """
