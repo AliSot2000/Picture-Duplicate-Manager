@@ -1,6 +1,7 @@
 import datetime
 import multiprocessing
 import os.path
+import time
 import warnings
 from typing import List, Union, Tuple, Dict
 import multiprocessing as mp
@@ -8,7 +9,7 @@ from multiprocessing.connection import Connection
 from dataclasses import dataclass
 
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo, MatchTypes, FullImportTableEntry
-from photo_lib.enum import SourceTable
+from photo_lib.enum import SourceTable, GUICommandTypes
 from photo_lib.data_objects import FullDatabaseEntry, FullReplacedEntry, ImportTableEntry
 from photo_lib.metadataagregator import key_lookup_dir
 
@@ -62,17 +63,6 @@ def import_folder_process(tbl: str, folder_path: str, com: Connection, db_path: 
                        allowed_file_types=allowed_file_types,
                        com=com
                        )
-    pdb.clean_up()
-
-def find_matches_process(tbl: str, com: Connection, db_path: str):
-    """
-    Find matches in a separate process.
-    :param tbl: table to find matches for
-    :param com: one end of a multiprocessing.Pipe
-    :param db_path: path to database
-    :return:
-    """
-    pdb = PhotoDb(root_dir=db_path)
     pdb.find_matches_for_import_table(table=tbl, com=com)
     pdb.clean_up()
 
@@ -98,6 +88,11 @@ class Model:
 
     handle: Union[None, mp.Process] = None
     gui_com: Union[None, Connection] = None
+    abort: Union[bool, None] = None
+
+    # TODO config
+    wait_timeout: int = 10
+
 
     def get_default_extensions(self):
         """
