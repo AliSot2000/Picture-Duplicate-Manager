@@ -36,6 +36,7 @@ class RootWindow(QMainWindow):
 
     commit_submenu: Union[None, QMenu] = None
     mark_submenu: Union[None, QMenu] = None
+    file_submenu: Union[None, QMenu] = None
 
     full_screen_image_menu: Union[None, QMenu] = None
 
@@ -68,9 +69,6 @@ class RootWindow(QMainWindow):
         self.no_db_selected.setStyleSheet(f"background: rgb(255, 200, 200); font-size: 20px;")
 
         # TODO Need session storage for databases.
-        # Generating the remaining widgets
-        self.compare_root.load_elements()
-
         # Top down adding of widgets and layouts
         self.setCentralWidget(self.dummy_center)
 
@@ -107,14 +105,34 @@ class RootWindow(QMainWindow):
         self.open_import_dialog_action.setToolTip("Open the import dialog.")
         self.open_import_dialog_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_I))
 
-        menu_bar = self.menuBar()
-
-        file_menu = menu_bar.addMenu("&File")
-        file_menu.addAction(self.open_folder_select_action)
-        file_menu.addAction(self.search_duplicates_action)
+        self.build_file_menu()
 
         # Open the Folder Select Modal
         self.open_folder_select_modal()
+
+    def build_file_menu(self):
+        """
+        Build the file menu.
+        :return:
+        """
+        if self.file_submenu is not None:
+            self.menuBar().removeAction(self.file_submenu.menuAction())
+            self.file_submenu.deleteLater()
+
+        self.file_submenu = self.menuBar().addMenu("&File")
+        self.file_submenu.addAction(self.open_folder_select_action)
+
+        if self.model.db_loaded():
+            self.file_submenu.addSeparator()
+            self.file_submenu.addAction(self.search_duplicates_action)
+            self.file_submenu.addAction(self.open_import_dialog_action)
+
+    def open_import_dialog(self):
+        """
+        Open the import dialog.
+        :return:
+        """
+        pass
 
     def search_duplicates(self):
         """
