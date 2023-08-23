@@ -215,12 +215,9 @@ class CompareRoot(QFrame):
         if self.media_layout.count() > 0:
             return False
 
-        try:
-            got_rows = self.model.fetch_duplicate_row()
-            self.clear_message()
-        except NoDbException:
-            self.set_no_database()
-            return False
+        got_rows = self.model.fetch_duplicate_row()
+        self.clear_message()
+
 
         # Query new files from the db.
         if not got_rows:
@@ -559,17 +556,6 @@ class CompareRoot(QFrame):
             self.message_label.setStyleSheet(f"background: rgb(255, 255, 255); ")
             self.message_label.setText("")
             self.__set_enable_all_buttons(enable=True)
-
-    def set_no_database(self):
-        """
-        Add a text to inform that there's no database loaded.
-        """
-        self.scroll_area.takeWidget()
-        self.scroll_area.setWidget(self.message_label)
-        self.message_label.setStyleSheet(f"background: rgb(255, 200, 200);")
-        self.message_label.setText("You have no database selected.")
-        self.__set_enable_all_buttons(enable=False)
-        self.__message_set = True
 
     def set_empty_duplicates(self):
         """
