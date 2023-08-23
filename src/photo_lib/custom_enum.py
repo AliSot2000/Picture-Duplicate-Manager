@@ -46,3 +46,9 @@ class Views:
     Database_Big_Screen_View = 5
     Database_Tile_View = 6
     Import_Tables_View = 7
+
+class LongRunningActions:
+    PrepareImport= 1
+    Deduplicate_With_Database = 2
+    Deduplicate_Without_Database = 3
+    Import_Images = 4
