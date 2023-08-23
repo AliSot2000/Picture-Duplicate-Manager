@@ -651,3 +651,85 @@ class Model:
             raise NoDbException("No Database selected")
 
         self.pdb.purge_import_tables()
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Functions to perform importing and stuff
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def new_import(self, folder: str, description: str = None, allowed_ext: str = None):
+        """
+        Create a new import table in the database.
+        :param allowed_ext: allowed extensions
+        :param description: table description
+        :param folder: folder to import
+        :return:
+        """
+        if self.handle is not None:
+            raise ValueError("Process in Progress or Bug")
+
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        if not os.path.exists(folder):
+            raise FileExistsError("Folder does not exist")
+
+        allowed_ext_set = None
+        if allowed_ext is not None:
+            if allowed_ext != self.get_default_extensions():
+                # Allowed extensions my not contain ", ', ., /
+                if "'" in allowed_ext or "\"" in allowed_ext or "/" in allowed_ext or "." in allowed_ext:
+                    raise ValueError("Allowed extensions cannot contain \" or ' or / or .")
+
+                allowed_ext_set = set(filter(lambda x: len(x) > 0, ["." + ext.replace(" ", "")
+                                                             for ext in allowed_ext.split(",")]))
+
+        if description == "":
+            description = None
+
+        self.gui_com, com_b = multiprocessing.Pipe()
+
+        self.import_folder = folder
+        self.current_import_table_name = self.pdb.create_import_table(folder_path=folder, msg=description)
+
+        # Disconnect from db
+        self.pdb.clean_up()
+        self.pdb = None
+
+        self.handle = mp.Process(target=import_folder_process,args=(self.current_import_table_name,
+                                                                    self.import_folder,
+                                                                    com_b,
+                                                                    self.folder_path,
+                                                                    False,
+                                                                    allowed_ext_set))
+        self.handle.start()
+
+    def stop_process(self):
+        """
+        Sends stop command to the currently long-running process.
+
+        Kills the process if it takes longer than the wait_timeout.
+        :return:
+        """
+
+        self.abort = True
+        self.gui_com.send(GUICommandTypes.QUIT)
+
+        time.sleep(self.wait_timeout)
+
+        if self.handle.is_alive():
+            self.handle.kill()
+
+    def recover_long_running_process(self) -> bool:
+        """
+        Recover after long-running process as in, reconnect db.
+        :return: bool if process was aborted or not.
+        """
+        if not self.handle.is_alive():
+            self.handle = None
+            self.gui_com = None
+
+        self.pdb = PhotoDb(self.folder_path)
+
+        abrt = self.abort
+        self.abort = None
+        return abrt
