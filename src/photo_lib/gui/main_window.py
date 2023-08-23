@@ -167,24 +167,23 @@ class RootWindow(QMainWindow):
         :param media_pane: Media pane to modify
         :return:
         """
-        self.datetime_modal = DateTimeModal()
-        self.datetime_modal.media_pane = media_pane
+        datetime_modal = DateTimeModal()
+        datetime_modal.media_pane = media_pane
         print(media_pane.dbe.key)
-        ret_val = self.datetime_modal.exec()
+        ret_val = datetime_modal.exec()
 
-        if ret_val == 0 or self.datetime_modal.triggered_button == ButtonType.CLOSE:
-            self.datetime_modal = None
+        if ret_val == 0 or datetime_modal.triggered_button == ButtonType.CLOSE:
             return
 
-        assert ret_val == 1 and self.datetime_modal.triggered_button != ButtonType.NO_BUTTON, \
+        assert ret_val == 1 and datetime_modal.triggered_button != ButtonType.NO_BUTTON, \
             "No button clicked but still accepted."
 
         # Apply or apply close button called -> apply the changes.
-        assert self.datetime_modal.triggered_button in [ButtonType.APPLY, ButtonType.APPLY_CLOSE], \
+        assert datetime_modal.triggered_button in [ButtonType.APPLY, ButtonType.APPLY_CLOSE], \
             "Unknown button type button should be apply or apply close."
         try:
-            self.model.try_rename_image(tag=self.datetime_modal.tag_input.text(), dbe=self.datetime_modal.media_pane.dbe,
-                                        custom_datetime=self.datetime_modal.custom_datetime_input.text())
+            self.model.try_rename_image(tag=datetime_modal.tag_input.text(), dbe=datetime_modal.media_pane.dbe,
+                                        custom_datetime=datetime_modal.custom_datetime_input.text())
         except Exception as e:
             # self.error_popup.error_msg = f"Failed to update Datetime:\n {e}"
             # self.error_popup.open()
@@ -192,8 +191,8 @@ class RootWindow(QMainWindow):
 
         media_pane.update_file_naming()
 
-        if self.datetime_modal.triggered_button == ButtonType.APPLY_CLOSE:
-            self.compare_root.remove_media_pane(self.datetime_modal.media_pane)
+        if datetime_modal.triggered_button == ButtonType.APPLY_CLOSE:
+            self.compare_root.remove_media_pane(datetime_modal.media_pane)
 
     def open_folder_select(self, init=False):
         """
