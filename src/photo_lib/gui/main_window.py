@@ -279,17 +279,6 @@ class RootWindow(QMainWindow):
         self.commit_submenu = None
         self.mark_submenu = None
 
-    def close_folder_select(self):
-        """
-        Close the folder select modal. Remove the current widget and add a new one. (In case of the Close button)
-        :return:
-        """
-
-        # Clean up Folder Select
-        self.stacked_layout.removeWidget(self.folder_select)
-        self.folder_select.deleteLater()
-        self.folder_select = None
-
     def close_full_screen_image(self):
         """
         Close the full screen image. If more needs to be changed other than just the view, this is the place to do it.
