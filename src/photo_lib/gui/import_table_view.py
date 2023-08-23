@@ -65,7 +65,8 @@ class ImportTableList(QFrame):
 
     def fetch_tables(self):
         """
-        Fetch the tables from the model and build the table
+        Fetch the tables from the model
+        and builds the table
         :return:
         """
         self.entries = self.model.get_import_tables()
