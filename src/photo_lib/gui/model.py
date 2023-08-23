@@ -79,6 +79,7 @@ def find_matches_process(tbl: str, com: Connection, db_path: str):
 
 class Model:
     pdb:  Union[PhotoDb, None] = None
+    folder_path: Union[str, None] = None
 
     current_extensions: set = {}
 
@@ -95,6 +96,9 @@ class Model:
     __tile_infos: List[TileInfo] = None
     __tile_indexes: ImportManifest = None
 
+    handle: Union[None, mp.Process] = None
+    gui_com: Union[None, Connection] = None
+
     def get_default_extensions(self):
         """
         Get the default extensions from the database.
@@ -104,8 +108,7 @@ class Model:
 
         if self.pdb is None:
             allowed_files = {".jpeg", ".jpg", ".png", ".mov", ".m4v", ".mp4", '.gif', '.3gp', '.dng', '.heic',
-                                  '.heif', '.webp', '.tif',
-                                  '.tiff'}
+                                  '.heif', '.webp', '.tif', '.tiff'}
         else:
             allowed_files = self.pdb.allowed_files
 
