@@ -57,6 +57,7 @@ class PhotoDb:
     __mda: MetadataAggregator = None
 
     __datetime_format = "%Y-%m-%d %H.%M.%S"
+    __new_datetime_format = "%Y-%m-%d_%H:%M:%S"
 
     proc_handles: list = []
 
@@ -158,6 +159,12 @@ class PhotoDb:
 
     def __datetime_to_db_str(self, dt_obj: datetime.datetime):
         return dt_obj.strftime(self.__datetime_format)
+
+    def __datetime_to_new_db_str(self, dt_obj: datetime.datetime):
+        return dt_obj.strftime(self.__new_datetime_format)
+
+    def __new_db_str_to_datetime(self, dt_str: str):
+        return datetime.datetime.strptime(dt_str, self.__new_datetime_format)
 
     def __db_str_to_datetime(self, dt_str: str):
         return datetime.datetime.strptime(dt_str, self.__datetime_format)
@@ -2402,4 +2409,66 @@ class PhotoDb:
         :return:
         """
         self.debug_exec(f"UPDATE import_tables SET import_table_description = '{desc}' WHERE key = {key}")
+        self.con.commit()
+
+    def change_datetime_to_new_format(self):
+        """
+        Go through all tables and update the datetimes to the new datetime version
+        :return:
+        """
+        # Images Table
+        self.debug_exec("SELECT key, datetime FROM images")
+        res = self.cur.fetchall()
+        print("Images")
+        for r in res:
+            if r[0] % 100 == 0:
+                print(r[0])
+            try:
+                dt = self.__db_str_to_datetime(r[1])
+            except ValueError:
+                print(f"Key: {r[0]} has invalid datetime: {r[1]}")
+                continue
+            except TypeError:
+                print(f"Key: {r[0]} has invalid datetime: {r[1]}")
+                continue
+
+            self.debug_exec(f"UPDATE images SET datetime = '{self.__datetime_to_new_db_str(dt)}' WHERE key = {r[0]}")
+
+        # Replaced Table
+        self.debug_exec("SELECT key, datetime FROM replaced")
+        res = self.cur.fetchall()
+        print("Replaced")
+        for r in res:
+            if r[0] % 100 == 0:
+                print(r[0])
+            try:
+                dt = self.__db_str_to_datetime(r[1])
+            except ValueError:
+                print(f"Key: {r[0]} has invalid datetime: {r[1]}")
+                continue
+            except TypeError:
+                print(f"Key: {r[0]} has invalid datetime: {r[1]}")
+                continue
+
+            self.debug_exec(f"UPDATE replaced SET datetime = '{self.__datetime_to_new_db_str(dt)}' WHERE key = {r[0]}")
+
+        for tbl in self.list_import_tables():
+            print(tbl.table_desc)
+            self.debug_exec(f"SELECT key, datetime FROM `{tbl.table_name}`")
+            res = self.cur.fetchall()
+
+            for r in res:
+                if r[0] % 100 == 0:
+                    print(r[0])
+                try:
+                    dt = self.__db_str_to_datetime(r[1])
+                except ValueError:
+                    print(f"Key: {r[0]} has invalid datetime: {r[1]}")
+                    continue
+                except TypeError:
+                    print(f"Key: {r[0]} has invalid datetime: {r[1]}")
+                    continue
+
+                self.debug_exec(f"UPDATE `{tbl.table_name}` SET datetime = '{self.__datetime_to_new_db_str(dt)}' WHERE key = {r[0]}")
+
         self.con.commit()
