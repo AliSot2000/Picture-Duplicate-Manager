@@ -43,6 +43,8 @@ class RootWindow(QMainWindow):
     search_duplicates_action: QAction
     close_full_screen_image_action: QAction
 
+    open_import_dialog_action: QAction
+
     progress_dialog: Union[QProgressDialog, None] = None
 
     def __init__(self):
@@ -90,6 +92,11 @@ class RootWindow(QMainWindow):
         self.close_full_screen_image_action.triggered.connect(self.open_compare_root)
         self.close_full_screen_image_action.setToolTip("Close full screen view of image")
         self.close_full_screen_image_action.setShortcut(QKeySequence(Qt.Key.Key_Escape))
+
+        self.open_import_dialog_action = QAction("&Import", self)
+        self.open_import_dialog_action.triggered.connect(self.open_import_dialog)
+        self.open_import_dialog_action.setToolTip("Open the import dialog.")
+        self.open_import_dialog_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_I))
 
         menu_bar = self.menuBar()
 
