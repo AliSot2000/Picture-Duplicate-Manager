@@ -418,21 +418,9 @@ class Model:
 
         return True, pipe
 
-    def get_media_infos_import(self, key: int, tbl_name: str = None):
-        """
-        Get all information related to an image from the import table.
-        :param key: key in the table
-        :param tbl_name: table name if left empty, current_import_table_name will be used.
-        :return:
-        """
-        pass
-
-    def get_media_info_database(self, key: int):
-        """
-        Get all information related to the image from the database.
-        :return:
-        """
-        pass
+    # ------------------------------------------------------------------------------------------------------------------
+    # Accessor Functions for Import view
+    # ------------------------------------------------------------------------------------------------------------------
 
     def get_import_not_allowed(self) -> List[TileInfo]:
         """
