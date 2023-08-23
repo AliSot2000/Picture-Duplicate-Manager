@@ -92,6 +92,7 @@ class ImportTableList(QFrame):
                 cur_entry.delete_btn.deleteLater()
                 cur_entry.change_desc_btn.deleteLater()
                 del_done = True
+                continue
 
             # Delete done, move all widgets up by one.
             if del_done:
