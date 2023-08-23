@@ -204,14 +204,20 @@ class Model:
         """
         return self.pdb is not None
 
-    def set_folder_path(self, folder_path: str):
+    def set_folder_path(self, folder_path: Union[str, None]):
         """
         Wrapper function in case more logic is needed in the future.
         :param folder_path: path to the database
         :return:
         """
+        if self.db_loaded():
+            self.pdb.clean_up()
+            self.pdb = None
+            self.folder_path = None
+
         if os.path.exists(os.path.join(folder_path, ".photos.db")):
             self.pdb = PhotoDb(root_dir=folder_path)
+            self.folder_path = folder_path
 
     @staticmethod
     def process_metadata(metadict: dict):
