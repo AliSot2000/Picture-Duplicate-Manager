@@ -305,6 +305,8 @@ class PrepareImportDialog(QDialog):
 
     def __init__(self, *args, model: Model, **kwargs):
         super().__init__(*args, **kwargs)
+        self.model = model
+
         self.setWindowTitle("Prepare Media Import")
 
         self.main_layout = QFormLayout()
@@ -341,8 +343,6 @@ class PrepareImportDialog(QDialog):
         self.main_layout.addRow(self.file_ext_label, self.file_ext_input)
         self.main_layout.addRow(self.folder_label, self.folder_button)
         self.main_layout.addRow(self.cancel_button, self.import_button)
-
-        self.model = model
 
     def edit_file_extensions(self):
         """
@@ -392,8 +392,8 @@ if __name__ == "__main__":
     # window = DateTimeModal()
     # window.show()
     # window = TaskSelectModal(model=Model())
-    # window = PrepareImportDialog(model=Model())
-    window = RenameTableModal("Test")
+    window = PrepareImportDialog(model=Model())
+    # window = RenameTableModal("Test")
     window.show()
 
     sys.exit(app.exec())
