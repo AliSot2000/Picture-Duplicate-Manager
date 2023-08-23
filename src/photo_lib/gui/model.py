@@ -44,6 +44,8 @@ class NoDbException(Exception):
 class Model:
     pdb:  Union[PhotoDb, None] = None
 
+    current_extensions: set = {}
+
     # Compare Layout for deduplication
     files: List[DatabaseEntry]
     current_row: Union[int, None] = None
@@ -63,10 +65,15 @@ class Model:
         # TODO should be in config!
         :return:
         """
-        if self.pdb is None:
-            return ""
 
-        return ", ".join([x.replace(".", "") for x in list(self.pdb.allowed_files)])
+        if self.pdb is None:
+            allowed_files = {".jpeg", ".jpg", ".png", ".mov", ".m4v", ".mp4", '.gif', '.3gp', '.dng', '.heic',
+                                  '.heif', '.webp', '.tif',
+                                  '.tiff'}
+        else:
+            allowed_files = self.pdb.allowed_files
+
+        return ", ".join([x.replace(".", "") for x in list(allowed_files)])
 
     def __init__(self, folder_path: str = None):
         if folder_path is not None:
