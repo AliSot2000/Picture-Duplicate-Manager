@@ -158,6 +158,13 @@ class Model:
         """
         return self.__tile_infos
 
+    def db_loaded(self):
+        """
+        Checker function to test if the database is loaded or not.
+        :return:
+        """
+        return self.pdb is not None
+
     def set_folder_path(self, folder_path: str):
         """
         Wrapper function in case more logic is needed in the future.
