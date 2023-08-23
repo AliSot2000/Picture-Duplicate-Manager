@@ -506,6 +506,10 @@ class Model:
         end = self.__tile_indexes.no_match.start + self.__tile_indexes.no_match.length
         return self.__tile_infos[start:end]
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # Get a full row from the database, path to image, thumbnail
+    # ------------------------------------------------------------------------------------------------------------------
+
     def get_file_import_full_entry(self, key: int) -> FullImportTableEntry:
         """
         Get the full import table entry for the current file.
