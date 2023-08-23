@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QWidget, QScrollArea, QSplitter, QApplication, QMainWindow
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QImageReader
 from photo_lib.gui.model import Model
 from photo_lib.gui.carousell import Carousel
 from photo_lib.gui.image_viewer import ImportImageView
@@ -48,8 +49,10 @@ class BigScreen(QSplitter):
 class TestWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        h = QImageReader.setAllocationLimit(0)
         self.model = Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/")
-        self.model.current_import_table_name = "tbl_1998737548188488947"
+        # self.model.current_import_table_name = "tbl_1998737548188488947"
+        self.model.current_import_table_name = "tbl_2836637745918598915"
         self.model.build_tiles_from_table()
 
         self.setWindowTitle("BigScreen")
