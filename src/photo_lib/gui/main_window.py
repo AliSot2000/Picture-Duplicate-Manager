@@ -59,6 +59,10 @@ class RootWindow(QMainWindow):
         self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image_in_full_screen,
                                         open_datetime_modal_fn=self.open_datetime_modal)
 
+        self.no_db_selected = QLabel("You have no database selected. Please select a database.")
+        self.no_db_selected.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.no_db_selected.setStyleSheet(f"background: rgb(255, 200, 200); font-size: 20px;")
+
         # TODO Need session storage for databases.
         # Generating the remaining widgets
         self.compare_root.load_elements()
@@ -72,6 +76,9 @@ class RootWindow(QMainWindow):
 
         self.stacked_layout.addWidget(self.compare_root)
         self.stacked_layout.setCurrentWidget(self.compare_root)
+        self.stacked_layout.addWidget(self.no_db_selected)
+        self.stacked_layout.setCurrentWidget(self.no_db_selected)
+        self.__current_view = Views.Message_Label
 
         # Connecting the buttons of the modals
 
@@ -159,7 +166,7 @@ class RootWindow(QMainWindow):
             self.full_screen_image_menu = menu_bar.addMenu("&Image")
             self.full_screen_image_menu.addAction(self.close_full_screen_image_action)
 
-        self.set_view(self.full_screen_image)
+        self.set_view(Views.Full_Screen_Image)
 
     def open_datetime_modal(self, media_pane: MediaPane):
         """
@@ -259,7 +266,7 @@ class RootWindow(QMainWindow):
             self.mark_submenu.addAction(self.compare_root.move_left_action)
             self.mark_submenu.addAction(self.compare_root.move_right_action)
 
-        self.set_view(self.compare_root)
+        self.set_view(Views.Deduplicate_Compare)
 
     def close_compare_root(self):
         """
