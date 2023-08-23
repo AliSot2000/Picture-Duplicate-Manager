@@ -1,8 +1,10 @@
 import datetime
+import multiprocessing
 import os.path
 import warnings
 from typing import List, Union, Tuple, Dict
 import multiprocessing as mp
+from multiprocessing.connection import Connection
 from dataclasses import dataclass
 
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo, MatchTypes, FullImportTableEntry
