@@ -194,52 +194,46 @@ class RootWindow(QMainWindow):
         if datetime_modal.triggered_button == ButtonType.APPLY_CLOSE:
             self.compare_root.remove_media_pane(datetime_modal.media_pane)
 
-    def open_folder_select(self, init=False):
+    def close_message_label(self):
+        """
+        Need to update the menu entries...
+        :return:
+        """
+        pass
+
+    def open_folder_select_modal(self):
         """
         Open the folder select modal.
         :return:
         """
-        self.folder_select = FolderSelectModal()
+        folder_select = FolderSelectModal()
+        res = folder_select.exec()
 
-        # Connecting to the folder select modal
-        self.folder_select.finished.connect(self.close_and_apply_folder)
-        self.stacked_layout.addWidget(self.folder_select)
+        if res == QDialog.DialogCode.Accepted:
+            self.model.set_folder_path(folder_select.selectedFiles()[0])
 
-        if not init:
-            self.set_view(self.folder_select)
-        else:
-            self.stacked_layout.setCurrentWidget(self.folder_select)
+            if self.model.db_loaded():
+                self.compare_root.remove_all_elements()
+                self.compare_root.load_elements()
+                self.open_compare_root()
 
-    def close_and_apply_folder(self, result):
-        """
-        Close the folder select modal and apply the new folder.
-        :return:
-        """
-        # Load from new folder
-        if result == QDialog.DialogCode.Accepted:
-            self.compare_root.remove_all_elements()
-            self.model.set_folder_path(self.folder_select.selectedFiles()[0])
-            self.compare_root.load_elements()
+            else:
+                msg_bx = QMessageBox(QMessageBox.Icon.Critical, "Error", "The Folder you selected was not a valid database", QMessageBox.StandardButton.Ok)
+                msg_bx.exec()
+                self.stacked_layout.setCurrentWidget(self.no_db_selected)
 
-        # elif result == QDialog.DialogCode.Rejected:
-        #     pass
-
-        self.open_compare_root()
-
-    def set_view(self, target: Union[CompareRoot, FolderSelectModal, ZoomImage]):
+    def set_view(self, target: Views):
         """
         Set the view to the target.
         :param target: Target to set the view to.
         :return:
         """
-        current_view = self.stacked_layout.currentWidget()
-
-        if type(current_view) is CompareRoot:
+        if self.__current_view == Views.Deduplicate_Compare:
             self.close_compare_root()
-        elif type(current_view) is FolderSelectModal:
-            self.close_folder_select()
-        elif type(current_view) is ZoomImage:
+        elif self.__current_view == Views.Full_Screen_Image:
             self.close_full_screen_image()
+        elif self.__current_view == Views.Message_Label:
+            self.close_message_label()
 
         self.stacked_layout.setCurrentWidget(target)
 
