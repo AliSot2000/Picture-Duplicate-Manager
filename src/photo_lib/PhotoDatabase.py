@@ -157,16 +157,16 @@ class PhotoDb:
     def path_from_datetime(self, dt_obj: datetime.datetime, file_name: str):
         return os.path.join(self.__folder_from_datetime(dt_obj), file_name)
 
-    def __datetime_to_db_str(self, dt_obj: datetime.datetime):
+    def __datetime_to_old_db_str(self, dt_obj: datetime.datetime):
         return dt_obj.strftime(self.__datetime_format)
 
-    def __datetime_to_new_db_str(self, dt_obj: datetime.datetime):
+    def __datetime_to_db_str(self, dt_obj: datetime.datetime):
         return dt_obj.strftime(self.__new_datetime_format)
 
-    def __new_db_str_to_datetime(self, dt_str: str):
+    def __db_str_to_datetime(self, dt_str: str):
         return datetime.datetime.strptime(dt_str, self.__new_datetime_format)
 
-    def __db_str_to_datetime(self, dt_str: str):
+    def __old_db_str_to_datetime(self, dt_str: str):
         return datetime.datetime.strptime(dt_str, self.__datetime_format)
 
     def __file_name_generator(self, dt_obj: datetime.datetime, old_fname: str):
@@ -421,7 +421,7 @@ class PhotoDb:
         self.debug_exec(f"UPDATE images SET "
                         f"new_name = '{new_name}', "
                         f"naming_tag = '{naming_tag}', "
-                        f"datetime = '{self.__datetime_to_db_str(new_datetime)}', "
+                        f"datetime = '{self.__datetime_to_old_db_str(new_datetime)}', "
                         f"timestamp = {str(new_datetime.timestamp()).split('.')[0]}, "
                         f"WHERE key = {entry.key}")
 
@@ -458,7 +458,7 @@ class PhotoDb:
                 self.debug_exec(f"SELECT datetime, new_name FROM images WHERE key = {row[2]}")
                 dt_str, new_name = self.cur.fetchone()
                 try:
-                    os.remove(self.path_from_datetime(self.__db_str_to_datetime(dt_str), new_name))
+                    os.remove(self.path_from_datetime(self.__old_db_str_to_datetime(dt_str), new_name))
                 except FileNotFoundError:
                     print(f"File {new_name} not found. Skipping.")
 
@@ -555,7 +555,7 @@ class PhotoDb:
             query +=  (
                 f"file_hash = '{mdo.file_hash}',"
                 f"naming_tag = '{mdo.naming_tag}',"
-                f"datetime = '{self.__datetime_to_db_str(mdo.datetime_object)}' "
+                f"datetime = '{self.__datetime_to_old_db_str(mdo.datetime_object)}' "
                 f"WHERE org_fpath = '{mdo.org_fpath}' AND org_fname = '{mdo.org_fname}'"
             )
 
@@ -656,7 +656,7 @@ class PhotoDb:
             row = targets[i]
             key = row[0]
             file_path = os.path.join(row[1], row[2])
-            dt_obj = self.__db_str_to_datetime(row[3])
+            dt_obj = self.__old_db_str_to_datetime(row[3])
             file_hash = row[4]
             file_size = self.__b64_to_dict(row[5])["File:FileSize"]
 
@@ -705,7 +705,7 @@ class PhotoDb:
         :return: bool - true <-> there's a match, int / none - the key of the match in the database,match-type
         """
         self.debug_exec(f"SELECT key, new_name FROM images "
-                        f"WHERE datetime = '{self.__datetime_to_db_str(target_datetime)}'")
+                        f"WHERE datetime = '{self.__datetime_to_old_db_str(target_datetime)}'")
 
         results = self.cur.fetchall()
         for result in results:
@@ -755,7 +755,7 @@ class PhotoDb:
                 raise ValueError("File with matching hash and file size found but not matching binary.")
 
             # check if the files are identical
-            pm_dt = self.__db_str_to_datetime(result[3])
+            pm_dt = self.__old_db_str_to_datetime(result[3])
             if filecmp.cmp(target_file,
                            self.path_from_datetime(dt_obj=pm_dt, file_name=result[2]),
                            shallow=False):
@@ -847,7 +847,7 @@ class PhotoDb:
                 metadata=self.__b64_to_dict(rows[i][3]),
                 google_fotos_metadata=self.__b64_to_dict(rows[i][4]),
                 file_hash=rows[i][5],
-                datetime_object=self.__db_str_to_datetime(rows[i][6]),
+                datetime_object=self.__old_db_str_to_datetime(rows[i][6]),
                 naming_tag=rows[i][7],
                 verify=rows[i][7][:4] == "File"
             )
@@ -954,7 +954,7 @@ class PhotoDb:
                             f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
                             f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
                             f"'{fmd.file_hash}', '{new_file_name}',"
-                            f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
+                            f"'{self.__datetime_to_old_db_str(fmd.datetime_object)}',"
                             f"1, {1 if fmd.verify else 0}, {str(fmd.datetime_object.timestamp()).split('.')[0]})")
 
         else:
@@ -965,7 +965,7 @@ class PhotoDb:
                             f"VALUES ('{fmd.org_fname}', '{fmd.org_fpath}',"
                             f"'{self.__dict_to_b64(fmd.metadata)}', '{fmd.naming_tag}', "
                             f"'{fmd.file_hash}', '{new_file_name}',"
-                            f"'{self.__datetime_to_db_str(fmd.datetime_object)}',"
+                            f"'{self.__datetime_to_old_db_str(fmd.datetime_object)}',"
                             f"1, {1 if fmd.verify else 0},"
                             f"'{self.__dict_to_b64(fmd.google_fotos_metadata)}', "
                             f"'{str(fmd.datetime_object.timestamp()).split('.')[0]}', 1)")
@@ -1161,7 +1161,7 @@ class PhotoDb:
 
         self.con.commit()
 
-        src = self.path_from_datetime(self.__db_str_to_datetime(data[0][5]), data[0][6])
+        src = self.path_from_datetime(self.__old_db_str_to_datetime(data[0][5]), data[0][6])
 
         if not delete:
             # move file
@@ -1201,7 +1201,7 @@ class PhotoDb:
                 naming_tag=res[5],
                 file_hash=res[6],
                 new_name=res[7],
-                datetime=self.__db_str_to_datetime(res[8]),
+                datetime=self.__old_db_str_to_datetime(res[8]),
                 google_fotos_metadata=self.__b64_to_dict(res[4]),
                 verify=res[10])
 
@@ -1235,7 +1235,7 @@ class PhotoDb:
         assert len(results) == 1, "more results than allowed, Database configuration is wrong, should be unique or " \
                                   "primary key"
 
-        img_dt = self.__db_str_to_datetime(results[0][2])
+        img_dt = self.__old_db_str_to_datetime(results[0][2])
         img_key = results[0][0]
         img_fname = results[0][1]
 
@@ -1307,7 +1307,7 @@ class PhotoDb:
         assert len(results) == 1, "more results than allowed, Database configuration is wrong, should be unique or " \
                                   "primary key"
 
-        img_dt = self.__db_str_to_datetime(results[0][2])
+        img_dt = self.__old_db_str_to_datetime(results[0][2])
         img_key = results[0][0]
         img_fname = results[0][1]
 
@@ -1380,7 +1380,7 @@ class PhotoDb:
         # Parse the result of the Database
         key = results[0][0]
         new_name = results[0][1]
-        dt_obj = self.__db_str_to_datetime(results[0][2])
+        dt_obj = self.__old_db_str_to_datetime(results[0][2])
         trashed = bool(results[0][3])
         present = bool(results[0][4])
 
@@ -1846,8 +1846,8 @@ class PhotoDb:
         if len(res_a) > 1:
             raise CorruptDatabase("Multiple entries with identical key")
 
-        path_a = self.path_from_datetime(self.__db_str_to_datetime(res_a[0][1]), res_a[0][0])
-        path_b = self.path_from_datetime(self.__db_str_to_datetime(res_b[0][1]), res_b[0][0])
+        path_a = self.path_from_datetime(self.__old_db_str_to_datetime(res_a[0][1]), res_a[0][0])
+        path_b = self.path_from_datetime(self.__old_db_str_to_datetime(res_b[0][1]), res_b[0][0])
 
         try:
             success = filecmp.cmp(path_a, path_b, shallow=False)
@@ -1871,7 +1871,7 @@ class PhotoDb:
 
         dts = {}
 
-        gfdt = self.__db_str_to_datetime("2009-01-03 12.52.06")
+        gfdt = self.__old_db_str_to_datetime("2009-01-03 12.52.06")
         count = 0
         renams = 0
 
@@ -1923,12 +1923,12 @@ class PhotoDb:
 
             if lowest < dbe.datetime:
                 self.rename_file(entry=dbe, new_datetime=lowest,naming_tag=f"GoogleFotos:{key}")
-                print(f"File for Renaming: {dbe.new_name}, current_dt: {self.__datetime_to_db_str(dbe.datetime)}, new_dt: {self.__datetime_to_db_str(lowest)}" )
+                print(f"File for Renaming: {dbe.new_name}, current_dt: {self.__datetime_to_old_db_str(dbe.datetime)}, new_dt: {self.__datetime_to_old_db_str(lowest)}")
                 renams += 1
             if lowest == dbe.datetime:
-                print(f"File Eqivalent DT: {dbe.new_name}, current_dt: {self.__datetime_to_db_str(dbe.datetime)}")
+                print(f"File Eqivalent DT: {dbe.new_name}, current_dt: {self.__datetime_to_old_db_str(dbe.datetime)}")
             else:
-                print(f"File for google older: {dbe.new_name}, current_dt: {self.__datetime_to_db_str(dbe.datetime)}, new_dt: {self.__datetime_to_db_str(lowest)}")
+                print(f"File for google older: {dbe.new_name}, current_dt: {self.__datetime_to_old_db_str(dbe.datetime)}, new_dt: {self.__datetime_to_old_db_str(lowest)}")
 
             # creationTime
             # photoTakenTime
@@ -2149,7 +2149,7 @@ class PhotoDb:
             allowed=bool(result[7]),
             match_type=MatchTypes(result[8]),
             message=result[9],
-            datetime=self.__db_str_to_datetime(result[10]) if result[10] is not None else None ,
+            datetime=self.__old_db_str_to_datetime(result[10]) if result[10] is not None else None ,
             naming_tag=result[11],
             match=result[12],
             import_key=result[13]
@@ -2179,7 +2179,7 @@ class PhotoDb:
             naming_tag=result[5],
             file_hash=result[6],
             new_name=result[7],
-            datetime=self.__db_str_to_datetime(result[8]),
+            datetime=self.__old_db_str_to_datetime(result[8]),
             present=bool(result[9]),
             verify=bool(result[10]),
             trashed=bool(result[11]),
@@ -2207,7 +2207,7 @@ class PhotoDb:
             metadata=self.__b64_to_dict(result[2]),
             google_fotos_metadata=self.__b64_to_dict(result[3]),
             file_hash=result[4],
-            datetime=self.__db_str_to_datetime(result[5]),
+            datetime=self.__old_db_str_to_datetime(result[5]),
             successor=result[6],
             former_name=result[7],
             original_google_metadata=GoogleFotosMetadataStatus(result[8])
@@ -2271,7 +2271,7 @@ class PhotoDb:
             warnings.warn("Key not found in database")
             return None
 
-        dt = self.__db_str_to_datetime(result[2])
+        dt = self.__old_db_str_to_datetime(result[2])
 
         # trashed and present, check the trash.
         if result[3] and result[4]:
@@ -2424,7 +2424,7 @@ class PhotoDb:
             if r[0] % 100 == 0:
                 print(r[0])
             try:
-                dt = self.__db_str_to_datetime(r[1])
+                dt = self.__old_db_str_to_datetime(r[1])
             except ValueError:
                 print(f"Key: {r[0]} has invalid datetime: {r[1]}")
                 continue
@@ -2432,7 +2432,7 @@ class PhotoDb:
                 print(f"Key: {r[0]} has invalid datetime: {r[1]}")
                 continue
 
-            self.debug_exec(f"UPDATE images SET datetime = '{self.__datetime_to_new_db_str(dt)}' WHERE key = {r[0]}")
+            self.debug_exec(f"UPDATE images SET datetime = '{self.__datetime_to_db_str(dt)}' WHERE key = {r[0]}")
 
         # Replaced Table
         self.debug_exec("SELECT key, datetime FROM replaced")
@@ -2442,7 +2442,7 @@ class PhotoDb:
             if r[0] % 100 == 0:
                 print(r[0])
             try:
-                dt = self.__db_str_to_datetime(r[1])
+                dt = self.__old_db_str_to_datetime(r[1])
             except ValueError:
                 print(f"Key: {r[0]} has invalid datetime: {r[1]}")
                 continue
@@ -2450,7 +2450,7 @@ class PhotoDb:
                 print(f"Key: {r[0]} has invalid datetime: {r[1]}")
                 continue
 
-            self.debug_exec(f"UPDATE replaced SET datetime = '{self.__datetime_to_new_db_str(dt)}' WHERE key = {r[0]}")
+            self.debug_exec(f"UPDATE replaced SET datetime = '{self.__datetime_to_db_str(dt)}' WHERE key = {r[0]}")
 
         for tbl in self.list_import_tables():
             print(tbl.table_desc)
@@ -2461,7 +2461,7 @@ class PhotoDb:
                 if r[0] % 100 == 0:
                     print(r[0])
                 try:
-                    dt = self.__db_str_to_datetime(r[1])
+                    dt = self.__old_db_str_to_datetime(r[1])
                 except ValueError:
                     print(f"Key: {r[0]} has invalid datetime: {r[1]}")
                     continue
@@ -2469,6 +2469,6 @@ class PhotoDb:
                     print(f"Key: {r[0]} has invalid datetime: {r[1]}")
                     continue
 
-                self.debug_exec(f"UPDATE `{tbl.table_name}` SET datetime = '{self.__datetime_to_new_db_str(dt)}' WHERE key = {r[0]}")
+                self.debug_exec(f"UPDATE `{tbl.table_name}` SET datetime = '{self.__datetime_to_db_str(dt)}' WHERE key = {r[0]}")
 
         self.con.commit()
