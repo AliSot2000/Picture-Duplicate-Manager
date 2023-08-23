@@ -34,3 +34,12 @@ class SourceTable(Enum):
     Last_Import = 3
     Any_Import_Tabel = 4
     Thumbnails = 5
+
+class Views:
+    Deduplicate_Compare = 0
+    Message_Label = 1
+    Full_Screen_Image = 2
+    Import_Tile_View = 3
+    Import_Big_Screen_View = 4
+    Database_Big_Screen_View = 5
+    Database_Tile_View = 6
