@@ -605,6 +605,10 @@ class Model:
         else:
             raise ValueError("Not valid Database Source.")
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # Everything related to import tables view
+    # ------------------------------------------------------------------------------------------------------------------
+
     def get_import_tables(self) -> List[ImportTableEntry]:
         """
         Get all import tables form the db
