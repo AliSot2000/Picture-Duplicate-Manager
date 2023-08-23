@@ -19,6 +19,8 @@ class TileInfo(BaseTileInfo):
     imported: bool
     match_type: MatchTypes
 
+    mark_for_import: bool = False
+
 
 @dataclass
 class Progress:

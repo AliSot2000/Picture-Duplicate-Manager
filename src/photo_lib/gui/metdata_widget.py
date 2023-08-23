@@ -432,8 +432,6 @@ class DualMetadataWidget(QFrame):
         self._assign_import_file_texts()
         self.import_file_changed.emit()
 
-    # TODO share scroll needs to be implemented.
-
     def synchronized_scroll(self, name: str, caller: TextScroller, rx: float, ry: float):
         """
         Go to the respective match and import widget and set the scroll to the given ratio.
@@ -481,6 +479,16 @@ class DualMetadataWidget(QFrame):
                 self.i_file_google_fotos_metadata_val.scroll_from_ratio(rx, ry)
             if caller is not self.m_file_google_fotos_metadata_val:
                 self.m_file_google_fotos_metadata_val.scroll_from_ratio(rx, ry)
+
+    def set_import_flag(self):
+        """
+        Propagate the checked state of the flag to the tile info.
+        :return:
+        """
+        if self.tile_info is None:
+            return
+        self.tile_info.mark_for_import =  self.i_file_import_checkbox.isChecked()
+
 
     def __init__(self, model: Model):
         """
@@ -537,6 +545,8 @@ class DualMetadataWidget(QFrame):
 
         self.import_file_lbl = QLabel()
         self.match_file_lbl = QLabel()
+
+        self.i_file_import_checkbox.toggled.connect(self.set_import_flag)
 
         self._init_names()
         self._init_formatting()
@@ -1002,6 +1012,9 @@ class DualMetadataWidget(QFrame):
             self.i_file_import_label.setText(import_text)
             return
 
+        state = Qt.CheckState.Checked if self.tile_info.mark_for_import else Qt.CheckState.Unchecked
+
+        self.i_file_import_checkbox.setCheckState(state)
         # Set more Values that should be set if allowed
         self.i_file_hash_val.text_label.setText(self._import_entry.file_hash)
         self.i_file_datetime_val.setText(self._import_entry.datetime.strftime("%Y-%m-%d %H:%M:%S"))
