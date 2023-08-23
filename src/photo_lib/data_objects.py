@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Union
 import datetime
-from photo_lib.enum import *
+from photo_lib.custom_enum import *
 
 """
 Dataclasses related to the backend of the phtoto library.
