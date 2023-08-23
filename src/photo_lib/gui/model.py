@@ -41,6 +41,40 @@ class NoDbException(Exception):
     pass
 
 
+def import_folder_process(tbl: str, folder_path: str, com: Connection, db_path: str, recomp_metadata: bool = False,
+                          allowed_file_types: set = None):
+    """
+    Function to be spawned in a separate process. This will import the folder into the database.
+    :param tbl: table name to use for import
+    :param folder_path: path of folder to import
+    :param com: one end of a mulitprocessing.Pipe
+    :param db_path: path to database
+    :param recomp_metadata: if metadata should be recomputed
+    :param allowed_file_types: set of allowed file extensions.
+    :return:
+    """
+    pdb = PhotoDb(root_dir=db_path)
+    pdb.prepare_import(tbl_name=tbl,
+                       folder_path=folder_path,
+                       recompute_metadata=recomp_metadata,
+                       allowed_file_types=allowed_file_types,
+                       com=com
+                       )
+    pdb.clean_up()
+
+def find_matches_process(tbl: str, com: Connection, db_path: str):
+    """
+    Find matches in a separate process.
+    :param tbl: table to find matches for
+    :param com: one end of a multiprocessing.Pipe
+    :param db_path: path to database
+    :return:
+    """
+    pdb = PhotoDb(root_dir=db_path)
+    pdb.find_matches_for_import_table(table=tbl, com=com)
+    pdb.clean_up()
+
+
 class Model:
     pdb:  Union[PhotoDb, None] = None
 
