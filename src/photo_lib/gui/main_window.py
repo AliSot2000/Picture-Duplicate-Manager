@@ -56,7 +56,7 @@ class RootWindow(QMainWindow):
 
         self.dummy_center = QWidget()
         self.stacked_layout = QStackedLayout()
-        self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image,
+        self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image_in_full_screen,
                                         open_datetime_modal_fn=self.open_datetime_modal)
 
         # TODO Need session storage for databases.
@@ -141,7 +141,7 @@ class RootWindow(QMainWindow):
             # pipe.progress.connect(self.progress_dialog.setValue)
             # pipe.finished.connect(self.search_finished)
 
-    def open_image(self, path: str):
+    def open_image_in_full_screen(self, path: str):
         """
         Open an image in full screen mode.
         :param path: path to the image
