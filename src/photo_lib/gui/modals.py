@@ -298,6 +298,9 @@ class PrepareImportDialog(QDialog):
     file_ext_input: QPushButton
     extensions: str
 
+    description_label: QLabel
+    description_input: QLineEdit
+
     cancel_button: QPushButton
     import_button: QPushButton
 
@@ -322,6 +325,11 @@ class PrepareImportDialog(QDialog):
         self.folder_label = QLabel("No folder selected.")
         self.folder_label.setMinimumWidth(300)
 
+        self.description_label = QLabel("Description:")
+        self.description_label.setToolTip("Enter a description for this import. Default is the folder name")
+        self.description_input = QLineEdit()
+        self.description_input.setPlaceholderText("Default Folder Name")
+
         self.file_ext_label = QLabel("File Extensions:")
         self.file_ext_input = QPushButton("Edit")
         self.file_ext_input.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_E))
@@ -342,6 +350,7 @@ class PrepareImportDialog(QDialog):
         self.main_layout.addRow(self.info_label)
         self.main_layout.addRow(self.file_ext_label, self.file_ext_input)
         self.main_layout.addRow(self.folder_label, self.folder_button)
+        self.main_layout.addRow(self.description_label, self.description_input)
         self.main_layout.addRow(self.cancel_button, self.import_button)
 
     def edit_file_extensions(self):
@@ -383,7 +392,6 @@ class PrepareImportDialog(QDialog):
         Import the media from the selected folder.
         :return:
         """
-        self.model.import_folder = self.folder_label.text()
         self.accept()
 
 
