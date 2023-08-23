@@ -33,12 +33,6 @@ class RootWindow(QMainWindow):
     # Compare stuff
     compare_root: CompareRoot
 
-    # Folder Select Modal
-    folder_select: Union[FolderSelectModal, None] = None
-
-    # Change Datetime Modal
-    datetime_modal: Union[None, DateTimeModal] = None
-
     commit_submenu: Union[None, QMenu] = None
     mark_submenu: Union[None, QMenu] = None
 
