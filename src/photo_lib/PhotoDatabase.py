@@ -256,6 +256,16 @@ class PhotoDb:
         self.con = sqlite3.Connection(self.img_db)
         self.cur = self.con.cursor()
 
+    def clean_up(self):
+        """
+        Saves everything to disk and removes the connection
+        :return:
+        """
+        self.con.commit()
+        self.con.close()
+        self.cur = None
+        self.con = None
+
     def purge_import_tables(self):
         self.debug_exec("SELECT import_table_name FROM import_tables")
         ttd = self.cur.fetchone()
