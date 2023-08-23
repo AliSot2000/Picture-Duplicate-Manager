@@ -57,7 +57,7 @@ class PhotoDb:
     __mda: MetadataAggregator = None
 
     __datetime_format = "%Y-%m-%d %H.%M.%S"
-    __new_datetime_format = "%Y-%m-%d_%H:%M:%S"
+    __new_datetime_format =  "%Y-%m-%d %H:%M:%S"
 
     proc_handles: list = []
 
