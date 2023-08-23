@@ -1,9 +1,10 @@
-from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog, QMenu, QProgressDialog
+from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog, QMenu, QProgressDialog, QLabel, QMessageBox
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.zoom_image import ZoomImage
 from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType
 from photo_lib.gui.media_pane import MediaPane
+from photo_lib.enum import Views
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
 from PyQt6.QtCore import Qt
 from typing import Union
