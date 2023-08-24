@@ -7,7 +7,8 @@ from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.zoom_image import ZoomImage
 from photo_lib.gui.big_screen import BigScreen
 from photo_lib.gui.import_tiles_view import ImportView
-from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType, PrepareImportDialog
+from photo_lib.gui.modals import (DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType, PrepareImportDialog,
+                                  FileExtensionDialog)
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.import_table_view import ImportTableList
 from photo_lib.gui.image_tile import ImageTile
@@ -219,7 +220,12 @@ class RootWindow(QMainWindow):
 
 
     def finish_import(self):
-        pass
+        """
+        Clear all state variables and switch back to compare root.
+        :return:
+        """
+        self.model.finish_import()
+        self.open_compare_root()
 
     def import_selected(self):
         pass
@@ -230,6 +236,24 @@ class RootWindow(QMainWindow):
     # ------------------------------------------------------------------------------------------------------------------
     # Long-running process functions - functions to call during long-running processes.
     # ------------------------------------------------------------------------------------------------------------------
+
+    def start_long_running_process(self, msg: str, t: LongRunningActions):
+        """
+        Perform initialisation of long running process i.e. start the progress dialog.
+
+        :param msg: Initial message in progress dialog
+        :param t: type of long running action
+        :return:
+        """
+        self.progress_dialog = QProgressDialog(msg, "Cancel", 0, 100, self)
+        self.progress_dialog.show()
+        self.progress_dialog.canceled.connect(self.terminate_long_running_process)
+        self.progress_updater = QTimer(self)
+        self.progress_updater.timeout.connect(self.update_progress)
+        self.progress_updater.start(200)
+
+        # Waiting for the thing to stop
+        self.long_running_process_type = t
 
     def terminate_long_running_process(self):
         """
@@ -287,6 +311,8 @@ class RootWindow(QMainWindow):
             self.progress_updater.deleteLater()
             self.progress_updater = None
             self.progress_dialog.close()
+            self.progress_dialog.deleteLater()
+            self.progress_dialog = None
 
             self.long_process_exit_handler()
 
@@ -569,16 +595,7 @@ class RootWindow(QMainWindow):
                                     QMessageBox.StandardButton.Ok)
                 error.exec()
 
-        # Create modal for the import.
-        self.progress_dialog = QProgressDialog("Importing...", "Cancel", 0, 100, self)
-        self.progress_dialog.show()
-        self.progress_dialog.canceled.connect(self.terminate_long_running_process)
-        self.progress_updater = QTimer(self)
-        self.progress_updater.timeout.connect(self.update_progress)
-        self.progress_updater.start(200)
-
-        # Waiting for the thing to stop
-        self.long_running_process_type = LongRunningActions.PrepareImport
+        self.start_long_running_process(msg="Importing...", t=LongRunningActions.PrepareImport)
 
     def search_duplicates(self):
         """
@@ -617,7 +634,33 @@ class RootWindow(QMainWindow):
             # pipe.finished.connect(self.search_finished)
 
     def change_allowed_extensions(self):
-        pass
+        """
+        Perform the update of the file extensions and perform reindex afterwards.
+        :return:
+        """
+        while True:
+            modal = FileExtensionDialog(current_type=self.model.get_current_extensions_string(), metadata=True)
+            ret = modal.exec()
+
+            # Rejected, exit now
+            if ret ==  QDialog.DialogCode.Rejected:
+                return
+
+            # Accepted, perform the update.
+            assert ret == QDialog.DialogCode.Accepted, f"Unknown return value from FileExtensionDialog: {ret}"
+            try:
+                self.model.update_allowed_metadata(extensions=modal.file_ext_input.text(),
+                                               rcmp_mtdt=modal.metadata_checkbox.isChecked())
+                break
+            except Exception as e:
+                error = QMessageBox(QMessageBox.Icon.Critical,
+                                    "Error",
+                                    str(e),
+                                    QMessageBox.StandardButton.Ok)
+                error.exec()
+
+        self.model.clear_tile_infos()
+        self.start_long_running_process(msg="Updating files...", t=LongRunningActions.PrepareImport)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Submenu builder functions - construct the submenus
