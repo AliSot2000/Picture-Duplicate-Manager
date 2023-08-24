@@ -394,6 +394,7 @@ class RootWindow(QMainWindow):
         Open the compare root. Add Associated Actions to the menus.
         :return:
         """
+        self.compare_root.load_elements()
         self.set_view(Views.Deduplicate_Compare)
         menu_bar = self.menuBar()
         if self.commit_submenu is None:
