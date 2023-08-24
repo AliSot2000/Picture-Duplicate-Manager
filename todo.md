@@ -1,13 +1,20 @@
 # All ToDos until the first version is done
 
+# Tiles
+- [ ] Tiles for year
+- [ ] Tiles for all
+- [ ] Tiles for month
+- [ ] Tiles for day
+
+# Big Screen for Database
+
 ## Import View
 - [X] Add import View to the main Window
-- [ ] When clicked, open the bigScreen Image (with with comparison if possible. If not, just the bigScreen Image)
-- [ ] Close image with ESC
+- [X] When clicked, open the bigScreen Image (with with comparison if possible. If not, just the bigScreen Image)
+- [X] Close image with ESC
 - [ ] Check button needs to update the subsection the image is in.
 - [X] Add button to import
-- [ ] Rename table afterwards to last_import
-- [ ] Control click the image to set it to import.
+
 
 ## BigScreen
 - [X] Create the side layout
@@ -26,6 +33,19 @@
 ## Database:
 - [X] Datetime in SQLite formate
 - [ ] Functions to update the table
+- [ ] Function to get number of images on a given day, month, year
+- [ ] Function to get info of a day, month year
+- [ ] Function to link files based on hashes
+- [ ] Function to check if all indexed images are present
+- [ ] Function to update hash based on file name
+- [ ] Add Column for path (custom folders)
+- [ ] Function to index database and all new files are to be labled as import
+- [ ] New Duplicates Table (Clusters and duplicates with known duplicates)
+
+- New Version of Fast DiffPy with new Version of MP Library
+- Duplicates without Database
+- Create new Database function
+- 
 
 # Features
 - [ ] Danger zone
