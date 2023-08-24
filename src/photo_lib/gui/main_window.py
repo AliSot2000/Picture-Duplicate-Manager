@@ -667,7 +667,11 @@ class RootWindow(QMainWindow):
             self.menuBar().removeAction(self.file_submenu.menuAction())
             self.file_submenu.deleteLater()
 
-        self.file_submenu = self.menuBar().addMenu("&File")
+        self.file_submenu = QMenu("&File", self)
+        target = None
+        if len(self.menuBar().actions()) > 0:
+            target = self.menuBar().actions()[0]
+        self.menuBar().insertMenu(target, self.file_submenu)
         self.file_submenu.addAction(self.open_folder_select_modal_action)
 
         if self.model.db_loaded():
