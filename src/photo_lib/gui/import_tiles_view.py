@@ -89,7 +89,7 @@ class ImportView(QFrame):
 
         # Empty layout
         while self.inner_layout.count() > 0:
-            self.inner_layout.takeAt(0)
+            self.inner_layout.takeAt(0).widget().deleteLater()
 
         self.update_name()
 
