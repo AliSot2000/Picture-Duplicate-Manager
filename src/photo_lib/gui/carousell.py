@@ -8,6 +8,7 @@ from photo_lib.gui.clickable_image import ClickableTile
 from photo_lib.gui.model import Model
 from photo_lib.gui.gui_utils import image_wrapper
 from photo_lib.data_objects import TileInfo
+import datetime
 
 """
 Information:
@@ -180,6 +181,8 @@ class Carousel(QScrollArea):
         :param val: could be used to pass the value of the slider.
         :return:
         """
+        # print("Vis Started")
+        # start = datetime.datetime.now()
         if val is None:
             val = self.horizontalScrollBar().value()
 
@@ -216,7 +219,10 @@ class Carousel(QScrollArea):
 
         new_left = max(0, last_left - self.eager_load_limit)
         new_right = min(len(self.images), last_right + self.eager_load_limit)
+        # end = datetime.datetime.now()
+        # print(f"Time needed to compute upper and lower limit: {(end -start).total_seconds()}")
         self.load_unload_visible(new_left, new_right)
+        # print("Vis Done")
 
     def rect_vis(self, r: QRect) -> bool:
         """
@@ -251,8 +257,10 @@ class Carousel(QScrollArea):
         Loads and unloads images that are visible and not visible.
         :return:
         """
+        # start = datetime.datetime.now()
         # unset right_most_index and left_most_index
         if self.left_most_visible_index == -1 or self.right_most_visible_index == -1:
+            # print(f"Load from scratch")
             assert self.left_most_visible_index == -1 and self.right_most_visible_index == -1, "Uneven reset of indexes"
             for i in range(new_left, new_right):
                 self.images[i].image_loaded = True
@@ -263,6 +271,7 @@ class Carousel(QScrollArea):
 
         # No intersection - unload all and load new
         elif new_left > self.right_most_visible_index or new_right < self.left_most_visible_index:
+            # print("Load no intersect")
             for i in range(self.left_most_visible_index, self.right_most_visible_index):
                 self.images[i].image_loaded = False
             for i in range(new_left, new_right):
@@ -270,6 +279,7 @@ class Carousel(QScrollArea):
 
         # Shift view to the right
         elif self.left_most_visible_index <= new_left <= self.right_most_visible_index:
+            # print(f"Load Left in middle")
             for i in range(self.left_most_visible_index, new_left):
                 self.images[i].image_loaded = False
             for i in range(new_left, new_right):
@@ -277,13 +287,15 @@ class Carousel(QScrollArea):
 
         # Shift view to the left
         elif self.left_most_visible_index <= new_right <= self.right_most_visible_index:
+            # print(f"Load Right in middle")
             for i in range(new_left, new_right):
                 self.images[i].image_loaded = True
             for i in range(new_right, self.right_most_visible_index):
                 self.images[i].image_loaded = False
         self.left_most_visible_index = new_left
         self.right_most_visible_index = new_right
-
+        # end = datetime.datetime.now()
+        # print(f"Time needed to load and unload images: {(end - start).total_seconds()}")
 
 
 
