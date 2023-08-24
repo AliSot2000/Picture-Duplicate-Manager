@@ -7,6 +7,7 @@ from photo_lib.PhotoDatabase import BaseTileInfo
 from photo_lib.gui.clickable_image import ClickableTile
 from photo_lib.gui.model import Model
 from photo_lib.gui.gui_utils import image_wrapper
+from photo_lib.data_objects import TileInfo
 
 """
 Information:
@@ -114,6 +115,18 @@ class Carousel(QScrollArea):
         # if len(self.images) > 0 and self.images is not None:
         #     print(self.images[0].mapTo(self,
         #                                self.images[0].rect().topLeft()))
+
+    # TODO better datastructure to make this faster but ok for now.
+    def set_tile(self, tile_info: TileInfo):
+        """
+        Set the currently selected image based on a tile_info object.
+        :param tile_info:
+        :return:
+        """
+        for img in self.images:
+            if img.tile_info == tile_info:
+                self.set_image(img)
+                return
 
     def set_image(self, image: ClickableTile):
         """
