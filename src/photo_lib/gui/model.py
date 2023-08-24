@@ -74,7 +74,7 @@ class Model:
     pdb:  Union[PhotoDb, None] = None
     folder_path: Union[str, None] = None
 
-    current_extensions: set = {}
+    current_extensions: Union[None, set] = None
 
     # Compare Layout for deduplication
     files: List[DatabaseEntry]
@@ -112,18 +112,39 @@ class Model:
 
         return ", ".join([x.replace(".", "") for x in list(allowed_files)])
 
+    def get_current_extensions_string(self):
+        """
+        Get the current extensions string. If not set, return default extensions.
+        :return:
+        """
+        if self.current_extensions is not None and len(self.current_extensions) > 0:
+            return ", ".join([x.replace(".", "") for x in list(self.current_extensions)])
+        return self.get_default_extensions()
+
+    def process_ext(self, extensions: str = None):
+        """
+        Process the extensions string and set the current extensions.
+        :param extensions: string of current extensions.
+        :return:
+        """
+
+        allowed_ext_set = None
+        if extensions is not None:
+            if extensions != self.get_default_extensions():
+                # Allowed extensions my not contain ", ', ., /
+                if "'" in extensions or "\"" in extensions or "/" in extensions or "." in extensions:
+                    raise ValueError("Allowed extensions cannot contain \" or ' or / or .")
+
+                allowed_ext_set = set(filter(lambda x: len(x) > 0, ["." + ext.replace(" ", "")
+                                                                    for ext in extensions.split(",")]))
+        self.current_extensions = allowed_ext_set
+
+
     def __init__(self, folder_path: str = None):
         if folder_path is not None:
             self.pdb = PhotoDb(root_dir=folder_path)
 
-        self.__tile_infos = []
-        self.__tile_indexes = ImportManifest(no_match=             Block(start=0, length=0),
-                                             binary_match=         Block(start=0, length=0),
-                                             binary_match_replaced=Block(start=0, length=0),
-                                             binary_match_trash=   Block(start=0, length=0),
-                                             hash_match_replaced=  Block(start=0, length=0),
-                                             hash_match_trash=     Block(start=0, length=0),
-                                             not_allowed=          Block(start=0, length=0))
+        self.clear_tile_infos()
 
     def get_current_import_table_name(self, table_name: str = None):
         """
@@ -194,6 +215,30 @@ class Model:
         :return:
         """
         return self.__tile_infos
+
+    def clear_tile_infos(self):
+        """
+        Reset the tile infos and indexes.
+        :return:
+        """
+        self.__tile_infos = []
+        self.__tile_indexes = ImportManifest(no_match=             Block(start=0, length=0),
+                                             binary_match=         Block(start=0, length=0),
+                                             binary_match_replaced=Block(start=0, length=0),
+                                             binary_match_trash=   Block(start=0, length=0),
+                                             hash_match_replaced=  Block(start=0, length=0),
+                                             hash_match_trash=     Block(start=0, length=0),
+                                             not_allowed=          Block(start=0, length=0))
+
+    def finish_import(self):
+        """
+        Done with import, reset all state variables that are related to import.
+        :return:
+        """
+        self.current_extensions = None
+        self.current_import_table_name = None
+        self.import_folder = None
+        self.clear_tile_infos()
 
     def db_loaded(self):
         """
@@ -677,15 +722,7 @@ class Model:
         if not os.path.exists(folder):
             raise FileExistsError("Folder does not exist")
 
-        allowed_ext_set = None
-        if allowed_ext is not None:
-            if allowed_ext != self.get_default_extensions():
-                # Allowed extensions my not contain ", ', ., /
-                if "'" in allowed_ext or "\"" in allowed_ext or "/" in allowed_ext or "." in allowed_ext:
-                    raise ValueError("Allowed extensions cannot contain \" or ' or / or .")
-
-                allowed_ext_set = set(filter(lambda x: len(x) > 0, ["." + ext.replace(" ", "")
-                                                             for ext in allowed_ext.split(",")]))
+        self.process_ext(allowed_ext)
 
         if description == "":
             description = None
@@ -699,13 +736,43 @@ class Model:
         self.pdb.clean_up()
         self.pdb = None
 
-        self.handle = mp.Process(target=import_folder_process,args=(self.current_import_table_name,
-                                                                    self.import_folder,
-                                                                    com_b,
-                                                                    self.folder_path,
-                                                                    self.exiftool_location,
-                                                                    False,
-                                                                    allowed_ext_set))
+        self.handle = mp.Process(target=import_folder_process, args=(self.current_import_table_name,
+                                                                     self.import_folder,
+                                                                     com_b,
+                                                                     self.folder_path,
+                                                                     self.exiftool_location,
+                                                                     False,
+                                                                     self.current_extensions))
+        self.handle.start()
+
+    def update_allowed_metadata(self, extensions: str = None, rcmp_mtdt: bool = False):
+        """
+        Given an already existing import table, change the allowed files and compute their metadata if desired.
+        :param extensions: string of extensions
+        :param rcmp_mtdt: if metadata is to be recomputed.
+        :return:
+        """
+        if self.handle is not None:
+            raise ValueError("Process in Progress or Bug")
+
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        self.process_ext(extensions)
+
+        self.gui_com, com_b = multiprocessing.Pipe()
+
+        # Disconnect from db
+        self.pdb.clean_up()
+        self.pdb = None
+
+        self.handle = mp.Process(target=import_folder_process, args=(self.current_import_table_name,
+                                                                     self.import_folder,
+                                                                     com_b,
+                                                                     self.folder_path,
+                                                                     self.exiftool_location,
+                                                                     rcmp_mtdt,
+                                                                     self.current_extensions))
         self.handle.start()
 
     def stop_process(self):
