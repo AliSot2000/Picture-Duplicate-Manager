@@ -299,22 +299,6 @@ class RootWindow(QMainWindow):
         # Connect the actions
         pass
 
-    def open_import_tables_view(self):
-        """
-        Open the import tables view.
-        (Add Submenus here)
-        :return:
-        """
-        self.import_table_list.fetch_tables()
-        self.set_view(Views.Import_Tables_View)
-
-    def close_import_tables_view(self):
-        """
-        Close the import tables view. (Currently empty -  remove submenues here)
-        :return:
-        """
-        pass
-
     def search_duplicates(self):
         """
         Search for duplicates in the currently selected database.
@@ -351,26 +335,6 @@ class RootWindow(QMainWindow):
             # pipe.progress.connect(self.progress_dialog.setValue)
             # pipe.finished.connect(self.search_finished)
 
-    def open_image_in_full_screen(self, path: str):
-        """
-        Open an image in full screen mode.
-        :param path: path to the image
-        :return:
-        """
-        if self.full_screen_image is None:
-            self.full_screen_image = ZoomImage()
-            self.full_screen_image.file_path = path
-            self.stacked_layout.addWidget(self.full_screen_image)
-        else:
-            self.full_screen_image.file_path = path
-
-        menu_bar = self.menuBar()
-        if self.full_screen_image_menu is None:
-            self.full_screen_image_menu = menu_bar.addMenu("&Image")
-            self.full_screen_image_menu.addAction(self.close_full_screen_image_action)
-
-        self.set_view(Views.Full_Screen_Image)
-
     def open_datetime_modal(self, media_pane: MediaPane):
         """
         Open the datetime modal.
@@ -403,13 +367,6 @@ class RootWindow(QMainWindow):
 
         if datetime_modal.triggered_button == ButtonType.APPLY_CLOSE:
             self.compare_root.remove_media_pane(datetime_modal.media_pane)
-
-    def close_message_label(self):
-        """
-        (Currently empty, use to remove submenus for the message label)
-        :return:
-        """
-        pass
 
     def open_folder_select_modal(self):
         """
@@ -461,6 +418,23 @@ class RootWindow(QMainWindow):
         self.build_file_menu()
 
 
+
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Opening handler functions - handle the opening of a specific view and add the associated submenus.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def open_message_label(self, text: str = None):
+        """
+        Opens the message label view.
+        :return:
+        """
+        if text is None:
+            text = "You have no database selected. \nPlease select a database."
+
+        self.messageg_label.setText(text)
+        self.set_view(Views.Message_Label)
+
     def open_compare_root(self):
         """
         Open the compare root.
@@ -485,6 +459,39 @@ class RootWindow(QMainWindow):
 
         self.set_view(Views.Deduplicate_Compare)
 
+    def open_image_in_full_screen(self, path: str):
+        """
+        Open an image in full screen mode.
+        :param path: path to the image
+        :return:
+        """
+        if self.full_screen_image is None:
+            self.full_screen_image = ZoomImage()
+            self.full_screen_image.file_path = path
+            self.stacked_layout.addWidget(self.full_screen_image)
+        else:
+            self.full_screen_image.file_path = path
+
+        menu_bar = self.menuBar()
+        if self.full_screen_image_menu is None:
+            self.full_screen_image_menu = menu_bar.addMenu("&Image")
+            self.full_screen_image_menu.addAction(self.close_full_screen_image_action)
+
+        self.set_view(Views.Full_Screen_Image)
+
+    def open_import_tables_view(self):
+        """
+        Open the import tables view.
+        (Add Submenus here)
+        :return:
+        """
+        self.import_table_list.fetch_tables()
+        self.set_view(Views.Import_Tables_View)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Closing handler functions - handle the closing of a specific view and remove the associated submenus.
+    # ------------------------------------------------------------------------------------------------------------------
+
     def close_compare_root(self):
         """
         Close the compare root.
@@ -505,3 +512,17 @@ class RootWindow(QMainWindow):
         menubar = self.menuBar()
         menubar.removeAction(self.full_screen_image_menu.menuAction())
         self.full_screen_image_menu = None
+
+    def close_message_label(self):
+        """
+        (Currently empty, use to remove submenus for the message label)
+        :return:
+        """
+        pass
+
+    def close_import_tables_view(self):
+        """
+        Close the import tables view. (Currently empty -  remove submenues here)
+        :return:
+        """
+        pass
