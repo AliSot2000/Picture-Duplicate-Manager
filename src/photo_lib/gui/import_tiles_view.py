@@ -1,12 +1,13 @@
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QHBoxLayout, QScrollArea, QPushButton, QLabel, QSplitter
 from PyQt6.QtCore import pyqtSignal
 import sys
-from typing import Union
+from typing import Union, List
 from photo_lib.gui.named_picture_block import CheckNamedPictureBlock
 from photo_lib.gui.image_tile import ImageTile
 from photo_lib.gui.model import Model
 from photo_lib.PhotoDatabase import MatchTypes
 from photo_lib.gui.gui_utils import general_wrapper
+from photo_lib.data_objects import TileInfo
 
 class ImportView(QFrame):
     model: Model
@@ -26,7 +27,7 @@ class ImportView(QFrame):
     not_allowed_block: Union[None, CheckNamedPictureBlock] = None
 
     image_clicked = pyqtSignal(ImageTile)
-
+    tiles: List[ImageTile] = None
 
     def __init__(self, model: Model):
         """
@@ -54,8 +55,20 @@ class ImportView(QFrame):
         self.outer_layout.addWidget(self.scroll_area)
         self.scroll_area.setWidget(self.dummy_widget)
 
-
         self.build_import_view()
+        self.tiles = []
+
+    def focus_tile_from_tile_info(self, tile_info: TileInfo):
+        """
+        When moving back to this layout, we can ensure the image we had currently open in the other view is currently
+        viewable in the scroll area.
+        :param tile_info:
+        :return:
+        """
+        for t in self.tiles:
+            if t.tile_info == tile_info:
+                self.scroll_area.ensureWidgetVisible(t.clickable_image)
+                break
 
     def _tile_clicked(self, tile: ImageTile):
         """
@@ -72,6 +85,8 @@ class ImportView(QFrame):
 
         :return:
         """
+        self.tiles = []
+
         # Empty layout
         while self.inner_layout.count() > 0:
             self.inner_layout.takeAt(0)
@@ -88,9 +103,7 @@ class ImportView(QFrame):
                                        tile_infos=self.model.get_import_no_match(),
                                        title="Media Files without Match in the Database")
             self.inner_layout.addWidget(self.no_match_block)
-
-            for tile in self.no_match_block.picture_block.img_tiles:
-                tile.clickable_image.clicked.connect(general_wrapper(func=self._tile_clicked, tile=tile))
+            self.tiles.extend(self.no_match_block.picture_block.img_tiles)
 
         # Add block for binary match
         if len(self.model.get_import_binary_match()) > 0:
@@ -98,9 +111,7 @@ class ImportView(QFrame):
                                        tile_infos=self.model.get_import_binary_match(),
                                        title="Media Files with Binary Match in Database")
             self.inner_layout.addWidget(self.binary_match_block)
-
-            for tile in self.binary_match_block.picture_block.img_tiles:
-                tile.clickable_image.clicked.connect(general_wrapper(func=self._tile_clicked, tile=tile))
+            self.tiles.extend(self.binary_match_block.picture_block.img_tiles)
 
         # Add block for binary match in replaced
         if len(self.model.get_import_binary_match_replaced()) > 0:
@@ -108,9 +119,7 @@ class ImportView(QFrame):
                                        tile_infos=self.model.get_import_binary_match_replaced(),
                                        title="Media Files with Binary Match in the known Duplicates")
             self.inner_layout.addWidget(self.binary_match_replaced_block)
-
-            for tile in self.binary_match_replaced_block.picture_block.img_tiles:
-                tile.clickable_image.clicked.connect(general_wrapper(func=self._tile_clicked, tile=tile))
+            self.tiles.extend(self.binary_match_replaced_block.picture_block.img_tiles)
 
         # Add block for binary match in trash
         if len(self.model.get_import_binary_match_trash()) > 0:
@@ -118,9 +127,7 @@ class ImportView(QFrame):
                                        tile_infos=self.model.get_import_binary_match_trash(),
                                        title="Media Files with Binary Match in the Trash")
             self.inner_layout.addWidget(self.binary_match_trash_block)
-
-            for tile in self.binary_match_trash_block.picture_block.img_tiles:
-                tile.clickable_image.clicked.connect(general_wrapper(func=self._tile_clicked, tile=tile))
+            self.tiles.extend(self.binary_match_trash_block.picture_block.img_tiles)
 
         # Add block for hash match in replaced
         if len(self.model.get_import_hash_match_replaced()) > 0:
@@ -128,9 +135,7 @@ class ImportView(QFrame):
                                         tile_infos=self.model.get_import_hash_match_replaced(),
                                         title="Media Files with matching hash and filesize in the known Duplicates")
             self.inner_layout.addWidget(self.hash_match_replaced_block)
-
-            for tile in self.hash_match_replaced_block.picture_block.img_tiles:
-                tile.clickable_image.clicked.connect(general_wrapper(func=self._tile_clicked, tile=tile))
+            self.tiles.extend(self.hash_match_replaced_block.picture_block.img_tiles)
 
         # Add block for hash match in trash
         if len(self.model.get_import_hash_match_trash()) > 0:
@@ -138,9 +143,7 @@ class ImportView(QFrame):
                                         tile_infos=self.model.get_import_hash_match_trash(),
                                         title="Media Files with matching hash and filesize in the Trash")
             self.inner_layout.addWidget(self.hash_match_trash_block)
-
-            for tile in self.hash_match_trash_block.picture_block.img_tiles:
-                tile.clickable_image.clicked.connect(general_wrapper(func=self._tile_clicked, tile=tile))
+            self.tiles.extend(self.hash_match_trash_block.picture_block.img_tiles)
 
         # Add block for not allowed files.
         if len(self.model.get_import_not_allowed()) > 0:
@@ -149,10 +152,10 @@ class ImportView(QFrame):
                                         title="Media Files not allowed to be imported based on file extension")
             self.not_allowed_block.import_checkbox.setDisabled(True)
             self.inner_layout.addWidget(self.not_allowed_block)
+            self.tiles.extend(self.not_allowed_block.picture_block.img_tiles)
 
-            for tile in self.not_allowed_block.picture_block.img_tiles:
-                tile.clickable_image.clicked.connect(general_wrapper(func=self._tile_clicked, tile=tile))
-
+        for tile in self.tiles:
+            tile.clickable_image.clicked.connect(general_wrapper(func=self._tile_clicked, tile=tile))
     def update_name(self):
         """
         Updates the name of the current import. Fetch it from the database.
