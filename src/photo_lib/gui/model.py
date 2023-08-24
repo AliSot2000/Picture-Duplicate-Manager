@@ -8,8 +8,9 @@ import multiprocessing as mp
 from multiprocessing.connection import Connection
 from dataclasses import dataclass
 
+from photo_lib.metadataagregator import MetadataAggregator
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo, MatchTypes, FullImportTableEntry
-from photo_lib.enum import SourceTable, GUICommandTypes
+from photo_lib.custom_enum import SourceTable, GUICommandTypes
 from photo_lib.data_objects import FullDatabaseEntry, FullReplacedEntry, ImportTableEntry
 from photo_lib.metadataagregator import key_lookup_dir
 
@@ -44,10 +45,11 @@ class NoDbException(Exception):
     pass
 
 
-def import_folder_process(tbl: str, folder_path: str, com: Connection, db_path: str, recomp_metadata: bool = False,
-                          allowed_file_types: set = None):
+def import_folder_process(tbl: str, folder_path: str, com: Connection, db_path: str, exiftool_location: str,
+                          recomp_metadata: bool = False, allowed_file_types: set = None):
     """
     Function to be spawned in a separate process. This will import the folder into the database.
+    :param exiftool_location: Needed for Metadata Aggregator
     :param tbl: table name to use for import
     :param folder_path: path of folder to import
     :param com: one end of a mulitprocessing.Pipe
@@ -57,6 +59,7 @@ def import_folder_process(tbl: str, folder_path: str, com: Connection, db_path: 
     :return:
     """
     pdb = PhotoDb(root_dir=db_path)
+    pdb.mda = MetadataAggregator(exiftool_path=exiftool_location)
     pdb.prepare_import(tbl_name=tbl,
                        folder_path=folder_path,
                        recompute_metadata=recomp_metadata,
@@ -92,7 +95,7 @@ class Model:
 
     # TODO config
     wait_timeout: int = 10
-
+    exiftool_location = "/usr/bin/Image-ExifTool-12.44/exiftool"
 
     def get_default_extensions(self):
         """
