@@ -189,51 +189,6 @@ class RootWindow(QMainWindow):
             self.file_submenu.addAction(self.search_duplicates_action)
             self.file_submenu.addAction(self.open_import_dialog_action)
 
-    def open_import_dialog(self):
-        """
-        Open the import dialog.
-        :return:
-        """
-        # Don't open anything if no db is loaded.
-        if not self.model.db_loaded():
-            return
-
-        while True:
-            modal = PrepareImportDialog(model=self.model)
-            ret_val = modal.exec()
-
-            # Don't proceed if no accept was clicked.
-            if ret_val == QDialog.DialogCode.Rejected:
-                return
-
-            # If the user clicked the close button, don't proceed.
-            assert ret_val == QDialog.DialogCode.Accepted, "Unknown return value from PrepareImportDialog"
-
-            allowed_ext_str = modal.extensions
-            folder_path = modal.folder_label.text()
-            description = modal.description_input.text()
-
-            try:
-                self.model.new_import(folder=folder_path, allowed_ext=allowed_ext_str, description=description)
-                break
-            except Exception as e:
-                error = QMessageBox(QMessageBox.Icon.Critical,
-                                    "Error",
-                                    str(e),
-                                    QMessageBox.StandardButton.Ok)
-                error.exec()
-
-        # Create modal for the import.
-        self.progress_dialog = QProgressDialog("Importing...", "Cancel", 0, 100, self)
-        self.progress_dialog.show()
-        self.progress_dialog.canceled.connect(self.terminate_long_running_process)
-        self.progress_updater = QTimer(self)
-        self.progress_updater.timeout.connect(self.update_progress)
-        self.progress_updater.start(200)
-
-        # Waiting for the thing to stop
-        self.long_running_process_type = LongRunningActions.PrepareImport
-
     def terminate_long_running_process(self):
         """
         If a long-running process is active, terminate it.
@@ -299,96 +254,6 @@ class RootWindow(QMainWindow):
         # Connect the actions
         pass
 
-    def search_duplicates(self):
-        """
-        Search for duplicates in the currently selected database.
-        :return:
-        """
-        modal = TaskSelectModal(model=self.model)
-        ret_val = modal.exec()
-
-        # if the val is 0 -> cancle was clicked.
-        if ret_val == 0:
-            return
-
-        # There may not really be another type of return value.
-        assert ret_val == 1, f"Unknown return value from TaskSelectModal of {ret_val}"
-
-        success, pipe = self.model.search_duplicates()
-
-        if not success:
-            print("No success")
-            return
-
-        if pipe is None:
-            self.open_compare_root()
-            self.compare_root.load_elements()
-            self.model.search_level = None
-
-        else:
-            pass
-            # self.progress_dialog = QProgressDialog("Searching for duplicates...", "Cancel", 0, 0, self)
-            # self.progress_dialog.setWindowModality(2)
-            # self.progress_dialog.setCancelButton(None)
-            # self.progress_dialog.show()
-            #
-            # pipe.progress.connect(self.progress_dialog.setValue)
-            # pipe.finished.connect(self.search_finished)
-
-    def open_datetime_modal(self, media_pane: MediaPane):
-        """
-        Open the datetime modal.
-        :param media_pane: Media pane to modify
-        :return:
-        """
-        datetime_modal = DateTimeModal()
-        datetime_modal.media_pane = media_pane
-        print(media_pane.dbe.key)
-        ret_val = datetime_modal.exec()
-
-        if ret_val == 0 or datetime_modal.triggered_button == ButtonType.CLOSE:
-            return
-
-        assert ret_val == 1 and datetime_modal.triggered_button != ButtonType.NO_BUTTON, \
-            "No button clicked but still accepted."
-
-        # Apply or apply close button called -> apply the changes.
-        assert datetime_modal.triggered_button in [ButtonType.APPLY, ButtonType.APPLY_CLOSE], \
-            "Unknown button type button should be apply or apply close."
-        try:
-            self.model.try_rename_image(tag=datetime_modal.tag_input.text(), dbe=datetime_modal.media_pane.dbe,
-                                        custom_datetime=datetime_modal.custom_datetime_input.text())
-        except Exception as e:
-            # self.error_popup.error_msg = f"Failed to update Datetime:\n {e}"
-            # self.error_popup.open()
-            print(f"Failed to update Datetime:\n {e}")
-
-        media_pane.update_file_naming()
-
-        if datetime_modal.triggered_button == ButtonType.APPLY_CLOSE:
-            self.compare_root.remove_media_pane(datetime_modal.media_pane)
-
-    def open_folder_select_modal(self):
-        """
-        Open the folder select modal.
-        :return:
-        """
-        folder_select = FolderSelectModal()
-        res = folder_select.exec()
-
-        if res == QDialog.DialogCode.Accepted:
-            self.model.set_folder_path(folder_select.selectedFiles()[0])
-
-            if self.model.db_loaded():
-                self.compare_root.remove_all_elements()
-                self.compare_root.load_elements()
-                self.open_compare_root()
-
-            else:
-                msg_bx = QMessageBox(QMessageBox.Icon.Critical, "Error", "The Folder you selected was not a valid database", QMessageBox.StandardButton.Ok)
-                msg_bx.exec()
-                self.stacked_layout.setCurrentWidget(self.messageg_label)
-
     def set_view(self, target: Views):
         """
         Set the view to the target.
@@ -417,9 +282,6 @@ class RootWindow(QMainWindow):
         self.build_view_submenu()
         self.build_file_menu()
 
-
-
-
     # ------------------------------------------------------------------------------------------------------------------
     # Opening handler functions - handle the opening of a specific view and add the associated submenus.
     # ------------------------------------------------------------------------------------------------------------------
@@ -437,7 +299,7 @@ class RootWindow(QMainWindow):
 
     def open_compare_root(self):
         """
-        Open the compare root.
+        Open the compare root. Add Associated Actions to the menus.
         :return:
         """
         menu_bar = self.menuBar()
@@ -461,7 +323,7 @@ class RootWindow(QMainWindow):
 
     def open_image_in_full_screen(self, path: str):
         """
-        Open an image in full screen mode.
+        Open an image in full screen mode. Add Additional Submenu
         :param path: path to the image
         :return:
         """
@@ -526,3 +388,142 @@ class RootWindow(QMainWindow):
         :return:
         """
         pass
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Modal Actions - Open the modals and performs action afterwards.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def open_folder_select_modal(self):
+        """
+        Open the folder select modal.
+        :return:
+        """
+        folder_select = FolderSelectModal()
+        res = folder_select.exec()
+
+        if res == QDialog.DialogCode.Accepted:
+            self.model.set_folder_path(folder_select.selectedFiles()[0])
+
+            if self.model.db_loaded():
+                self.compare_root.remove_all_elements()
+                self.compare_root.load_elements()
+                self.open_compare_root()
+
+            else:
+                msg_bx = QMessageBox(QMessageBox.Icon.Critical, "Error", "The Folder you selected was not a valid database", QMessageBox.StandardButton.Ok)
+                msg_bx.exec()
+                self.stacked_layout.setCurrentWidget(self.messageg_label)
+
+    def open_datetime_modal(self, media_pane: MediaPane):
+        """
+        Open the datetime modal.
+        :param media_pane: Media pane to modify
+        :return:
+        """
+        datetime_modal = DateTimeModal()
+        datetime_modal.media_pane = media_pane
+        print(media_pane.dbe.key)
+        ret_val = datetime_modal.exec()
+
+        if ret_val == 0 or datetime_modal.triggered_button == ButtonType.CLOSE:
+            return
+
+        assert ret_val == 1 and datetime_modal.triggered_button != ButtonType.NO_BUTTON, \
+            "No button clicked but still accepted."
+
+        # Apply or apply close button called -> apply the changes.
+        assert datetime_modal.triggered_button in [ButtonType.APPLY, ButtonType.APPLY_CLOSE], \
+            "Unknown button type button should be apply or apply close."
+        try:
+            self.model.try_rename_image(tag=datetime_modal.tag_input.text(), dbe=datetime_modal.media_pane.dbe,
+                                        custom_datetime=datetime_modal.custom_datetime_input.text())
+        except Exception as e:
+            # self.error_popup.error_msg = f"Failed to update Datetime:\n {e}"
+            # self.error_popup.open()
+            print(f"Failed to update Datetime:\n {e}")
+
+        media_pane.update_file_naming()
+
+        if datetime_modal.triggered_button == ButtonType.APPLY_CLOSE:
+            self.compare_root.remove_media_pane(datetime_modal.media_pane)
+
+    def open_import_dialog(self):
+        """
+        Open the import dialog.
+        :return:
+        """
+        # Don't open anything if no db is loaded.
+        if not self.model.db_loaded():
+            return
+
+        while True:
+            modal = PrepareImportDialog(model=self.model)
+            ret_val = modal.exec()
+
+            # Don't proceed if no accept was clicked.
+            if ret_val == QDialog.DialogCode.Rejected:
+                return
+
+            # If the user clicked the close button, don't proceed.
+            assert ret_val == QDialog.DialogCode.Accepted, "Unknown return value from PrepareImportDialog"
+
+            allowed_ext_str = modal.extensions
+            folder_path = modal.folder_label.text()
+            description = modal.description_input.text()
+
+            try:
+                self.model.new_import(folder=folder_path, allowed_ext=allowed_ext_str, description=description)
+                break
+            except Exception as e:
+                error = QMessageBox(QMessageBox.Icon.Critical,
+                                    "Error",
+                                    str(e),
+                                    QMessageBox.StandardButton.Ok)
+                error.exec()
+
+        # Create modal for the import.
+        self.progress_dialog = QProgressDialog("Importing...", "Cancel", 0, 100, self)
+        self.progress_dialog.show()
+        self.progress_dialog.canceled.connect(self.terminate_long_running_process)
+        self.progress_updater = QTimer(self)
+        self.progress_updater.timeout.connect(self.update_progress)
+        self.progress_updater.start(200)
+
+        # Waiting for the thing to stop
+        self.long_running_process_type = LongRunningActions.PrepareImport
+
+    def search_duplicates(self):
+        """
+        Search for duplicates in the currently selected database.
+        :return:
+        """
+        modal = TaskSelectModal(model=self.model)
+        ret_val = modal.exec()
+
+        # if the val is 0 -> cancle was clicked.
+        if ret_val == 0:
+            return
+
+        # There may not really be another type of return value.
+        assert ret_val == 1, f"Unknown return value from TaskSelectModal of {ret_val}"
+
+        success, pipe = self.model.search_duplicates()
+
+        if not success:
+            print("No success")
+            return
+
+        if pipe is None:
+            self.open_compare_root()
+            self.compare_root.load_elements()
+            self.model.search_level = None
+
+        else:
+            pass
+            # self.progress_dialog = QProgressDialog("Searching for duplicates...", "Cancel", 0, 0, self)
+            # self.progress_dialog.setWindowModality(2)
+            # self.progress_dialog.setCancelButton(None)
+            # self.progress_dialog.show()
+            #
+            # pipe.progress.connect(self.progress_dialog.setValue)
+            # pipe.finished.connect(self.search_finished)
