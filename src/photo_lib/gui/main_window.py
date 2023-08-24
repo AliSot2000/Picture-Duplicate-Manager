@@ -6,11 +6,12 @@ from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.zoom_image import ZoomImage
 from photo_lib.gui.big_screen import BigScreen
-from photo_lib.gui.import_view import ImportView
+from photo_lib.gui.import_tiles_view import ImportView
 from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType, PrepareImportDialog
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.import_table_view import ImportTableList
-from photo_lib.data_objects import ProcessComType, Progress, Views, LongRunningActions
+from photo_lib.gui.image_tile import ImageTile
+from photo_lib.data_objects import ProcessComType, Progress, Views, LongRunningActions, TileInfo
 from typing import Union
 
 
