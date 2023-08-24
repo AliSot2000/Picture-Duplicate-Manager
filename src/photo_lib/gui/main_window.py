@@ -336,6 +336,8 @@ class RootWindow(QMainWindow):
         :return:
         """
         self.build_import_submenu()
+        self.import_big_screen.build_all()
+        self.menuBar().addMenu(self.import_big_screen.menu)
         self.set_view(Views.Import_Big_Screen_View)
 
     def open_import_tiles(self):
@@ -459,6 +461,10 @@ class RootWindow(QMainWindow):
         if self.import_submenu is not None:
             self.menuBar().removeAction(self.import_submenu.menuAction())
             self.import_submenu = None
+
+        if self.import_big_screen.menu is not None:
+            self.menuBar().removeAction(self.import_big_screen.menu.menuAction())
+            self.import_big_screen.menu = None
 
     def close_import_tiles(self):
         """
