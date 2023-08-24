@@ -625,5 +625,20 @@ class RootWindow(QMainWindow):
 
         if self.model.db_loaded():
             self.file_submenu.addSeparator()
-            self.file_submenu.addAction(self.search_duplicates_action)
-            self.file_submenu.addAction(self.open_import_dialog_action)
+            self.file_submenu.addAction(self.search_duplicates_modal_action)
+            if self.current_view != Views.Import_Big_Screen_View and self.current_view != Views.Import_Tile_View:
+                self.file_submenu.addAction(self.open_import_dialog_action)
+
+    def build_import_submenu(self):
+        """
+        Build the import submenu
+        :return:
+        """
+        if self.import_submenu is None:
+            self.import_submenu = self.menuBar().addMenu("&Import")
+            self.import_submenu.addAction(self.close_import_action)
+            self.import_submenu.addAction(self.change_allowed_extensions_modal_action)
+            # self.import_submenu.addAction(self.file)
+            self.import_submenu.addSeparator()
+            self.import_submenu.addAction(self.import_selected_action)
+            self.import_submenu.addAction(self.import_all_action)
