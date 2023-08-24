@@ -51,7 +51,9 @@ class RootWindow(QMainWindow):
 
     no_db_selected: QLabel = None
 
-    __current_view: Views = None
+    @property
+    def current_view(self):
+        return self.__current_view
 
     def __init__(self):
         super().__init__()
