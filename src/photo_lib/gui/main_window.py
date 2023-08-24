@@ -629,8 +629,13 @@ class RootWindow(QMainWindow):
 
         # We have an import in progress, we cannot open anything else.
         if self.current_view == Views.Import_Tile_View or self.current_view == Views.Import_Big_Screen_View:
-            pass
+            self.view_submenu = self.menuBar().addMenu("&View")
+            if self.current_view != Views.Import_Tile_View:
+                self.view_submenu.addAction(self.open_import_tile_view_action)
+            if self.current_view != Views.Import_Big_Screen_View:
+                self.view_submenu.addAction(self.open_import_big_screen_action)
 
+        # Add the other views.
         else:
             self.view_submenu = self.menuBar().addMenu("&View")
             if self.current_view != Views.Import_Tables_View:
