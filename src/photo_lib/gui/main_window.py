@@ -199,11 +199,19 @@ class RootWindow(QMainWindow):
         # Uses the current import table name to build the tiles.
         self.model.build_tiles_from_table()
         self.import_tiles.build_import_view()
+        self.import_big_screen.build_all()
+        self.import_tiles.image_clicked.connect(self.import_tile_click)
+        self.open_import_tiles()
 
-        # Add Submenu
-        # Build Layouts
-        # Connect the actions
-        pass
+    def import_tile_click(self, tile: ImageTile):
+        """
+        When a tile is clicked, we set that tile as active and we switch to the big screen view.
+        :param tile: tile that was clicked to open image in big screen.
+        :return:
+        """
+        self.import_big_screen.set_tile(tile.tile_info)
+        self.open_import_big_screen()
+
 
     def finish_import(self):
         pass
