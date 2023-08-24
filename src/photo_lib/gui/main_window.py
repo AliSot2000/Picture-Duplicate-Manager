@@ -50,22 +50,22 @@ class RootWindow(QMainWindow):
     import_submenu: Union[None, QMenu] = None
 
     # Actions
-    close_full_screen_image_action: QAction
-    import_selected_action: QAction
-    import_all_action: QAction
-    close_import_action: QAction
+    close_full_screen_image_action: QAction = None
+    import_selected_action: QAction = None
+    import_all_action: QAction = None
+    close_import_action: QAction = None
 
     # View actions
-    open_import_tables_view_action: QAction
-    open_compare_view_action: QAction
-    open_import_tile_view_action: QAction
-    open_import_big_screen_action: QAction
+    open_import_tables_view_action: QAction = None
+    open_compare_view_action: QAction = None
+    open_import_tile_view_action: QAction = None
+    open_import_big_screen_action: QAction = None
 
     # Modal actions
-    open_import_dialog_action: QAction
-    open_folder_select_modal_action: QAction
-    search_duplicates_modal_action: QAction
-    change_allowed_extensions_modal_action: QAction
+    open_import_dialog_action: QAction = None
+    open_folder_select_modal_action: QAction = None
+    search_duplicates_modal_action: QAction = None
+    change_allowed_extensions_modal_action: QAction = None
 
     # Progress Dialog
     progress_dialog: Union[QProgressDialog, None] = None
@@ -114,18 +114,30 @@ class RootWindow(QMainWindow):
         # Misc setup of the window
         self.setWindowTitle("Picture Duplicate Manager")
 
+        self.__configure_actions()
+        self.build_file_menu()
+        self.build_view_submenu()
+
+        # Open the Folder Select Modal
+        self.open_folder_select_modal()
+
+    def __configure_actions(self):
+        """
+        Configure the actions for the menus.
+        :return:
+        """
         # Actions
         self.close_full_screen_image_action = QAction("&Close Image", self)
         self.close_full_screen_image_action.triggered.connect(self.open_compare_root)
         self.close_full_screen_image_action.setToolTip("Close full screen view of image")
         self.close_full_screen_image_action.setShortcut(QKeySequence(Qt.Key.Key_Escape))
 
-        self.import_selected_action = QAction("Import &Selected ",self)
+        self.import_selected_action = QAction("Import &Selected ", self)
         self.import_selected_action.triggered.connect(self.import_selected)
         self.import_selected_action.setToolTip("Import the selected images into the database")
         self.import_selected_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_I))
 
-        self.import_all_action = QAction("Import &All",self)
+        self.import_all_action = QAction("Import &All", self)
         self.import_all_action.triggered.connect(self.import_all)
         self.import_all_action.setToolTip("Import all images into the database regardless of previous occurrence")
         self.import_all_action.setShortcut(
@@ -139,7 +151,8 @@ class RootWindow(QMainWindow):
         # Modal Actions
         self.search_duplicates_modal_action = QAction("&Search Duplicates", self)
         self.search_duplicates_modal_action.triggered.connect(self.search_duplicates)
-        self.search_duplicates_modal_action.setToolTip("Start search for duplicates in the currently selected database.")
+        self.search_duplicates_modal_action.setToolTip(
+            "Start search for duplicates in the currently selected database.")
 
         self.open_folder_select_modal_action = QAction("&Open Database Folder", self)
         self.open_folder_select_modal_action.triggered.connect(self.open_folder_select_modal)
@@ -159,7 +172,8 @@ class RootWindow(QMainWindow):
         self.open_import_tables_view_action = QAction("Import &Tables", self)
         self.open_import_tables_view_action.triggered.connect(self.open_import_tables_view)
         self.open_import_tables_view_action.setToolTip("Open the import tables view.")
-        self.open_import_tables_view_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_4))
+        self.open_import_tables_view_action.setShortcut(
+            QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_4))
 
         self.open_compare_view_action = QAction("&Compare View", self)
         self.open_compare_view_action.triggered.connect(self.open_compare_root)
@@ -176,11 +190,6 @@ class RootWindow(QMainWindow):
         self.open_import_big_screen_action.setToolTip("Open the import big screen view.")
         self.open_import_big_screen_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_2))
 
-        self.build_file_menu()
-        self.build_view_submenu()
-
-        # Open the Folder Select Modal
-        self.open_folder_select_modal()
 
     def build_import_views(self):
         """
