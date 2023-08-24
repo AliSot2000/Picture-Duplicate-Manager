@@ -989,6 +989,15 @@ class PhotoDb:
                         f"imported = 1 "
                         f"WHERE key == {update_it_key}")
 
+    def import_selected_keys(self, keys: List[int], tbl_name: str):
+        """
+        Given a list of keys, import those keys into the images table
+
+        :param keys: list of integer keys in import table
+        :param tbl_name: name of import table to import from
+        """
+        raise NotImplementedError("Not yet implemented")
+
     def import_table_message(self, tbl_name: str) -> Union[None, str]:
         """
         Return the table description of the given import table. If the table does not exist, return None.
