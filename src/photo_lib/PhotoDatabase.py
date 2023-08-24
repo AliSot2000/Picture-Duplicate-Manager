@@ -532,7 +532,7 @@ class PhotoDb:
                 if com.poll():
                     msg = com.recv()
 
-                    if msg.type == GUICommandTypes.QUIT:
+                    if msg == GUICommandTypes.QUIT:
                         break
                 com.send(Progress(type=ProcessComType.CURRENT, value=i))
 
@@ -657,7 +657,7 @@ class PhotoDb:
             if com is not None:
                 if com.poll():
                     msg = com.recv()
-                    if msg.type == GUICommandTypes.QUIT:
+                    if msg == GUICommandTypes.QUIT:
                         break
                 com.send(Progress(type=ProcessComType.CURRENT, value=i))
 
