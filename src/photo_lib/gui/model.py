@@ -738,3 +738,20 @@ class Model:
         abrt = self.abort
         self.abort = None
         return abrt
+
+    def import_block(self, m: List[MatchTypes]):
+        """
+        Import a block of images
+        :param m: List of match types that should be imported
+        :return:
+        """
+        raise NotImplementedError("Not implemented yet")
+
+    def import_key_list(self, l: List[int]):
+        """
+        Given a List of integers, imports those form the current import table
+        :param l: list of int.
+        :return:
+        """
+        self.pdb.import_selected_keys(l, self.current_import_table_name)
+        raise NotImplementedError("Not implemented yet")
