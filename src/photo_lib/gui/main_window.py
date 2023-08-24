@@ -196,6 +196,15 @@ class RootWindow(QMainWindow):
         # Connect the actions
         pass
 
+    def finish_import(self):
+        pass
+
+    def import_selected(self):
+        pass
+
+    def import_all(self):
+        pass
+
     # ------------------------------------------------------------------------------------------------------------------
     # Long-running process functions - functions to call during long-running processes.
     # ------------------------------------------------------------------------------------------------------------------
