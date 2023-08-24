@@ -497,6 +497,8 @@ class RootWindow(QMainWindow):
 
     def build_view_submenu(self):
         """
+        Needs to be called in set_view AFTER the __current_view is assigned.
+
         Build the view submenu - Only add the possible views.
         :return:
         """
@@ -525,6 +527,8 @@ class RootWindow(QMainWindow):
 
     def build_file_menu(self):
         """
+        Needs to be called in set_view AFTER the __current_view is assigned.
+
         Build the file menu.
         :return:
         """
