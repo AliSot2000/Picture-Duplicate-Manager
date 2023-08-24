@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QWidget, QScrollArea, QSplitter, QApplication, QMainWindow, QMenu
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImageReader
 from photo_lib.gui.model import Model
 from photo_lib.gui.carousell import Carousel
@@ -14,6 +14,7 @@ class BigScreen(QSplitter):
     carousel: Carousel = None
     image_viewer: ImportImageView = None
     menu: Union[None, QMenu] = None
+    update_timer: Union[None, QTimer] = None
 
     def __init__(self, model: Model):
         super().__init__(Qt.Orientation.Vertical)
@@ -30,6 +31,17 @@ class BigScreen(QSplitter):
         self.setStretchFactor(1, 0)
 
         self.carousel.image_changed.connect(self.update_image_view)
+        self.update_timer = QTimer()
+        self.update_timer.setInterval(100)
+        self.update_timer.setSingleShot(True)
+        self.update_timer.timeout.connect(lambda : self.carousel.vis_from_slider(0))
+        self.update_timer.timeout.connect(self.timer_clean_up)
+        self.update_timer.start()
+
+    def timer_clean_up(self):
+        self.update_timer.deleteLater()
+        self.update_timer = None
+        print("Timer destroyed")
 
     def build_menu(self):
         self.menu = QMenu("Options")
