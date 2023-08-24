@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QHBoxLayout, QFrame, QLabel
+from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QGridLayout, QFrame, QLabel
 from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent, QWheelEvent
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer
 import sys
@@ -30,7 +30,7 @@ class Carousel(QScrollArea):
 
 
     child_dummy: QWidget
-    h_layout: QHBoxLayout
+    g_layout: QGridLayout
     images: List[ClickableTile]
     current_select: ClickableTile = None
     image_changed = pyqtSignal()
@@ -56,8 +56,8 @@ class Carousel(QScrollArea):
         self.child_dummy = QWidget()
         self.setWidget(self.child_dummy)
 
-        self.h_layout = QHBoxLayout()
-        self.child_dummy.setLayout(self.h_layout)
+        self.g_layout = QGridLayout()
+        self.child_dummy.setLayout(self.g_layout)
         self.vis_from_slider(0)
 
         self.horizontalScrollBar().valueChanged.connect(self.schedule_update_load)
@@ -73,12 +73,17 @@ class Carousel(QScrollArea):
         :param target:
         :return:
         """
-        # Fetch all tiles
+        # Empty layout first.
+        while self.g_layout.count() > 0:
+            self.g_layout.takeAt(0).widget().deleteLater()
+
+        self.images = []
         tiles = self.model.tile_infos
         target_i = None
 
+        # Fetch all tiles
         for i in range(len(tiles)):
-        # for i in range(2):
+            # for i in range(2):
             # Get info
             tile = tiles[i]
 
@@ -92,7 +97,8 @@ class Carousel(QScrollArea):
             img.clicked.connect(image_wrapper(img, self.set_image))
             img.image_loaded = False
             self.images.append(img)
-            self.h_layout.addWidget(img)
+            self.g_layout.addLayout(img.layout(), 0, i)
+            self.g_layout.setColumnStretch(i, 1)
 
             # Check for target, if the keys match keep track of the image
             if target is not None and target.key == tile.key:
