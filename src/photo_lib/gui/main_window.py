@@ -85,6 +85,10 @@ class RootWindow(QMainWindow):
         self.no_db_selected.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.no_db_selected.setStyleSheet(f"background: rgb(255, 200, 200); font-size: 20px;")
 
+        self.import_tiles = ImportView(model=self.model)
+        self.import_big_screen = BigScreen(model=self.model)
+        self.import_table_list = ImportTableList(model=self.model)
+
         # TODO Need session storage for databases.
         # Top down adding of widgets and layouts
         self.setCentralWidget(self.dummy_center)
@@ -97,6 +101,7 @@ class RootWindow(QMainWindow):
         self.stacked_layout.setCurrentWidget(self.compare_root)
         self.stacked_layout.addWidget(self.no_db_selected)
         self.stacked_layout.setCurrentWidget(self.no_db_selected)
+        self.stacked_layout.addWidget(self.import_table_list)
         self.__current_view = Views.Message_Label
 
         # Connecting the buttons of the modals
