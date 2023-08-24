@@ -81,6 +81,7 @@ class ImportTableList(QFrame):
         """
         self.model.delete_import_table(entry.table_name)
         del_done = False
+        w = []
 
         # Reusing the widgets
         for i in range(len(self.entry_widgets)):
@@ -94,6 +95,8 @@ class ImportTableList(QFrame):
                 del_done = True
                 continue
 
+            # Needs to be placed here so we don't capture the cur_entry if it is the one we want to delete.
+            w.append(cur_entry)
             # Delete done, move all widgets up by one.
             if del_done:
                 self.g_layout.addWidget(cur_entry.root_path, i, 0)
@@ -101,6 +104,9 @@ class ImportTableList(QFrame):
                 self.g_layout.addWidget(cur_entry.delete_btn, i, 2)
                 self.g_layout.addWidget(cur_entry.change_desc_btn, i, 3)
 
+        # Need to update entry widget and entries
+        self.entry_widgets = w
+        self.entries.remove(entry)
         if len(self.entry_widgets) == 0:
             self.build_table()
 
@@ -153,8 +159,12 @@ class ImportTableList(QFrame):
             self.g_layout.takeAt(0).widget().deleteLater()
 
         # Add Headers
-        self.g_layout.addWidget(QLabel("Root Path"), 0, 0)
-        self.g_layout.addWidget(QLabel("Description"), 0, 1)
+        r = QLabel("Root Path")
+        r.setFixedHeight(20)
+        d = QLabel("Description")
+        d.setFixedHeight(20)
+        self.g_layout.addWidget(r, 0, 0)
+        self.g_layout.addWidget(d, 0, 1)
 
         # Add all entries
         self.entry_widgets = []
