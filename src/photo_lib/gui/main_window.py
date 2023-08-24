@@ -49,7 +49,6 @@ class RootWindow(QMainWindow):
     full_screen_image_menu: Union[None, QMenu] = None
 
     # Actions
-    search_duplicates_action: QAction
     close_full_screen_image_action: QAction
 
     # View actions
@@ -59,6 +58,8 @@ class RootWindow(QMainWindow):
     # Modal actions
     open_import_dialog_action: QAction
     open_folder_select_modal_action: QAction
+    search_duplicates_modal_action: QAction
+    change_allowed_extensions_modal_action: QAction
 
     # Progress Dialog
     progress_dialog: Union[QProgressDialog, None] = None

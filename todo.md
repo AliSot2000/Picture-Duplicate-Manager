@@ -31,3 +31,10 @@
 
 # Features
 - [ ] Allow in import big screen to open the successor if the image is in the replaced table.
+- [ ] In Big Screen, have button to import the currently open image.
+- [ ] Danger zone
+
+# Danger Zone Actions$
+- [ ] Recompute hashes based on File name
+- [ ] Recompute names and paths from file hashes
+- [ ] Reindex the database
