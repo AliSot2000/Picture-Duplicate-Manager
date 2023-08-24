@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QFormLayout, QLineEdit, QPushButton, QLabel, QApplication, QHBoxLayout, \
-    QFileDialog, QDialog
+    QFileDialog, QDialog, QCheckBox
 from PyQt6.QtGui import QKeySequence
 from PyQt6.QtCore import Qt
 import sys
@@ -224,7 +224,14 @@ class TaskSelectModal(QDialog):
 
 
 class FileExtensionDialog(QDialog):
-    def __init__(self, *args, current_type: str,  **kwargs):
+    def __init__(self, *args, current_type: str, metadata: bool = False,  **kwargs):
+        """
+        Set up the QDialog to set the allowed file extensions.
+        :param args: Passed to QDialog
+        :param current_type: list of currently allowed types.
+        :param metadata: we want the check-box for recomputing metadata
+        :param kwargs: Passed to QDialog
+        """
         super().__init__(*args, **kwargs)
         self.setWindowTitle("Set Allowed File Extensions")
 
@@ -247,8 +254,16 @@ class FileExtensionDialog(QDialog):
         self.cancel_button.setShortcut(QKeySequence(Qt.Key.Key_Escape))
         self.cancel_button.clicked.connect(self.reject)
 
+        if metadata:
+            self.metadata_checkbox = QCheckBox("Recompute Metadata")
+            self.metadata_checkbox.setToolTip("Recompute Metadtata of entire import folder instead of newly allowed files.")
+            self.apply_button.setText("Reindex Directory")
+
         self.main_layout.addRow(self.file_ext_label)
         self.main_layout.addRow(self.file_ext_input)
+        if metadata:
+            self.main_layout.addRow(self.metadata_checkbox)
+
         self.main_layout.addRow(self.cancel_button, self.apply_button)
 
 class RenameTableModal(QDialog):
@@ -401,6 +416,8 @@ if __name__ == "__main__":
     # window.show()
     # window = TaskSelectModal(model=Model())
     window = PrepareImportDialog(model=Model())
+    mw = FileExtensionDialog(current_type="jpeg, jpg, png, mov, m4v, mp4, gif, 3gp, dng, heic, heif, webp, tif, tiff", metadata=True)
+    mw.show()
     # window = RenameTableModal("Test")
     window.show()
 
