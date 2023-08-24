@@ -194,6 +194,125 @@ class RootWindow(QMainWindow):
         Open the import dialog.
         :return:
         """
+        # Don't open anything if no db is loaded.
+        if not self.model.db_loaded():
+            return
+
+        while True:
+            modal = PrepareImportDialog(model=self.model)
+            ret_val = modal.exec()
+
+            # Don't proceed if no accept was clicked.
+            if ret_val == QDialog.DialogCode.Rejected:
+                return
+
+            # If the user clicked the close button, don't proceed.
+            assert ret_val == QDialog.DialogCode.Accepted, "Unknown return value from PrepareImportDialog"
+
+            allowed_ext_str = modal.extensions
+            folder_path = modal.folder_label.text()
+            description = modal.description_input.text()
+
+            try:
+                self.model.new_import(folder=folder_path, allowed_ext=allowed_ext_str, description=description)
+                break
+            except Exception as e:
+                error = QMessageBox(QMessageBox.Icon.Critical,
+                                    "Error",
+                                    str(e),
+                                    QMessageBox.StandardButton.Ok)
+                error.exec()
+
+        # Create modal for the import.
+        self.progress_dialog = QProgressDialog("Importing...", "Cancel", 0, 100, self)
+        self.progress_dialog.show()
+        self.progress_dialog.canceled.connect(self.terminate_long_running_process)
+        self.progress_updater = QTimer(self)
+        self.progress_updater.timeout.connect(self.update_progress)
+        self.progress_updater.start(200)
+
+        # Waiting for the thing to stop
+        self.long_running_process_type = LongRunningActions.PrepareImport
+
+    def terminate_long_running_process(self):
+        """
+        If a long-running process is active, terminate it.
+        :return:
+        """
+        if self.model.handle is not None and self.model.handle.is_alive():
+            self.model.stop_process()
+            self.progress_dialog.close()
+
+    def long_process_exit_handler(self):
+        """
+        Handle the different type of long-running processes and open the appropriate view afterwards.
+        :return:
+        """
+        if self.long_running_process_type is None:
+            return
+
+        abort = self.model.recover_long_running_process()
+        self.long_running_process_type = None
+
+        if self.long_running_process_type == LongRunningActions.Import_Images:
+            if abort:
+                self.open_import_tables_view()
+                return
+            self.build_import_views()
+
+    def update_progress(self):
+        """
+        Update progress with the progress dialog.
+        :return:
+        """
+        if self.model.gui_com.poll():
+            msg: Progress = self.model.gui_com.recv()
+
+            # Message, update the message
+            if msg.type == ProcessComType.MESSAGE:
+                self.progress_dialog.setLabelText(msg.value)
+
+            if msg.type == ProcessComType.MAX:
+                self.progress_dialog.setMaximum(msg.value)
+
+            if msg.type == ProcessComType.CURRENT:
+                self.progress_dialog.setValue(msg.value)
+
+            if msg.type == ProcessComType.EXIT:
+                self.progress_dialog.close()
+
+        if not self.model.handle.is_alive():
+            self.progress_updater.stop()
+            self.progress_updater.deleteLater()
+            self.progress_updater = None
+            self.progress_dialog.close()
+
+            self.long_process_exit_handler()
+
+    def build_import_views(self):
+        """
+        Build the import views.
+        :return:
+        """
+        # Add Submenu
+        # Build Layouts
+        # Connect the actions
+        pass
+
+    def open_import_tables_view(self):
+        """
+        Open the import tables view.
+        (Add Submenus here)
+        :return:
+        """
+        self.import_table_list.fetch_tables()
+        self.set_view(Views.Import_Tables_View)
+
+    def close_import_tables_view(self):
+        """
+        Close the import tables view. (Currently empty -  remove submenues here)
+        :return:
+        """
         pass
 
     def search_duplicates(self):
