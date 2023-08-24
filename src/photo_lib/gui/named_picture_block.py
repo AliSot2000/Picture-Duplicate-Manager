@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QCheckBox, QApplication, Q
 from PyQt6 import QtGui
 from PyQt6.QtCore import QSize
 
-from photo_lib.gui.image_tile import ImageTile, ImportImageTile
+from photo_lib.gui.image_tile import ImageTile
 from photo_lib.PhotoDatabase import TileInfo, MatchTypes
 
 
@@ -136,27 +136,6 @@ class PictureBlock(QFrame):
         #     self.v_layout.addStretch()
 
 
-class ImportPictureBlock(PictureBlock):
-    """
-    Picture Block containing ImporImageTiles instead of ImageTiles.
-    """
-
-    def generate_tiles(self, tile_infos: List[TileInfo]):
-        """
-        Given a list of TileInfo objects, generate the tiles. Tiles are here ImportImageTiles.
-
-        :param tile_infos: List of TileInfo objects.
-        :return:
-        """
-        self.img_tiles = []
-
-        for tile_info in tile_infos:
-            tile = ImportImageTile(tile_info)
-            tile.setFixedHeight(self.tile_size)
-            tile.setFixedWidth(self.tile_size)
-            tile.b_layout.setContentsMargins(0, 0, 0, 0)
-            self.img_tiles.append(tile)
-
 class CheckNamedPictureBlock(QFrame):
     import_checkbox: QCheckBox
     match_type: MatchTypes = None
@@ -175,7 +154,7 @@ class CheckNamedPictureBlock(QFrame):
         self.v_layout.addWidget(self.import_checkbox)
         # self.v_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.picture_block = ImportPictureBlock(tile_infos=tile_infos)
+        self.picture_block = PictureBlock(tile_infos=tile_infos)
         self.picture_block.v_layout.setContentsMargins(0, 0, 0, 0)
         # self.picture_block.setFrameStyle(QFrame.Shape.Box)
         self.v_layout.addWidget(self.picture_block)
