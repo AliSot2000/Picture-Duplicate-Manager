@@ -94,6 +94,7 @@ class RootWindow(QMainWindow):
         self.messageg_label.setStyleSheet(f"background: rgb(255, 200, 200); font-size: 20px;")
 
         self.import_tiles = ImportView(model=self.model)
+        # self.import_tiles.outer_layout.setContentsMargins(0, 0, 0, 0)
         self.import_big_screen = BigScreen(model=self.model)
         self.import_table_list = ImportTableList(model=self.model)
 
