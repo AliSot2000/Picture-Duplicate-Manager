@@ -572,6 +572,9 @@ class RootWindow(QMainWindow):
             # pipe.progress.connect(self.progress_dialog.setValue)
             # pipe.finished.connect(self.search_finished)
 
+    def change_allowed_extensions(self):
+        pass
+
     # ------------------------------------------------------------------------------------------------------------------
     # Submenu builder functions - construct the submenus
     # ------------------------------------------------------------------------------------------------------------------
