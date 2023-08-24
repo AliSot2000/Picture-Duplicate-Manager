@@ -2,11 +2,12 @@ from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, Q
 from photo_lib.gui.model import Model
 from photo_lib.gui.compare_widget import CompareRoot
 from photo_lib.gui.zoom_image import ZoomImage
-from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType
+from photo_lib.gui.big_screen import BigScreen
+from photo_lib.gui.import_view import ImportView
+from photo_lib.gui.modals import DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType, PrepareImportDialog
 from photo_lib.gui.media_pane import MediaPane
-from photo_lib.enum import Views
-from PyQt6.QtGui import QAction, QIcon, QKeySequence
-from PyQt6.QtCore import Qt
+from photo_lib.gui.import_table_view import ImportTableList
+from photo_lib.data_objects import ProcessComType, Progress, Views, LongRunningActions
 from typing import Union
 
 
@@ -28,28 +29,39 @@ class RootWindow(QMainWindow):
     dummy_center: QWidget
     stacked_layout: QStackedLayout
 
-    # Fill Screen Image
+    # Views
+    __current_view: Views = None
     full_screen_image: ZoomImage = None
-
-    # Compare stuff
     compare_root: CompareRoot
+    import_table_list: ImportTableList
+    no_db_selected: QLabel = None
+    import_tiles: ImportView
+    import_big_screen: BigScreen
 
+    # Menus and Submenus
     commit_submenu: Union[None, QMenu] = None
     mark_submenu: Union[None, QMenu] = None
     file_submenu: Union[None, QMenu] = None
-
+    view_submenu: Union[None, QMenu] = None
     full_screen_image_menu: Union[None, QMenu] = None
 
     # Actions
-    open_folder_select_action: QAction
     search_duplicates_action: QAction
     close_full_screen_image_action: QAction
 
+    # View actions
+    open_import_tables_view_action: QAction
+    open_compare_view_action: QAction
+
+    # Modal actions
     open_import_dialog_action: QAction
+    open_folder_select_modal_action: QAction
 
+    # Progress Dialog
     progress_dialog: Union[QProgressDialog, None] = None
+    progress_updater: Union[QTimer, None] = None
 
-    no_db_selected: QLabel = None
+    long_running_process_type: Union[LongRunningActions, None] = None
 
     @property
     def current_view(self):
