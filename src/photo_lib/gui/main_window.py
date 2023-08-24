@@ -98,6 +98,8 @@ class RootWindow(QMainWindow):
         # self.import_tiles.outer_layout.setContentsMargins(0, 0, 0, 0)
         self.import_big_screen = BigScreen(model=self.model)
         self.import_table_list = ImportTableList(model=self.model)
+        self.import_tiles.image_clicked.connect(self.import_tile_click)
+
 
         # TODO Need session storage for databases.
         # Top down adding of widgets and layouts
@@ -206,7 +208,6 @@ class RootWindow(QMainWindow):
         self.model.build_tiles_from_table()
         self.import_tiles.build_import_view()
         self.import_big_screen.build_all()
-        self.import_tiles.image_clicked.connect(self.import_tile_click)
         self.open_import_tiles()
 
     def import_tile_click(self, tile: ImageTile):
