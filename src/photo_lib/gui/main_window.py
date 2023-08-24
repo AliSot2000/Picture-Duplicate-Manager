@@ -47,13 +47,19 @@ class RootWindow(QMainWindow):
     file_submenu: Union[None, QMenu] = None
     view_submenu: Union[None, QMenu] = None
     full_screen_image_menu: Union[None, QMenu] = None
+    import_submenu: Union[None, QMenu] = None
 
     # Actions
     close_full_screen_image_action: QAction
+    import_selected_action: QAction
+    import_all_action: QAction
+    close_import_action: QAction
 
     # View actions
     open_import_tables_view_action: QAction
     open_compare_view_action: QAction
+    open_import_tile_view_action: QAction
+    open_import_big_screen_action: QAction
 
     # Modal actions
     open_import_dialog_action: QAction
@@ -105,38 +111,70 @@ class RootWindow(QMainWindow):
         self.stacked_layout.addWidget(self.import_table_list)
         self.__current_view = Views.Message_Label
 
-        # Connecting the buttons of the modals
-
         # Misc setup of the window
         self.setWindowTitle("Picture Duplicate Manager")
 
-        # Open folder select action.
-        self.open_folder_select_modal_action = QAction("&Open Database Folder", self)
-        self.open_folder_select_modal_action.triggered.connect(self.open_folder_select_modal)
-
-        self.search_duplicates_action = QAction("&Search Duplicates", self)
-        self.search_duplicates_action.triggered.connect(self.search_duplicates)
-        self.search_duplicates_action.setToolTip("Start search for duplicates in the currently selected database.")
-
+        # Actions
         self.close_full_screen_image_action = QAction("&Close Image", self)
         self.close_full_screen_image_action.triggered.connect(self.open_compare_root)
         self.close_full_screen_image_action.setToolTip("Close full screen view of image")
         self.close_full_screen_image_action.setShortcut(QKeySequence(Qt.Key.Key_Escape))
+
+        self.import_selected_action = QAction("Import &Selected ",self)
+        self.import_selected_action.triggered.connect(self.import_selected)
+        self.import_selected_action.setToolTip("Import the selected images into the database")
+        self.import_selected_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_I))
+
+        self.import_all_action = QAction("Import &All",self)
+        self.import_all_action.triggered.connect(self.import_all)
+        self.import_all_action.setToolTip("Import all images into the database regardless of previous occurrence")
+        self.import_all_action.setShortcut(
+            QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier | Qt.Key.Key_I))
+
+        self.close_import_action = QAction("&Close Import", self)
+        self.close_import_action.triggered.connect(self.finish_import)
+        self.close_import_action.setToolTip("Finish the current import and close the two import views.")
+        self.close_import_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_X))
+
+        # Modal Actions
+        self.search_duplicates_modal_action = QAction("&Search Duplicates", self)
+        self.search_duplicates_modal_action.triggered.connect(self.search_duplicates)
+        self.search_duplicates_modal_action.setToolTip("Start search for duplicates in the currently selected database.")
+
+        self.open_folder_select_modal_action = QAction("&Open Database Folder", self)
+        self.open_folder_select_modal_action.triggered.connect(self.open_folder_select_modal)
 
         self.open_import_dialog_action = QAction("&Import", self)
         self.open_import_dialog_action.triggered.connect(self.open_import_dialog)
         self.open_import_dialog_action.setToolTip("Open the import dialog.")
         self.open_import_dialog_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_I))
 
+        self.change_allowed_extensions_modal_action = QAction("Change &Allowed Extensions", self)
+        self.change_allowed_extensions_modal_action.triggered.connect(self.change_allowed_extensions)
+        self.change_allowed_extensions_modal_action.setToolTip("Change the allowed extensions for the current import.")
+        self.change_allowed_extensions_modal_action.setShortcut(
+            QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_E))
+
+        # View actions
         self.open_import_tables_view_action = QAction("Import &Tables", self)
         self.open_import_tables_view_action.triggered.connect(self.open_import_tables_view)
         self.open_import_tables_view_action.setToolTip("Open the import tables view.")
-        self.open_import_tables_view_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_3))
+        self.open_import_tables_view_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_4))
 
         self.open_compare_view_action = QAction("&Compare View", self)
         self.open_compare_view_action.triggered.connect(self.open_compare_root)
         self.open_compare_view_action.setToolTip("Open the compare view.")
-        self.open_compare_view_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_1))
+        self.open_compare_view_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_3))
+
+        self.open_import_tile_view_action = QAction("Import &Tiles", self)
+        self.open_import_tile_view_action.triggered.connect(self.open_import_tiles)
+        self.open_import_tile_view_action.setToolTip("Open the import tiles view.")
+        self.open_import_tile_view_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_1))
+
+        self.open_import_big_screen_action = QAction("Import &Big Screen", self)
+        self.open_import_big_screen_action.triggered.connect(self.open_import_big_screen)
+        self.open_import_big_screen_action.setToolTip("Open the import big screen view.")
+        self.open_import_big_screen_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_2))
 
         self.build_file_menu()
         self.build_view_submenu()
