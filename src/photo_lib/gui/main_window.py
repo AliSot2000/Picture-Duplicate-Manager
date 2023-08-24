@@ -143,51 +143,23 @@ class RootWindow(QMainWindow):
         # Open the Folder Select Modal
         self.open_folder_select_modal()
 
-    def build_view_submenu(self):
+    def build_import_views(self):
         """
-        Build the view submenu - Only add the possible views.
+        Build the import views.
         :return:
         """
-        # No view if no database is loaded.
-        if not self.model.db_loaded():
-            if self.view_submenu is not None:
-                self.menuBar().removeAction(self.view_submenu.menuAction())
+        # Uses the current import table name to build the tiles.
+        self.model.build_tiles_from_table()
+        self.import_tiles.build_import_view()
 
-            return
+        # Add Submenu
+        # Build Layouts
+        # Connect the actions
+        pass
 
-        # The database is loaded
-        # We remove the menu and rebuild it to make sure we cannot open the currently open view.
-        if self.view_submenu is not None:
-            self.menuBar().removeAction(self.view_submenu.menuAction())
-
-        # We have an import in progress, we cannot open anything else.
-        if self.current_view == Views.Import_Tile_View or self.current_view == Views.Import_Big_Screen_View:
-            pass
-
-        else:
-            self.view_submenu = self.menuBar().addMenu("&View")
-            if self.current_view != Views.Import_Tables_View:
-                self.view_submenu.addAction(self.open_import_tables_view_action)
-            if self.current_view != Views.Deduplicate_Compare:
-                self.view_submenu.addAction(self.open_compare_view_action)
-
-
-    def build_file_menu(self):
-        """
-        Build the file menu.
-        :return:
-        """
-        if self.file_submenu is not None:
-            self.menuBar().removeAction(self.file_submenu.menuAction())
-            self.file_submenu.deleteLater()
-
-        self.file_submenu = self.menuBar().addMenu("&File")
-        self.file_submenu.addAction(self.open_folder_select_modal_action)
-
-        if self.model.db_loaded():
-            self.file_submenu.addSeparator()
-            self.file_submenu.addAction(self.search_duplicates_action)
-            self.file_submenu.addAction(self.open_import_dialog_action)
+    # ------------------------------------------------------------------------------------------------------------------
+    # Long-running process functions - functions to call during long-running processes.
+    # ------------------------------------------------------------------------------------------------------------------
 
     def terminate_long_running_process(self):
         """
@@ -243,16 +215,6 @@ class RootWindow(QMainWindow):
             self.progress_dialog.close()
 
             self.long_process_exit_handler()
-
-    def build_import_views(self):
-        """
-        Build the import views.
-        :return:
-        """
-        # Add Submenu
-        # Build Layouts
-        # Connect the actions
-        pass
 
     def set_view(self, target: Views):
         """
@@ -527,3 +489,52 @@ class RootWindow(QMainWindow):
             #
             # pipe.progress.connect(self.progress_dialog.setValue)
             # pipe.finished.connect(self.search_finished)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Submenu builder functions - construct the submenus
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def build_view_submenu(self):
+        """
+        Build the view submenu - Only add the possible views.
+        :return:
+        """
+        # No view if no database is loaded.
+        if not self.model.db_loaded():
+            if self.view_submenu is not None:
+                self.menuBar().removeAction(self.view_submenu.menuAction())
+
+            return
+
+        # The database is loaded
+        # We remove the menu and rebuild it to make sure we cannot open the currently open view.
+        if self.view_submenu is not None:
+            self.menuBar().removeAction(self.view_submenu.menuAction())
+
+        # We have an import in progress, we cannot open anything else.
+        if self.current_view == Views.Import_Tile_View or self.current_view == Views.Import_Big_Screen_View:
+            pass
+
+        else:
+            self.view_submenu = self.menuBar().addMenu("&View")
+            if self.current_view != Views.Import_Tables_View:
+                self.view_submenu.addAction(self.open_import_tables_view_action)
+            if self.current_view != Views.Deduplicate_Compare:
+                self.view_submenu.addAction(self.open_compare_view_action)
+
+    def build_file_menu(self):
+        """
+        Build the file menu.
+        :return:
+        """
+        if self.file_submenu is not None:
+            self.menuBar().removeAction(self.file_submenu.menuAction())
+            self.file_submenu.deleteLater()
+
+        self.file_submenu = self.menuBar().addMenu("&File")
+        self.file_submenu.addAction(self.open_folder_select_modal_action)
+
+        if self.model.db_loaded():
+            self.file_submenu.addSeparator()
+            self.file_submenu.addAction(self.search_duplicates_action)
+            self.file_submenu.addAction(self.open_import_dialog_action)
