@@ -1,11 +1,11 @@
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QWidget, QScrollArea, QSplitter, QApplication, QMainWindow
+from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QWidget, QScrollArea, QSplitter, QApplication, QMainWindow, QMenu
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QImageReader
 from photo_lib.gui.model import Model
 from photo_lib.gui.carousell import Carousel
 from photo_lib.gui.image_viewer import ImportImageView
 import sys
-
+from typing import Union
 
 
 class BigScreen(QSplitter):
@@ -13,6 +13,7 @@ class BigScreen(QSplitter):
 
     carousel: Carousel = None
     image_viewer: ImportImageView = None
+    menu: Union[None, QMenu] = None
 
     def __init__(self, model: Model):
         super().__init__(Qt.Orientation.Vertical)
@@ -29,6 +30,11 @@ class BigScreen(QSplitter):
         self.setStretchFactor(1, 0)
 
         self.carousel.image_changed.connect(self.update_image_view)
+
+    def build_menu(self):
+        self.menu = QMenu("Options")
+        self.menu.addAction(self.image_viewer.open_metadata_action)
+        self.menu.addAction(self.image_viewer.open_match_action)
 
     def update_image_view(self):
         """
