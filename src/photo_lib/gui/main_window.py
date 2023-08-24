@@ -278,6 +278,10 @@ class RootWindow(QMainWindow):
             self.close_message_label()
         elif self.__current_view == Views.Import_Tables_View:
             self.close_import_tables_view()
+        elif self.__current_view == Views.Import_Tile_View:
+            self.close_import_tiles()
+        elif self.__current_view == Views.Import_Big_Screen_View:
+            self.close_import_big_screen()
 
         if target == Views.Deduplicate_Compare:
             self.stacked_layout.setCurrentWidget(self.compare_root)
@@ -287,6 +291,10 @@ class RootWindow(QMainWindow):
             self.stacked_layout.setCurrentWidget(self.messageg_label)
         elif target == Views.Import_Tables_View:
             self.stacked_layout.setCurrentWidget(self.import_table_list)
+        elif target == Views.Import_Tile_View:
+            self.stacked_layout.setCurrentWidget(self.import_tiles)
+        elif target == Views.Import_Big_Screen_View:
+            self.stacked_layout.setCurrentWidget(self.import_big_screen)
 
         self.__current_view = target
         self.build_view_submenu()
@@ -295,6 +303,14 @@ class RootWindow(QMainWindow):
     # ------------------------------------------------------------------------------------------------------------------
     # Opening handler functions - handle the opening of a specific view and add the associated submenus.
     # ------------------------------------------------------------------------------------------------------------------
+
+    def open_import_big_screen(self):
+        self.build_import_submenu()
+        self.set_view(Views.Import_Big_Screen_View)
+
+    def open_import_tiles(self):
+        self.build_import_submenu()
+        self.set_view(Views.Import_Tile_View)
 
     def open_message_label(self, text: str = None):
         """
@@ -398,6 +414,24 @@ class RootWindow(QMainWindow):
         :return:
         """
         pass
+
+    def close_import_big_screen(self):
+        """
+        When closing the import big screen view, we need to remove the import submenu from the menubar
+        :return:
+        """
+        if self.import_submenu is not None:
+            self.menuBar().removeAction(self.import_submenu.menuAction())
+            self.import_submenu = None
+
+    def close_import_tiles(self):
+        """
+        When closing the import tiles view, we need to remove the import submenu from the menubar
+        :return:
+        """
+        if self.import_submenu is not None:
+            self.menuBar().removeAction(self.import_submenu.menuAction())
+            self.import_submenu = None
 
     # ------------------------------------------------------------------------------------------------------------------
     # Modal Actions - Open the modals and performs action afterwards.
