@@ -263,8 +263,11 @@ class RootWindow(QMainWindow):
         Update progress with the progress dialog.
         :return:
         """
-        if self.model.gui_com.poll():
-            msg: Progress = self.model.gui_com.recv()
+        while self.model.gui_com.poll():
+            try:
+                msg: Progress = self.model.gui_com.recv()
+            except EOFError:
+                break
 
             # Message, update the message
             if msg.type == ProcessComType.MESSAGE:
