@@ -357,7 +357,6 @@ class RootWindow(QMainWindow):
         :param path: path to the image
         :return:
         """
-        self.build_file_menu()
         if self.full_screen_image is None:
             self.full_screen_image = ZoomImage()
             self.full_screen_image.file_path = path
@@ -445,6 +444,8 @@ class RootWindow(QMainWindow):
             self.close_full_screen_image()
         elif self.__current_view == Views.Message_Label:
             self.close_message_label()
+        elif self.__current_view == Views.Import_Tables_View:
+            self.close_import_tables_view()
 
         if target == Views.Deduplicate_Compare:
             self.stacked_layout.setCurrentWidget(self.compare_root)
@@ -452,15 +453,19 @@ class RootWindow(QMainWindow):
             self.stacked_layout.setCurrentWidget(self.full_screen_image)
         elif target == Views.Message_Label:
             self.stacked_layout.setCurrentWidget(self.no_db_selected)
+        elif target == Views.Import_Tables_View:
+            self.stacked_layout.setCurrentWidget(self.import_table_list)
 
         self.__current_view = target
+        self.build_view_submenu()
+        self.build_file_menu()
+
 
     def open_compare_root(self):
         """
         Open the compare root.
         :return:
         """
-        self.build_file_menu()
         menu_bar = self.menuBar()
         if self.commit_submenu is None:
             self.commit_submenu = menu_bar.addMenu("&Commit")
