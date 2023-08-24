@@ -249,13 +249,14 @@ class RootWindow(QMainWindow):
             return
 
         abort = self.model.recover_long_running_process()
-        self.long_running_process_type = None
-
-        if self.long_running_process_type == LongRunningActions.Import_Images:
-            if abort:
+        if self.long_running_process_type == LongRunningActions.PrepareImport:
+            if abort is not None and abort:
                 self.open_import_tables_view()
-                return
-            self.build_import_views()
+            else:
+                self.build_import_views()
+
+        # We're done now reset the type.
+        self.long_running_process_type = None
 
     def update_progress(self):
         """
