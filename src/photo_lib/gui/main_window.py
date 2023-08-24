@@ -78,7 +78,7 @@ class RootWindow(QMainWindow):
     def current_view(self):
         return self.__current_view
 
-    def __init__(self):
+    def __init__(self, external_setup: bool = False):
         super().__init__()
 
         # Object Instantiation
@@ -111,6 +111,8 @@ class RootWindow(QMainWindow):
         self.stacked_layout.addWidget(self.messageg_label)
         self.stacked_layout.setCurrentWidget(self.messageg_label)
         self.stacked_layout.addWidget(self.import_table_list)
+        self.stacked_layout.addWidget(self.import_tiles)
+        self.stacked_layout.addWidget(self.import_big_screen)
         self.__current_view = Views.Message_Label
 
         # Misc setup of the window
@@ -121,7 +123,8 @@ class RootWindow(QMainWindow):
         self.build_view_submenu()
 
         # Open the Folder Select Modal
-        self.open_folder_select_modal()
+        if not external_setup:
+            self.open_folder_select_modal()
 
     def __configure_actions(self):
         """
