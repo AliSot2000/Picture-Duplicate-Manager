@@ -37,7 +37,7 @@ class RootWindow(QMainWindow):
     full_screen_image: ZoomImage = None
     compare_root: CompareRoot
     import_table_list: ImportTableList
-    no_db_selected: QLabel = None
+    messageg_label: QLabel = None
     import_tiles: ImportView
     import_big_screen: BigScreen
 
@@ -81,9 +81,9 @@ class RootWindow(QMainWindow):
         self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image_in_full_screen,
                                         open_datetime_modal_fn=self.open_datetime_modal)
 
-        self.no_db_selected = QLabel("You have no database selected. Please select a database.")
-        self.no_db_selected.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.no_db_selected.setStyleSheet(f"background: rgb(255, 200, 200); font-size: 20px;")
+        self.messageg_label = QLabel("You have no database selected. \nPlease select a database.")
+        self.messageg_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.messageg_label.setStyleSheet(f"background: rgb(255, 200, 200); font-size: 20px;")
 
         self.import_tiles = ImportView(model=self.model)
         self.import_big_screen = BigScreen(model=self.model)
@@ -99,8 +99,8 @@ class RootWindow(QMainWindow):
 
         self.stacked_layout.addWidget(self.compare_root)
         self.stacked_layout.setCurrentWidget(self.compare_root)
-        self.stacked_layout.addWidget(self.no_db_selected)
-        self.stacked_layout.setCurrentWidget(self.no_db_selected)
+        self.stacked_layout.addWidget(self.messageg_label)
+        self.stacked_layout.setCurrentWidget(self.messageg_label)
         self.stacked_layout.addWidget(self.import_table_list)
         self.__current_view = Views.Message_Label
 
@@ -430,7 +430,7 @@ class RootWindow(QMainWindow):
             else:
                 msg_bx = QMessageBox(QMessageBox.Icon.Critical, "Error", "The Folder you selected was not a valid database", QMessageBox.StandardButton.Ok)
                 msg_bx.exec()
-                self.stacked_layout.setCurrentWidget(self.no_db_selected)
+                self.stacked_layout.setCurrentWidget(self.messageg_label)
 
     def set_view(self, target: Views):
         """
@@ -452,7 +452,7 @@ class RootWindow(QMainWindow):
         elif target == Views.Full_Screen_Image:
             self.stacked_layout.setCurrentWidget(self.full_screen_image)
         elif target == Views.Message_Label:
-            self.stacked_layout.setCurrentWidget(self.no_db_selected)
+            self.stacked_layout.setCurrentWidget(self.messageg_label)
         elif target == Views.Import_Tables_View:
             self.stacked_layout.setCurrentWidget(self.import_table_list)
 
