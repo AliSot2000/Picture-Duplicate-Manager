@@ -215,6 +215,7 @@ class Model:
 
         if os.path.exists(os.path.join(folder_path, ".photos.db")):
             self.pdb = PhotoDb(root_dir=folder_path)
+            self.pdb.mda = MetadataAggregator(exiftool_path=self.exiftool_location)
             self.folder_path = folder_path
 
     @staticmethod
