@@ -37,18 +37,6 @@ class ImageTile(QFrame):
         self.b_layout.setSpacing(5)
         self.setLayout(self.b_layout)
 
-        self.clickable_image.clicked.connect(self.open_image)
-
-    def open_image(self):
-        """
-        Calls the open_image_callback if it is not None. This should open a different view with one image centered and
-        a lot of small windows at the bottom.
-
-        :return:
-        """
-        if self.open_image_callback is not None:
-            self.open_image_callback(self.tile_info)
-
     def heightForWidth(self, a0: int) -> int:
         """
         Override this function to make the image tile square.
@@ -57,17 +45,6 @@ class ImageTile(QFrame):
         :return:
         """
         return self.width()
-
-
-class ImportImageTile(ImageTile):
-    """
-    Image tile with the expressed purpose of being used for importing. It has a variable that indicates if it is marked
-    for import.
-    """
-    marked_for_import: bool = False
-
-    def __init__(self, info: TileInfo):
-        super().__init__(info=info)
 
 
 if __name__ == '__main__':
