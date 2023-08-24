@@ -156,6 +156,7 @@ class ImportView(QFrame):
 
         for tile in self.tiles:
             tile.clickable_image.clicked.connect(general_wrapper(func=self._tile_clicked, tile=tile))
+
     def update_name(self):
         """
         Updates the name of the current import. Fetch it from the database.
