@@ -314,12 +314,22 @@ class RootWindow(QMainWindow):
     # ------------------------------------------------------------------------------------------------------------------
 
     def open_import_big_screen(self):
+        """
+        Open the import big screen view. Add the submenu for imports.
+        :return:
+        """
         self.build_import_submenu()
         self.set_view(Views.Import_Big_Screen_View)
 
     def open_import_tiles(self):
+        """
+        Open the import tiles view. Add the submenu for imports.
+        :return:
+        """
         self.build_import_submenu()
         self.set_view(Views.Import_Tile_View)
+        if self.import_big_screen.carousel.current_select is not None:
+            self.import_tiles.focus_tile_from_tile_info(self.import_big_screen.carousel.current_select.tile_info)
 
     def open_message_label(self, text: str = None):
         """
