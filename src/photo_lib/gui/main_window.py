@@ -127,10 +127,50 @@ class RootWindow(QMainWindow):
         self.open_import_dialog_action.setToolTip("Open the import dialog.")
         self.open_import_dialog_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_I))
 
+        self.open_import_tables_view_action = QAction("Import &Tables", self)
+        self.open_import_tables_view_action.triggered.connect(self.open_import_tables_view)
+        self.open_import_tables_view_action.setToolTip("Open the import tables view.")
+        self.open_import_tables_view_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_3))
+
+        self.open_compare_view_action = QAction("&Compare View", self)
+        self.open_compare_view_action.triggered.connect(self.open_compare_root)
+        self.open_compare_view_action.setToolTip("Open the compare view.")
+        self.open_compare_view_action.setShortcut(QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_1))
+
         self.build_file_menu()
+        self.build_view_submenu()
 
         # Open the Folder Select Modal
         self.open_folder_select_modal()
+
+    def build_view_submenu(self):
+        """
+        Build the view submenu - Only add the possible views.
+        :return:
+        """
+        # No view if no database is loaded.
+        if not self.model.db_loaded():
+            if self.view_submenu is not None:
+                self.menuBar().removeAction(self.view_submenu.menuAction())
+
+            return
+
+        # The database is loaded
+        # We remove the menu and rebuild it to make sure we cannot open the currently open view.
+        if self.view_submenu is not None:
+            self.menuBar().removeAction(self.view_submenu.menuAction())
+
+        # We have an import in progress, we cannot open anything else.
+        if self.current_view == Views.Import_Tile_View or self.current_view == Views.Import_Big_Screen_View:
+            pass
+
+        else:
+            self.view_submenu = self.menuBar().addMenu("&View")
+            if self.current_view != Views.Import_Tables_View:
+                self.view_submenu.addAction(self.open_import_tables_view_action)
+            if self.current_view != Views.Deduplicate_Compare:
+                self.view_submenu.addAction(self.open_compare_view_action)
+
 
     def build_file_menu(self):
         """
