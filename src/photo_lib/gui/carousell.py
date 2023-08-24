@@ -59,7 +59,7 @@ class Carousel(QScrollArea):
         self.vis_from_slider(0)
 
         self.horizontalScrollBar().valueChanged.connect(self.schedule_update_load)
-        self.horizontalScrollBar().sliderMoved.connect(self.vis_from_slider)
+        self.horizontalScrollBar().sliderMoved.connect(self.schedule_update_load)
 
         self.timer = QTimer()
         self.timer.setSingleShot(True)
