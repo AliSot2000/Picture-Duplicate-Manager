@@ -288,7 +288,7 @@ class RootWindow(QMainWindow):
 
     def close_message_label(self):
         """
-        Need to update the menu entries...
+        (Currently empty, use to remove submenus for the message label)
         :return:
         """
         pass
