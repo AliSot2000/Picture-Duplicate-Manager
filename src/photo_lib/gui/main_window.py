@@ -142,7 +142,7 @@ class RootWindow(QMainWindow):
             self.file_submenu.deleteLater()
 
         self.file_submenu = self.menuBar().addMenu("&File")
-        self.file_submenu.addAction(self.open_folder_select_action)
+        self.file_submenu.addAction(self.open_folder_select_modal_action)
 
         if self.model.db_loaded():
             self.file_submenu.addSeparator()
