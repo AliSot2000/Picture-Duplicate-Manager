@@ -35,6 +35,8 @@ class ClickableImage(BaseImage):
         :param value: True if the image should be loaded, False if not.
         :return:
         """
+        if value == self.__image_loaded:
+            return
         self.__image_loaded = value
         if self.__image_loaded and self.file_path is not None:
             self._load_image()
