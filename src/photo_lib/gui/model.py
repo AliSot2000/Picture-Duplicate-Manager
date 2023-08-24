@@ -703,6 +703,7 @@ class Model:
                                                                     self.import_folder,
                                                                     com_b,
                                                                     self.folder_path,
+                                                                    self.exiftool_location,
                                                                     False,
                                                                     allowed_ext_set))
         self.handle.start()
