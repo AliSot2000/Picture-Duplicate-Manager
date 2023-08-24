@@ -110,8 +110,8 @@ class RootWindow(QMainWindow):
         self.setWindowTitle("Picture Duplicate Manager")
 
         # Open folder select action.
-        self.open_folder_select_action = QAction("&Open Database Folder", self)
-        self.open_folder_select_action.triggered.connect(self.open_folder_select_modal)
+        self.open_folder_select_modal_action = QAction("&Open Database Folder", self)
+        self.open_folder_select_modal_action.triggered.connect(self.open_folder_select_modal)
 
         self.search_duplicates_action = QAction("&Search Duplicates", self)
         self.search_duplicates_action.triggered.connect(self.search_duplicates)
