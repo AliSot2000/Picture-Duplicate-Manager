@@ -335,20 +335,21 @@ class RootWindow(QMainWindow):
         Open the import big screen view. Add the submenu for imports.
         :return:
         """
-        self.build_import_submenu()
-        self.import_big_screen.build_all()
-        self.menuBar().addMenu(self.import_big_screen.menu)
+        self.import_big_screen.build_menu()
         self.set_view(Views.Import_Big_Screen_View)
+        self.build_import_submenu()
+        self.menuBar().addMenu(self.import_big_screen.menu)
 
     def open_import_tiles(self):
         """
         Open the import tiles view. Add the submenu for imports.
         :return:
         """
-        self.build_import_submenu()
         self.set_view(Views.Import_Tile_View)
         if self.import_big_screen.carousel.current_select is not None:
             self.import_tiles.focus_tile_from_tile_info(self.import_big_screen.carousel.current_select.tile_info)
+        self.build_import_submenu()
+
 
     def open_message_label(self, text: str = None):
         """
@@ -366,6 +367,7 @@ class RootWindow(QMainWindow):
         Open the compare root. Add Associated Actions to the menus.
         :return:
         """
+        self.set_view(Views.Deduplicate_Compare)
         menu_bar = self.menuBar()
         if self.commit_submenu is None:
             self.commit_submenu = menu_bar.addMenu("&Commit")
@@ -383,7 +385,6 @@ class RootWindow(QMainWindow):
             self.mark_submenu.addAction(self.compare_root.move_left_action)
             self.mark_submenu.addAction(self.compare_root.move_right_action)
 
-        self.set_view(Views.Deduplicate_Compare)
 
     def open_image_in_full_screen(self, path: str):
         """
@@ -391,6 +392,8 @@ class RootWindow(QMainWindow):
         :param path: path to the image
         :return:
         """
+        self.set_view(Views.Full_Screen_Image)
+
         if self.full_screen_image is None:
             self.full_screen_image = ZoomImage()
             self.full_screen_image.file_path = path
@@ -403,7 +406,6 @@ class RootWindow(QMainWindow):
             self.full_screen_image_menu = menu_bar.addMenu("&Image")
             self.full_screen_image_menu.addAction(self.close_full_screen_image_action)
 
-        self.set_view(Views.Full_Screen_Image)
 
     def open_import_tables_view(self):
         """
