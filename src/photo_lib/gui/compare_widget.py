@@ -532,6 +532,9 @@ class CompareRoot(QFrame):
         :param target: the MediaPane which the cursor is now hovering over.
         :return:
         """
+        # TODO shouldn't be necessasry, temporary fix.
+        if self.target_panes is None:
+            return
         if target not in self.target_panes:
             self.target_panes.append(target)
 
