@@ -173,20 +173,36 @@ class CheckNamedPictureBlock(QFrame):
             self.marked_not_for_import()
 
     def set_imported(self):
+        """
+        All files were imported. Set block state to imported.
+        :return:
+        """
         self.import_checkbox.setChecked(True)
         self.import_checkbox.setDisabled(True)
         # Set color green
         self.setStyleSheet("background-color: rgb(200, 255, 200);")
 
     def marked_for_import(self):
+        """
+        Mark the block for import.
+        :return:
+        """
         # Set color yellow
         self.setStyleSheet("background-color: rgb(255, 255, 200);")
 
     def marked_not_for_import(self):
+        """
+        Unmark the block for import.
+        :return:
+        """
         # Set color red
         self.setStyleSheet("background-color: rgb(255, 200, 200);")
 
     def reset_mark(self):
+        """
+        Remove the mark.
+        :return:
+        """
         self.setStyleSheet("")
 
 
