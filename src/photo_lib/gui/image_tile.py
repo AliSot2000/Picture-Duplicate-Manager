@@ -46,6 +46,21 @@ class ImageTile(QFrame):
         """
         return self.width()
 
+    def set_imported(self):
+        # Set color green
+        self.setStyleSheet("background-color: rgb(200, 255, 200);")
+
+    def marked_for_import(self):
+        # Set color yellow
+        self.setStyleSheet("background-color: rgb(255, 255, 200);")
+
+    def marked_not_for_import(self):
+        # Set color red
+        self.setStyleSheet("background-color: rgb(255, 200, 200);")
+
+    def reset_mark(self):
+        self.setStyleSheet("")
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
