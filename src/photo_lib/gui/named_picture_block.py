@@ -257,6 +257,7 @@ class CheckNamedPictureBlock(QFrame):
         """
         if self.__all_imported:
             self.set_imported()
+            return
 
         if self.__global_marking:
             if self.import_checkbox.isChecked():
