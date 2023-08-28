@@ -164,6 +164,87 @@ class CheckNamedPictureBlock(QFrame):
         self.setLayout(self.v_layout)
 
         self.import_checkbox.clicked.connect(self.update_colors)
+        self.determine_global_marking()
+        self.update_colors()
+
+    def determine_global_marking(self):
+        """
+        Determine if all tiles are marked for import or not or are already imported..
+        :return:
+        """
+        self.__global_marking = True
+        initial_state = self.picture_block.img_tiles[0].tile_info.imported
+
+        # Iterate through tiles and check if they are all the same.
+        for tile in self.picture_block.img_tiles:
+            if tile.tile_info.imported != initial_state:
+                self.__global_marking = False
+                return
+
+        self.__all_imported = initial_state
+
+    def tile_for_single_import(self, tile: TileInfo):
+        """
+        A single tile was marked for import.
+        :param tile: tile info that needs to match for update.
+        :return:
+        """
+        assert not tile.imported, "Tile was unmarked for import but was already imported."
+        self.import_checkbox.setTristate(True)
+        self.import_checkbox.setCheckState(Qt.CheckState.PartiallyChecked)
+
+        if self.__global_marking:
+            self.__global_marking = False
+            self.reset_mark()
+            self.update_colors()
+        else:
+            self.update_tile_marking(tile)
+
+    def update_tile_marking(self, tile: TileInfo):
+        """
+        Update the marking of a single tile
+        :param tile: tile info that needs to match for update.
+        :return:
+        """
+        for t in self.picture_block.img_tiles:
+            if t.tile_info == tile:
+                if tile.imported:
+                    t.set_imported()
+                elif tile.mark_for_import:
+                    t.marked_for_import()
+                else:
+                    t.marked_not_for_import()
+
+    def unmarked_tile_for_import(self, tile: TileInfo):
+        """
+        A single tile was unmarked for import. Check if now all tiles are unmarked.
+        :return:
+        """
+        assert not tile.imported, "Tile was unmarked for import but was already imported."
+        org_tile_mark = self.picture_block.img_tiles[0].tile_info.mark_for_import
+        org_tile_imported = self.picture_block.img_tiles[0].tile_info.imported
+
+        # Check if the imported state and the marked state are equivalent access everything.
+        for t in self.picture_block.img_tiles:
+            # As soon as a single tile is out of line, we only update the tile we got the signal from.
+            if org_tile_mark != t.tile_info.mark_for_import:
+                self.update_tile_marking(tile)
+                return
+            if org_tile_imported != t.tile_info.imported:
+                self.update_tile_marking(tile)
+                return
+
+        # Everything is the same, set the global marking.
+        self.__global_marking = True
+
+        # Updating the tri state.
+        self.import_checkbox.setTristate(False)
+        state = Qt.CheckState.Checked if org_tile_mark else Qt.CheckState.Unchecked
+        self.import_checkbox.setCheckState(state)
+
+        # Removing mark on the image tile level.
+        for t in self.picture_block.img_tiles:
+            t.reset_mark()
         self.update_colors()
 
     def update_colors(self):
