@@ -128,7 +128,7 @@ class Model:
 
         if self.pdb is None:
             allowed_files = {".jpeg", ".jpg", ".png", ".mov", ".m4v", ".mp4", '.gif', '.3gp', '.dng', '.heic',
-                                  '.heif', '.webp', '.tif', '.tiff'}
+                             '.heif', '.webp', '.tif', '.tiff'}
         else:
             allowed_files = self.pdb.allowed_files
 
