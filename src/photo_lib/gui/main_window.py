@@ -319,6 +319,15 @@ class RootWindow(QMainWindow):
 
             self.long_process_exit_handler()
 
+    def propagate_check_state(self):
+        """
+        Propagate the check state of the tile to the import_view.
+        :return:
+        """
+        checked_state = self.import_big_screen.image_viewer.metadata_widget.i_file_import_checkbox.isChecked()
+        tile_info = self.import_big_screen.image_viewer.metadata_widget.tile_info
+        self.import_tiles.tile_marked_for_import(tile=tile_info, marked=checked_state)
+
     def set_view(self, target: Views):
         """
         Set the view to the target.
