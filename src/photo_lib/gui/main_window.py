@@ -324,6 +324,10 @@ class RootWindow(QMainWindow):
             else:
                 self.build_import_views()
 
+        elif self.long_running_process_type == LongRunningActions.Import_Images:
+            # Irespective of import, open the import views
+            self.build_import_views()
+
         # We're done now reset the type.
         self.long_running_process_type = None
 
