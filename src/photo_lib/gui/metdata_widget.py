@@ -580,7 +580,7 @@ class DualMetadataWidget(QFrame):
         if self._import_entry.imported:
             self.g_layout.addWidget(self.i_file_import_label, 6, 2)
         else:
-            self.i_file_import_checkbox.setCheckState(Qt.CheckState.Unchecked)
+            # self.i_file_import_checkbox.setCheckState(Qt.CheckState.Unchecked)
             self.g_layout.addWidget(self.i_file_import_checkbox, 6, 2)
 
         self.g_layout.addWidget(self.i_file_match_type_label, 6, 3)
@@ -663,7 +663,7 @@ class DualMetadataWidget(QFrame):
         if not self._import_entry.allowed or self._import_entry.imported:
             self.g_layout.addWidget(self.i_file_import_label, offset, 6)
         else:
-            self.i_file_import_checkbox.setCheckState(Qt.CheckState.Unchecked)
+            # self.i_file_import_checkbox.setCheckState(Qt.CheckState.Unchecked)
             self.g_layout.addWidget(self.i_file_import_checkbox, offset, 6)
 
         # Add the Metadata
