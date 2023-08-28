@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QHBoxLayout, QScrollArea, QPushButton, QLabel, QSplitter
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import pyqtSignal, Qt
 import sys
 from typing import Union, List
 from photo_lib.gui.named_picture_block import CheckNamedPictureBlock
@@ -57,6 +57,64 @@ class ImportView(QFrame):
 
         self.build_import_view()
         self.tiles = []
+
+    def tile_marked_for_import(self, tile: TileInfo, marked: bool):
+        """
+        Function that is called when a tile is marked for import.
+        :param marked: if the tile was set to marked, or unmarked.
+        :param tile: tile that was updated
+        :return:
+        """
+        # Tile newly marked, need to set the import checkbox to half checked.
+        if marked:
+            if not tile.allowed:
+                self.not_allowed_block.tile_for_single_import(tile)
+
+            elif tile.match_type == MatchTypes.No_Match:
+                self.no_match_block.tile_for_single_import(tile)
+
+            elif tile.match_type == MatchTypes.Binary_Match_Images:
+                self.binary_match_block.tile_for_single_import(tile)
+
+            elif tile.match_type == MatchTypes.Binary_Match_Replaced:
+                self.binary_match_replaced_block.tile_for_single_import(tile)
+
+            elif tile.match_type == MatchTypes.Binary_Match_Trash:
+                self.binary_match_trash_block.tile_for_single_import(tile)
+
+            elif tile.match_type == MatchTypes.Hash_Match_Replaced:
+                self.hash_match_replaced_block.tile_for_single_import(tile)
+
+            elif tile.match_type == MatchTypes.Hash_Match_Trash:
+                self.hash_match_trash_block.tile_for_single_import(tile)
+
+            else:
+                raise ValueError(f"Unknown match type: {tile.match_type}")
+        else:
+            # Tile newly unmarked, need to set the import checkbox to unchecked.
+            if not tile.allowed:
+                self.not_allowed_block.unmarked_tile_for_import(tile)
+
+            elif tile.match_type == MatchTypes.No_Match:
+                self.no_match_block.unmarked_tile_for_import(tile)
+
+            elif tile.match_type == MatchTypes.Binary_Match_Images:
+                self.binary_match_block.unmarked_tile_for_import(tile)
+
+            elif tile.match_type == MatchTypes.Binary_Match_Replaced:
+                self.binary_match_replaced_block.unmarked_tile_for_import(tile)
+
+            elif tile.match_type == MatchTypes.Binary_Match_Trash:
+                self.binary_match_trash_block.unmarked_tile_for_import(tile)
+
+            elif tile.match_type == MatchTypes.Hash_Match_Replaced:
+                self.hash_match_replaced_block.unmarked_tile_for_import(tile)
+
+            elif tile.match_type == MatchTypes.Hash_Match_Trash:
+                self.hash_match_trash_block.unmarked_tile_for_import(tile)
+
+            else:
+                raise ValueError(f"Unknown match type: {tile.match_type}")
 
     def focus_tile_from_tile_info(self, tile_info: TileInfo):
         """
