@@ -989,14 +989,52 @@ class PhotoDb:
                         f"imported = 1 "
                         f"WHERE key == {update_it_key}")
 
-    def import_selected_keys(self, keys: List[int], tbl_name: str):
+    def import_selected_keys(self, keys: List[int], tbl_name: str, com: mp.connection.Connection = None):
         """
         Given a list of keys, import those keys into the images table
 
         :param keys: list of integer keys in import table
         :param tbl_name: name of import table to import from
         """
-        raise NotImplementedError("Not yet implemented")
+        # TODO if there's a lot of files selected, this may be slow.
+        self.debug_exec(f"SELECT "
+                        f"key, org_fname, org_fpath, metadata, google_fotos_metadata, file_hash, datetime, naming_tag "
+                        f"FROM `{tbl_name}` "
+                        f"WHERE allowed = 1 AND imported = 0 "
+                        f"AND key IN ({','.join([str(x) for x in keys])})")
+
+        # Assume all rows fit in memory
+        rows = self.cur.fetchall()
+
+        if com is not None:
+            com.send(Progress(type=ProcessComType.MESSAGE, value="Copying Specific Files to DB"))
+            com.send(Progress(type=ProcessComType.MAX, value=len(rows)))
+
+        for i in range(len(rows)):
+            if com is not None:
+                if com.poll():
+                    msg = com.recv()
+                    if msg == GUICommandTypes.QUIT:
+                        break
+                com.send(Progress(type=ProcessComType.CURRENT, value=i))
+            if i % 100 == 0:
+                # TODO logging
+                print(i)
+
+            fmd = FileMetaData(
+                org_fname=rows[i][1],
+                org_fpath=rows[i][2],
+                metadata=self.__b64_to_dict(rows[i][3]),
+                google_fotos_metadata=self.__b64_to_dict(rows[i][4]),
+                file_hash=rows[i][5],
+                datetime_object=self.__db_str_to_datetime(rows[i][6]),
+                naming_tag=rows[i][7],
+                verify=rows[i][7][:4] == "File"
+            )
+
+            self.__handle_import(fmd=fmd, table=tbl_name, update_it_key=rows[i][0])
+
+        self.con.commit()
 
     def import_table_message(self, tbl_name: str) -> Union[None, str]:
         """
