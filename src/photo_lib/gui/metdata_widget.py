@@ -458,6 +458,7 @@ class DualMetadataWidget(QFrame):
         self.m_file_metadata_val.setVisible(False)
         self.m_file_original_google_metadata_val.setVisible(False)
         self.m_file_google_fotos_metadata_val.setVisible(False)
+        self.m_file_successor_val.setVisible(False)
 
         self.import_file_lbl.setVisible(False)
         self.match_file_lbl.setVisible(False)
