@@ -189,6 +189,9 @@ class CheckNamedPictureBlock(QFrame):
         :param tile: tile info that needs to match for update.
         :return:
         """
+        # TODO nothing special happens if you turn all tiles in a block to import
+        #   Technically, you would have to set the global marking to true and then set the checkbox to checked.
+
         assert not tile.imported, "Tile was unmarked for import but was already imported."
         self.import_checkbox.setTristate(True)
         self.import_checkbox.setCheckState(Qt.CheckState.PartiallyChecked)
