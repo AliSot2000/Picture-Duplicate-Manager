@@ -545,7 +545,7 @@ class DualMetadataWidget(QFrame):
         self.import_file_lbl = QLabel()
         self.match_file_lbl = QLabel()
 
-        self.i_file_import_checkbox.toggled.connect(self.set_import_flag)
+        self.i_file_import_checkbox.clicked.connect(self.set_import_flag)
 
         self._init_names()
         self._init_formatting()
