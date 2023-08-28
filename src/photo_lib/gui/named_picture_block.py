@@ -140,6 +140,8 @@ class CheckNamedPictureBlock(QFrame):
     import_checkbox: QCheckBox
     match_type: MatchTypes = None
     picture_block: PictureBlock = None
+    __global_marking: bool = True
+    __all_imported: bool = False
 
     def __init__(self, mt: MatchTypes = None, tile_infos: List[TileInfo] = None, title: str = None):
         super().__init__()
