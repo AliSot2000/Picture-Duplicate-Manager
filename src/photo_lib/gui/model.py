@@ -70,6 +70,28 @@ def prepare_folder_for_import_process(tbl: str, folder_path: str, com: Connectio
     pdb.clean_up()
 
 
+def import_folder_process(tbl: str, com: Connection, db_path: str, exiftool_location: str,
+                          mt: List[MatchTypes], keys: List[int] = None, copy_google_fotos_metadata: bool = False):
+    """
+    Function to be spawned in a separate process. This will import the folder into the database.
+
+    :param copy_google_fotos_metadata: On Binary match copy google fotos metadata to binary match in db
+    :param keys: list of keys to import
+    :param mt: list of match types to import.
+    :param exiftool_location: Needed for Metadata Aggregator
+    :param tbl: table name to use for import
+    :param com: one end of a mulitprocessing.Pipe
+    :param db_path: path to database
+    :return:
+    """
+    pdb = PhotoDb(root_dir=db_path)
+    pdb.mda = MetadataAggregator(exiftool_path=exiftool_location)
+    pdb.import_folder(table_name=tbl, match_types=mt, com=com, copy_gfmd=copy_google_fotos_metadata)
+    if keys is not None:
+        pdb.import_selected_keys(keys=keys, tbl_name=tbl, com=com)
+    pdb.clean_up()
+
+
 class Model:
     pdb: Union[PhotoDb, None] = None
     folder_path: Union[str, None] = None
