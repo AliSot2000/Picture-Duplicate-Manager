@@ -97,6 +97,8 @@ class RootWindow(QMainWindow):
         self.import_tiles = ImportView(model=self.model)
         # self.import_tiles.outer_layout.setContentsMargins(0, 0, 0, 0)
         self.import_big_screen = BigScreen(model=self.model)
+        self.import_big_screen.image_viewer.metadata_widget.i_file_import_checkbox.clicked.connect(
+            self.propagate_check_state)
         self.import_table_list = ImportTableList(model=self.model)
         self.import_tiles.image_clicked.connect(self.import_tile_click)
 
