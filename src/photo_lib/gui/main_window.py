@@ -233,7 +233,50 @@ class RootWindow(QMainWindow):
         pass
 
     def import_all(self):
-        pass
+        """
+        Import everything in a given folder without regard for what's already in the database.
+        :return:
+        """
+        msg_bx = QMessageBox(QMessageBox.Icon.Warning, "Import All", "You are about to import all images in the current "
+                                                                     "import folder without considering if they have "
+                                                                     "been previously imported. \n"
+                                                                     "Do you want to proceed?",
+                             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, self)
+        val = msg_bx.exec()
+        if val == QMessageBox.StandardButton.No:
+            return
+
+        all_mt = [
+            MatchTypes.No_Match,
+            MatchTypes.Binary_Match_Images,
+            MatchTypes.Binary_Match_Replaced,
+            MatchTypes.Binary_Match_Trash,
+            MatchTypes.Hash_Match_Replaced,
+            MatchTypes.Hash_Match_Trash,
+        ]
+
+        copy_gfmd = self.copy_google_fotos_metadata()
+
+        self.model.import_current_target_folder(m=all_mt, cgfdm=copy_gfmd)
+        self.start_long_running_process("Importing all images", LongRunningActions.Import_Images)
+
+    def copy_google_fotos_metadata(self) -> bool:
+        """
+        Open copy google fotos metadata dialog if there is any google fotos metadata to import.
+        :return:
+        """
+        if self.model.has_google_fotos_metadata():
+            msg_bx = QMessageBox(QMessageBox.Icon.Warning, "Copy Google Fotos Metadata",
+                                 "The folder you want to import has google fotos metadata. \nDo you want to copy google"
+                                 "fotos metadata to files that are a binary match and are already imported in your database?",
+                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, self)
+            val = msg_bx.exec()
+            if val == QMessageBox.StandardButton.No:
+                return False
+            else:
+                return True
+        else:
+            return False
 
     # ------------------------------------------------------------------------------------------------------------------
     # Long-running process functions - functions to call during long-running processes.
