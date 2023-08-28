@@ -5,7 +5,7 @@ from typing import List, Union
 from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QCheckBox, QApplication, QMainWindow, QScrollArea, QFrame, \
     QWidget
 from PyQt6 import QtGui
-from PyQt6.QtCore import QSize
+from PyQt6.QtCore import QSize, Qt
 
 from photo_lib.gui.image_tile import ImageTile
 from photo_lib.PhotoDatabase import TileInfo, MatchTypes
