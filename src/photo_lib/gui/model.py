@@ -45,8 +45,8 @@ class NoDbException(Exception):
     pass
 
 
-def import_folder_process(tbl: str, folder_path: str, com: Connection, db_path: str, exiftool_location: str,
-                          recomp_metadata: bool = False, allowed_file_types: set = None):
+def prepare_folder_for_import_process(tbl: str, folder_path: str, com: Connection, db_path: str, exiftool_location: str,
+                                      recomp_metadata: bool = False, allowed_file_types: set = None):
     """
     Function to be spawned in a separate process. This will import the folder into the database.
     :param exiftool_location: Needed for Metadata Aggregator
@@ -736,13 +736,13 @@ class Model:
         self.pdb.clean_up()
         self.pdb = None
 
-        self.handle = mp.Process(target=import_folder_process, args=(self.current_import_table_name,
-                                                                     self.import_folder,
-                                                                     com_b,
-                                                                     self.folder_path,
-                                                                     self.exiftool_location,
-                                                                     False,
-                                                                     self.current_extensions))
+        self.handle = mp.Process(target=prepare_folder_for_import_process, args=(self.current_import_table_name,
+                                                                                 self.import_folder,
+                                                                                 com_b,
+                                                                                 self.folder_path,
+                                                                                 self.exiftool_location,
+                                                                                 False,
+                                                                                 self.current_extensions))
         self.handle.start()
 
     def update_allowed_metadata(self, extensions: str = None, rcmp_mtdt: bool = False):
@@ -766,13 +766,13 @@ class Model:
         self.pdb.clean_up()
         self.pdb = None
 
-        self.handle = mp.Process(target=import_folder_process, args=(self.current_import_table_name,
-                                                                     self.import_folder,
-                                                                     com_b,
-                                                                     self.folder_path,
-                                                                     self.exiftool_location,
-                                                                     rcmp_mtdt,
-                                                                     self.current_extensions))
+        self.handle = mp.Process(target=prepare_folder_for_import_process, args=(self.current_import_table_name,
+                                                                                 self.import_folder,
+                                                                                 com_b,
+                                                                                 self.folder_path,
+                                                                                 self.exiftool_location,
+                                                                                 rcmp_mtdt,
+                                                                                 self.current_extensions))
         self.handle.start()
 
     def stop_process(self):
