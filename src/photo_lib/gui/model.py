@@ -161,7 +161,6 @@ class Model:
                                                                     for ext in extensions.split(",")]))
         self.current_extensions = allowed_ext_set
 
-
     def __init__(self, folder_path: str = None):
         if folder_path is not None:
             self.pdb = PhotoDb(root_dir=folder_path)
