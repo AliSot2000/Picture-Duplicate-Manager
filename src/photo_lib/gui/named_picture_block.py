@@ -264,16 +264,25 @@ class CheckNamedPictureBlock(QFrame):
             else:
                 self.marked_not_for_import()
         else:
-            for tile in self.picture_block.img_tiles:
-                # If the tile is imported, we can't change it, set it to imported
-                if tile.tile_info.imported:
-                    tile.set_imported()
-                # If we have the tile set to import or the checkbox is checked, mark it for import.
-                elif tile.tile_info.mark_for_import or self.import_checkbox.isChecked():
-                    tile.marked_for_import()
-                # Otherwise, mark it not for import.
+            if self.import_checkbox.checkState() == Qt.CheckState.PartiallyChecked:
+                self.reset_mark()
+                for tile in self.picture_block.img_tiles:
+                    # If the tile is imported, we can't change it, set it to imported
+                    if tile.tile_info.imported:
+                        tile.set_imported()
+                    # If we have the tile set to import or the checkbox is checked, mark it for import.
+                    elif tile.tile_info.mark_for_import:
+                        tile.marked_for_import()
+                    # Otherwise, mark it not for import.
+                    else:
+                        tile.marked_not_for_import()
+            else:
+                if self.import_checkbox.isChecked():
+                    self.marked_for_import()
                 else:
-                    tile.marked_not_for_import()
+                    self.marked_not_for_import()
+                for tile in self.picture_block.img_tiles:
+                    tile.reset_mark()
     def set_imported(self):
         """
         All files were imported. Set block state to imported.
