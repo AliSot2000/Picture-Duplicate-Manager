@@ -827,19 +827,45 @@ class Model:
         self.abort = None
         return abrt
 
-    def import_block(self, m: List[MatchTypes]):
+    def has_google_fotos_metadata(self, tbl: str = None) -> bool:
+        """
+        Check if the import table has google fotos metadata.
+        :param tbl: table name
+        :return:
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        if tbl is None:
+            tbl = self.current_import_table_name
+
+        return self.pdb.has_google_fotos_metadata(tbl)
+
+    def import_current_target_folder(self, m: List[MatchTypes], cgfdm: bool = False, l: List[int] = None):
         """
         Import a block of images
+        :param l: list of specific keys to import
+        :param cgfdm: Copy the google fotos metadata to existing images.
         :param m: List of match types that should be imported
         :return:
         """
-        raise NotImplementedError("Not implemented yet")
+        if self.handle is not None:
+            raise ValueError("Process in Progress or Bug")
 
-    def import_key_list(self, l: List[int]):
-        """
-        Given a List of integers, imports those form the current import table
-        :param l: list of int.
-        :return:
-        """
-        self.pdb.import_selected_keys(l, self.current_import_table_name)
-        raise NotImplementedError("Not implemented yet")
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        self.gui_com, com_b = multiprocessing.Pipe()
+
+        # Disconnect from db
+        self.pdb.clean_up()
+        self.pdb = None
+
+        self.handle = mp.Process(target=import_folder_process, args=(self.current_import_table_name,
+                                                                     com_b,
+                                                                     self.folder_path,
+                                                                     self.exiftool_location,
+                                                                     m,
+                                                                     l,
+                                                                     cgfdm))
+        self.handle.start()
