@@ -167,11 +167,29 @@ class CheckNamedPictureBlock(QFrame):
         self.update_colors()
 
     def update_colors(self):
-        if self.import_checkbox.isChecked():
-            self.marked_for_import()
-        else:
-            self.marked_not_for_import()
+        """
+        Update the colors of the block or on the level of single images.
+        :return:
+        """
+        if self.__all_imported:
+            self.set_imported()
 
+        if self.__global_marking:
+            if self.import_checkbox.isChecked():
+                self.marked_for_import()
+            else:
+                self.marked_not_for_import()
+        else:
+            for tile in self.picture_block.img_tiles:
+                # If the tile is imported, we can't change it, set it to imported
+                if tile.tile_info.imported:
+                    tile.set_imported()
+                # If we have the tile set to import or the checkbox is checked, mark it for import.
+                elif tile.tile_info.mark_for_import or self.import_checkbox.isChecked():
+                    tile.marked_for_import()
+                # Otherwise, mark it not for import.
+                else:
+                    tile.marked_not_for_import()
     def set_imported(self):
         """
         All files were imported. Set block state to imported.
