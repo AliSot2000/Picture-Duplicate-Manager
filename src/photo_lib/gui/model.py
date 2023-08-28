@@ -71,7 +71,7 @@ def prepare_folder_for_import_process(tbl: str, folder_path: str, com: Connectio
 
 
 class Model:
-    pdb:  Union[PhotoDb, None] = None
+    pdb: Union[PhotoDb, None] = None
     folder_path: Union[str, None] = None
 
     current_extensions: Union[None, set] = None
