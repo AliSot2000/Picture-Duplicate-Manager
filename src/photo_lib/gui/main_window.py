@@ -12,7 +12,7 @@ from photo_lib.gui.modals import (DateTimeModal, FolderSelectModal, TaskSelectMo
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.import_table_view import ImportTableList
 from photo_lib.gui.image_tile import ImageTile
-from photo_lib.data_objects import ProcessComType, Progress, Views, LongRunningActions, TileInfo
+from photo_lib.data_objects import ProcessComType, Progress, Views, LongRunningActions, TileInfo, MatchTypes
 from typing import Union
 
 
@@ -22,7 +22,6 @@ from typing import Union
 #  - Logging
 
 # TODO Features
-#  - Time line selection
 #  - Images in windows needed at some point
 #  - No import required, just list the images in folders
 #  - Verify integrity of images
