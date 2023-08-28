@@ -86,8 +86,8 @@ class PictureBlock(QFrame):
 
         for tile_info in tile_infos:
             tile = ImageTile(tile_info)
-            tile.setFixedHeight(self.tile_size)
-            tile.setFixedWidth(self.tile_size)
+            tile.setMaximumHeight(self.tile_size)
+            tile.setMaximumWidth(self.tile_size)
             tile.b_layout.setContentsMargins(0, 0, 0, 0)
             self.img_tiles.append(tile)
 
@@ -99,7 +99,7 @@ class PictureBlock(QFrame):
 
         :return:
         """
-        n_h_tiles = (self.width() - 10) // (self.tile_size + 10)
+        n_h_tiles = math.ceil((self.width() - 10) / (self.tile_size + 10))
 
         if n_h_tiles == self.last_n_h_tiles:
             return
