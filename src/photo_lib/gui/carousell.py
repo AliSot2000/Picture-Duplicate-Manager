@@ -1,16 +1,14 @@
-from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QHBoxLayout, QFrame, QLabel
+from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QGridLayout, QFrame, QLabel
 from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent, QWheelEvent
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer
 import sys
-from typing import List
+from typing import List, Union
 from photo_lib.PhotoDatabase import BaseTileInfo
 from photo_lib.gui.clickable_image import ClickableTile
 from photo_lib.gui.model import Model
 from photo_lib.gui.gui_utils import image_wrapper
 from photo_lib.data_objects import TileInfo
 import datetime
-
-# TODO use gridlayout -> nicer.
 
 """
 Information:
@@ -32,9 +30,9 @@ class Carousel(QScrollArea):
 
 
     child_dummy: QWidget
-    h_layout: QHBoxLayout
+    g_layout: QGridLayout
     images: List[ClickableTile]
-    current_select: ClickableTile = None
+    current_select: Union[None, ClickableTile] = None
     image_changed = pyqtSignal()
 
     model = Model
@@ -58,8 +56,8 @@ class Carousel(QScrollArea):
         self.child_dummy = QWidget()
         self.setWidget(self.child_dummy)
 
-        self.h_layout = QHBoxLayout()
-        self.child_dummy.setLayout(self.h_layout)
+        self.g_layout = QGridLayout()
+        self.child_dummy.setLayout(self.g_layout)
         self.vis_from_slider(0)
 
         self.horizontalScrollBar().valueChanged.connect(self.schedule_update_load)
@@ -76,11 +74,10 @@ class Carousel(QScrollArea):
         :return:
         """
         # Empty layout first.
-        # while self.g_layout.count() > 0:
-        #     self.g_layout.takeAt(0).widget().deleteLater()
-        while self.h_layout.count() > 0:
-            self.h_layout.takeAt(0).widget().deleteLater()
+        while self.g_layout.count() > 0:
+            self.g_layout.takeAt(0).widget().deleteLater()
 
+        self.current_select = None
         self.images = []
 
         # Fetch all tiles
@@ -102,7 +99,8 @@ class Carousel(QScrollArea):
             img.clicked.connect(image_wrapper(img, self.set_image))
             img.image_loaded = False
             self.images.append(img)
-            self.h_layout.addWidget(img)
+            self.g_layout.addWidget(img, 0, i)
+            self.g_layout.setColumnStretch(i, 1)
 
             # Check for target, if the keys match keep track of the image
             if target is not None and target.key == tile.key:
@@ -209,7 +207,9 @@ class Carousel(QScrollArea):
 
         # Find left bound
         for i in range(target_image, -1, -1):
-            window_pos = self.images[i].mapTo(self, self.images[i].rect().topLeft())
+            if self.images[i].geometry().topLeft().isNull():
+                return
+            window_pos = self.images[i].mapTo(self, self.images[i].geometry().topLeft())
             r = QRect(window_pos, self.images[i].size())
             # print(f"Image {i:03}: {'Visible' if visible else 'Not Visible'}")
             if self.rect_vis(r):
@@ -219,7 +219,9 @@ class Carousel(QScrollArea):
 
         # Find right bound
         for i in range(target_image, len(self.images)):
-            window_pos = self.images[i].mapTo(self, self.images[i].rect().topLeft())
+            if self.images[i].geometry().topLeft().isNull():
+                return
+            window_pos = self.images[i].mapTo(self, self.images[i].geometry().topLeft())
             r = QRect(window_pos, self.images[i].size())
             # print(f"Image {i:03}: {'Visible' if visible else 'Not Visible'}")
             if self.rect_vis(r):
