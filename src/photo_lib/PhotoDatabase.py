@@ -2491,3 +2491,13 @@ class PhotoDb:
                 self.debug_exec(f"UPDATE `{tbl.table_name}` SET datetime = '{self.__datetime_to_db_str(dt)}' WHERE key = {r[0]}")
 
         self.con.commit()
+
+    def has_google_fotos_metadata(self, tbl: str) -> bool:
+        """
+        Given an import table, determines if any media file has google fotos metadata.
+        :param tbl: import table to check
+        :return:
+        """
+        self.debug_exec(f"SELECT COUNT(key) FROM `{tbl}` WHERE google_fotos_metadata IS NOT NULL")
+        result = self.cur.fetchone()
+        return result[0] > 0
