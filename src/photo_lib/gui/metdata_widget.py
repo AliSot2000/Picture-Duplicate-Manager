@@ -487,8 +487,7 @@ class DualMetadataWidget(QFrame):
         """
         if self.tile_info is None:
             return
-        self.tile_info.mark_for_import =  self.i_file_import_checkbox.isChecked()
-
+        self.tile_info.mark_for_import = self.i_file_import_checkbox.isChecked()
 
     def __init__(self, model: Model):
         """
