@@ -993,6 +993,7 @@ class PhotoDb:
         """
         Given a list of keys, import those keys into the images table
 
+        :param com: pipe to communicate with the gui.
         :param keys: list of integer keys in import table
         :param tbl_name: name of import table to import from
         """
