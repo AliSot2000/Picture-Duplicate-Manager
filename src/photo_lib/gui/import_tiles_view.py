@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QHBoxLayout, QScrollArea, QPushButton, QLabel, QSplitter
 from PyQt6.QtCore import pyqtSignal, Qt
 import sys
-from typing import Union, List
+from typing import Union, List, Tuple
 from photo_lib.gui.named_picture_block import CheckNamedPictureBlock
 from photo_lib.gui.image_tile import ImageTile
 from photo_lib.gui.model import Model
@@ -25,6 +25,8 @@ class ImportView(QFrame):
     hash_match_replaced_block: Union[None, CheckNamedPictureBlock] = None
     hash_match_trash_block: Union[None, CheckNamedPictureBlock] = None
     not_allowed_block: Union[None, CheckNamedPictureBlock] = None
+
+    blocks: List[CheckNamedPictureBlock] = None
 
     image_clicked = pyqtSignal(ImageTile)
     tiles: List[ImageTile] = None
@@ -57,6 +59,23 @@ class ImportView(QFrame):
 
         self.build_import_view()
         self.tiles = []
+
+    def get_selected(self) -> Tuple[List[MatchTypes], List[int]]:
+        """
+        Returns a list of the MatchTypes which are selected but not yet imported.
+        :return:
+        """
+        marked_sections = []
+        marked_keys = []
+        for block in self.blocks:
+            if block.import_checkbox.checkState() == Qt.CheckState.Checked:
+                marked_sections.append(block.match_type)
+            elif block.import_checkbox.checkState() == Qt.CheckState.PartiallyChecked:
+                for tile in block.picture_block.img_tiles:
+                    if tile.tile_info.mark_for_import:
+                        marked_keys.append(tile.tile_info.key)
+
+        return marked_sections, marked_keys
 
     def tile_marked_for_import(self, tile: TileInfo, marked: bool):
         """
@@ -144,6 +163,7 @@ class ImportView(QFrame):
         :return:
         """
         self.tiles = []
+        self.blocks = []
 
         # Empty layout
         while self.inner_layout.count() > 0:
@@ -162,6 +182,7 @@ class ImportView(QFrame):
                                        title="Media Files without Match in the Database")
             self.inner_layout.addWidget(self.no_match_block)
             self.tiles.extend(self.no_match_block.picture_block.img_tiles)
+            self.blocks.append(self.no_match_block)
 
         # Add block for binary match
         if len(self.model.get_import_binary_match()) > 0:
@@ -170,6 +191,7 @@ class ImportView(QFrame):
                                        title="Media Files with Binary Match in Database")
             self.inner_layout.addWidget(self.binary_match_block)
             self.tiles.extend(self.binary_match_block.picture_block.img_tiles)
+            self.blocks.append(self.binary_match_block)
 
         # Add block for binary match in replaced
         if len(self.model.get_import_binary_match_replaced()) > 0:
@@ -178,6 +200,7 @@ class ImportView(QFrame):
                                        title="Media Files with Binary Match in the known Duplicates")
             self.inner_layout.addWidget(self.binary_match_replaced_block)
             self.tiles.extend(self.binary_match_replaced_block.picture_block.img_tiles)
+            self.blocks.append(self.binary_match_replaced_block)
 
         # Add block for binary match in trash
         if len(self.model.get_import_binary_match_trash()) > 0:
@@ -186,6 +209,7 @@ class ImportView(QFrame):
                                        title="Media Files with Binary Match in the Trash")
             self.inner_layout.addWidget(self.binary_match_trash_block)
             self.tiles.extend(self.binary_match_trash_block.picture_block.img_tiles)
+            self.blocks.append(self.binary_match_trash_block)
 
         # Add block for hash match in replaced
         if len(self.model.get_import_hash_match_replaced()) > 0:
@@ -194,6 +218,7 @@ class ImportView(QFrame):
                                         title="Media Files with matching hash and filesize in the known Duplicates")
             self.inner_layout.addWidget(self.hash_match_replaced_block)
             self.tiles.extend(self.hash_match_replaced_block.picture_block.img_tiles)
+            self.blocks.append(self.hash_match_replaced_block)
 
         # Add block for hash match in trash
         if len(self.model.get_import_hash_match_trash()) > 0:
@@ -202,6 +227,7 @@ class ImportView(QFrame):
                                         title="Media Files with matching hash and filesize in the Trash")
             self.inner_layout.addWidget(self.hash_match_trash_block)
             self.tiles.extend(self.hash_match_trash_block.picture_block.img_tiles)
+            self.blocks.append(self.hash_match_trash_block)
 
         # Add block for not allowed files.
         if len(self.model.get_import_not_allowed()) > 0:
@@ -211,6 +237,7 @@ class ImportView(QFrame):
             self.not_allowed_block.import_checkbox.setDisabled(True)
             self.inner_layout.addWidget(self.not_allowed_block)
             self.tiles.extend(self.not_allowed_block.picture_block.img_tiles)
+            self.blocks.append(self.not_allowed_block)
 
         for tile in self.tiles:
             tile.clickable_image.clicked.connect(general_wrapper(func=self._tile_clicked, tile=tile))
