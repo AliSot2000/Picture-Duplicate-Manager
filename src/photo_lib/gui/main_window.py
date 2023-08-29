@@ -359,6 +359,8 @@ class RootWindow(QMainWindow):
                 msg: Progress = self.model.gui_com.recv()
             except EOFError:
                 break
+            except ConnectionResetError:
+                break
 
             # Message, update the message
             if msg.type == ProcessComType.MESSAGE:
