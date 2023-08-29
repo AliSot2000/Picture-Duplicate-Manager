@@ -7,3 +7,4 @@ The new version of the GUI is more feature rich than the kivy gui.
 Additionally, the kivy gui still uses Difpy v2.4.5 the new version will be using fast_diff_py with the (currently not implemented) non-embedded process.
 That should be significantly faster and scale better with more cpu power.
 
+To run the project in the current configuration, execute the `run_kivy_gui.py` file.
