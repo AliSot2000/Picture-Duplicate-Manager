@@ -226,11 +226,29 @@ class RootWindow(QMainWindow):
         Clear all state variables and switch back to compare root.
         :return:
         """
+        msb_box = QMessageBox(QMessageBox.Icon.Warning, "Finish Import", "Do you want to delete the import table?",
+                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, self)
+        ret = msb_box.exec()
+        if ret == QMessageBox.StandardButton.Yes:
+            self.model.delete_import_table(self.model.current_import_table_name)
+
         self.model.finish_import()
         self.open_compare_root()
 
     def import_selected(self):
-        pass
+        """
+        Import the selected images in the import view.
+        :return:
+        """
+        copy_gfmd = self.copy_google_fotos_metadata()
+
+        # Check which blocks are selected
+        selected_blocks, selected_keys = self.import_tiles.get_selected()
+
+        # start the import process
+        self.model.import_current_target_folder(m=selected_blocks, l=selected_keys, cgfdm=copy_gfmd)
+        self.start_long_running_process("Importing selected images", LongRunningActions.Import_Images)
+
 
     def import_all(self):
         """
