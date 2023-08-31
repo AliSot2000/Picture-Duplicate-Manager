@@ -2540,3 +2540,62 @@ class PhotoDb:
         self.debug_exec(f"SELECT COUNT(key) FROM `{tbl}` WHERE google_fotos_metadata IS NOT NULL")
         result = self.cur.fetchone()
         return result[0] > 0
+
+    def get_grouped_image_count(self, group_crit: GroupingCriterion, trash: bool = None) -> List[GroupCount]:
+        """
+        Given a grouping criterion, returns the number of images in the database grouped by the criterion.
+
+        :param group_crit: Grouping criterion to group by
+        :param trash: If None, all images are counted, if True only trashed images are counted, if False only not
+        trashed images are counted.
+        :return: List of GroupCount objects
+        """
+        statemenet = (f"SELECT strftime('%Y', datetime) AS year, strftime('%m', datetime) AS month, "
+                      f"strftime('%d', datetime) AS day, COUNT(*) AS entry_count FROM images ")
+        if trash is None:
+            pass
+        elif trash:
+            statemenet += "WHERE trashed = 1 "
+        else:
+            statemenet += "WHERE trashed = 0 "
+
+        # Group by
+        if group_crit == GroupingCriterion.NONE:
+            pass
+        elif group_crit == GroupingCriterion.YEAR:
+            statemenet += "GROUP BY GROUP BY strftime('%Y', datetime) ORDER BY year"
+        elif group_crit == GroupingCriterion.YEAR_MONTH:
+            statemenet += "GROUP BY GROUP BY strftime('%Y-%m', datetime) ORDER BY year, month"
+        elif group_crit == GroupingCriterion.YEAR_MONTH_DAY:
+            statemenet += "GROUP BY GROUP BY strftime('%Y-%m-%d', datetime) ORDER BY year, month, day"
+
+        self.debug_exec(statemenet)
+
+        # Build counts for each group
+        if group_crit == GroupingCriterion.NONE:
+            res = self.cur.fetchall()
+            assert len(res) <= 1, "More than one result for no grouping criterion"
+            return [GroupCount(group_crit=group_crit, count=res[0][3], start_date=None)]
+        elif group_crit == GroupingCriterion.YEAR:
+            res = self.cur.fetchall()
+            l = []
+            for row in res:
+                dt = datetime.datetime(year=int(row[0]), month=1, day=1)
+                l.append(GroupCount(group_crit=group_crit, count=row[3], start_date=dt))
+            return l
+        elif group_crit == GroupingCriterion.YEAR_MONTH:
+            res = self.cur.fetchall()
+            l = []
+            for row in res:
+                dt = datetime.datetime(year=int(row[0]), month=int(row[1]), day=1)
+                l.append(GroupCount(group_crit=group_crit, count=row[3], start_date=dt))
+            return l
+        elif group_crit == GroupingCriterion.YEAR_MONTH_DAY:
+            res = self.cur.fetchall()
+            l = []
+            for row in res:
+                dt = datetime.datetime(year=int(row[0]), month=int(row[1]), day=int(row[2]))
+                l.append(GroupCount(group_crit=group_crit, count=row[3], start_date=dt))
+            return l
+        else:
+            raise TypeError(f"Unsupported Grouping of {group_crit}")
