@@ -37,7 +37,7 @@ class SourceTable(Enum):
     Any_Import_Tabel = 4
     Thumbnails = 5
 
-class Views:
+class Views(Enum):
     Deduplicate_Compare = 0
     Message_Label = 1
     Full_Screen_Image = 2
@@ -47,8 +47,15 @@ class Views:
     Database_Tile_View = 6
     Import_Tables_View = 7
 
-class LongRunningActions:
+class LongRunningActions(Enum):
     PrepareImport= 1
     Deduplicate_With_Database = 2
     Deduplicate_Without_Database = 3
     Import_Images = 4
+
+
+class GroupingCriterion(Enum):
+    NONE = 0
+    YEAR = 1
+    YEAR_MONTH = 2
+    YEAR_MONTH_DAY = 3
