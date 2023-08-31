@@ -8,7 +8,7 @@ from PyQt6 import QtGui
 from PyQt6.QtCore import QSize, Qt
 
 from photo_lib.gui.image_tile import ImageTile
-from photo_lib.PhotoDatabase import TileInfo, MatchTypes
+from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes
 
 
 class Row(QFrame):
@@ -49,7 +49,7 @@ class PictureBlock(QFrame):
 
     v_layout: QVBoxLayout
 
-    def __init__(self, tile_infos: List[TileInfo] = None):
+    def __init__(self, tile_infos: List[ImportTileInfo] = None):
         """
         Provide a list of tiles to be displayed in a block
         :param tile_infos: List of TileInfo objects. These contain the relevant information tied to the database to
@@ -75,7 +75,7 @@ class PictureBlock(QFrame):
         super().resizeEvent(a0)
         self.layout_tiles()
 
-    def generate_tiles(self, tile_infos: List[TileInfo]):
+    def generate_tiles(self, tile_infos: List[ImportTileInfo]):
         """
         Given a list of TileInfo objects, generate the tiles.
 
@@ -143,7 +143,7 @@ class CheckNamedPictureBlock(QFrame):
     __global_marking: bool = True
     __all_imported: bool = False
 
-    def __init__(self, mt: MatchTypes = None, tile_infos: List[TileInfo] = None, title: str = None):
+    def __init__(self, mt: MatchTypes = None, tile_infos: List[ImportTileInfo] = None, title: str = None):
         super().__init__()
         self.match_type = mt
         if title is None and mt is not None:
@@ -183,7 +183,7 @@ class CheckNamedPictureBlock(QFrame):
 
         self.__all_imported = initial_state
 
-    def tile_for_single_import(self, tile: TileInfo):
+    def tile_for_single_import(self, tile: ImportTileInfo):
         """
         A single tile was marked for import.
         :param tile: tile info that needs to match for update.
@@ -203,7 +203,7 @@ class CheckNamedPictureBlock(QFrame):
         else:
             self.update_tile_marking(tile)
 
-    def update_tile_marking(self, tile: TileInfo):
+    def update_tile_marking(self, tile: ImportTileInfo):
         """
         Update the marking of a single tile
         :param tile: tile info that needs to match for update.
@@ -218,7 +218,7 @@ class CheckNamedPictureBlock(QFrame):
                 else:
                     t.marked_not_for_import()
 
-    def unmarked_tile_for_import(self, tile: TileInfo):
+    def unmarked_tile_for_import(self, tile: ImportTileInfo):
         """
         A single tile was unmarked for import. Check if now all tiles are unmarked.
         :return:
@@ -323,8 +323,8 @@ class TempRoow(QMainWindow):
         super().__init__()
         target = "/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images"
         images = os.listdir(target)
-        sample_tiles = [TileInfo(key=1, path=os.path.join(target, image), imported=False, allowed=False,
-                                 match_type=MatchTypes.No_Match) for image in images]
+        sample_tiles = [ImportTileInfo(key=1, path=os.path.join(target, image), imported=False, allowed=False,
+                                       match_type=MatchTypes.No_Match) for image in images]
 
         self.sca = QScrollArea()
         self.sca.setWidgetResizable(True)

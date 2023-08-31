@@ -2120,7 +2120,7 @@ class PhotoDb:
     # FUNCTIONS TO BUILD TILE INFORMATION FOR IMPORT VIEW
     # ------------------------------------------------------------------------------------------------------------------
 
-    def tiles_from_import_table(self, tbl_name: str) -> Dict[str, List[TileInfo]]:
+    def tiles_from_import_table(self, tbl_name: str) -> Dict[str, List[ImportTileInfo]]:
         """
         Build TileInformation from import table. Assumption RAM is large enough to hold all tiles. Converts entire table
         to tile information.
@@ -2138,7 +2138,7 @@ class PhotoDb:
 
         return output
 
-    def tiles_from_match_type(self, tbl_name: str, mt: MatchTypes) -> List[TileInfo]:
+    def tiles_from_match_type(self, tbl_name: str, mt: MatchTypes) -> List[ImportTileInfo]:
         """
         Given a Match_Type, fetches all images from the import table which are allowed and have said match type.
 
@@ -2151,7 +2151,7 @@ class PhotoDb:
                         f"WHERE match_type = {mt.value} and allowed = 1")
         return self.__tiles_from_cursor()
 
-    def tiles_from_not_allowed(self, tbl_name) -> List[TileInfo]:
+    def tiles_from_not_allowed(self, tbl_name) -> List[ImportTileInfo]:
         """
         Get all images from import table which are not allowed.
 
@@ -2163,7 +2163,7 @@ class PhotoDb:
         return self.__tiles_from_cursor()
 
 
-    def __tiles_from_cursor(self) -> List[TileInfo]:
+    def __tiles_from_cursor(self) -> List[ImportTileInfo]:
         """
         Function builds tiles from the current result in the cursor. This function must be called by
         tiles_from_not_allowed or tiles_from_match_type.
@@ -2174,7 +2174,7 @@ class PhotoDb:
         output = []
 
         for row in results:
-            t = TileInfo(
+            t = ImportTileInfo(
                 key=row[0],
                 path=os.path.join(row[2], row[1]),
                 imported=bool(row[3]),

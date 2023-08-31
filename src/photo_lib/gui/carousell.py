@@ -7,7 +7,7 @@ from photo_lib.PhotoDatabase import BaseTileInfo
 from photo_lib.gui.clickable_image import ClickableTile
 from photo_lib.gui.model import Model
 from photo_lib.gui.gui_utils import image_wrapper
-from photo_lib.data_objects import TileInfo
+from photo_lib.data_objects import ImportTileInfo
 import datetime
 
 """
@@ -126,7 +126,7 @@ class Carousel(QScrollArea):
         #                                self.images[0].rect().topLeft()))
 
     # TODO better datastructure to make this faster but ok for now.
-    def set_tile(self, tile_info: TileInfo):
+    def set_tile(self, tile_info: ImportTileInfo):
         """
         Set the currently selected image based on a tile_info object.
         :param tile_info:

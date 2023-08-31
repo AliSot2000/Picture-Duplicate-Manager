@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QVBoxLayout, QCheckBox, QPushButton, QWidget, QAppli
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction
 
-from photo_lib.PhotoDatabase import FullImportTableEntry, TileInfo, MatchTypes
+from photo_lib.PhotoDatabase import FullImportTableEntry, ImportTileInfo, MatchTypes
 from photo_lib.gui.action_button import QActionButton
 from photo_lib.gui.metdata_widget import DualMetadataWidget
 from photo_lib.gui.model import Model
@@ -30,7 +30,7 @@ class ImportImageView(QFrame):
     h_layout: QHBoxLayout
 
     model: Model = None
-    __tile_info: TileInfo = None
+    __tile_info: ImportTileInfo = None
 
     open_metadata_btn: QActionButton
 
@@ -194,7 +194,7 @@ class ImportImageView(QFrame):
         return self.__tile_info
 
     @tile_info.setter
-    def tile_info(self, value: TileInfo):
+    def tile_info(self, value: ImportTileInfo):
         """
         Set the tile info that's currently displayed and update the widgets.
         :param value:
@@ -219,7 +219,7 @@ class TestWindow(QMainWindow):
         self.import_view = ImportImageView(model=self.model)
         self.setCentralWidget(self.import_view)
 
-        self.import_view.tile_info = TileInfo(
+        self.import_view.tile_info = ImportTileInfo(
             key=20,
             path="/media/alisot2000/DumpStuff/Test128/2022-09-01 02.35.18_000.jpg",
             imported=False,

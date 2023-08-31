@@ -9,7 +9,7 @@ from multiprocessing.connection import Connection
 from dataclasses import dataclass
 
 from photo_lib.metadataagregator import MetadataAggregator
-from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, TileInfo, MatchTypes, FullImportTableEntry
+from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, ImportTileInfo, MatchTypes, FullImportTableEntry
 from photo_lib.custom_enum import SourceTable, GUICommandTypes
 from photo_lib.data_objects import FullDatabaseEntry, FullReplacedEntry, ImportTableEntry
 from photo_lib.metadataagregator import key_lookup_dir
@@ -108,7 +108,7 @@ class Model:
     # Stuff for importing
     import_folder: Union[str, None] = None
     current_import_table_name: Union[str, None] = None
-    __tile_infos: List[TileInfo] = None
+    __tile_infos: List[ImportTileInfo] = None
     __tile_indexes: ImportManifest = None
 
     handle: Union[None, mp.Process] = None
@@ -487,7 +487,7 @@ class Model:
     # Accessor Functions for Import view
     # ------------------------------------------------------------------------------------------------------------------
 
-    def get_import_not_allowed(self) -> List[TileInfo]:
+    def get_import_not_allowed(self) -> List[ImportTileInfo]:
         """
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
@@ -499,7 +499,7 @@ class Model:
         end = self.__tile_indexes.not_allowed.start + self.__tile_indexes.not_allowed.length
         return self.__tile_infos[start:end]
 
-    def get_import_binary_match(self) -> List[TileInfo]:
+    def get_import_binary_match(self) -> List[ImportTileInfo]:
         """
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
@@ -511,7 +511,7 @@ class Model:
         end = self.__tile_indexes.binary_match.start + self.__tile_indexes.binary_match.length
         return self.__tile_infos[start:end]
 
-    def get_import_binary_match_replaced(self) -> List[TileInfo]:
+    def get_import_binary_match_replaced(self) -> List[ImportTileInfo]:
         """
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
@@ -523,7 +523,7 @@ class Model:
         end = self.__tile_indexes.binary_match_replaced.start + self.__tile_indexes.binary_match_replaced.length
         return self.__tile_infos[start:end]
 
-    def get_import_binary_match_trash(self) -> List[TileInfo]:
+    def get_import_binary_match_trash(self) -> List[ImportTileInfo]:
         """
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
@@ -535,7 +535,7 @@ class Model:
         end = self.__tile_indexes.binary_match_trash.start + self.__tile_indexes.binary_match_trash.length
         return self.__tile_infos[start:end]
 
-    def get_import_hash_match_replaced(self) -> List[TileInfo]:
+    def get_import_hash_match_replaced(self) -> List[ImportTileInfo]:
         """
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
@@ -547,7 +547,7 @@ class Model:
         end = self.__tile_indexes.hash_match_replaced.start + self.__tile_indexes.hash_match_replaced.length
         return self.__tile_infos[start:end]
 
-    def get_import_hash_match_trash(self) -> List[TileInfo]:
+    def get_import_hash_match_trash(self) -> List[ImportTileInfo]:
         """
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
@@ -559,7 +559,7 @@ class Model:
         end = self.__tile_indexes.hash_match_trash.start + self.__tile_indexes.hash_match_trash.length
         return self.__tile_infos[start:end]
 
-    def get_import_no_match(self) -> List[TileInfo]:
+    def get_import_no_match(self) -> List[ImportTileInfo]:
         """
         Wrapper function so the view doesn't have to work with indexes in the list.
         :return:
@@ -588,7 +588,7 @@ class Model:
 
         return self.pdb.get_full_import_table_entry_from_key(key=key, table=self.current_import_table_name)
 
-    def get_any_match(self, tile: TileInfo) -> Union[None, int]:
+    def get_any_match(self, tile: ImportTileInfo) -> Union[None, int]:
         """
         Get the key of the match in the database
 

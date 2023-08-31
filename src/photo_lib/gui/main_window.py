@@ -12,7 +12,7 @@ from photo_lib.gui.modals import (DateTimeModal, FolderSelectModal, TaskSelectMo
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.import_table_view import ImportTableList
 from photo_lib.gui.image_tile import ImageTile
-from photo_lib.data_objects import ProcessComType, Progress, Views, LongRunningActions, TileInfo, MatchTypes
+from photo_lib.data_objects import ProcessComType, Progress, Views, LongRunningActions, ImportTileInfo, MatchTypes
 from typing import Union
 
 

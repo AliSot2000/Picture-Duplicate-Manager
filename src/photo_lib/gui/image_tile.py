@@ -4,11 +4,11 @@ from typing import Union
 from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QSizePolicy, QMainWindow, QFrame, QWidget
 from PyQt6.QtCore import Qt
 from photo_lib.gui.clickable_image import ClickableImage
-from photo_lib.PhotoDatabase import TileInfo, MatchTypes
+from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes
 
 class ImageTile(QFrame):
 
-    tile_info: Union[TileInfo, None] = None
+    tile_info: Union[ImportTileInfo, None] = None
 
     file_name_lbl: QLabel
     clickable_image: ClickableImage
@@ -16,7 +16,7 @@ class ImageTile(QFrame):
 
     open_image_callback = None
 
-    def __init__(self, info: TileInfo):
+    def __init__(self, info: ImportTileInfo):
         super().__init__()
         self.tile_info = info
 
@@ -64,8 +64,8 @@ class ImageTile(QFrame):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    widget = ImageTile(TileInfo(1, '/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2159.JPG',
-                                False, False, MatchTypes.No_Match))
+    widget = ImageTile(ImportTileInfo(1, '/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2159.JPG',
+                                      False, False, MatchTypes.No_Match))
     root = QMainWindow()
     root.setCentralWidget(widget)
     root.show()

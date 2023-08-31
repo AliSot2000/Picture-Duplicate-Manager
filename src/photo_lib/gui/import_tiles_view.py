@@ -7,7 +7,7 @@ from photo_lib.gui.image_tile import ImageTile
 from photo_lib.gui.model import Model
 from photo_lib.PhotoDatabase import MatchTypes
 from photo_lib.gui.gui_utils import general_wrapper
-from photo_lib.data_objects import TileInfo
+from photo_lib.data_objects import ImportTileInfo
 
 class ImportView(QFrame):
     model: Model
@@ -77,7 +77,7 @@ class ImportView(QFrame):
 
         return marked_sections, marked_keys
 
-    def tile_marked_for_import(self, tile: TileInfo, marked: bool):
+    def tile_marked_for_import(self, tile: ImportTileInfo, marked: bool):
         """
         Function that is called when a tile is marked for import.
         :param marked: if the tile was set to marked, or unmarked.
@@ -135,7 +135,7 @@ class ImportView(QFrame):
             else:
                 raise ValueError(f"Unknown match type: {tile.match_type}")
 
-    def focus_tile_from_tile_info(self, tile_info: TileInfo):
+    def focus_tile_from_tile_info(self, tile_info: ImportTileInfo):
         """
         When moving back to this layout, we can ensure the image we had currently open in the other view is currently
         viewable in the scroll area.

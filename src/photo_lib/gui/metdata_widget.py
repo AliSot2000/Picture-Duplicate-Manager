@@ -4,7 +4,7 @@ import threading as th
 from PyQt6.QtWidgets import QVBoxLayout, QCheckBox, QPushButton, QWidget, QApplication, QHBoxLayout, QFrame, QLabel, QGridLayout
 from PyQt6.QtCore import Qt, pyqtSignal
 
-from photo_lib.PhotoDatabase import FullImportTableEntry, TileInfo, MatchTypes, FullReplacedEntry, FullDatabaseEntry
+from photo_lib.PhotoDatabase import FullImportTableEntry, ImportTileInfo, MatchTypes, FullReplacedEntry, FullDatabaseEntry
 from photo_lib.custom_enum import GoogleFotosMetadataStatus
 from photo_lib.gui.text_scroll_area import TextScroller
 from photo_lib.gui.model import Model
@@ -23,7 +23,7 @@ class DualMetadataWidget(QFrame):
 
     _import_entry: Union[None, FullImportTableEntry] = None
     _match_entry: Union[None, FullReplacedEntry, FullDatabaseEntry] = None
-    __tile_info: Union[None, TileInfo] = None
+    __tile_info: Union[None, ImportTileInfo] = None
 
     __show_match: bool = False
 
@@ -99,7 +99,7 @@ class DualMetadataWidget(QFrame):
         return self.__tile_info
 
     @tile_info.setter
-    def tile_info(self, value: TileInfo):
+    def tile_info(self, value: ImportTileInfo):
         build = (value is not None and self.__tile_info is None) or (value is None and self.__tile_info is not None)
         self.__tile_info = value
 
@@ -1043,41 +1043,41 @@ if __name__ == "__main__":
     window = DualMetadataWidget(Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/"))
     window.show_match = True
     window.model.current_import_table_name = "tbl_1998737548188488947"
-    tiles = [TileInfo(
+    tiles = [ImportTileInfo(
         key=20,
         path="",
         imported=False,
         allowed=False,
         match_type=MatchTypes.No_Match
     ),
-    TileInfo(
+    ImportTileInfo(
             key=20,
             path="",
             imported=False,
             allowed=False,
             match_type=MatchTypes.No_Match
         ),
-        TileInfo(
+        ImportTileInfo(
             key=72,
             path="",
             imported=False,
             allowed=False,
             match_type=MatchTypes.No_Match
         ),
-        TileInfo(
+        ImportTileInfo(
             key=134,
             path="",
             imported=False,
             allowed=False,
             match_type=MatchTypes.No_Match
-        ), TileInfo(
+        ), ImportTileInfo(
         key=10,
         path="",
         imported=False,
         allowed=False,
         match_type=MatchTypes.No_Match
     ),
-    TileInfo(
+    ImportTileInfo(
         key=11,
         path="",
         imported=False,

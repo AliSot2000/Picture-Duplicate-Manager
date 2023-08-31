@@ -14,7 +14,7 @@ class BaseTileInfo:
     path: str
 
 @dataclass
-class TileInfo(BaseTileInfo):
+class ImportTileInfo(BaseTileInfo):
     allowed: bool
     imported: bool
     match_type: MatchTypes
