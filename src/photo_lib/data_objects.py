@@ -23,6 +23,11 @@ class ImportTileInfo(BaseTileInfo):
 
 
 @dataclass
+class LibraryTileInfo(BaseTileInfo):
+    thumbnail_path: str
+
+
+@dataclass
 class Progress:
     type: ProcessComType
     value: Union[int, str]
@@ -92,3 +97,10 @@ class ImportTableEntry:
     root_path: str
     table_name: str
     table_desc: str
+
+
+@dataclass
+class GroupCount:
+    count: int
+    group_crit: GroupingCriterion
+    start_date: Union[None, datetime.datetime]
