@@ -240,12 +240,14 @@ class PhotoDb:
         return dups is not None
 
     def create_duplicates_table(self):
+        assert self.__verified, "Tables need to be verified to proceed."
         self.debug_exec("CREATE TABLE duplicates ("
                         "key INTEGER PRIMARY KEY AUTOINCREMENT,"
                         "match_type TEXT,"
                         "matched_keys TEXT)")
 
     def delete_duplicates_table(self):
+        assert self.__verified, "Tables need to be verified to proceed."
         self.debug_exec("DROP TABLE IF EXISTS duplicates")
 
     def get_duplicate_table_size(self):
@@ -282,6 +284,7 @@ class PhotoDb:
         self.con = None
 
     def purge_import_tables(self):
+        assert self.__verified, "Tables need to be verified to proceed."
         self.debug_exec("SELECT import_table_name FROM import_tables")
         ttd = self.cur.fetchone()
 
@@ -418,6 +421,7 @@ class PhotoDb:
         self.debug_exec(self.import_tables_table_command)
 
         self.con.commit()
+        self.__verified = True
 
     # ------------------------------------------------------------------------------------------------------------------
     # Main Functions
@@ -433,6 +437,7 @@ class PhotoDb:
         :param naming_tag: the naming tag
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
 
         new_name = self.__file_name_generator(dt_obj=new_datetime, old_fname=entry.org_fname)
         new_path = self.path_from_datetime(dt_obj=new_datetime, file_name=new_name)
@@ -471,6 +476,8 @@ class PhotoDb:
 
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         self.debug_exec(f"SELECT key, imported, impoprt_key FROM {tbl_name}")
         rows = self.cur.fetchall()
 
@@ -514,6 +521,8 @@ class PhotoDb:
 
         :return: temp_table_name
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         folder_path = os.path.abspath(folder_path.rstrip("/"))
 
         # Create table if no table is provided.
@@ -601,6 +610,8 @@ class PhotoDb:
 
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         metadata_needed = []
         count = 0
 
@@ -660,6 +671,8 @@ class PhotoDb:
         :param table: prepared import table to take for determining the match state.
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         self.debug_exec(f"UPDATE `{table}` SET match_type = 0, message = '{message_lookup[0]}' WHERE allowed = 1")
         self.debug_exec(f"SELECT key, org_fpath, org_fname, datetime, file_hash, metadata FROM `{table}` WHERE allowed = 1 AND imported = 0")
         targets = self.cur.fetchall()
@@ -716,7 +729,6 @@ class PhotoDb:
                                 f"WHERE key = {key}")
 
         self.con.commit()
-
 
     def __date_time_checker(self, to_import_file_path: str, target_datetime: datetime.datetime) \
             -> Tuple[bool, Union[None, int], MatchTypes]:
@@ -837,6 +849,8 @@ class PhotoDb:
 
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         msg = GUICommandTypes.NONE
 
         if match_types is None:
@@ -958,6 +972,8 @@ class PhotoDb:
 
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         # create subdirectory
         if not os.path.exists(self.__folder_from_datetime(fmd.datetime_object)):
             os.makedirs(self.__folder_from_datetime(fmd.datetime_object))
@@ -1012,6 +1028,8 @@ class PhotoDb:
         :param keys: list of integer keys in import table
         :param tbl_name: name of import table to import from
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         # TODO if there's a lot of files selected, this may be slow.
         self.debug_exec(f"SELECT "
                         f"key, org_fname, org_fpath, metadata, google_fotos_metadata, file_hash, datetime, naming_tag "
@@ -1073,6 +1091,8 @@ class PhotoDb:
         :param msg: message to be stored in the database associated with the folder
         :return: name of the temporary table
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         success = False
 
         if msg is None:
@@ -1169,6 +1189,7 @@ class PhotoDb:
         :param delete: if the image should be deleted or moved to the trash.
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
 
         # verify original is not a duplicate itself
         self.debug_exec(f"SELECT successor FROM replaced WHERE key is {successor}")
@@ -1465,10 +1486,8 @@ class PhotoDb:
         if delete and not present:
             print(f"WARNING: Image {results[0][0]} is already deleted")
             return
+
         # Image is still in trash if delete
-
-
-
         # make sure thumbnail exists
         if not trashed and present:
             self.create_img_thumbnail(key=key)
@@ -1515,6 +1534,8 @@ class PhotoDb:
         :param separate_process: if true, the search will be performed in a separate process (bc gui)
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         if level not in ("all", "year", "month", "day"):
             raise ValueError("Not supported search level")
 
@@ -1613,7 +1634,6 @@ class PhotoDb:
         pipe_in.close()
         print("Done")
 
-
     def img_ana_dup_search_old(self, level: str, procs: int = 16, overwrite: bool = False):
         """
         Perform default difpy search. Level determines the level at which the fotos are compared. The higher the level,
@@ -1623,6 +1643,7 @@ class PhotoDb:
         :param procs: number of parallel processes
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
 
         if level not in ("all", "year", "month", "day"):
             raise ValueError("Not supported search level")
@@ -1715,6 +1736,8 @@ class PhotoDb:
         return res[0][0]
 
     def result_processor(self, initial_size: int, result: mp.Queue, pipe_in: mpconn.Connection, info: str):
+        assert self.__verified, "Tables need to be verified to proceed."
+
         count = 0
         pipe_in.send((0, initial_size))
 
@@ -1749,6 +1772,8 @@ class PhotoDb:
 
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         msg = ""
         if self.duplicate_table_exists():
 
@@ -1780,6 +1805,7 @@ class PhotoDb:
         return True, msg + f"Successfully found {len(duplicates)} duplicates"
 
     def delete_duplicate_row(self, key: int):
+        assert self.__verified, "Tables need to be verified to proceed."
         self.debug_exec(f"DELETE FROM duplicates WHERE key = {key}")
         self.con.commit()
 
@@ -2018,6 +2044,8 @@ class PhotoDb:
 
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         self.debug_exec("SELECT successor FROM replaced LEFT JOIN  images ON images.key = replaced.successor WHERE images.key IS NULL;")
         rows = self.cur.fetchall()
         clean_rows = [x[0] for x in rows]
@@ -2481,6 +2509,8 @@ class PhotoDb:
         :param desc: string to change to.
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         self.debug_exec(f"UPDATE import_tables SET import_table_description = '{desc}' WHERE key = {key}")
         self.con.commit()
 
@@ -2489,6 +2519,8 @@ class PhotoDb:
         Go through all tables and update the datetimes to the new datetime version
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         # Images Table
         self.debug_exec("SELECT key, datetime FROM images")
         res = self.cur.fetchall()
