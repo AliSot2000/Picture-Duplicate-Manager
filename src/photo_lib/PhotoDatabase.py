@@ -138,19 +138,33 @@ class PhotoDb:
                                    }
 
         self.__connect()
-
-        existence, correctness = self.verify_tables()
-
-        if not existence and not correctness:
-            self.create_db()
-
-        if existence and not correctness:
-            # raise CorruptDatabase("Database is not correctly formatted and might not work. Check the logs.")
-            warnings.warn("Database is not correctly formatted and might not work. Proceed with caution")
+        self.__verified = False
 
     # ------------------------------------------------------------------------------------------------------------------
     # UTILITY CONVERTERS
     # ------------------------------------------------------------------------------------------------------------------
+
+    def verify(self, harakiri: bool = False):
+        """
+        Check the integrity of the tables and make sure you can use them with the database i.e. all columns exist ...
+
+        :param harakiri: If set to true, will only output a warning on malformed table. Otherwise, it raises error.
+        """
+        existence, correctness = self.verify_tables()
+
+        if not existence and not correctness:
+            if harakiri:
+                warnings.warn("Empty Database found")
+            else:
+                raise ValueError("Empty database found, did you mean to create one?")
+
+        if existence and not correctness:
+            if harakiri:
+                warnings.warn("Database is not correctly formatted and might not work. Proceed with caution")
+            else:
+                raise CorruptDatabase("Database is not correctly formatted and might not work. Check the logs.")
+
+        self.__verified = True
 
     def __folder_from_datetime(self, dt_obj: datetime.datetime):
         return os.path.join(self.root_dir, f"{dt_obj.year}", f"{dt_obj.month:02}", f"{dt_obj.day:02}")
