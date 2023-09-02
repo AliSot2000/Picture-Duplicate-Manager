@@ -88,7 +88,7 @@ class BaseImage(QFrame):
             self.empty_pixmap_painter()
             return
 
-        # Draw when image is successfully loaded n stuffl.
+        # Draw when image is successfully loaded n stuff.
         if self.size() == self.pixmap.size():
             r = self.rect()
         else:
