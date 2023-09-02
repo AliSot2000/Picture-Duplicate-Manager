@@ -2599,3 +2599,55 @@ class PhotoDb:
             return l
         else:
             raise TypeError(f"Unsupported Grouping of {group_crit}")
+
+    def generate_tiles(self, crit: GroupingCriterion, dt: datetime.datetime = None, count: int = None, offset: int = None,
+                       trash: bool = None):
+        """
+        Generate the given tiles for a given day, month or year
+
+        :param trash: if the tiles should be generated from the trash or the images.
+        :param crit: filter criterion to build the tiles for
+        :param count: number of tiles to generate
+        :param offset: offset starting from
+        :param dt: datetime that needs to match for grouping, not needed for NONE
+        :return:
+        """
+        statement = f"SELECT key, datetime, new_name FROM images WHERE "
+
+        # If we have a trashed quantifier, add that.
+        if trash is not None:
+            if trash:
+                statement += "trashed = 1 "
+            else:
+                statement += "trashed = 0 "
+
+        # Add the grouping criterion filter
+        if crit is GroupingCriterion.NONE:
+            pass
+        else:
+            if dt is not None:
+                if crit is GroupingCriterion.YEAR:
+                   statement += f" AND strftime('%Y', datetime) = '{dt.year}'"
+                elif crit is GroupingCriterion.YEAR_MONTH:
+                    statement += f"AND strftime('%Y-%m', datetime) = '{dt.year}-{dt.month}'"
+                elif crit is GroupingCriterion.YEAR_MONTH_DAY:
+                    statement += f"AND strftime('%Y-%m-%d', datetime) = '{dt.year}-{dt.month}-{dt.day}'"
+            else:
+                raise ValueError("dt must not be None if crit is not NONE")
+
+        if count is not None:
+            statement += f" LIMIT {count}"
+
+            if offset is not None:
+                statement += f" OFFSET {offset}"
+
+        self.debug_exec(statement)
+        results = self.cur.fetchall()
+        tiles = []
+        for r in results:
+            dt = self.__db_str_to_datetime(r[1])
+            tiles.append(LibraryTileInfo(key=r[0],
+                                         path=self.path_from_datetime(dt, r[2]),
+                                         thumbnail_path=self.thumbnail_name(ext=".jpeg", key=r[0])))
+
+        return tiles
