@@ -1379,7 +1379,7 @@ class PhotoDb:
         img_fpath = self.path_from_datetime(img_dt, img_fname)
 
         # don't create a thumbnail if it already exists.
-        if os.path.exists(self.thumbnail_name(ext=os.path.splitext(img_fname)[1], key=img_key)) and not overwrite:
+        if os.path.exists(self.thumbnail_name(ext=self.thumbnail_name(ext=".jpeg" , key=img_key), key=img_key)) and not overwrite:
             return False
 
         # load image from disk, 1 means cv::IMREAD_COLOR
