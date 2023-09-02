@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from photo_lib.metadataagregator import MetadataAggregator
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, ImportTileInfo, MatchTypes, FullImportTableEntry
 from photo_lib.custom_enum import SourceTable, GUICommandTypes
-from photo_lib.data_objects import FullDatabaseEntry, FullReplacedEntry, ImportTableEntry
+from photo_lib.data_objects import FullDatabaseEntry, FullReplacedEntry, ImportTableEntry, GroupingCriterion
 from photo_lib.metadataagregator import key_lookup_dir
 
 
@@ -114,6 +114,10 @@ class Model:
     handle: Union[None, mp.Process] = None
     gui_com: Union[None, Connection] = None
     abort: Union[bool, None] = None
+
+    # Stuff for general view
+    grouping: GroupingCriterion = GroupingCriterion.NONE
+    trash: Union[None, bool] = False
 
     # TODO config
     wait_timeout: int = 10
@@ -869,3 +873,24 @@ class Model:
                                                                      l,
                                                                      cgfdm))
         self.handle.start()
+
+    def get_images_carousel(self, start: int, count: int):
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        tiles = self.pdb.generate_tiles(crit=GroupingCriterion.NONE,
+                                        trash=self.trash,
+                                        dt=None,
+                                        offset=start,
+                                        count=count)
+        return tiles
+
+    def get_total_image_count(self) -> int:
+        """
+        Get the image count of all images in the database matching the current trash value
+        :return: int
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        return  self.pdb.get_grouped_image_count(GroupingCriterion.NONE, trash=self.trash)[0].count
