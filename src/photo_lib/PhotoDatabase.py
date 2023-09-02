@@ -2494,6 +2494,8 @@ class PhotoDb:
         :param tbl_name:
         :return:
         """
+        assert self.__verified, "Tables need to be verified to proceed."
+
         self.debug_exec(f"DELETE FROM import_tables WHERE import_table_name = '{tbl_name}'")
         try:
             self.debug_exec(f"DROP TABLE `{tbl_name}`")
