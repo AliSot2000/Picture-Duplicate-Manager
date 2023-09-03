@@ -59,6 +59,7 @@ def prepare_folder_for_import_process(tbl: str, folder_path: str, com: Connectio
     :return:
     """
     pdb = PhotoDb(root_dir=db_path)
+    pdb.verify()
     pdb.mda = MetadataAggregator(exiftool_path=exiftool_location)
     pdb.prepare_import(tbl_name=tbl,
                        folder_path=folder_path,
@@ -85,6 +86,7 @@ def import_folder_process(tbl: str, com: Connection, db_path: str, exiftool_loca
     :return:
     """
     pdb = PhotoDb(root_dir=db_path)
+    pdb.verify()
     pdb.mda = MetadataAggregator(exiftool_path=exiftool_location)
     pdb.import_folder(table_name=tbl, match_types=mt, com=com, copy_gfmd=copy_google_fotos_metadata)
     if keys is not None:
@@ -165,9 +167,31 @@ class Model:
                                                                     for ext in extensions.split(",")]))
         self.current_extensions = allowed_ext_set
 
+    def new_database_from_folder(self, path: str):
+        """
+        Create New Database.
+        """
+        if self.db_loaded():
+            self.pdb.clean_up()
+            self.pdb = None
+            self.folder_path = None
+
+        # We create the path if it doesn't exist - just to be sure if qt allows this on different platforms.
+        if not os.path.exists(os.path.abspath(path)):
+            os.makedirs(path)
+
+        if not os.path.exists(os.path.join(path, ".photos.db")):
+            self.pdb = PhotoDb(root_dir=path)
+            self.pdb.mda = MetadataAggregator(exiftool_path=self.exiftool_location)
+            self.folder_path = path
+            self.pdb.create_db()
+        else:
+            raise ValueError("Target Directory already contains a db")
+
     def __init__(self, folder_path: str = None):
         if folder_path is not None:
             self.pdb = PhotoDb(root_dir=folder_path)
+            self.pdb.verify()
 
         self.clear_tile_infos()
 
@@ -285,6 +309,7 @@ class Model:
 
         if os.path.exists(os.path.join(folder_path, ".photos.db")):
             self.pdb = PhotoDb(root_dir=folder_path)
+            self.pdb.verify()
             self.pdb.mda = MetadataAggregator(exiftool_path=self.exiftool_location)
             self.folder_path = folder_path
 
@@ -826,6 +851,7 @@ class Model:
             self.gui_com = None
 
         self.pdb = PhotoDb(self.folder_path)
+        self.pdb.verify()
 
         abrt = self.abort
         self.abort = None
