@@ -400,14 +400,20 @@ class PhotoDb:
             all_correctly_formatted = all_correctly_formatted and correct
             all_present = all_present and exists
 
+        assert not all_correctly_formatted or all_present, "Present implies correctly formatted not holding"
         return all_present, all_correctly_formatted
 
     def create_db(self):
         """
         Create all necessary tables for database.
 
+        :raises ValueError: When the tables either already exist or are correct
         :return:
         """
+        present, correct = self.verify_tables()
+        if present or correct:
+            raise ValueError("Tables already exist.")
+
         try:
             self.debug_exec(self.images_table_command)
         except sqlite3.OperationalError as e:
