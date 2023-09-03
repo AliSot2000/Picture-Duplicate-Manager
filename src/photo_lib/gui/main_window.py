@@ -67,6 +67,7 @@ class RootWindow(QMainWindow):
     open_folder_select_modal_action: QAction = None
     search_duplicates_modal_action: QAction = None
     change_allowed_extensions_modal_action: QAction = None
+    open_new_db_modal_action: QAction = None
 
     # Progress Dialog
     progress_dialog: Union[QProgressDialog, None] = None
@@ -100,7 +101,6 @@ class RootWindow(QMainWindow):
             self.propagate_check_state)
         self.import_table_list = ImportTableList(model=self.model)
         self.import_tiles.image_clicked.connect(self.import_tile_click)
-
 
         # TODO Need session storage for databases.
         # Top down adding of widgets and layouts
@@ -176,6 +176,10 @@ class RootWindow(QMainWindow):
         self.change_allowed_extensions_modal_action.setToolTip("Change the allowed extensions for the current import.")
         self.change_allowed_extensions_modal_action.setShortcut(
             QKeySequence(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_E))
+
+        self.open_new_db_modal_action = QAction("Create new Database", self)
+        self.open_new_db_modal_action.triggered.connect(self.new_database_action)
+        self.open_new_db_modal_action.setToolTip("Create a new Database")
 
         # View actions
         self.open_import_tables_view_action = QAction("Import &Tables", self)
@@ -511,7 +515,6 @@ class RootWindow(QMainWindow):
             self.full_screen_image_menu = menu_bar.addMenu("&Image")
             self.full_screen_image_menu.addAction(self.close_full_screen_image_action)
 
-
     def open_import_tables_view(self):
         """
         Open the import tables view.
@@ -586,6 +589,26 @@ class RootWindow(QMainWindow):
     # Modal Actions - Open the modals and performs action afterwards.
     # ------------------------------------------------------------------------------------------------------------------
 
+    def new_database_action(self):
+        """
+        Function to open a dialog to create a new database.
+        """
+        folder_select = FolderSelectModal()
+        res = folder_select.exec()
+
+        if res == QDialog.DialogCode.Rejected:
+            return
+
+        assert res == QDialog.DialogCode.Accepted, "Dialog should be accepted!!!"
+        try:
+            self.model.new_database_from_folder(folder_select.selectedFiles()[0])
+            # TODO switch to tiled_view
+            self.open_message_label("Database Empty. Import new Media Files")
+        except ValueError as e:
+            msg_bx = QMessageBox(QMessageBox.Icon.Warning, "Warning", "Couldn't create Database. Exists already",
+                                 QMessageBox.StandardButton.Ok)
+            msg_bx.exec()
+
     def open_folder_select_modal(self):
         """
         Open the folder select modal.
@@ -603,9 +626,12 @@ class RootWindow(QMainWindow):
                 self.open_compare_root()
 
             else:
-                msg_bx = QMessageBox(QMessageBox.Icon.Critical, "Error", "The Folder you selected was not a valid database", QMessageBox.StandardButton.Ok)
+                msg_bx = QMessageBox(QMessageBox.Icon.Critical,
+                                     "Error",
+                                     "The Folder you selected was not a valid database",
+                                     QMessageBox.StandardButton.Ok)
                 msg_bx.exec()
-                self.stacked_layout.setCurrentWidget(self.messageg_label)
+                self.open_message_label("You have no database selected. \nPlease select a database.")
 
     def open_datetime_modal(self, media_pane: MediaPane):
         """
@@ -797,6 +823,7 @@ class RootWindow(QMainWindow):
             target = self.menuBar().actions()[0]
         self.menuBar().insertMenu(target, self.file_submenu)
         self.file_submenu.addAction(self.open_folder_select_modal_action)
+        self.file_submenu.addAction(self.open_new_db_modal_action)
 
         if self.model.db_loaded():
             self.file_submenu.addSeparator()
