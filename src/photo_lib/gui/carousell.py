@@ -93,7 +93,6 @@ class Carousel(BaseCarousel):
     eager_load_limit = 10
     movement_stop_timeout = 50
 
-
     child_dummy: QWidget
     g_layout: QGridLayout
 
