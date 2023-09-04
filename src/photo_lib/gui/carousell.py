@@ -154,11 +154,11 @@ class Carousel(BaseCarousel):
             img = ClickableTile()
             img.setFixedHeight(100)
             img.setMinimumWidth(self.height())
+            img.image_loaded = False
             img.tile_info = tile
 
             # When clicked, set the image to the clicked image
             img.clicked.connect(image_wrapper(img, self.set_image))
-            img.image_loaded = False
             self.images.append(img)
             self.g_layout.addWidget(img, 0, i)
             self.g_layout.setColumnStretch(i, 1)
