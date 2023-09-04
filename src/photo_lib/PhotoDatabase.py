@@ -2689,7 +2689,7 @@ class PhotoDb:
                     statement += f"AND strftime('%Y-%m-%d', datetime) = '{dt.year}-{dt.month}-{dt.day}'"
             else:
                 raise ValueError("dt must not be None if crit is not NONE")
-
+        statement += " ORDER BY datetime ASC  "
         if count is not None:
             statement += f" LIMIT {count}"
 
