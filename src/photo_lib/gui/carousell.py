@@ -1,6 +1,6 @@
 import math
 
-from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QGridLayout, QFrame, QLabel
+from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QGridLayout, QFrame, QLabel, QScrollBar, QVBoxLayout
 from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent, QWheelEvent
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer
 import sys
@@ -20,10 +20,19 @@ This is the first implementation of a basic carousel widget. Features that are m
 should be replaced by a single widget to free even more space.
 """
 
+
 class BaseCarousel(QScrollArea):
     image_changed = pyqtSignal()
     images: List[ClickableTile]
     current_select: Union[None, ClickableTile] = None
+    timer: QTimer = None
+
+    movement_stop_timeout = 50
+
+    def __init__(self):
+        super().__init__()
+        self.timer = QTimer()
+        self.timer.setSingleShot(True)
 
     def set_tile(self, tile_info: ImportTileInfo):
         """
@@ -91,7 +100,6 @@ class Carousel(BaseCarousel):
     # Todo config
     # Number of times the size of the scroll area to preload teh images for scrolling.
     eager_load_limit = 10
-    movement_stop_timeout = 50
 
     child_dummy: QWidget
     g_layout: QGridLayout
@@ -102,8 +110,6 @@ class Carousel(BaseCarousel):
     right_most_visible_index: int = -1
 
     # Load 10 images to the left and right of current view.
-
-    timer: QTimer = None
 
     def __init__(self, model: Model):
         super().__init__()
@@ -119,14 +125,12 @@ class Carousel(BaseCarousel):
 
         self.g_layout = QGridLayout()
         self.child_dummy.setLayout(self.g_layout)
-        self.vis_from_slider(0)
 
         self.horizontalScrollBar().valueChanged.connect(self.schedule_update_load)
         self.horizontalScrollBar().sliderMoved.connect(self.schedule_update_load)
 
-        self.timer = QTimer()
-        self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.vis_from_slider)
+        self.schedule_update_load(2)
 
     def build_carousel(self, target: BaseTileInfo = None):
         """
@@ -179,12 +183,8 @@ class Carousel(BaseCarousel):
         super().resizeEvent(a0)
         self.child_dummy.setMaximumHeight(self.size().height())
         for img in self.images:
-            img.setMinimumWidth(self.height())
             img.setMaximumHeight(self.height())
-
-        # if len(self.images) > 0 and self.images is not None:
-        #     print(self.images[0].mapTo(self,
-        #                                self.images[0].rect().topLeft()))
+            img.setMinimumWidth(self.height())
 
     # TODO better datastructure to make this faster but ok for now.
     def vis_from_slider(self, val: int = None):
@@ -204,10 +204,10 @@ class Carousel(BaseCarousel):
         target_image = int(min(val / max(1, self.horizontalScrollBar().maximum() - self.horizontalScrollBar().minimum()) *
                         len(self.images), len(self.images) - 1))
 
-        # print("------------------------------------------------")
         # Walk left
         last_left = target_image
         last_right = target_image
+        print("------------------------------------------------")
 
         # Find left bound
         for i in range(target_image, -1, -1):
@@ -217,6 +217,8 @@ class Carousel(BaseCarousel):
             r = QRect(window_pos, self.images[i].size())
             # print(f"Image {i:03}: {'Visible' if visible else 'Not Visible'}")
             if self.rect_vis(r):
+                print(self.images[i].mapTo(self, self.images[i].geometry().topLeft()))
+                print(self.images[i].mapTo(self, self.images[i].rect().topLeft()))
                 last_left = i
             else:
                 break
@@ -230,6 +232,8 @@ class Carousel(BaseCarousel):
             # print(f"Image {i:03}: {'Visible' if visible else 'Not Visible'}")
             if self.rect_vis(r):
                 last_right = i
+                print(self.images[i].mapTo(self, self.images[i].geometry().topLeft()))
+                print(self.images[i].mapTo(self, self.images[i].rect().topLeft()))
             else:
                 break
 
@@ -296,238 +300,153 @@ class Carousel(BaseCarousel):
         # print(f"Time needed to load and unload images: {(end - start).total_seconds()}")
 
 
-
-
     # Get the position of a widget relative to window origin:
     # widget_pos = label.mapTo(window, label.rect().topLeft())
 
-class TemplatingCarousel(BaseCarousel):
-    """
-    Carousel widget that displays a list of images and allows the user to scroll through them.
-    """
+"""
+- Scrollbar will always be needed. (to move to images without mouse scroll)
+- QScrollArea doesn't work because after around 4000 images, the width is not sufficient to house all images.
+"""
 
-    # Todo config
-    # Number of times the size of the scroll area to preload the images for scrolling.
-    __preload_count = 50
-    movement_stop_timeout = 50
-    total_image_count: int = 0
-    current_select_ti: BaseTileInfo = None
 
-    left_dummy: QWidget
-    right_dummy: QWidget
-    child_dummy: QWidget
-    g_layout: QGridLayout
+class PotentCarousel(QFrame):
+    # TODO config
+    spacing: int = 5
+    center_spacing: float = 0.1
+    margin: int = 10
+    scrollbar_height: int = 15
+    # wrap_around_buffer - number of images that are loaded to the left and the right of the view (outside fov)
+    # Sensible values are 1-3
+    wrapp_around_buffer: int = 2
 
-    model = Model
+    sc: QScrollBar
 
-    timer: QTimer = None
+    number_of_elements: int = 100
+    current_element: int = 0
 
-    @property
-    def preload_count(self):
-        return self.__preload_count
+    widgets: List[QLabel] = None
 
-    @preload_count.setter
-    def preload_count(self, val):
-        assert val > 0, "Preload count must be greater than 0"
-        self.__preload_count = val
-        self.vis_from_pos(rebuild=True)
+    model: Model
+
+    carouse_area: QWidget
+
+    __scrollbar_present: bool = True
 
     def __init__(self, model: Model):
         super().__init__()
-
         self.model = model
-        self.images = []
+        self.widgets = []
 
-        self.setWidgetResizable(True)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.carouse_area = QWidget()
 
-        self.left_dummy = QWidget()
-        self.right_dummy = QWidget()
+        for i in range(11):
+            w = QLabel(f"Label {i}")
+            w.setStyleSheet("background-color: red;")
+            w.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            w.setFixedWidth(100)
+            w.setFixedHeight(100)
+            self.widgets.append(w)
+            w.setParent(self.carouse_area)
 
-        self.child_dummy = QWidget()
-        self.setWidget(self.child_dummy)
-
-        self.g_layout = QGridLayout()
-        self.child_dummy.setLayout(self.g_layout)
-
-        self.horizontalScrollBar().valueChanged.connect(self.schedule_update_load)
-        self.horizontalScrollBar().sliderMoved.connect(self.schedule_update_load)
-
-        self.timer = QTimer()
-        self.timer.setSingleShot(True)
-        self.timer.timeout.connect(self.vis_from_pos)
-        self.init_widgets()
-
-    def init_widgets(self):
-        """
-        Builds the carousel and sets the target image if provided. Otherwise, no image is set.
-        :param target:
-        :return:
-        """
-        self.update_image_count()
-
-        self.images = []
-
-        for i in range(self.preload_count * 2):
-            # Create the Widget
-            img = ClickableTile()
-            img.setFixedHeight(self.height())
-            img.setFixedWidth(self.height())
-
-            # When clicked, set the image to the clicked image
-            img.clicked.connect(image_wrapper(img, self.set_image))
-            self.images.append(img)
-            self.g_layout.addWidget(img, 0, i + 1)
-
-
-    def update_image_count(self):
-        self.total_image_count = self.model.get_total_image_count()
+        self.sc = QScrollBar(Qt.Orientation.Horizontal)
+        self.sc.setParent(self)
+        self.sc.setRange(0, self.number_of_elements)
+        self._update_layout()
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
-        Perform resize and set the height of the child widget.
-        :param a0:
-        :return:
+        Updates the sizes of the widgets and the scrollbar
         """
         super().resizeEvent(a0)
-        self.child_dummy.setMaximumHeight(self.size().height())
-        self.left_dummy.setMaximumHeight(self.size().height())
-        self.right_dummy.setMaximumHeight(self.size().height())
-        for img in self.images:
-            img.setFixedHeight(self.height())
-            img.setFixedWidth(self.height())
 
-    def set_tile(self, tile_info: BaseTileInfo):
-        """
-        Set the currently selected image based on a tile_info object.
-        :param tile_info:
-        :return:
-        """
-        for img in self.images:
-            if img.tile_info == tile_info:
-                self.set_image(img)
-                return
-        self.current_select_ti = tile_info
+        self.sc.setFixedWidth(self.width())
+        # TODO update number of visible images.
 
-    def set_image(self, image: ClickableTile):
-        """
-        Set the image to be displayed and add a Frame around it.
-        :param image:
-        :return:
-        """
-        self.ensureWidgetVisible(image)
-        self.mark_image(image)
-        self.image_changed.emit()
+        # Change, visibility of scrollbar and presence of it
+        if self.__scrollbar_present and self.number_of_elements <= 1:
+            self.sc.setVisible(False)
+            self.__scrollbar_present = False
 
-    def mark_image(self, image: ClickableTile):
-        """
-        Mark the image as selected.
-        :param image:
-        :return:
-        """
-        if self.current_select is not None:
-            self.unmark_selected()
+        # Change, visibility of scrollbar and presence of it
+        if not self.__scrollbar_present and self.number_of_elements > 1:
+            self.sc.setVisible(True)
+            self.__scrollbar_present = True
 
-        self.current_select = image
-        self.mark_selected()
+        self._update_layout()
+        self._initial_placement()
 
-    def schedule_update_load(self, val: int):
+    def _update_layout(self):
         """
-        Schedule the update of the loaded images.
+        Update the layout of all widgets which make up the carousel
+        """
+        # Scrollbar is present
+        if self.__scrollbar_present:
+            self.sc.move(QPoint(0, self.height() - self.scrollbar_height))
 
-        :param val: needed to attach to signal
-        :return:
-        """
-        self.timer.start(self.movement_stop_timeout)
+            tile_size = self.height() - self.margin * 2 - self.scrollbar_height
 
-    def vis_from_pos(self, rebuild: bool = False):
-        """
-        Compute visibility from position and update the images.
-
-        :param rebuild: If true, generate new ClickableTiles for the iteration of the process.
-        :return:
-        """
-        if self.g_layout.indexOf(self.left_dummy) != -1:
-            left_most_x = self.left_dummy.mapTo(self, self.left_dummy.geometry().topLeft()).x()
+        # Scrollbar is not present
         else:
-            left_most_x = self.images[0].mapTo(self, self.images[0].geometry().topLeft()).x()
+            tile_size = self.height() - self.margin * 2
 
-        x_spacing = self.g_layout.spacing()
-        num_of_left_images = math.floor(-left_most_x / (self.height() + x_spacing))
+        for i in range(len(self.widgets)):
+            self.widgets[i].setFixedHeight(tile_size)
+            self.widgets[i].setFixedWidth(tile_size)
 
-        # Determine starting image, make sure it is not negative and loads still all images even if we are scrolled
-        # maximal to the right
-        right_most_start = self.total_image_count - 2*self.preload_count
-        if right_most_start <= 0:
-            start = max(num_of_left_images - self.preload_count, 0)
-        else:
-            left_most_start = max(num_of_left_images - self.preload_count, 0)
-            if left_most_start > right_most_start:
-                start = right_most_start
-            else:
-                start = left_most_start
+        self.carouse_area.setFixedHeight(tile_size)
+        self.carouse_area.setFixedWidth(self.width() - 2 * self.margin)
 
-        tiles = self.model.get_images_carousel(start=start, count=self.preload_count * 2)
+        self._initial_placement()
 
-        if self.current_select is not None:
-            self.unmark_selected()
+    def number_of_widgets(self):
+        # Default tile size
+        tile_size = self.height() - self.margin * 2
 
-        # Not rebuiling, simply assign new values
-        if not rebuild:
-            self.current_select = None
-            for i in range(len(tiles)):
-                self.images[i].tile_info = tiles[i]
-                if self.current_select_ti is not None and tiles[i].key == self.current_select_ti.key:
-                    self.current_select = self.images[i]
-        # Rebuilding, need to create new widgets
-        else:
-            for img in self.images:
-                img.deleteLater()
+        # Subtract size of scrollbar if present
+        tile_size -= self.scrollbar_height if self.__scrollbar_present else 0
 
-            # Create new images
-            for i in range(len(tiles)):
-                img = ClickableTile()
-                img.setFixedHeight(self.height())
-                img.setFixedWidth(self.height())
-                img.tile_info = tiles[i]
-                img.clicked.connect(image_wrapper(img, self.set_image))
-                self.images.append(img)
-                if tiles[i].key == self.current_select_ti.key:
-                    self.current_select = self.images[i]
+        # Remove the center widget, the center spacing and the margins
+        remaining_width = self.width() - tile_size - 2 * self.center_spacing * tile_size - 2 * self.margin
 
-        if self.current_select is not None:
-            self.mark_selected()
+        # Divide to get only one side
+        remaining_width /= 2
 
-        # TODO smart update, only update the layout completely if necessary
-        # Empty layout
-        while self.g_layout.count() > 0:
-            self.g_layout.takeAt(0)
+        # Number of widgets that fit one side
+        widgets = remaining_width / (tile_size + self.spacing)
+        return int(widgets + self.wrapp_around_buffer) * 2 + 1
 
-        # Add dummy if necessary
-        if num_of_left_images - self.preload_count > 0:
-            self.g_layout.addWidget(self.left_dummy, 0, 0)
-            self.left_dummy.setFixedWidth(self.height() * (num_of_left_images - self.preload_count) + x_spacing * (num_of_left_images - self.preload_count - 1))
+    def _initial_placement(self, init: bool = False):
+        """
+        Placd the widgets in the default locations
+        """
+        if init:
+            self.carouse_area.move(QPoint(self.margin, self.margin))
 
-        # Add images
-        for i in range(len(tiles)):
-            self.g_layout.addWidget(self.images[i], 0, i + 1)
-        pos = min(len(tiles) + 1, self.preload_count * 2 + 1)
-        # Add right dummy if necessary
-        if self.total_image_count - num_of_left_images - self.preload_count > 0:
-            right_count = self.total_image_count - num_of_left_images - self.preload_count
-            self.g_layout.addWidget(self.right_dummy, 0, pos)
-            self.right_dummy.setFixedWidth(self.height() * right_count + x_spacing * (right_count - 1))
-        print("Done")
+        assert len(self.widgets) % 2 == 1, "Number of widgets must be odd"
+        middle = len(self.widgets) // 2
+
+         # place middle widget
+        self.widgets[middle].move(QPoint(self.width() // 2 - self.widgets[middle].width() // 2, self.margin))
+        w = self.widgets[middle].width()
+        center = self.width() // 2
+
+        for i in range(len(self.widgets) // 2):
+            x_l = center - w / 2 - self.spacing * i - w * (i+1) - w * self.center_spacing
+            x_r = center + w / 2 + self.spacing * i + w * i + w * self.center_spacing
+            print(x_l, x_r)
+            self.widgets[middle - i - 1].move(QPoint(x_l, self.margin))
+            self.widgets[middle + i + 1].move(QPoint(x_r, self.margin))
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
-    window = Carousel(Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/"))
-    window.model.current_import_table_name = "tbl_1998737548188488947"
-    window.model.build_tiles_from_table()
+    m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
+    # m.current_import_table_name = "tbl_-3399138825726121575"
+    m.build_tiles_from_table()
+    window = PotentCarousel(m)
+    # window = TestingTamplatingCarousel(m)
+    # window.build_carousel()
     window.setWindowTitle("Carousel Test")
-    window.build_carousel()
     # window.image_changed.connect(lambda x: print(x))
     window.show()
     sys.exit(app.exec())
