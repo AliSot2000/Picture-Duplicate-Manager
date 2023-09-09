@@ -1,7 +1,7 @@
 import math
 
 from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QGridLayout, QFrame, QLabel, QScrollBar, QVBoxLayout
-from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent, QWheelEvent
+from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent, QWheelEvent, QKeyEvent
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer
 import sys
 from typing import List, Union
@@ -303,10 +303,265 @@ class Carousel(BaseCarousel):
     # Get the position of a widget relative to window origin:
     # widget_pos = label.mapTo(window, label.rect().topLeft())
 
-"""
-- Scrollbar will always be needed. (to move to images without mouse scroll)
-- QScrollArea doesn't work because after around 4000 images, the width is not sufficient to house all images.
-"""
+class MyLabel(QLabel):
+    __index: int = 0
+
+    @property
+    def index(self):
+        return self.__index
+
+    @index.setter
+    def index(self, value: int):
+        if value == self.__index:
+            return
+
+        self.__index = value
+        self.setText(f"Label: {self.__index} ")
+
+class RecyclingCarousel(QFrame):
+    spacing: int = 5
+    center_spacing: float = 0.1
+    wrapp_around_buffer: int = 2
+
+    number_of_elements: int = 100
+    current_element: int = 0
+
+    widgets: List[MyLabel] = None
+    center_widget: int = 5
+
+    model: Model
+
+    def __init__(self, model: Model):
+        super().__init__()
+        self.model = model
+        self.widgets = []
+        self.setMinimumHeight(100)
+
+        for i in range(11):
+            w = MyLabel()
+            w.index = i
+            w.setStyleSheet("background-color: red;")
+            w.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            w.setFixedWidth(100)
+            w.setFixedHeight(100)
+            self.widgets.append(w)
+            w.setParent(self)
+
+    def resizeEvent(self, a0: QResizeEvent) -> None:
+        """
+        Updates the sizes of the widgets and the scrollbar
+        """
+        super().resizeEvent(a0)
+
+        # Update number of visible tile
+        self.update_widget_count()
+
+        tile_size = self.height()
+        for i in range(len(self.widgets)):
+            self.widgets[i].setFixedHeight(tile_size)
+            self.widgets[i].setFixedWidth(tile_size)
+
+        self.layout_widgets()
+
+    def number_of_widgets(self):
+        # Default tile size
+        tile_size = self.height()
+
+        # Remove the center widget, the center spacing and the margins
+        remaining_width = self.width() - tile_size - 2 * self.center_spacing * tile_size
+
+        # Divide to get only one side
+        remaining_width /= 2
+
+        # Number of widgets that fit one side
+        widgets = remaining_width / (tile_size + self.spacing)
+        return int(widgets + self.wrapp_around_buffer) * 2 + 1
+
+    def keyPressEvent(self, a0: QKeyEvent) -> None:
+        """
+        Catch keys from keyboard and move the carousel accordingly.
+        :param a0:
+        :return:
+        """
+        super().keyPressEvent(a0)
+        if a0.key() == Qt.Key.Key_Left:
+            self.move_left()
+            self.layout_widgets()
+        elif a0.key() == Qt.Key.Key_Right:
+            self.move_right()
+            self.layout_widgets()
+
+    def move_left(self):
+        """
+        Moves images one to the left.
+        :return:
+        """
+        last = self.widgets[-1]
+        first = self.widgets[0]
+        if self.center_widget != len(self.widgets) // 2:
+            # we are at the right threshold
+            if self.center_widget > len(self.widgets) // 2:
+                self.center_widget -= 1
+                return
+            # we're at the left threshold but not at the left most image
+            elif 0 < self.center_widget < len(self.widgets) // 2:
+                self.center_widget -= 1
+                return
+            # We're at the left most image
+            else:
+                return
+
+        # More images to load to the left
+        if first.index > 0:
+            last.index = first.index -1
+            self.widgets = [last] + self.widgets[:-1]
+            return
+
+        # Nothing left to the left, asymmetric display.
+        assert first.index == 0, "First index is not 0"
+        assert self.center_widget == len(self.widgets) // 2, "Center widget is not in the middle"
+        self.center_widget -= 1
+
+    def move_right(self):
+        """
+        Moves images one to the right.
+        :return:
+        """
+        last = self.widgets[-1]
+        first = self.widgets[0]
+        if self.center_widget != len(self.widgets) // 2:
+            # we are at the right threshold but not at the right most image
+            if len(self.widgets) -1 > self.center_widget > len(self.widgets) // 2:
+                self.center_widget += 1
+                return
+            # we're at the left threshold
+            elif self.center_widget < len(self.widgets) // 2:
+                self.center_widget += 1
+                return
+            # We're at the right most image
+            else:
+                return
+
+        # More images to load to the left
+        if last.index < self.number_of_elements -1 :
+            first.index = last.index + 1
+            self.widgets = self.widgets[1:] + [first]
+            return
+
+        # Nothing left to the left, asymmetric display.
+        assert last.index == self.number_of_elements - 1, "First index is not 0"
+        assert self.center_widget == len(self.widgets) // 2, "Center widget is not in the middle"
+        self.center_widget += 1
+
+    def move_to_specific_image(self, index: int):
+        """
+        Moves the carousel to a specific image.
+        :param index:
+        :return:
+        """
+        pass
+
+    def layout_widgets(self):
+        """
+        Layout the widgets in the carousel.
+        :return:
+        """
+        if self.center_widget == len(self.widgets) // 2:
+            w = self.widgets[self.center_widget].width()
+            self.widgets[self.center_widget].move(QPoint(self.width() // 2 - w // 2, 0))
+            center = self.width() // 2
+
+            for i in range(len(self.widgets) // 2):
+                x_l = center - w / 2 - self.spacing * i - w * (i + 1) - w * self.center_spacing
+                x_r = center + w / 2 + self.spacing * i + w * i + w * self.center_spacing
+                if self.center_widget - i - 1 >= 0:
+                    self.widgets[self.center_widget - i - 1].move(QPoint(x_l, 0))
+                if self.center_widget + i + 1 < len(self.widgets):
+                    self.widgets[self.center_widget + i + 1].move(QPoint(x_r, 0))
+        else:
+            w = self.widgets[self.center_widget].width()
+            self.widgets[self.center_widget].move(QPoint(self.width() // 2 - w // 2, 0))
+            center = self.width() // 2
+
+            for i in range(len(self.widgets)):
+                x_l = center - w / 2 - self.spacing * i - w * (i + 1) - w * self.center_spacing
+                x_r = center + w / 2 + self.spacing * i + w * i + w * self.center_spacing
+                print(x_l, x_r)
+                if self.center_widget - i - 1 >= 0:
+                    self.widgets[self.center_widget - i - 1].move(QPoint(x_l, 0))
+                if self.center_widget + i + 1 < len(self.widgets):
+                    self.widgets[self.center_widget + i + 1].move(QPoint(x_r, 0))
+
+    def update_widget_count(self):
+        """
+        Updates the available widgets for recirculation if the number of widgets needs to change.
+        :return:
+        """
+        now = self.number_of_widgets()
+        if len(self.widgets) == now:
+            return
+        print(now)
+        # Number of widgets needs to change
+        if len(self.widgets) > now:
+
+            # we are not at a threshold:
+            if self.center_widget == len(self.widgets) // 2:
+                self.widgets[0].deleteLater()
+                self.widgets[-1].deleteLater()
+                self.widgets = self.widgets[1:-1]
+                self.center_widget = self.center_widget -1
+                return
+
+            # we're at a threshold and it's the left one
+            if self.center_widget < len(self.widgets) // 2:
+                self.widgets[-1].deleteLater()
+                self.widgets[-2].deleteLater()
+                self.widgets = self.widgets[:-2]
+                return
+
+            # we're at a threshold and it's the right one
+            assert self.center_widget > len(self.widgets) // 2, "Center widget is not at a threshold"
+            self.widgets[0].deleteLater()
+            self.widgets[1].deleteLater()
+            self.widgets = self.widgets[2:]
+            return
+
+        # Have as many widgets as we have elements
+        if len(self.widgets) == self.number_of_elements:
+            return
+
+        c = self._add_widgets()
+        if c == 2:
+            self.center_widget += 1
+        if c < 2 and len(self.widgets) < self.number_of_elements:
+            c += self._add_widgets()
+            assert c == 2, "Not enough widgets added"
+
+    def _add_widgets(self):
+        """
+        Adds widgets to the carousel.
+        :return:
+        """
+        count = 0
+        if self.widgets[0].index > 0:
+            w = MyLabel()
+            w.setParent(self)
+            w.setStyleSheet("background-color: red;")
+            w.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.widgets = [w] + self.widgets
+            self.widgets[0].index = self.widgets[1].index - 1
+            count += 1
+
+        if self.widgets[-1].index < self.number_of_elements - 1:
+            w = MyLabel()
+            w.setStyleSheet("background-color: red;")
+            w.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            w.setParent(self)
+            w.setVisible(True)
+            self.widgets.append(w)
+            self.widgets[-1].index = self.widgets[-2].index + 1
+            count += 1
+        return count
 
 
 class PotentCarousel(QFrame):
@@ -317,7 +572,6 @@ class PotentCarousel(QFrame):
     scrollbar_height: int = 15
     # wrap_around_buffer - number of images that are loaded to the left and the right of the view (outside fov)
     # Sensible values are 1-3
-    wrapp_around_buffer: int = 2
 
     sc: QScrollBar
 
@@ -338,6 +592,8 @@ class PotentCarousel(QFrame):
         self.widgets = []
 
         self.carouse_area = QWidget()
+        self.carouse_area.setParent(self)
+        self.carouse_area.move(QPoint(self.margin, self.margin))
 
         for i in range(11):
             w = QLabel(f"Label {i}")
@@ -396,8 +652,6 @@ class PotentCarousel(QFrame):
         self.carouse_area.setFixedHeight(tile_size)
         self.carouse_area.setFixedWidth(self.width() - 2 * self.margin)
 
-        self._initial_placement()
-
     def number_of_widgets(self):
         # Default tile size
         tile_size = self.height() - self.margin * 2
@@ -426,7 +680,7 @@ class PotentCarousel(QFrame):
         middle = len(self.widgets) // 2
 
          # place middle widget
-        self.widgets[middle].move(QPoint(self.width() // 2 - self.widgets[middle].width() // 2, self.margin))
+        self.widgets[middle].move(QPoint(self.width() // 2 - self.widgets[middle].width() // 2, 0))
         w = self.widgets[middle].width()
         center = self.width() // 2
 
@@ -434,16 +688,17 @@ class PotentCarousel(QFrame):
             x_l = center - w / 2 - self.spacing * i - w * (i+1) - w * self.center_spacing
             x_r = center + w / 2 + self.spacing * i + w * i + w * self.center_spacing
             print(x_l, x_r)
-            self.widgets[middle - i - 1].move(QPoint(x_l, self.margin))
-            self.widgets[middle + i + 1].move(QPoint(x_r, self.margin))
+            self.widgets[middle - i - 1].move(QPoint(x_l, 0))
+            self.widgets[middle + i + 1].move(QPoint(x_r, 0))
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
+    m = Model(folder_path="/media/alisot2000/DumpStuff/work_dummy/")
     # m.current_import_table_name = "tbl_-3399138825726121575"
     m.build_tiles_from_table()
-    window = PotentCarousel(m)
+    # window = PotentCarousel(m)
+    window = RecyclingCarousel(m)
     # window = TestingTamplatingCarousel(m)
     # window.build_carousel()
     window.setWindowTitle("Carousel Test")
