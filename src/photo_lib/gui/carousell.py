@@ -471,7 +471,6 @@ class RecyclingCarousel(QFrame):
         Moves images one to the right.
         :return:
         """
-        print("Move Right")
         last = self.widgets[-1]
         first = self.widgets[0]
         if self.center_widget != len(self.widgets) // 2:
@@ -514,7 +513,6 @@ class RecyclingCarousel(QFrame):
         :param index:
         :return:
         """
-        print("Spec")
         if index < 0 or index > self.number_of_elements:
             raise ValueError(f"Index out of bounds [0, {self.number_of_elements}]")
 
@@ -571,13 +569,11 @@ class RecyclingCarousel(QFrame):
         for i in range(0, self.center_widget):
             k = self.center_widget - i -1
             x_l = center - w / 2 - self.spacing * k - w * (k + 1) - w * self.center_spacing
-            print(x_l)
             self.widgets[i].move(QPoint(x_l, 0))
 
         for i in range(self.center_widget + 1, len(self.widgets)):
             k = i - self.center_widget - 1
             x_r = center + w / 2 + self.spacing * k + w * k + w * self.center_spacing
-            print(x_r)
             self.widgets[i].move(QPoint(x_r, 0))
 
 
