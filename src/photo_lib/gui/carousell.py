@@ -426,6 +426,7 @@ class RecyclingCarousel(QFrame):
             self.move_right()
             self.layout_widgets()
 
+    @pyqtSlot()
     def move_left(self):
         """
         Moves images one to the left.
@@ -437,10 +438,12 @@ class RecyclingCarousel(QFrame):
             # we are at the right threshold
             if self.center_widget > len(self.widgets) // 2:
                 self.center_widget -= 1
+                self.current_element -= 1
                 return
             # we're at the left threshold but not at the left most image
             elif 0 < self.center_widget < len(self.widgets) // 2:
                 self.center_widget -= 1
+                self.current_element -= 1
                 return
             # We're at the left most image
             else:
@@ -460,22 +463,27 @@ class RecyclingCarousel(QFrame):
         assert first.index == 0, "First index is not 0"
         assert self.center_widget == len(self.widgets) // 2, "Center widget is not in the middle"
         self.center_widget -= 1
+        self.current_element -= 1
 
+    @pyqtSlot()
     def move_right(self):
         """
         Moves images one to the right.
         :return:
         """
+        print("Move Right")
         last = self.widgets[-1]
         first = self.widgets[0]
         if self.center_widget != len(self.widgets) // 2:
             # we are at the right threshold but not at the right most image
             if len(self.widgets) -1 > self.center_widget > len(self.widgets) // 2:
                 self.center_widget += 1
+                self.current_element += 1
                 return
             # we're at the left threshold
             elif self.center_widget < len(self.widgets) // 2:
                 self.center_widget += 1
+                self.current_element += 1
                 return
             # We're at the right most image
             else:
@@ -488,12 +496,14 @@ class RecyclingCarousel(QFrame):
             s = f"background-color: rgba{col.getRgb()}"
             first.setStyleSheet(s)
             self.widgets = self.widgets[1:] + [first]
+            self.current_element += 1
             return
 
         # Nothing left to the left, asymmetric display.
         assert last.index == self.number_of_elements - 1, "First index is not 0"
         assert self.center_widget == len(self.widgets) // 2, "Center widget is not in the middle"
         self.center_widget += 1
+        self.current_element += 1
 
     def move_to_specific_image(self, index: int):
         """
@@ -542,10 +552,9 @@ class RecyclingCarousel(QFrame):
         now = self.number_of_widgets()
         if len(self.widgets) == now:
             return
-        print(now)
+
         # Number of widgets needs to change
         if len(self.widgets) > now:
-
             # we are not at a threshold:
             if self.center_widget == len(self.widgets) // 2:
                 self.widgets[0].deleteLater()
