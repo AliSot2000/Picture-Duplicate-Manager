@@ -395,11 +395,15 @@ class RecyclingCarousel(QFrame):
         self.layout_widgets()
 
     def number_of_widgets(self):
+        """
+        Compute the number of widgets that need to be present to fill the size of the widget..
+        :return:
+        """
         # Default tile size
         tile_size = self.height()
 
         # Remove the center widget, the center spacing and the margins
-        remaining_width = self.width() - tile_size - 2 * self.center_spacing * tile_size
+        remaining_width = max(self.width() - tile_size - 2 * self.center_spacing * tile_size, 0)
 
         # Divide to get only one side
         remaining_width /= 2
