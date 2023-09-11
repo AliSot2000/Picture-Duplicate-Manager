@@ -304,7 +304,7 @@ class Carousel(BaseCarousel):
     # widget_pos = label.mapTo(window, label.rect().topLeft())
 
 class MyLabel(QLabel):
-    __index: int = 0
+    __index: int = None
 
     @property
     def index(self):
