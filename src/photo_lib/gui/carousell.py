@@ -505,44 +505,81 @@ class RecyclingCarousel(QFrame):
         self.center_widget += 1
         self.current_element += 1
 
+    @pyqtSlot(int)
     def move_to_specific_image(self, index: int):
         """
         Moves the carousel to a specific image.
+
+        Warning This triggers the signals. DO NOT CONNECT THIS FUNCTION TO Another signal! Use the slots.
         :param index:
         :return:
         """
-        pass
+        print("Spec")
+        if index < 0 or index > self.number_of_elements:
+            raise ValueError(f"Index out of bounds [0, {self.number_of_elements}]")
+
+        if self.widgets[self.center_widget].index == index:
+            return
+        elif self.widgets[self.center_widget].index == index + 1:
+            self.move_left()
+            self.layout_widgets()
+        elif self.widgets[self.center_widget].index == index - 1:
+            self.move_right()
+            self.layout_widgets()
+
+        # outside bounds
+        if (self.widgets[self.center_widget].index < self.widgets[0].index or
+                self.widgets[self.center_widget].index > self.widgets[-1].index):
+
+            # Assign new values
+            self.widgets[self.center_widget].index = index
+            self.current_element = index
+            for i in range(self.center_widget + 1, len(self.widgets)):
+                self.widgets[i].index = self.widgets[i-1].index + 1
+
+            for i in range(self.center_widget - 1, -1, -1):
+                self.widgets[i].index = self.widgets[i+1].index - 1
+
+            # update colors
+            for i in range(len(self.widgets)):
+                ind = self.widgets[i].index
+                col = QColor.fromHsvF(((ind) / self.number_of_elements), 1.0, 1.0)
+                s = f"background-color: rgba{col.getRgb()}"
+                self.widgets[i].setStyleSheet(s)
+            return
+
+        # inside bounds
+        if self.widgets[self.center_widget].index < index:
+            while self.widgets[self.center_widget].index < index:
+                self.move_right()
+            self.layout_widgets()
+
+        elif self.widgets[self.center_widget].index > index:
+            while self.widgets[self.center_widget].index > index:
+                self.move_left()
+            self.layout_widgets()
 
     def layout_widgets(self):
         """
         Layout the widgets in the carousel.
         :return:
         """
-        if self.center_widget == len(self.widgets) // 2:
-            w = self.widgets[self.center_widget].width()
-            self.widgets[self.center_widget].move(QPoint(self.width() // 2 - w // 2, 0))
-            center = self.width() // 2
+        w = self.widgets[self.center_widget].width()
+        self.widgets[self.center_widget].move(QPoint(self.width() // 2 - w // 2, 0))
+        center = self.width() // 2
 
-            for i in range(len(self.widgets) // 2):
-                x_l = center - w / 2 - self.spacing * i - w * (i + 1) - w * self.center_spacing
-                x_r = center + w / 2 + self.spacing * i + w * i + w * self.center_spacing
-                if self.center_widget - i - 1 >= 0:
-                    self.widgets[self.center_widget - i - 1].move(QPoint(x_l, 0))
-                if self.center_widget + i + 1 < len(self.widgets):
-                    self.widgets[self.center_widget + i + 1].move(QPoint(x_r, 0))
-        else:
-            w = self.widgets[self.center_widget].width()
-            self.widgets[self.center_widget].move(QPoint(self.width() // 2 - w // 2, 0))
-            center = self.width() // 2
+        for i in range(0, self.center_widget):
+            k = self.center_widget - i -1
+            x_l = center - w / 2 - self.spacing * k - w * (k + 1) - w * self.center_spacing
+            print(x_l)
+            self.widgets[i].move(QPoint(x_l, 0))
 
-            for i in range(len(self.widgets)):
-                x_l = center - w / 2 - self.spacing * i - w * (i + 1) - w * self.center_spacing
-                x_r = center + w / 2 + self.spacing * i + w * i + w * self.center_spacing
-                print(x_l, x_r)
-                if self.center_widget - i - 1 >= 0:
-                    self.widgets[self.center_widget - i - 1].move(QPoint(x_l, 0))
-                if self.center_widget + i + 1 < len(self.widgets):
-                    self.widgets[self.center_widget + i + 1].move(QPoint(x_r, 0))
+        for i in range(self.center_widget + 1, len(self.widgets)):
+            k = i - self.center_widget - 1
+            x_r = center + w / 2 + self.spacing * k + w * k + w * self.center_spacing
+            print(x_r)
+            self.widgets[i].move(QPoint(x_r, 0))
+
 
     def update_widget_count(self):
         """
