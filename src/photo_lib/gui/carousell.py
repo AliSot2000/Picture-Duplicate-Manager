@@ -660,8 +660,6 @@ class RecyclingCarousel(QFrame):
 
 class PotentCarousel(QFrame):
     # TODO config
-    spacing: int = 5
-    center_spacing: float = 0.1
     margin: int = 10
     scrollbar_height: int = 15
     # wrap_around_buffer - number of images that are loaded to the left and the right of the view (outside fov)
@@ -669,39 +667,28 @@ class PotentCarousel(QFrame):
 
     sc: QScrollBar
 
-    number_of_elements: int = 100
-    current_element: int = 0
-
-    widgets: List[QLabel] = None
-
     model: Model
 
-    carouse_area: QWidget
+    carouse_area: RecyclingCarousel
 
     __scrollbar_present: bool = True
 
     def __init__(self, model: Model):
         super().__init__()
         self.model = model
-        self.widgets = []
 
-        self.carouse_area = QWidget()
+        self.carouse_area = RecyclingCarousel(model)
         self.carouse_area.setParent(self)
-        self.carouse_area.move(QPoint(self.margin, self.margin))
-
-        for i in range(11):
-            w = QLabel(f"Label {i}")
-            w.setStyleSheet("background-color: red;")
-            w.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            w.setFixedWidth(100)
-            w.setFixedHeight(100)
-            self.widgets.append(w)
-            w.setParent(self.carouse_area)
 
         self.sc = QScrollBar(Qt.Orientation.Horizontal)
         self.sc.setParent(self)
-        self.sc.setRange(0, self.number_of_elements)
+        self.sc.setRange(0, self.carouse_area.number_of_elements - 1)
         self._update_layout()
+        self._initial_placement()
+        self.sc.valueChanged.connect(self.carouse_area.move_to_specific_image)
+        self.sc.valueChanged.connect(lambda x: print(x))
+        self.carouse_area.image_changed.connect(self.sc.setValue)
+        self.carouse_area.image_changed.connect(lambda x: print(x))
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
@@ -713,17 +700,16 @@ class PotentCarousel(QFrame):
         # TODO update number of visible images.
 
         # Change, visibility of scrollbar and presence of it
-        if self.__scrollbar_present and self.number_of_elements <= 1:
+        if self.__scrollbar_present and self.carouse_area.number_of_elements <= 1:
             self.sc.setVisible(False)
             self.__scrollbar_present = False
 
         # Change, visibility of scrollbar and presence of it
-        if not self.__scrollbar_present and self.number_of_elements > 1:
+        if not self.__scrollbar_present and self.carouse_area.number_of_elements > 1:
             self.sc.setVisible(True)
             self.__scrollbar_present = True
 
         self._update_layout()
-        self._initial_placement()
 
     def _update_layout(self):
         """
@@ -739,51 +725,14 @@ class PotentCarousel(QFrame):
         else:
             tile_size = self.height() - self.margin * 2
 
-        for i in range(len(self.widgets)):
-            self.widgets[i].setFixedHeight(tile_size)
-            self.widgets[i].setFixedWidth(tile_size)
-
         self.carouse_area.setFixedHeight(tile_size)
         self.carouse_area.setFixedWidth(self.width() - 2 * self.margin)
 
-    def number_of_widgets(self):
-        # Default tile size
-        tile_size = self.height() - self.margin * 2
-
-        # Subtract size of scrollbar if present
-        tile_size -= self.scrollbar_height if self.__scrollbar_present else 0
-
-        # Remove the center widget, the center spacing and the margins
-        remaining_width = self.width() - tile_size - 2 * self.center_spacing * tile_size - 2 * self.margin
-
-        # Divide to get only one side
-        remaining_width /= 2
-
-        # Number of widgets that fit one side
-        widgets = remaining_width / (tile_size + self.spacing)
-        return int(widgets + self.wrapp_around_buffer) * 2 + 1
-
-    def _initial_placement(self, init: bool = False):
+    def _initial_placement(self):
         """
         Placd the widgets in the default locations
         """
-        if init:
-            self.carouse_area.move(QPoint(self.margin, self.margin))
-
-        assert len(self.widgets) % 2 == 1, "Number of widgets must be odd"
-        middle = len(self.widgets) // 2
-
-         # place middle widget
-        self.widgets[middle].move(QPoint(self.width() // 2 - self.widgets[middle].width() // 2, 0))
-        w = self.widgets[middle].width()
-        center = self.width() // 2
-
-        for i in range(len(self.widgets) // 2):
-            x_l = center - w / 2 - self.spacing * i - w * (i+1) - w * self.center_spacing
-            x_r = center + w / 2 + self.spacing * i + w * i + w * self.center_spacing
-            print(x_l, x_r)
-            self.widgets[middle - i - 1].move(QPoint(x_l, 0))
-            self.widgets[middle + i + 1].move(QPoint(x_r, 0))
+        self.carouse_area.move(QPoint(self.margin, self.margin))
 
 
 if __name__ == "__main__":
