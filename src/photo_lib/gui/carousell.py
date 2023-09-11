@@ -323,13 +323,43 @@ class RecyclingCarousel(QFrame):
     center_spacing: float = 0.1
     wrapp_around_buffer: int = 2
 
-    number_of_elements: int = 100
-    current_element: int = 0
+    __number_of_elements: int = 100
+    __current_element: int = 0
 
     widgets: List[MyLabel] = None
-    center_widget: int = 5
+    center_widget: int = 0
 
     model: Model
+
+    # Signals
+    image_changed = pyqtSignal(int)
+    noe_changed = pyqtSignal(int)
+
+    @property
+    def current_element(self):
+        return self.__current_element
+
+    @current_element.setter
+    def current_element(self, value: int):
+        if self.__current_element == value:
+            return
+
+        assert value >= 0 or value < self.number_of_elements, f"Value out of bounds [0, {self.number_of_elements}]"
+        self.__current_element = value
+        self.image_changed.emit(value)
+
+    @property
+    def number_of_elements(self):
+        return self.__number_of_elements
+
+    @number_of_elements.setter
+    def number_of_elements(self, value: int):
+        if self.__number_of_elements == value:
+            return
+
+        assert value >= 0, "Number of elements must be positive"
+        self.__number_of_elements = value
+        self.noe_changed.emit(value)
 
     def __init__(self, model: Model):
         super().__init__()
@@ -337,15 +367,16 @@ class RecyclingCarousel(QFrame):
         self.widgets = []
         self.setMinimumHeight(100)
 
-        for i in range(11):
-            w = MyLabel()
-            w.index = i
-            w.setStyleSheet("background-color: red;")
-            w.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            w.setFixedWidth(100)
-            w.setFixedHeight(100)
-            self.widgets.append(w)
-            w.setParent(self)
+        w = MyLabel()
+        w.index = 0
+        col = QColor.fromHsvF(0.0, 1.0, 1.0)
+        s = f"background-color: rgba{col.getRgb()}"
+        w.setStyleSheet(s)
+        w.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        w.setFixedWidth(100)
+        w.setFixedHeight(100)
+        self.widgets.append(w)
+        w.setParent(self)
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
@@ -414,7 +445,11 @@ class RecyclingCarousel(QFrame):
         # More images to load to the left
         if first.index > 0:
             last.index = first.index -1
+            self.current_element -= 1
+            col = QColor.fromHsvF((last.index / self.number_of_elements), 1.0, 1.0)
             self.widgets = [last] + self.widgets[:-1]
+            s = f"background-color: rgba{col.getRgb()}"
+            last.setStyleSheet(s)
             return
 
         # Nothing left to the left, asymmetric display.
@@ -445,6 +480,9 @@ class RecyclingCarousel(QFrame):
         # More images to load to the left
         if last.index < self.number_of_elements -1 :
             first.index = last.index + 1
+            col = QColor.fromHsvF((first.index / self.number_of_elements), 1.0, 1.0)
+            s = f"background-color: rgba{col.getRgb()}"
+            first.setStyleSheet(s)
             self.widgets = self.widgets[1:] + [first]
             return
 
@@ -546,21 +584,27 @@ class RecyclingCarousel(QFrame):
         if self.widgets[0].index > 0:
             w = MyLabel()
             w.setParent(self)
-            w.setStyleSheet("background-color: red;")
+            col = QColor.fromHsvF(((self.widgets[0].index - 1) / self.number_of_elements), 1.0, 1.0)
+            s = f"background-color: rgba{col.getRgb()}"
+            w.setStyleSheet(s)
             w.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            w.setVisible(True)
             self.widgets = [w] + self.widgets
             self.widgets[0].index = self.widgets[1].index - 1
             count += 1
 
         if self.widgets[-1].index < self.number_of_elements - 1:
             w = MyLabel()
-            w.setStyleSheet("background-color: red;")
-            w.setAlignment(Qt.AlignmentFlag.AlignCenter)
             w.setParent(self)
+            col = QColor.fromHsvF(((self.widgets[-1].index + 1) / self.number_of_elements), 1.0, 1.0)
+            s = f"background-color: rgba{col.getRgb()}"
+            w.setStyleSheet(s)
+            w.setAlignment(Qt.AlignmentFlag.AlignCenter)
             w.setVisible(True)
             self.widgets.append(w)
             self.widgets[-1].index = self.widgets[-2].index + 1
             count += 1
+
         return count
 
 
