@@ -901,6 +901,12 @@ class Model:
         self.handle.start()
 
     def get_images_carousel(self, start: int, count: int):
+        """
+        Get the images for the carousel. Fetch a contin
+        :param start:
+        :param count:
+        :return:
+        """
         if self.pdb is None:
             raise NoDbException("No Database selected")
 
