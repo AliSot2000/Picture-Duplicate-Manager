@@ -736,8 +736,8 @@ if __name__ == "__main__":
     m = Model(folder_path="/media/alisot2000/DumpStuff/work_dummy/")
     # m.current_import_table_name = "tbl_-3399138825726121575"
     m.build_tiles_from_table()
-    # window = PotentCarousel(m)
-    window = RecyclingCarousel(m)
+    window = PotentCarousel(m)
+    # window = RecyclingCarousel(m)
     # window = TestingTamplatingCarousel(m)
     # window.build_carousel()
     window.setWindowTitle("Carousel Test")
