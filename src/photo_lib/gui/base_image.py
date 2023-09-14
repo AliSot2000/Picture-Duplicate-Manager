@@ -6,8 +6,10 @@ import os
 from typing import Union
 import warnings
 
+
 class BaseImage(QFrame):
-    pixmap = None
+    __pixmap = None
+    __load_image_flg: bool = False
 
     __file_path: str = None
     width_div_height: float = 1.0
@@ -17,6 +19,19 @@ class BaseImage(QFrame):
     def __init__(self, file_path: str = None):
         super().__init__()
         self.file_path = file_path
+
+    @property
+    def load_image_flag(self):
+        return self.__load_image_flg
+
+    @property
+    def pixmap(self):
+        return self.__pixmap
+
+    @pixmap.setter
+    def pixmap(self, value: QPixmap):
+        self.__pixmap = value
+        self.__load_image_flg = False
 
     @property
     def file_path(self):
@@ -42,6 +57,7 @@ class BaseImage(QFrame):
     def _load_image(self):
         """
         Load the image from the file path into ram and set the pixmap
+
         :return:
         """
         assert self.file_path is not None, "File path must be set before loading image."
@@ -49,11 +65,10 @@ class BaseImage(QFrame):
 
         if (ext := os.path.splitext(self.file_path)[1].lower()) not in [".png", ".jpg", ".jpeg", ".gif"]:
             warnings.warn(f"File must be an image. File Extension: {ext}")
-        else:
-            try:
-                self.width_div_height = self.pixmap.width() / self.pixmap.height()
-            except ZeroDivisionError:
-                self.width_div_height = 1.0
+        try:
+            self.width_div_height = self.pixmap.width() / self.pixmap.height()
+        except ZeroDivisionError:
+            self.width_div_height = 1.0
 
         self.updateGeometry()
         if not self.pixmap.isNull() and self.isVisible():
@@ -93,7 +108,7 @@ class BaseImage(QFrame):
             r = self.rect()
         else:
             r = QRect(QPoint(),
-                self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
+                      self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
             r.moveCenter(self.rect().center())
         qp = QPainter(self)
         qp.drawPixmap(r, self.pixmap)
@@ -107,19 +122,17 @@ class BaseImage(QFrame):
         pt = QPainter(self)
         pt.fillRect(self.rect(), self.filler_color)
 
-        if self.pixmap is not None and self.pixmap.isNull():
+        # Draw the text in the middle of the widget
+        if self.file_path is not None:
+            text = f"Couldn't load {os.path.basename(self.file_path)}"
+        else:
+            text = "Empty file path"
+        font = QFont("Arial", 12, QFont.Weight.Bold)
+        pt.setFont(font)
+        text_rect = pt.boundingRect(self.rect(), 0, text)
+        text_position = self.rect().center() - text_rect.center()
+        pt.drawText(text_position, text)
 
-            # Draw the text in the middle of the widget
-            if self.file_path is not None:
-                text = f"Couldn't load {os.path.basename(self.file_path)}"
-            else:
-                text = "Empty file path"
-            font = QFont("Arial", 12, QFont.Weight.Bold)
-            pt.setFont(font)
-            text_rect = pt.boundingRect(self.rect(), 0, text)
-            text_position = self.rect().center() - text_rect.center()
-            pt.drawText(text_position, text)
-
-            # Attempt to reload the image.
-            if self.file_path is not None:
-                self._load_image()
+        # Attempt to reload the image.
+        if self.file_path is not None:
+            self._load_image()
