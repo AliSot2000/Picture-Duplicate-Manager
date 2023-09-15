@@ -697,6 +697,20 @@ class PotentCarousel(QFrame):
         self.carouse_area.image_changed.connect(self.sc.setValue)
         self.carouse_area.image_changed.connect(lambda x: print(x))
 
+    def keyPressEvent(self, a0: QKeyEvent) -> None:
+        """
+        Catch keys from keyboard and move the carousel accordingly.
+        :param a0:
+        :return:
+        """
+        super().keyPressEvent(a0)
+        if a0.key() == Qt.Key.Key_Left:
+            self.carouse_area.move_left()
+            self.carouse_area.layout_widgets()
+        elif a0.key() == Qt.Key.Key_Right:
+            self.carouse_area.move_right()
+            self.carouse_area.layout_widgets()
+
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
         Updates the sizes of the widgets and the scrollbar
