@@ -399,16 +399,6 @@ class RecyclingCarousel(QFrame):
             self.widgets[i].setFixedHeight(tile_size)
             self.widgets[i].setFixedWidth(tile_size)
 
-        self.layout_widgets()
-
-    def number_of_widgets(self):
-        """
-        Compute the number of widgets that need to be present to fill the size of the widget..
-        :return:
-        """
-        # Default tile size
-        tile_size = self.height()
-
         # Remove the center widget, the center spacing and the margins
         remaining_width = max(self.width() - tile_size - 2 * self.center_spacing * tile_size, 0)
 
@@ -416,8 +406,9 @@ class RecyclingCarousel(QFrame):
         remaining_width /= 2
 
         # Number of widgets that fit one side
-        widgets = remaining_width / (tile_size + self.spacing)
-        return int(widgets + self.wrapp_around_buffer) * 2 + 1
+        self.__page_size = int(remaining_width / (tile_size + self.spacing))
+
+        self.layout_widgets()
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
