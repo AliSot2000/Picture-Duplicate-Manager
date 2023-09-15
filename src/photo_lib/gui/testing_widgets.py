@@ -28,6 +28,7 @@ class MyLabel(QLabel):
         self.__index = value
         self.setText(f"Label: {self.__index} ")
 
+
 class RecyclingCarousel(QFrame):
     spacing: int = 5
     center_spacing: float = 0.1
@@ -35,6 +36,7 @@ class RecyclingCarousel(QFrame):
 
     __number_of_elements: int = 100
     __current_element: int = 0
+    __page_size: int = 0
 
     widgets: List[MyLabel] = None
     center_widget: int = 0
@@ -44,6 +46,10 @@ class RecyclingCarousel(QFrame):
     # Signals
     image_changed = pyqtSignal(int)
     noe_changed = pyqtSignal(int)
+
+    @property
+    def page_size(self):
+        return self.__page_size
 
     @property
     def current_element(self):
@@ -102,16 +108,6 @@ class RecyclingCarousel(QFrame):
             self.widgets[i].setFixedHeight(tile_size)
             self.widgets[i].setFixedWidth(tile_size)
 
-        self.layout_widgets()
-
-    def number_of_widgets(self):
-        """
-        Compute the number of widgets that need to be present to fill the size of the widget..
-        :return:
-        """
-        # Default tile size
-        tile_size = self.height()
-
         # Remove the center widget, the center spacing and the margins
         remaining_width = max(self.width() - tile_size - 2 * self.center_spacing * tile_size, 0)
 
@@ -119,8 +115,9 @@ class RecyclingCarousel(QFrame):
         remaining_width /= 2
 
         # Number of widgets that fit one side
-        widgets = remaining_width / (tile_size + self.spacing)
-        return int(widgets + self.wrapp_around_buffer) * 2 + 1
+        self.__page_size = int(remaining_width / (tile_size + self.spacing))
+
+        self.layout_widgets()
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
@@ -148,11 +145,13 @@ class RecyclingCarousel(QFrame):
             # we are at the right threshold
             if self.center_widget > len(self.widgets) // 2:
                 self.center_widget -= 1
+                # Needs to be assigned last - otherwise infinite recursion because of incomplete move
                 self.current_element -= 1
                 return
             # we're at the left threshold but not at the left most image
             elif 0 < self.center_widget < len(self.widgets) // 2:
                 self.center_widget -= 1
+                # Needs to be assigned last - otherwise infinite recursion because of incomplete move
                 self.current_element -= 1
                 return
             # We're at the left most image
@@ -162,17 +161,19 @@ class RecyclingCarousel(QFrame):
         # More images to load to the left
         if first.index > 0:
             last.index = first.index -1
-            self.current_element -= 1
             col = QColor.fromHsvF((last.index / self.number_of_elements), 1.0, 1.0)
             self.widgets = [last] + self.widgets[:-1]
             s = f"background-color: rgba{col.getRgb()}"
             last.setStyleSheet(s)
+            # Needs to be assigned last - otherwise infinite recursion because of incomplete move
+            self.current_element -= 1
             return
 
         # Nothing left to the left, asymmetric display.
         assert first.index == 0, "First index is not 0"
         assert self.center_widget == len(self.widgets) // 2, "Center widget is not in the middle"
         self.center_widget -= 1
+        # Needs to be assigned last - otherwise infinite recursion because of incomplete move
         self.current_element -= 1
 
     @pyqtSlot()
@@ -185,13 +186,15 @@ class RecyclingCarousel(QFrame):
         first = self.widgets[0]
         if self.center_widget != len(self.widgets) // 2:
             # we are at the right threshold but not at the right most image
-            if len(self.widgets) -1 > self.center_widget > len(self.widgets) // 2:
+            if len(self.widgets) - 1 > self.center_widget > len(self.widgets) // 2:
                 self.center_widget += 1
+                # Needs to be assigned last - otherwise infinite recursion because of incomplete move
                 self.current_element += 1
                 return
             # we're at the left threshold
             elif self.center_widget < len(self.widgets) // 2:
                 self.center_widget += 1
+                # Needs to be assigned last - otherwise infinite recursion because of incomplete move
                 self.current_element += 1
                 return
             # We're at the right most image
@@ -199,12 +202,13 @@ class RecyclingCarousel(QFrame):
                 return
 
         # More images to load to the left
-        if last.index < self.number_of_elements -1 :
+        if last.index < self.number_of_elements - 1:
             first.index = last.index + 1
             col = QColor.fromHsvF((first.index / self.number_of_elements), 1.0, 1.0)
             s = f"background-color: rgba{col.getRgb()}"
             first.setStyleSheet(s)
             self.widgets = self.widgets[1:] + [first]
+            # Needs to be assigned last - otherwise infinite recursion because of incomplete move
             self.current_element += 1
             return
 
@@ -212,6 +216,7 @@ class RecyclingCarousel(QFrame):
         assert last.index == self.number_of_elements - 1, "First index is not 0"
         assert self.center_widget == len(self.widgets) // 2, "Center widget is not in the middle"
         self.center_widget += 1
+        # Needs to be assigned last - otherwise infinite recursion because of incomplete move
         self.current_element += 1
 
     @pyqtSlot(int)
@@ -241,7 +246,6 @@ class RecyclingCarousel(QFrame):
 
             # Assign new values
             self.widgets[self.center_widget].index = index
-            self.current_element = index
             for i in range(self.center_widget + 1, len(self.widgets)):
                 self.widgets[i].index = self.widgets[i-1].index + 1
 
@@ -254,6 +258,9 @@ class RecyclingCarousel(QFrame):
                 col = QColor.fromHsvF(((ind) / self.number_of_elements), 1.0, 1.0)
                 s = f"background-color: rgba{col.getRgb()}"
                 self.widgets[i].setStyleSheet(s)
+
+            # Needs to be assigned last - otherwise infinite recursion because of incomplete move
+            self.current_element = index
             return
 
         # inside bounds
@@ -266,6 +273,36 @@ class RecyclingCarousel(QFrame):
             while self.widgets[self.center_widget].index > index:
                 self.move_left()
             self.layout_widgets()
+
+    @pyqtSlot()
+    def move_left_page(self):
+        """
+        Moves one page to the left. Sets the left most visible widget as the current center widget.
+        """
+        new_image = max(self.current_element - self.page_size, 0)
+        self.move_to_specific_image(new_image)
+
+    @pyqtSlot()
+    def move_right_page(self):
+        """
+        Moves one page to the right. Sets the right most visible widget as the current center widget.
+        """
+        new_image = min(self.number_of_elements - 1, self.current_element + self.page_size)
+        self.move_to_specific_image(new_image)
+
+    @pyqtSlot()
+    def move_to_right_limit(self):
+        """
+        Moves to the right limit.
+        """
+        self.move_to_specific_image(self.number_of_elements - 1)
+
+    @pyqtSlot()
+    def move_to_left_limit(self):
+        """
+        Moves to the left limit
+        """
+        self.move_to_specific_image(0)
 
     def layout_widgets(self):
         """
@@ -286,13 +323,12 @@ class RecyclingCarousel(QFrame):
             x_r = center + w / 2 + self.spacing * k + w * k + w * self.center_spacing
             self.widgets[i].move(QPoint(x_r, 0))
 
-
     def update_widget_count(self):
         """
         Updates the available widgets for recirculation if the number of widgets needs to change.
         :return:
         """
-        now = self.number_of_widgets()
+        now = int(self.page_size + self.wrapp_around_buffer) * 2 + 1
         if len(self.widgets) == now:
             return
 
@@ -396,6 +432,33 @@ class PotentCarousel(QFrame):
         self.carouse_area.image_changed.connect(self.sc.setValue)
         self.carouse_area.image_changed.connect(lambda x: print(x))
 
+    def keyPressEvent(self, a0: QKeyEvent) -> None:
+        """
+        Catch keys from keyboard and move the carousel accordingly.
+        :param a0:
+        :return:
+        """
+        super().keyPressEvent(a0)
+        if a0.key() == Qt.Key.Key_Left:
+            self.carouse_area.move_left()
+        elif a0.key() == Qt.Key.Key_Right:
+            self.carouse_area.move_right()
+        elif a0.key() == Qt.Key.Key_Up:
+            self.carouse_area.move_to_right_limit()
+        elif a0.key() == Qt.Key.Key_Down:
+            self.carouse_area.move_to_left_limit()
+        elif a0.key() == Qt.Key.Key_End:
+            self.carouse_area.move_to_right_limit()
+        elif a0.key() == Qt.Key.Key_Home:
+            self.carouse_area.move_to_left_limit()
+        elif a0.key() == Qt.Key.Key_PageUp:
+            self.carouse_area.move_right_page()
+        elif a0.key() == Qt.Key.Key_PageDown:
+            self.carouse_area.move_left_page()
+        else:
+            pass
+        self.carouse_area.layout_widgets()
+
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
         Updates the sizes of the widgets and the scrollbar
@@ -443,10 +506,15 @@ class PotentCarousel(QFrame):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    m = Model(folder_path="/media/alisot2000/DumpStuff/work_dummy/")
+    # m = Model(folder_path="/media/alisot2000/DumpStuff/work_dummy/")
+    m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
+    # m.current_import_table_name = "tbl_-3399138825726121575"
     m.build_tiles_from_table()
     window = PotentCarousel(m)
     # window = RecyclingCarousel(m)
+    # window = TestingTamplatingCarousel(m)
+    # window.build_carousel()
     window.setWindowTitle("Carousel Test")
+    # window.image_changed.connect(lambda x: print(x))
     window.show()
     sys.exit(app.exec())
