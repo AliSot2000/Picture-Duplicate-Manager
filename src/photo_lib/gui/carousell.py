@@ -303,6 +303,7 @@ class Carousel(BaseCarousel):
     # Get the position of a widget relative to window origin:
     # widget_pos = label.mapTo(window, label.rect().topLeft())
 
+
 class MyLabel(QLabel):
     __index: int = None
 
@@ -317,6 +318,7 @@ class MyLabel(QLabel):
 
         self.__index = value
         self.setText(f"Label: {self.__index} ")
+
 
 class RecyclingCarousel(QFrame):
     spacing: int = 5
