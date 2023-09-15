@@ -619,7 +619,7 @@ class RecyclingCarousel(QFrame):
         Updates the available widgets for recirculation if the number of widgets needs to change.
         :return:
         """
-        now = self.number_of_widgets()
+        now = int(self.page_size + self.wrapp_around_buffer) * 2 + 1
         if len(self.widgets) == now:
             return
 
