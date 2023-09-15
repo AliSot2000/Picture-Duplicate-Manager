@@ -49,9 +49,13 @@ class BaseImage(QFrame):
         :param value:
         :return:
         """
-        self.__file_path = value
+        if value == self.__file_path:
+            return
 
-        if self.__file_path is not None:
+        # The file path is different and we need to laod the image
+        self.__file_path = value
+        if value is not None:
+            self.__load_image_flg = True
             self._load_image()
 
     def _load_image(self):
