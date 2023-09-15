@@ -327,6 +327,7 @@ class RecyclingCarousel(QFrame):
 
     __number_of_elements: int = 100
     __current_element: int = 0
+    __page_size: int = 0
 
     widgets: List[MyLabel] = None
     center_widget: int = 0
@@ -336,6 +337,10 @@ class RecyclingCarousel(QFrame):
     # Signals
     image_changed = pyqtSignal(int)
     noe_changed = pyqtSignal(int)
+
+    @property
+    def page_size(self):
+        return self.__page_size
 
     @property
     def current_element(self):
@@ -569,6 +574,36 @@ class RecyclingCarousel(QFrame):
                 self.move_left()
             self.layout_widgets()
 
+    @pyqtSlot()
+    def move_left_page(self):
+        """
+        Moves one page to the left. Sets the left most visible widget as the current center widget.
+        """
+        new_image = max(self.current_element - self.page_size, 0)
+        self.move_to_specific_image(new_image)
+
+    @pyqtSlot()
+    def move_right_page(self):
+        """
+        Moves one page to the right. Sets the right most visible widget as the current center widget.
+        """
+        new_image = min(self.number_of_elements - 1, self.current_element + self.page_size)
+        self.move_to_specific_image(new_image)
+
+    @pyqtSlot()
+    def move_to_right_limit(self):
+        """
+        Moves to the right limit.
+        """
+        self.move_to_specific_image(self.number_of_elements - 1)
+
+    @pyqtSlot()
+    def move_to_left_limit(self):
+        """
+        Moves to the left limit
+        """
+        self.move_to_specific_image(0)
+
     def layout_widgets(self):
         """
         Layout the widgets in the carousel.
@@ -706,10 +741,23 @@ class PotentCarousel(QFrame):
         super().keyPressEvent(a0)
         if a0.key() == Qt.Key.Key_Left:
             self.carouse_area.move_left()
-            self.carouse_area.layout_widgets()
         elif a0.key() == Qt.Key.Key_Right:
             self.carouse_area.move_right()
-            self.carouse_area.layout_widgets()
+        elif a0.key() == Qt.Key.Key_Up:
+            self.carouse_area.move_to_right_limit()
+        elif a0.key() == Qt.Key.Key_Down:
+            self.carouse_area.move_to_left_limit()
+        elif a0.key() == Qt.Key.Key_End:
+            self.carouse_area.move_to_right_limit()
+        elif a0.key() == Qt.Key.Key_Home:
+            self.carouse_area.move_to_left_limit()
+        elif a0.key() == Qt.Key.Key_PageUp:
+            self.carouse_area.move_right_page()
+        elif a0.key() == Qt.Key.Key_PageDown:
+            self.carouse_area.move_left_page()
+        else:
+            pass
+        self.carouse_area.layout_widgets()
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
