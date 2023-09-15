@@ -440,11 +440,13 @@ class RecyclingCarousel(QFrame):
             # we are at the right threshold
             if self.center_widget > len(self.widgets) // 2:
                 self.center_widget -= 1
+                # Needs to be assigned last - otherwise infinite recursion because of incomplete move
                 self.current_element -= 1
                 return
             # we're at the left threshold but not at the left most image
             elif 0 < self.center_widget < len(self.widgets) // 2:
                 self.center_widget -= 1
+                # Needs to be assigned last - otherwise infinite recursion because of incomplete move
                 self.current_element -= 1
                 return
             # We're at the left most image
@@ -454,17 +456,19 @@ class RecyclingCarousel(QFrame):
         # More images to load to the left
         if first.index > 0:
             last.index = first.index -1
-            self.current_element -= 1
             col = QColor.fromHsvF((last.index / self.number_of_elements), 1.0, 1.0)
             self.widgets = [last] + self.widgets[:-1]
             s = f"background-color: rgba{col.getRgb()}"
             last.setStyleSheet(s)
+            # Needs to be assigned last - otherwise infinite recursion because of incomplete move
+            self.current_element -= 1
             return
 
         # Nothing left to the left, asymmetric display.
         assert first.index == 0, "First index is not 0"
         assert self.center_widget == len(self.widgets) // 2, "Center widget is not in the middle"
         self.center_widget -= 1
+        # Needs to be assigned last - otherwise infinite recursion because of incomplete move
         self.current_element -= 1
 
     @pyqtSlot()
@@ -477,13 +481,15 @@ class RecyclingCarousel(QFrame):
         first = self.widgets[0]
         if self.center_widget != len(self.widgets) // 2:
             # we are at the right threshold but not at the right most image
-            if len(self.widgets) -1 > self.center_widget > len(self.widgets) // 2:
+            if len(self.widgets) - 1 > self.center_widget > len(self.widgets) // 2:
                 self.center_widget += 1
+                # Needs to be assigned last - otherwise infinite recursion because of incomplete move
                 self.current_element += 1
                 return
             # we're at the left threshold
             elif self.center_widget < len(self.widgets) // 2:
                 self.center_widget += 1
+                # Needs to be assigned last - otherwise infinite recursion because of incomplete move
                 self.current_element += 1
                 return
             # We're at the right most image
@@ -491,12 +497,13 @@ class RecyclingCarousel(QFrame):
                 return
 
         # More images to load to the left
-        if last.index < self.number_of_elements -1 :
+        if last.index < self.number_of_elements - 1:
             first.index = last.index + 1
             col = QColor.fromHsvF((first.index / self.number_of_elements), 1.0, 1.0)
             s = f"background-color: rgba{col.getRgb()}"
             first.setStyleSheet(s)
             self.widgets = self.widgets[1:] + [first]
+            # Needs to be assigned last - otherwise infinite recursion because of incomplete move
             self.current_element += 1
             return
 
@@ -504,6 +511,7 @@ class RecyclingCarousel(QFrame):
         assert last.index == self.number_of_elements - 1, "First index is not 0"
         assert self.center_widget == len(self.widgets) // 2, "Center widget is not in the middle"
         self.center_widget += 1
+        # Needs to be assigned last - otherwise infinite recursion because of incomplete move
         self.current_element += 1
 
     @pyqtSlot(int)
@@ -533,7 +541,6 @@ class RecyclingCarousel(QFrame):
 
             # Assign new values
             self.widgets[self.center_widget].index = index
-            self.current_element = index
             for i in range(self.center_widget + 1, len(self.widgets)):
                 self.widgets[i].index = self.widgets[i-1].index + 1
 
@@ -546,6 +553,9 @@ class RecyclingCarousel(QFrame):
                 col = QColor.fromHsvF(((ind) / self.number_of_elements), 1.0, 1.0)
                 s = f"background-color: rgba{col.getRgb()}"
                 self.widgets[i].setStyleSheet(s)
+
+            # Needs to be assigned last - otherwise infinite recursion because of incomplete move
+            self.current_element = index
             return
 
         # inside bounds
@@ -577,7 +587,6 @@ class RecyclingCarousel(QFrame):
             k = i - self.center_widget - 1
             x_r = center + w / 2 + self.spacing * k + w * k + w * self.center_spacing
             self.widgets[i].move(QPoint(x_r, 0))
-
 
     def update_widget_count(self):
         """
