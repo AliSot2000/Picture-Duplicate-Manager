@@ -299,25 +299,8 @@ class Carousel(BaseCarousel):
         # end = datetime.datetime.now()
         # print(f"Time needed to load and unload images: {(end - start).total_seconds()}")
 
-
     # Get the position of a widget relative to window origin:
     # widget_pos = label.mapTo(window, label.rect().topLeft())
-
-
-class MyLabel(QLabel):
-    __index: int = None
-
-    @property
-    def index(self):
-        return self.__index
-
-    @index.setter
-    def index(self, value: int):
-        if value == self.__index:
-            return
-
-        self.__index = value
-        self.setText(f"Label: {self.__index} ")
 
 
 class RecyclingCarousel(QFrame):
