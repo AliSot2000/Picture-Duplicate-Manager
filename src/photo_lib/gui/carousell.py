@@ -358,22 +358,112 @@ class RecyclingCarousel(QFrame):
         self.__number_of_elements = value
         self.noe_changed.emit(value)
 
-    def __init__(self, model: Model):
+    def __init__(self, model: Model, target_index: int = None):
         super().__init__()
         self.model = model
         self.widgets = []
+        self.tile_buffer = []
         self.setMinimumHeight(100)
 
-        w = MyLabel()
-        w.index = 0
-        col = QColor.fromHsvF(0.0, 1.0, 1.0)
-        s = f"background-color: rgba{col.getRgb()}"
-        w.setStyleSheet(s)
-        w.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Prepare Model
+        # Don't use the setter because it emits a signal
+        self.__number_of_elements = self.model.get_total_image_count()
+
+        if target_index is None:
+            target_index = 0
+        # Sanity check on target index
+        if target_index < 0 or target_index >= self.number_of_elements:
+            raise ValueError(f"Target index out of bounds [0, {self.number_of_elements}]")
+        self.__current_element = target_index
+
+        tile_info = self._load_new_buffer(target_index)
+
+        w = IndexedTile()
+        w.tile_info = tile_info
+        w.index = target_index
         w.setFixedWidth(100)
         w.setFixedHeight(100)
         self.widgets.append(w)
         w.setParent(self)
+
+    def update_number_of_elements(self):
+        """
+        Get the number of elements in the database.
+        WARNING: Number is dependant on the models trash attribute.
+
+        None -> All images in trash and not, true -> only trash, false -> only not trash
+
+        Emits the noe_changed signal.
+        """
+        self.number_of_elements = self.model.get_total_image_count()
+
+    def fetch_tile(self, index: int) -> BaseTileInfo:
+        """
+        Fetches tile from buffer. If the tile is not in the buffer, the function will load the correct tile and update
+        the buffer accordingly.
+
+        Index must be within [0, number_of_elements].
+        """
+        assert 0 <= index < self.number_of_elements, f"Index out of bounds [0, {self.number_of_elements}]"
+
+        if self.tile_left_limit <= index < self.tile_right_limit:
+            return self.tile_buffer[index - self.tile_left_limit]
+
+        # We have to load the tile
+        # Fetch to the left
+        if index < self.tile_left_limit:
+            ld_size = min(self.tile_buffer_fetch_size, self.tile_left_limit)
+            if self.tile_left_limit - ld_size <= index < self.tile_left_limit:
+                new_tiles = self.model.get_images_carousel(self.tile_left_limit - ld_size, ld_size)
+                self.tile_buffer = new_tiles + self.tile_buffer
+                self.tile_left_limit -= ld_size
+
+                # Shrink buffer if too large from the right
+                if len(self.tile_buffer) > self.tile_buffer_max_size:
+                    self.tile_buffer = self.tile_buffer[:self.tile_buffer_max_size]
+                    self.tile_right_limit -= self.tile_buffer_fetch_size
+
+                return self.tile_buffer[index - self.tile_left_limit]
+            else:
+                return self._load_new_buffer(index)
+
+        elif self.tile_right_limit <= index:
+            ld_size = min(self.tile_buffer_fetch_size, self.number_of_elements - self.tile_right_limit)
+            if self.tile_right_limit <= index < self.tile_right_limit + ld_size:
+                new_tiles = self.model.get_images_carousel(self.tile_right_limit, ld_size)
+                self.tile_buffer = self.tile_buffer + new_tiles
+                self.tile_right_limit += ld_size
+
+                # Shrink buffer if too large from the left
+                if len(self.tile_buffer) > self.tile_buffer_max_size:
+                    self.tile_buffer = self.tile_buffer[ld_size:]
+                    self.tile_left_limit += ld_size
+
+                return self.tile_buffer[index - self.tile_left_limit]
+            else:
+                return self._load_new_buffer(index)
+
+        # We are performing a move_to_specific image
+        else:
+            raise ValueError(f"You programmed garbage: "
+                             f"left_limit: {self.tile_left_limit}, "
+                             f"right_limit: {self.tile_right_limit}, "
+                             f"index: {index}")
+
+    def _load_new_buffer(self, index: int):
+        """
+        Function is private because the index is not sanitized.
+
+        Preconditions:
+        - index not in buffer
+        - (left_limit - buffer_fetch_size) to (right_limit + buffer_fetch_size) do not contain the index
+        """
+        start = index // self.tile_buffer_fetch_size * self.tile_buffer_fetch_size
+        count = min(self.tile_buffer_fetch_size, self.number_of_elements - start)
+        self.tile_buffer = self.model.get_images_carousel(start, count)
+        self.tile_left_limit = start
+        self.tile_right_limit = start + count
+        return self.tile_buffer[index - self.tile_left_limit]
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
@@ -441,11 +531,8 @@ class RecyclingCarousel(QFrame):
 
         # More images to load to the left
         if first.index > 0:
-            last.index = first.index -1
-            col = QColor.fromHsvF((last.index / self.number_of_elements), 1.0, 1.0)
-            self.widgets = [last] + self.widgets[:-1]
-            s = f"background-color: rgba{col.getRgb()}"
-            last.setStyleSheet(s)
+            last.index = first.index - 1
+            last.tile_info = self.fetch_tile(last.index)
             # Needs to be assigned last - otherwise infinite recursion because of incomplete move
             self.current_element -= 1
             return
@@ -485,9 +572,7 @@ class RecyclingCarousel(QFrame):
         # More images to load to the left
         if last.index < self.number_of_elements - 1:
             first.index = last.index + 1
-            col = QColor.fromHsvF((first.index / self.number_of_elements), 1.0, 1.0)
-            s = f"background-color: rgba{col.getRgb()}"
-            first.setStyleSheet(s)
+            first.tile_info = self.fetch_tile(first.index)
             self.widgets = self.widgets[1:] + [first]
             # Needs to be assigned last - otherwise infinite recursion because of incomplete move
             self.current_element += 1
@@ -527,18 +612,14 @@ class RecyclingCarousel(QFrame):
 
             # Assign new values
             self.widgets[self.center_widget].index = index
+            self.widgets[self.center_widget].tile_info = self.fetch_tile(index)
             for i in range(self.center_widget + 1, len(self.widgets)):
-                self.widgets[i].index = self.widgets[i-1].index + 1
+                self.widgets[i].index = self.widgets[i - 1].index + 1
+                self.widgets[i].tile_info = self.fetch_tile(self.widgets[i].index)
 
             for i in range(self.center_widget - 1, -1, -1):
-                self.widgets[i].index = self.widgets[i+1].index - 1
-
-            # update colors
-            for i in range(len(self.widgets)):
-                ind = self.widgets[i].index
-                col = QColor.fromHsvF(((ind) / self.number_of_elements), 1.0, 1.0)
-                s = f"background-color: rgba{col.getRgb()}"
-                self.widgets[i].setStyleSheet(s)
+                self.widgets[i].index = self.widgets[i + 1].index - 1
+                self.widgets[i].tile_info = self.fetch_tile(self.widgets[i].index)
 
             # Needs to be assigned last - otherwise infinite recursion because of incomplete move
             self.current_element = index
@@ -595,7 +676,7 @@ class RecyclingCarousel(QFrame):
         center = self.width() // 2
 
         for i in range(0, self.center_widget):
-            k = self.center_widget - i -1
+            k = self.center_widget - i - 1
             x_l = center - w / 2 - self.spacing * k - w * (k + 1) - w * self.center_spacing
             self.widgets[i].move(QPoint(x_l, 0))
 
@@ -620,7 +701,7 @@ class RecyclingCarousel(QFrame):
                 self.widgets[0].deleteLater()
                 self.widgets[-1].deleteLater()
                 self.widgets = self.widgets[1:-1]
-                self.center_widget = self.center_widget -1
+                self.center_widget = self.center_widget - 1
                 return
 
             # we're at a threshold and it's the left one
@@ -655,27 +736,21 @@ class RecyclingCarousel(QFrame):
         """
         count = 0
         if self.widgets[0].index > 0:
-            w = MyLabel()
+            w = IndexedTile()
             w.setParent(self)
-            col = QColor.fromHsvF(((self.widgets[0].index - 1) / self.number_of_elements), 1.0, 1.0)
-            s = f"background-color: rgba{col.getRgb()}"
-            w.setStyleSheet(s)
-            w.setAlignment(Qt.AlignmentFlag.AlignCenter)
             w.setVisible(True)
             self.widgets = [w] + self.widgets
             self.widgets[0].index = self.widgets[1].index - 1
+            self.widgets[0].tile_info = self.fetch_tile(self.widgets[0].index)
             count += 1
 
         if self.widgets[-1].index < self.number_of_elements - 1:
-            w = MyLabel()
+            w = IndexedTile()
             w.setParent(self)
-            col = QColor.fromHsvF(((self.widgets[-1].index + 1) / self.number_of_elements), 1.0, 1.0)
-            s = f"background-color: rgba{col.getRgb()}"
-            w.setStyleSheet(s)
-            w.setAlignment(Qt.AlignmentFlag.AlignCenter)
             w.setVisible(True)
             self.widgets.append(w)
             self.widgets[-1].index = self.widgets[-2].index + 1
+            self.widgets[-1].tile_info = self.fetch_tile(self.widgets[-1].index)
             count += 1
 
         return count
