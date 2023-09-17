@@ -72,6 +72,7 @@ class BigScreen(QSplitter):
         self.image_viewer.tile_info = tile_info
         self.carousel.set_tile(tile_info)
 
+
 class TestWindow(QMainWindow):
     def __init__(self):
         super().__init__()
