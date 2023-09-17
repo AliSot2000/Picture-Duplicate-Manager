@@ -73,7 +73,7 @@ class BaseCarousel(QScrollArea):
         :return:
         """
         self.current_select.setStyleSheet("padding: 10px; "
-                                           "border: 2px solid black;")
+                                          "border: 2px solid black;")
 
     def unmark_selected(self):
         """
