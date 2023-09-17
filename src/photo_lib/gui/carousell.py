@@ -150,7 +150,6 @@ class Carousel(BaseCarousel):
         target_i = None
 
         for i in range(len(tiles)):
-        # for i in range(2):
             # Get info
             tile = tiles[i]
 
