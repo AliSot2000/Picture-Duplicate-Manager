@@ -81,6 +81,10 @@ class ClickableTile(ClickableImage):
             self.file_path = None
 
 
+class IndexedTile(ClickableTile):
+    index: int = -1
+
+
 def helper():
     print("Helper called")
 
