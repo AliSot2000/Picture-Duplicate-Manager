@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot,
 import sys
 from typing import List, Union
 from photo_lib.PhotoDatabase import BaseTileInfo
-from photo_lib.gui.clickable_image import ClickableTile
+from photo_lib.gui.clickable_image import ClickableTile, IndexedTile
 from photo_lib.gui.model import Model
 from photo_lib.gui.gui_utils import image_wrapper
 from photo_lib.data_objects import ImportTileInfo
