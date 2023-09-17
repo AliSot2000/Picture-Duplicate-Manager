@@ -200,8 +200,9 @@ class Carousel(BaseCarousel):
         if len(self.images) == 0 or self.images is None:
             return
 
-        target_image = int(min(val / max(1, self.horizontalScrollBar().maximum() - self.horizontalScrollBar().minimum()) *
-                        len(self.images), len(self.images) - 1))
+        target_image = int(
+            min(val / max(1, self.horizontalScrollBar().maximum() - self.horizontalScrollBar().minimum()) *
+                len(self.images), len(self.images) - 1))
 
         # Walk left
         last_left = target_image
