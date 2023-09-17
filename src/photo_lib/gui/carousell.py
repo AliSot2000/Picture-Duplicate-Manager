@@ -312,8 +312,15 @@ class RecyclingCarousel(QFrame):
     __current_element: int = 0
     __page_size: int = 0
 
-    widgets: List[MyLabel] = None
+    widgets: List[IndexedTile] = None
     center_widget: int = 0
+
+    # Image Tiles
+    tile_left_limit: int = -1
+    tile_right_limit: int = -1
+    tile_buffer_max_size: int = 1000
+    tile_buffer_fetch_size: int = 100
+    tile_buffer: List[BaseTileInfo] = None
 
     model: Model
 
