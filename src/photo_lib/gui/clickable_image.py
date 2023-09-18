@@ -4,10 +4,11 @@ import sys
 from typing import Union
 from photo_lib.gui.base_image import BaseImage
 from photo_lib.PhotoDatabase import BaseTileInfo
+from photo_lib.gui.base_image_loader import LoadingBaseImage
 
 # TODO font info from config.
 
-class ClickableImage(BaseImage):
+class ClickableImage(LoadingBaseImage):
     clicked = pyqtSignal()
     __image_loaded: bool = True
 
