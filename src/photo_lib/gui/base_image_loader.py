@@ -24,6 +24,7 @@ class LoadingBaseImage(BaseImage):
         """
         global img_loader
         img_loader.load_image(self)
+        img_loader.check_futures()
 
     def __del__(self):
         global img_loader
