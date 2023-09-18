@@ -84,7 +84,7 @@ class ImageLoader:
 
         new_count = len(new_futures)
         self.futures = new_futures
-        print(f"Previous Count: {old_count}, Current Count: {new_count}")
+        # print(f"Previous Count: {old_count}, Current Count: {new_count}")
 
     def check_load(self, img: BaseImage = None):
         """
