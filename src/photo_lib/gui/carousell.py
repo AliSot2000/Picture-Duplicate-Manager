@@ -787,12 +787,17 @@ class PotentCarousel(QFrame):
     model: Model
 
     carouse_area: RecyclingCarousel
+    timer: QTimer
 
     __scrollbar_present: bool = True
 
     def __init__(self, model: Model):
         super().__init__()
         self.model = model
+        # self.timer = QTimer()
+        # self.timer.setSingleShot(True)
+        # self.timer.setInterval(20)
+        # self.timer.timeout.connect(self.carousel_from_slider)
 
         self.carouse_area = RecyclingCarousel(model)
         self.carouse_area.setParent(self)
@@ -803,9 +808,19 @@ class PotentCarousel(QFrame):
         self._update_layout()
         self._initial_placement()
         self.sc.valueChanged.connect(self.carouse_area.move_to_specific_image)
+        # self.sc.valueChanged.connect(self.timer.start)
         self.sc.valueChanged.connect(lambda x: print(x))
         self.carouse_area.image_changed.connect(self.sc.setValue)
         self.carouse_area.image_changed.connect(lambda x: print(x))
+        self.carouse_area.noe_changed.connect(self.update_scroll_bar)
+
+    # def carousel_from_slider(self):
+    #     """
+    #     Updates the carousel based on the slider position.
+    #     :return:
+    #     """
+    #     print("Timeout")
+    #     self.carouse_area.move_to_specific_image(self.sc.value())
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
@@ -834,14 +849,11 @@ class PotentCarousel(QFrame):
             pass
         self.carouse_area.layout_widgets()
 
-    def resizeEvent(self, a0: QResizeEvent) -> None:
+    def update_scroll_bar(self):
         """
-        Updates the sizes of the widgets and the scrollbar
+        Updates the scroll bar to the current number of elements.
         """
-        super().resizeEvent(a0)
-
-        self.sc.setFixedWidth(self.width())
-        # TODO update number of visible images.
+        self.sc.setRange(0, self.carouse_area.number_of_elements - 1)
 
         # Change, visibility of scrollbar and presence of it
         if self.__scrollbar_present and self.carouse_area.number_of_elements <= 1:
@@ -852,6 +864,15 @@ class PotentCarousel(QFrame):
         if not self.__scrollbar_present and self.carouse_area.number_of_elements > 1:
             self.sc.setVisible(True)
             self.__scrollbar_present = True
+
+    def resizeEvent(self, a0: QResizeEvent) -> None:
+        """
+        Updates the sizes of the widgets and the scrollbar
+        """
+        super().resizeEvent(a0)
+
+        self.sc.setFixedWidth(self.width())
+        # TODO update number of visible images.
 
         self._update_layout()
 
