@@ -328,6 +328,8 @@ class RecyclingCarousel(QFrame):
     image_changed = pyqtSignal(int)
     noe_changed = pyqtSignal(int)
 
+    timer: QTimer = None
+
     @property
     def page_size(self):
         return self.__page_size
@@ -365,6 +367,11 @@ class RecyclingCarousel(QFrame):
         self.tile_buffer = []
         self.setMinimumHeight(100)
 
+        self.timer = QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.update_tile_info)
+        self.timer.setInterval(50)
+
         # Prepare Model
         # Don't use the setter because it emits a signal
         self.__number_of_elements = self.model.get_total_image_count()
@@ -385,6 +392,15 @@ class RecyclingCarousel(QFrame):
         w.setFixedHeight(100)
         self.widgets.append(w)
         w.setParent(self)
+
+    def update_tile_info(self):
+        """
+        Update the tile info of all widgets. If the tile info is None - update it.
+        :return:
+        """
+        for w in self.widgets:
+            if w.tile_info is None:
+                w.tile_info = self.fetch_tile(w.index)
 
     def update_number_of_elements(self):
         """
@@ -532,9 +548,10 @@ class RecyclingCarousel(QFrame):
         # More images to load to the left
         if first.index > 0:
             last.index = first.index - 1
-            last.tile_info = self.fetch_tile(last.index)
+            last.tile_info = None
             # Needs to be assigned last - otherwise infinite recursion because of incomplete move
             self.current_element -= 1
+            self.timer.start()
             return
 
         # Nothing left to the left, asymmetric display.
@@ -572,10 +589,11 @@ class RecyclingCarousel(QFrame):
         # More images to load to the left
         if last.index < self.number_of_elements - 1:
             first.index = last.index + 1
-            first.tile_info = self.fetch_tile(first.index)
+            first.tile_info = None
             self.widgets = self.widgets[1:] + [first]
             # Needs to be assigned last - otherwise infinite recursion because of incomplete move
             self.current_element += 1
+            self.timer.start()
             return
 
         # Nothing left to the left, asymmetric display.
@@ -607,22 +625,22 @@ class RecyclingCarousel(QFrame):
             self.layout_widgets()
 
         # outside bounds
-        if (self.widgets[self.center_widget].index < self.widgets[0].index or
-                self.widgets[self.center_widget].index > self.widgets[-1].index):
+        if (index < self.widgets[0].index or index > self.widgets[-1].index):
 
             # Assign new values
             self.widgets[self.center_widget].index = index
-            self.widgets[self.center_widget].tile_info = self.fetch_tile(index)
+            self.widgets[self.center_widget].tile_info = None
             for i in range(self.center_widget + 1, len(self.widgets)):
                 self.widgets[i].index = self.widgets[i - 1].index + 1
-                self.widgets[i].tile_info = self.fetch_tile(self.widgets[i].index)
+                self.widgets[i].tile_info = None
 
             for i in range(self.center_widget - 1, -1, -1):
                 self.widgets[i].index = self.widgets[i + 1].index - 1
-                self.widgets[i].tile_info = self.fetch_tile(self.widgets[i].index)
+                self.widgets[i].tile_info = None
 
             # Needs to be assigned last - otherwise infinite recursion because of incomplete move
             self.current_element = index
+            self.timer.start()
             return
 
         # inside bounds
@@ -741,7 +759,7 @@ class RecyclingCarousel(QFrame):
             w.setVisible(True)
             self.widgets = [w] + self.widgets
             self.widgets[0].index = self.widgets[1].index - 1
-            self.widgets[0].tile_info = self.fetch_tile(self.widgets[0].index)
+            self.widgets[0].tile_info = None
             count += 1
 
         if self.widgets[-1].index < self.number_of_elements - 1:
@@ -750,9 +768,10 @@ class RecyclingCarousel(QFrame):
             w.setVisible(True)
             self.widgets.append(w)
             self.widgets[-1].index = self.widgets[-2].index + 1
-            self.widgets[-1].tile_info = self.fetch_tile(self.widgets[-1].index)
+            self.widgets[-1].tile_info = None
             count += 1
 
+        self.timer.start()
         return count
 
 
