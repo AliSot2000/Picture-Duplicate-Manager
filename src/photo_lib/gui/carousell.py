@@ -384,6 +384,7 @@ class BaseCycleCarousel(QFrame):
         :return:
         """
         for w in self.widgets:
+            print(w.index)
             if w.tile_info is None:
                 w.tile_info = self.fetch_tile(w.index)
 
