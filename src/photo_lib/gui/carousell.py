@@ -303,7 +303,7 @@ class Carousel(BaseCarousel):
     # widget_pos = label.mapTo(window, label.rect().topLeft())
 
 
-class RecyclingCarousel(QFrame):
+class BaseCycleCarousel(QFrame):
     spacing: int = 5
     center_spacing: float = 0.1
     wrapp_around_buffer: int = 2
@@ -314,13 +314,6 @@ class RecyclingCarousel(QFrame):
 
     widgets: List[IndexedTile] = None
     center_widget: int = 0
-
-    # Image Tiles
-    tile_left_limit: int = -1
-    tile_right_limit: int = -1
-    tile_buffer_max_size: int = 1000
-    tile_buffer_fetch_size: int = 100
-    tile_buffer: List[BaseTileInfo] = None
 
     model: Model
 
@@ -360,11 +353,10 @@ class RecyclingCarousel(QFrame):
         self.__number_of_elements = value
         self.noe_changed.emit(value)
 
-    def __init__(self, model: Model, target_index: int = None):
+    def __init__(self, model: Model):
         super().__init__()
         self.model = model
         self.widgets = []
-        self.tile_buffer = []
         self.setMinimumHeight(100)
 
         self.timer = QTimer()
@@ -376,22 +368,15 @@ class RecyclingCarousel(QFrame):
         # Don't use the setter because it emits a signal
         self.__number_of_elements = self.model.get_total_image_count()
 
-        if target_index is None:
-            target_index = 0
-        # Sanity check on target index
-        if target_index < 0 or target_index >= self.number_of_elements:
-            raise ValueError(f"Target index out of bounds [0, {self.number_of_elements}]")
-        self.__current_element = target_index
-
-        tile_info = self._load_new_buffer(target_index)
-
         w = IndexedTile()
-        w.tile_info = tile_info
-        w.index = target_index
         w.setFixedWidth(100)
         w.setFixedHeight(100)
         self.widgets.append(w)
         w.setParent(self)
+
+    def fetch_tile(self, index: int) -> BaseTileInfo:
+        raise NotImplementedError("Fetch tile must be implemented by child classes")
+
 
     def update_tile_info(self):
         """
@@ -412,74 +397,6 @@ class RecyclingCarousel(QFrame):
         Emits the noe_changed signal.
         """
         self.number_of_elements = self.model.get_total_image_count()
-
-    def fetch_tile(self, index: int) -> BaseTileInfo:
-        """
-        Fetches tile from buffer. If the tile is not in the buffer, the function will load the correct tile and update
-        the buffer accordingly.
-
-        Index must be within [0, number_of_elements].
-        """
-        assert 0 <= index < self.number_of_elements, f"Index out of bounds [0, {self.number_of_elements}]"
-
-        if self.tile_left_limit <= index < self.tile_right_limit:
-            return self.tile_buffer[index - self.tile_left_limit]
-
-        # We have to load the tile
-        # Fetch to the left
-        if index < self.tile_left_limit:
-            ld_size = min(self.tile_buffer_fetch_size, self.tile_left_limit)
-            if self.tile_left_limit - ld_size <= index < self.tile_left_limit:
-                new_tiles = self.model.get_images_carousel(self.tile_left_limit - ld_size, ld_size)
-                self.tile_buffer = new_tiles + self.tile_buffer
-                self.tile_left_limit -= ld_size
-
-                # Shrink buffer if too large from the right
-                if len(self.tile_buffer) > self.tile_buffer_max_size:
-                    self.tile_buffer = self.tile_buffer[:self.tile_buffer_max_size]
-                    self.tile_right_limit -= self.tile_buffer_fetch_size
-
-                return self.tile_buffer[index - self.tile_left_limit]
-            else:
-                return self._load_new_buffer(index)
-
-        elif self.tile_right_limit <= index:
-            ld_size = min(self.tile_buffer_fetch_size, self.number_of_elements - self.tile_right_limit)
-            if self.tile_right_limit <= index < self.tile_right_limit + ld_size:
-                new_tiles = self.model.get_images_carousel(self.tile_right_limit, ld_size)
-                self.tile_buffer = self.tile_buffer + new_tiles
-                self.tile_right_limit += ld_size
-
-                # Shrink buffer if too large from the left
-                if len(self.tile_buffer) > self.tile_buffer_max_size:
-                    self.tile_buffer = self.tile_buffer[ld_size:]
-                    self.tile_left_limit += ld_size
-
-                return self.tile_buffer[index - self.tile_left_limit]
-            else:
-                return self._load_new_buffer(index)
-
-        # We are performing a move_to_specific image
-        else:
-            raise ValueError(f"You programmed garbage: "
-                             f"left_limit: {self.tile_left_limit}, "
-                             f"right_limit: {self.tile_right_limit}, "
-                             f"index: {index}")
-
-    def _load_new_buffer(self, index: int):
-        """
-        Function is private because the index is not sanitized.
-
-        Preconditions:
-        - index not in buffer
-        - (left_limit - buffer_fetch_size) to (right_limit + buffer_fetch_size) do not contain the index
-        """
-        start = index // self.tile_buffer_fetch_size * self.tile_buffer_fetch_size
-        count = min(self.tile_buffer_fetch_size, self.number_of_elements - start)
-        self.tile_buffer = self.model.get_images_carousel(start, count)
-        self.tile_left_limit = start
-        self.tile_right_limit = start + count
-        return self.tile_buffer[index - self.tile_left_limit]
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
@@ -626,6 +543,15 @@ class RecyclingCarousel(QFrame):
 
         # outside bounds
         if (index < self.widgets[0].index or index > self.widgets[-1].index):
+            if index < len(self.widgets) // 2:
+                print(f"Setting center widget to: {index}, l: {len(self.widgets)}")
+                self.center_widget = index
+            elif self.number_of_elements - index - 1 < len(self.widgets) // 2:
+                print(f"Setting center widget to: {len(self.widgets) - (self.number_of_elements - index)}, l: {len(self.widgets)}")
+                self.center_widget = len(self.widgets) - (self.number_of_elements - index)
+
+            else:
+                self.center_widget = len(self.widgets) // 2
 
             # Assign new values
             self.widgets[self.center_widget].index = index
@@ -641,6 +567,7 @@ class RecyclingCarousel(QFrame):
             # Needs to be assigned last - otherwise infinite recursion because of incomplete move
             self.current_element = index
             self.timer.start()
+            self.layout_widgets()
             return
 
         # inside bounds
