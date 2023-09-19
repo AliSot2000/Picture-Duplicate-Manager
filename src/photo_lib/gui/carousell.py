@@ -384,7 +384,6 @@ class BaseCycleCarousel(QFrame):
         :return:
         """
         for w in self.widgets:
-            print(w.index)
             if w.tile_info is None:
                 w.tile_info = self.fetch_tile(w.index)
 
@@ -545,10 +544,8 @@ class BaseCycleCarousel(QFrame):
         # outside bounds
         if (index < self.widgets[0].index or index > self.widgets[-1].index):
             if index < len(self.widgets) // 2:
-                print(f"Setting center widget to: {index}, l: {len(self.widgets)}")
                 self.center_widget = index
             elif self.number_of_elements - index - 1 < len(self.widgets) // 2:
-                print(f"Setting center widget to: {len(self.widgets) - (self.number_of_elements - index)}, l: {len(self.widgets)}")
                 self.center_widget = len(self.widgets) - (self.number_of_elements - index)
 
             else:
@@ -702,6 +699,7 @@ class BaseCycleCarousel(QFrame):
         self.timer.start()
         return count
 
+
 class DatabaseRecyclingCarousel(BaseCycleCarousel):
     # Image Tiles
     tile_left_limit: int = -1
@@ -836,7 +834,6 @@ class DatabaseCarousel(QFrame):
         self._update_layout()
         self._initial_placement()
         self.sc.valueChanged.connect(self.carouse_area.move_to_specific_image)
-        # self.sc.valueChanged.connect(self.clamped_scroll)
         # self.sc.valueChanged.connect(self.timer.start)
         self.sc.valueChanged.connect(lambda x: print(x))
         self.carouse_area.image_changed.connect(self.sc.setValue)
@@ -850,17 +847,6 @@ class DatabaseCarousel(QFrame):
     #     """
     #     print("Timeout")
     #     self.carouse_area.move_to_specific_image(self.sc.value())
-
-    def clamped_scroll(self, v: int):
-        """
-        Clamps the scroll bar value to the min and max values.
-        :param v: value from scroll bar (clamped to max and min values)
-        :return:
-        """
-        if v == 4139:
-            print(f"Trigger")
-        self.carouse_area.move_to_specific_image(min(max(self.min_sc, v), self.max_sc))
-
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
