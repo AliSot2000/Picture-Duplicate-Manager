@@ -702,19 +702,117 @@ class BaseCycleCarousel(QFrame):
         self.timer.start()
         return count
 
+class DatabaseRecyclingCarousel(BaseCycleCarousel):
+    # Image Tiles
+    tile_left_limit: int = -1
+    tile_right_limit: int = -1
+    tile_buffer_max_size: int = 1000
+    tile_buffer_fetch_size: int = 100
+    tile_buffer: List[BaseTileInfo] = None
 
-class PotentCarousel(QFrame):
+    def __init__(self, model: Model, target_index: int = None):
+        super().__init__(model)
+        self.tile_buffer = []
+
+        if target_index is None:
+            target_index = 0
+        # Sanity check on target index
+        if target_index < 0 or target_index >= self.number_of_elements:
+            raise ValueError(f"Target index out of bounds [0, {self.number_of_elements}]")
+        self.__current_element = target_index
+
+        tile_info = self._load_new_buffer(target_index)
+        assert len(self.widgets) == 1, "Carousel not initialized correctly"
+        self.widgets[0].index = target_index
+        self.widgets[0].tile_info = tile_info
+
+    def fetch_tile(self, index: int) -> BaseTileInfo:
+        """
+        Fetches tile from buffer. If the tile is not in the buffer, the function will load the correct tile and update
+        the buffer accordingly.
+
+        Index must be within [0, number_of_elements].
+        """
+        assert 0 <= index < self.number_of_elements, \
+            f"Index out of bounds [0, {self.number_of_elements}], index: {index}"
+
+        if self.tile_left_limit <= index < self.tile_right_limit:
+            return self.tile_buffer[index - self.tile_left_limit]
+
+        # We have to load the tile
+        # Fetch to the left
+        if index < self.tile_left_limit:
+            ld_size = min(self.tile_buffer_fetch_size, self.tile_left_limit)
+            if self.tile_left_limit - ld_size <= index < self.tile_left_limit:
+                new_tiles = self.model.get_images_carousel(self.tile_left_limit - ld_size, ld_size)
+                self.tile_buffer = new_tiles + self.tile_buffer
+                self.tile_left_limit -= ld_size
+
+                # Shrink buffer if too large from the right
+                if len(self.tile_buffer) > self.tile_buffer_max_size:
+                    self.tile_buffer = self.tile_buffer[:self.tile_buffer_max_size]
+                    self.tile_right_limit -= self.tile_buffer_fetch_size
+
+                return self.tile_buffer[index - self.tile_left_limit]
+            else:
+                return self._load_new_buffer(index)
+
+        elif self.tile_right_limit <= index:
+            ld_size = min(self.tile_buffer_fetch_size, self.number_of_elements - self.tile_right_limit)
+            if self.tile_right_limit <= index < self.tile_right_limit + ld_size:
+                new_tiles = self.model.get_images_carousel(self.tile_right_limit, ld_size)
+                self.tile_buffer = self.tile_buffer + new_tiles
+                self.tile_right_limit += ld_size
+
+                # Shrink buffer if too large from the left
+                if len(self.tile_buffer) > self.tile_buffer_max_size:
+                    self.tile_buffer = self.tile_buffer[ld_size:]
+                    self.tile_left_limit += ld_size
+
+                return self.tile_buffer[index - self.tile_left_limit]
+            else:
+                return self._load_new_buffer(index)
+
+        # We are performing a move_to_specific image
+        else:
+            raise ValueError(f"You programmed garbage: "
+                             f"left_limit: {self.tile_left_limit}, "
+                             f"right_limit: {self.tile_right_limit}, "
+                             f"index: {index}")
+
+    def _load_new_buffer(self, index: int):
+        """
+        Function is private because the index is not sanitized.
+
+        Preconditions:
+        - index not in buffer
+        - (left_limit - buffer_fetch_size) to (right_limit + buffer_fetch_size) do not contain the index
+        """
+        start = index // self.tile_buffer_fetch_size * self.tile_buffer_fetch_size
+        count = min(self.tile_buffer_fetch_size, self.number_of_elements - start)
+        self.tile_buffer = self.model.get_images_carousel(start, count)
+        self.tile_left_limit = start
+        self.tile_right_limit = start + count
+        return self.tile_buffer[index - self.tile_left_limit]
+
+
+class ImportRecyclingCarousel(BaseCycleCarousel):
+    pass
+
+
+
+class DatabaseCarousel(QFrame):
     # TODO config
     margin: int = 10
     scrollbar_height: int = 15
-    # wrap_around_buffer - number of images that are loaded to the left and the right of the view (outside fov)
-    # Sensible values are 1-3
+    max_sc: int = 0
+    min_sc: int = 0
 
     sc: QScrollBar
 
     model: Model
 
-    carouse_area: RecyclingCarousel
+    carouse_area: BaseCycleCarousel
     timer: QTimer
 
     __scrollbar_present: bool = True
@@ -727,15 +825,18 @@ class PotentCarousel(QFrame):
         # self.timer.setInterval(20)
         # self.timer.timeout.connect(self.carousel_from_slider)
 
-        self.carouse_area = RecyclingCarousel(model)
+        self.carouse_area = DatabaseRecyclingCarousel(model)
         self.carouse_area.setParent(self)
 
         self.sc = QScrollBar(Qt.Orientation.Horizontal)
         self.sc.setParent(self)
         self.sc.setRange(0, self.carouse_area.number_of_elements - 1)
+        self.max_sc = self.carouse_area.number_of_elements - 1
+        self.min_sc = 0
         self._update_layout()
         self._initial_placement()
         self.sc.valueChanged.connect(self.carouse_area.move_to_specific_image)
+        # self.sc.valueChanged.connect(self.clamped_scroll)
         # self.sc.valueChanged.connect(self.timer.start)
         self.sc.valueChanged.connect(lambda x: print(x))
         self.carouse_area.image_changed.connect(self.sc.setValue)
@@ -749,6 +850,17 @@ class PotentCarousel(QFrame):
     #     """
     #     print("Timeout")
     #     self.carouse_area.move_to_specific_image(self.sc.value())
+
+    def clamped_scroll(self, v: int):
+        """
+        Clamps the scroll bar value to the min and max values.
+        :param v: value from scroll bar (clamped to max and min values)
+        :return:
+        """
+        if v == 4139:
+            print(f"Trigger")
+        self.carouse_area.move_to_specific_image(min(max(self.min_sc, v), self.max_sc))
+
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
