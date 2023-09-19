@@ -794,8 +794,11 @@ class DatabaseRecyclingCarousel(BaseCycleCarousel):
         return self.tile_buffer[index - self.tile_left_limit]
 
 
+# TODO import carousel
 class ImportRecyclingCarousel(BaseCycleCarousel):
-    pass
+    def __init__(self, model: Model):
+        super().__init__(model)
+        self.model.build_tiles_from_table()
 
 
 
@@ -928,10 +931,11 @@ class DatabaseCarousel(QFrame):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    m = Model(folder_path="/media/alisot2000/DumpStuff/work_dummy/")
+    # m = Model(folder_path="/media/alisot2000/DumpStuff/work_dummy/")
+    m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
     # m.current_import_table_name = "tbl_-3399138825726121575"
     m.build_tiles_from_table()
-    window = PotentCarousel(m)
+    window = DatabaseCarousel(m)
     # window = RecyclingCarousel(m)
     # window = TestingTamplatingCarousel(m)
     # window.build_carousel()
