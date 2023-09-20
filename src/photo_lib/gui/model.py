@@ -925,4 +925,14 @@ class Model:
         if self.pdb is None:
             raise NoDbException("No Database selected")
 
-        return  self.pdb.get_grouped_image_count(GroupingCriterion.NONE, trash=self.trash)[0].count
+        return self.pdb.get_grouped_image_count(GroupingCriterion.NONE, trash=self.trash)[0].count
+
+    def get_group_image_count(self) -> List[GroupCount]:
+        """
+        Get the Group counts of the entire database according to the trash attribute and grouping attribute.
+        """
+        if self.pdb is None:
+            raise NoDbException("No Database selected")
+
+        return self.pdb.get_grouped_image_count(self.grouping, trash=self.trash)
+
