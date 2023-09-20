@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from photo_lib.metadataagregator import MetadataAggregator
 from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, ImportTileInfo, MatchTypes, FullImportTableEntry
 from photo_lib.custom_enum import SourceTable, GUICommandTypes
-from photo_lib.data_objects import FullDatabaseEntry, FullReplacedEntry, ImportTableEntry, GroupingCriterion
+from photo_lib.data_objects import *
 from photo_lib.metadataagregator import key_lookup_dir
 
 
