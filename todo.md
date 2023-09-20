@@ -12,7 +12,7 @@
 - [X] Add import View to the main Window
 - [X] When clicked, open the bigScreen Image (with with comparison if possible. If not, just the bigScreen Image)
 - [X] Close image with ESC
-- [ ] Check button needs to update the subsection the image is in.
+- [X] Check button needs to update the subsection the image is in.
 - [X] Add button to import
 
 
@@ -28,13 +28,14 @@
 - [X] Add functions to update the bigscreen
 - [X] Generate Carousel
 - [X] Unload images when out of view.
-- [ ] Simplify the widgets
+- [X] Simplify the widgets
 
 ## Database:
+- [ ] Index for main database based on the date.
 - [X] Datetime in SQLite formate
 - [ ] Functions to update the table
-- [ ] Function to get number of images on a given day, month, year
-- [ ] Function to get info of a day, month year
+- [X] Function to get number of images on a given day, month, year
+- [X] Function to get info of a day, month year
 - [ ] Function to link files based on hashes
 - [ ] Function to check if all indexed images are present
 - [ ] Function to update hash based on file name
