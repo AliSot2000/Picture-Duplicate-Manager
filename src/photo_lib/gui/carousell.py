@@ -7,7 +7,7 @@ import sys
 from typing import List, Union
 from photo_lib.PhotoDatabase import BaseTileInfo
 from photo_lib.gui.clickable_image import ClickableTile, IndexedTile
-from photo_lib.gui.model import Model
+from photo_lib.gui.model import Model, TileBuffer
 from photo_lib.gui.gui_utils import image_wrapper
 from photo_lib.data_objects import ImportTileInfo
 import datetime
@@ -702,15 +702,12 @@ class BaseCycleCarousel(QFrame):
 
 class DatabaseRecyclingCarousel(BaseCycleCarousel):
     # Image Tiles
-    tile_left_limit: int = -1
-    tile_right_limit: int = -1
-    tile_buffer_max_size: int = 1000
-    tile_buffer_fetch_size: int = 100
-    tile_buffer: List[BaseTileInfo] = None
+    buffer: TileBuffer = None
 
     def __init__(self, model: Model, target_index: int = None):
         super().__init__(model)
-        self.tile_buffer = []
+        self.buffer = TileBuffer(model)
+        self.buffer.update_number_of_elements()
 
         if target_index is None:
             target_index = 0
@@ -719,79 +716,26 @@ class DatabaseRecyclingCarousel(BaseCycleCarousel):
             raise ValueError(f"Target index out of bounds [0, {self.number_of_elements}]")
         self.__current_element = target_index
 
-        tile_info = self._load_new_buffer(target_index)
+        tile_info = self.buffer.fetch_tile(target_index)
         assert len(self.widgets) == 1, "Carousel not initialized correctly"
         self.widgets[0].index = target_index
         self.widgets[0].tile_info = tile_info
 
+    def update_number_of_elements(self):
+        """
+        Need to pass call onto buffer.
+        """
+        super().update_number_of_elements()
+        self.buffer.update_number_of_elements()
+
     def fetch_tile(self, index: int) -> BaseTileInfo:
         """
-        Fetches tile from buffer. If the tile is not in the buffer, the function will load the correct tile and update
-        the buffer accordingly.
-
-        Index must be within [0, number_of_elements].
+        Implement Fetch tile. This is called when the tile info is None.
         """
-        assert 0 <= index < self.number_of_elements, \
-            f"Index out of bounds [0, {self.number_of_elements}], index: {index}"
 
-        if self.tile_left_limit <= index < self.tile_right_limit:
-            return self.tile_buffer[index - self.tile_left_limit]
-
-        # We have to load the tile
-        # Fetch to the left
-        if index < self.tile_left_limit:
-            ld_size = min(self.tile_buffer_fetch_size, self.tile_left_limit)
-            if self.tile_left_limit - ld_size <= index < self.tile_left_limit:
-                new_tiles = self.model.get_images_carousel(self.tile_left_limit - ld_size, ld_size)
-                self.tile_buffer = new_tiles + self.tile_buffer
-                self.tile_left_limit -= ld_size
-
-                # Shrink buffer if too large from the right
-                if len(self.tile_buffer) > self.tile_buffer_max_size:
-                    self.tile_buffer = self.tile_buffer[:self.tile_buffer_max_size]
-                    self.tile_right_limit -= self.tile_buffer_fetch_size
-
-                return self.tile_buffer[index - self.tile_left_limit]
-            else:
-                return self._load_new_buffer(index)
-
-        elif self.tile_right_limit <= index:
-            ld_size = min(self.tile_buffer_fetch_size, self.number_of_elements - self.tile_right_limit)
-            if self.tile_right_limit <= index < self.tile_right_limit + ld_size:
-                new_tiles = self.model.get_images_carousel(self.tile_right_limit, ld_size)
-                self.tile_buffer = self.tile_buffer + new_tiles
-                self.tile_right_limit += ld_size
-
-                # Shrink buffer if too large from the left
-                if len(self.tile_buffer) > self.tile_buffer_max_size:
-                    self.tile_buffer = self.tile_buffer[ld_size:]
-                    self.tile_left_limit += ld_size
-
-                return self.tile_buffer[index - self.tile_left_limit]
-            else:
-                return self._load_new_buffer(index)
-
-        # We are performing a move_to_specific image
-        else:
-            raise ValueError(f"You programmed garbage: "
-                             f"left_limit: {self.tile_left_limit}, "
-                             f"right_limit: {self.tile_right_limit}, "
-                             f"index: {index}")
-
-    def _load_new_buffer(self, index: int):
-        """
-        Function is private because the index is not sanitized.
-
-        Preconditions:
-        - index not in buffer
-        - (left_limit - buffer_fetch_size) to (right_limit + buffer_fetch_size) do not contain the index
-        """
-        start = index // self.tile_buffer_fetch_size * self.tile_buffer_fetch_size
-        count = min(self.tile_buffer_fetch_size, self.number_of_elements - start)
-        self.tile_buffer = self.model.get_images_carousel(start, count)
-        self.tile_left_limit = start
-        self.tile_right_limit = start + count
-        return self.tile_buffer[index - self.tile_left_limit]
+        # TODO rethink this.
+        #   Could possibly join the two classes if they both use the buffer.
+        return self.buffer.fetch_tile(index)
 
 
 # TODO import carousel
