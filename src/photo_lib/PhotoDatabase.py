@@ -2618,11 +2618,11 @@ class PhotoDb:
         if group_crit == GroupingCriterion.NONE:
             pass
         elif group_crit == GroupingCriterion.YEAR:
-            statement += "GROUP BY GROUP BY strftime('%Y', datetime) ORDER BY datetime"
+            statement += "GROUP BY strftime('%Y', datetime) ORDER BY datetime"
         elif group_crit == GroupingCriterion.YEAR_MONTH:
-            statement += "GROUP BY GROUP BY strftime('%Y-%m', datetime) ORDER BY datetime"
+            statement += "GROUP BY strftime('%Y-%m', datetime) ORDER BY datetime"
         elif group_crit == GroupingCriterion.YEAR_MONTH_DAY:
-            statement += "GROUP BY GROUP BY strftime('%Y-%m-%d', datetime) ORDER BY datetime"
+            statement += "GROUP BY strftime('%Y-%m-%d', datetime) ORDER BY datetime"
 
         self.debug_exec(statement)
 
