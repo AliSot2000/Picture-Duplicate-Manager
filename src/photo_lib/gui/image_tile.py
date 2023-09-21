@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt
 from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes
 
+
 class ImageTile(QFrame):
 
     tile_info: Union[ImportTileInfo, None] = None
@@ -17,6 +18,10 @@ class ImageTile(QFrame):
     open_image_callback = None
 
     def __init__(self, info: ImportTileInfo):
+        """
+        An always square image tile that can be clicked on to emit a signal. The tile also has a text label with the
+        file name. The tile can also be colored to indicate if it is marked for import or not.
+        """
         super().__init__()
         self.tile_info = info
 

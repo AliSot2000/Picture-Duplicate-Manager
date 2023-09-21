@@ -433,24 +433,27 @@ class PhotosTile(QFrame):
 
         Precondition: The number_or_cols and number_of_rows are set.
         """
-        # TODO update current image selcted
-        # TODO update current row
-
         self.row_lut = []
         self.index_lut = []
         index = 0
         row_count = 0
+        cur_row = 0
 
         for i in range(len(self.group_infos)):
             cur_info = self.group_infos[i]
             img_count = cur_info.count
 
             while img_count > 0:
+                new_index = index + (self.elements_p_col if self.elements_p_col < img_count else img_count)
+                if index <= self.image_selected < new_index:
+                    cur_row = row_count
+                index = new_index
                 row_count += 1
                 self.row_lut.append(i)
                 img_count -= self.elements_p_col
 
         self.num_of_rows = row_count
+        self.cur_row = cur_row
 
     @pyqtSlot()
     def move_up(self):
