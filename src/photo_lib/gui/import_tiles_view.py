@@ -429,7 +429,7 @@ class PhotosTile(QFrame):
 
     def compute_lut(self):
         """
-        Computes the look up table for the rows and headers.
+        Computes the look up table for the rows and headers. Also updates the current row.
 
         Precondition: The number_or_cols and number_of_rows are set.
         """
