@@ -956,13 +956,15 @@ class TileBuffer:
         self.model = model
         self.update_number_of_elements()
 
+        self.fetch_tile = self.__init_buffer
+
     def update_number_of_elements(self):
         """
         Get the number of Elements from the
         """
         self.number_of_elements = self.model.get_total_image_count()
 
-    def fetch_tile(self, index: int) -> BaseTileInfo:
+    def __fetch_tile(self, index: int) -> BaseTileInfo:
         """
         Fetches tile from buffer. If the tile is not in the buffer, the function will load the correct tile and update
         the buffer accordingly.
@@ -1033,3 +1035,12 @@ class TileBuffer:
         self.tile_left_limit = start
         self.tile_right_limit = start + count
         return self.tile_buffer[index - self.tile_left_limit]
+
+    def __init_buffer(self, index: int):
+        """
+        Function to initialize the buffer. It is not used after the first call. It changes the function pointer of
+        fetch_tile from load_new_buffer to the actual _fetch_tile
+        """
+        v = self._load_new_buffer(index)
+        self.fetch_tile = self.__fetch_tile
+        return v
