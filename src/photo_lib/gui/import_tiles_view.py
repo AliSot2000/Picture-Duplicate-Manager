@@ -287,6 +287,8 @@ class PhotosTile(QFrame):
     # TODO config
     tile_size: int = 200  # Different tile size for year, month and day.
     preload_row_count: int = 5
+    label_height: int = 30
+    # TODO font size
 
     widgets = None
     current_header_widget = None
@@ -294,6 +296,7 @@ class PhotosTile(QFrame):
     background_layout: QGridLayout = None
     widget_rows = None
     hidden_widgets = None
+    current_header_widget_placeholder = None
 
     @property
     def cur_row(self):
