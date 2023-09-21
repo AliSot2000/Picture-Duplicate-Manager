@@ -405,6 +405,7 @@ class PhotosTile(QFrame):
     # TODO Implement scrolling with scroll wheel.
     # def wheelEvent(self, a0: QtGui.QWheelEvent) -> None:
     #     pass
+
     def _update_base_data(self):
         """
         Updates the group data and the number of elements.
