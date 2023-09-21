@@ -290,13 +290,13 @@ class PhotosTile(QFrame):
     label_height: int = 30
     # TODO font size
 
-    widgets = None
-    current_header_widget = None
-    background_widget = None
+    widgets: List[IndexedTile] = None
+    current_header_widget: Union[None, QLabel] = None
+    background_widget: QWidget = None
     background_layout: QGridLayout = None
-    widget_rows = None
-    hidden_widgets = None
-    current_header_widget_placeholder = None
+    widget_rows: List[Union[List[IndexedTile], QWidget, QLabel]] = None
+    hidden_widgets: List[IndexedTile] = None
+    current_header_widget_placeholder: QWidget = None
 
     @property
     def cur_row(self):
