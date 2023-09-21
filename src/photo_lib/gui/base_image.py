@@ -31,7 +31,8 @@ class BaseImage(QFrame):
     @pixmap.setter
     def pixmap(self, value: QPixmap):
         self.__pixmap = value
-        self.__load_image_flg = False
+        if self.pixmap is not None:
+            self.__load_image_flg = False
 
     @property
     def file_path(self):
