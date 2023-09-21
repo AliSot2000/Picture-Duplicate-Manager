@@ -9,8 +9,8 @@ img_loader: Union[None, ImageLoader] = None
 
 
 class LoadingBaseImage(BaseImage):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, file_path: str = None):
+        super().__init__(file_path)
         global img_loader
 
         if img_loader is None:
