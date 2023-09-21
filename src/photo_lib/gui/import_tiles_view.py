@@ -2,9 +2,13 @@ from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QGridLay
 from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint
 from PyQt6.QtGui import QResizeEvent, QKeyEvent
 import sys
+import datetime
+import math
+import numpy as np
 from typing import Union, List, Tuple
 from photo_lib.gui.named_picture_block import CheckNamedPictureBlock
 from photo_lib.gui.image_tile import ImageTile
+from photo_lib.gui.clickable_image import IndexedTile
 from photo_lib.gui.model import Model, GroupCount, GroupingCriterion, TileBuffer
 from photo_lib.PhotoDatabase import MatchTypes
 from photo_lib.gui.gui_utils import general_wrapper
