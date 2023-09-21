@@ -21,7 +21,6 @@ class ZoomImage(LoadingBaseImage):
     # move_down = pyqtSignal()
     last_pos: Union[None , QPointF] = None
 
-
     __capture = False
 
     __offset: QPointF = QPointF(0, 0)
