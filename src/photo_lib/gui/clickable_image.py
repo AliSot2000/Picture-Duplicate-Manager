@@ -8,6 +8,7 @@ from photo_lib.gui.base_image_loader import LoadingBaseImage
 
 # TODO font info from config.
 
+
 class ClickableImage(LoadingBaseImage):
     clicked = pyqtSignal()
     __image_loaded: bool = True
@@ -89,9 +90,11 @@ class IndexedTile(ClickableTile):
 def helper():
     print("Helper called")
 
+
 def invert(w: ClickableImage):
     print(f"Invert called : {w.image_loaded}")
     w.image_loaded = not w.image_loaded
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
