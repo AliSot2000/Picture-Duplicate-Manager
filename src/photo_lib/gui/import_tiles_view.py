@@ -388,6 +388,20 @@ class PhotosTile(QFrame):
         self.buffer = TileBuffer(self.model)
         self._update_base_data()
 
+    @staticmethod
+    def generate_label_text(gi: GroupCount) -> str:
+        """
+        Given a GroupCount object, generate the header for it.
+        """
+        if gi.group_crit == GroupingCriterion.YEAR_MONTH_DAY:
+            return gi.start_date.strftime("%A %d %B %Y")
+        elif gi.group_crit == GroupingCriterion.YEAR_MONTH:
+            return gi.start_date.strftime("%B %Y")
+        elif gi.group_crit == GroupingCriterion.YEAR:
+            return gi.start_date.strftime("%Y")
+        else:
+            return ""
+
     # TODO Implement scrolling with scroll wheel.
     # def wheelEvent(self, a0: QtGui.QWheelEvent) -> None:
     #     pass
