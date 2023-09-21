@@ -282,14 +282,15 @@ class PhotosTile(QFrame):
     __num_of_rows: int = 0
 
     # Data structure
-    group_infos: List[GroupCount]
-    row_lut: List[int]
-    index_lut: List[Tuple[int, int]]
+    group_infos: np.ndarray
+    row_lut: np.ndarray       # Given a row -> gives the start index that are displayed there
+    index_lut: np.ndarray     # given an index -> gives the start and end row of that index
+    header_lut: np.array      # given a row -> gives the header for that row
     buffer: TileBuffer
 
     # Layout
     # TODO config
-    tile_size: int = 200  # Different tile size for year, month and day.
+    tile_size: int = 100  # Different tile size for year, month and day.
     preload_row_count: int = 5
     label_height: int = 30
     # TODO font size
