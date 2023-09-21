@@ -64,3 +64,7 @@
 
 ## Compare Pane
 - [ ] Functionality to view known duplicates to compare the metadata
+
+## Config
+- [ ] Option to have custom database path (needs to be in config)
+- [ ] Config
