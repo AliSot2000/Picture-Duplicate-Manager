@@ -489,8 +489,23 @@ class PhotosTile(QFrame):
         """
         Layout the elements in the view.
         """
-        pass
-        # Todo update size of the background widget
+        # TODO generate rows. Generate widgets. Generate headers. Generate placeholders.
+
+        # Empty layout
+        while self.background_layout.count() > 0:
+            self.background_layout.takeAt(0)
+
+        for i in range(len(self.widget_rows)):
+            r = self.widget_rows[i]
+
+            if type(r) is QLabel or type(r) is QWidget:
+                self.background_layout.addWidget(r, i, 0, 1, self.elements_p_col)
+            else:
+                assert type(r) is List, "Row must be a list if it is not a Label or Placeholder"
+                assert len(r) <= self.elements_p_col, "Row must have less or equal tho number of elements per column"
+                # Inserting widgets
+                for j in range(len(r)):
+                    self.background_layout.addWidget(r[j], i, j, 1, 1)
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
