@@ -258,6 +258,253 @@ class ImportView(QFrame):
             self.import_name.setText("Import Source Unknown")
 
 
+class PhotosTile(QFrame):
+    model: Model
+
+    # signals
+    num_of_rows_changed = pyqtSignal(int)
+    elm_p_col_changed = pyqtSignal(int)
+    img_selected = pyqtSignal()
+    cur_row_changed = pyqtSignal(int)
+
+    # Signal associated value
+    __number_of_elements: int = 0
+    __image_selected: int = 0
+    __selected_tile: BaseTileInfo = None
+    __current_row: int = 0
+
+    # More (less open) values
+    __elements_p_col: int = 5
+    __num_of_rows: int = 0
+
+    # Data structure
+    group_infos: List[GroupCount]
+    row_lut: List[int]
+    index_lut: List[Tuple[int, int]]
+    buffer: TileBuffer
+
+    # Layout
+    # TODO config
+    tile_size: int = 200  # Different tile size for year, month and day.
+    preload_row_count: int = 5
+
+    widgets = None
+    current_header_widget = None
+    background_widget = None
+    background_layout: QGridLayout = None
+    widget_rows = None
+    hidden_widgets = None
+
+    @property
+    def cur_row(self):
+        return self.__current_row
+
+    @cur_row.setter
+    def cur_row(self, value: int):
+        assert value >= 0, "Current row must be greater than 0"
+        if value == self.__current_row:
+            return
+
+        self.__current_row = value
+        self.cur_row_changed.emit(value)
+
+    @property
+    def selected_tile(self):
+        return self.__selected_tile
+
+    @property
+    def number_of_elements(self):
+        return self.__number_of_elements
+
+    @number_of_elements.setter
+    def number_of_elements(self, value: int):
+        assert value > 0, "Number of elements must be greater than 0"
+        self.__number_of_elements = value
+
+    @property
+    def image_selected(self):
+        return self.__image_selected
+
+    @image_selected.setter
+    def image_selected(self, value: int):
+        assert value >= 0, "Number of elements must be greater than 0"
+
+        if value >= self.number_of_elements:
+            raise ValueError("Image selected must be smaller than the number of elements")
+
+        if value == self.__image_selected:
+            return
+
+        self.__image_selected = value
+        self.__selected_tile = self.fetch_tile(value)
+        self.img_selected.emit()
+
+    @property
+    def num_of_rows(self):
+        return self.__num_of_rows
+
+    @num_of_rows.setter
+    def num_of_rows(self, value: int):
+        assert value > 0, "Number of rows must be greater than 0"
+        if self.__num_of_rows == value:
+            return
+
+        self.__num_of_rows = value
+        self.num_of_rows_changed.emit(value)
+
+    @property
+    def elements_p_col(self):
+        return self.__elements_p_col
+
+    @elements_p_col.setter
+    def elements_p_col(self, value: int):
+        assert value > 0, "Number of elements per column must be greater than 0"
+        if self.__elements_p_col == value:
+            return
+
+        self.__elements_p_col = value
+        self.elm_p_col_changed.emit(value)
+
+    def __init__(self, model: Model):
+        super().__init__()
+
+        self.model = model
+        self.widgets = []
+        self.group_infos = []
+        self.row_lut = []
+        self.widget_rows = []
+
+        self.background_widget = QWidget(self)
+        self.background_widget.move(QPoint(0, 0))
+
+        self.background_layout = QGridLayout()
+        self.background_layout.setContentsMargins(10, 10, 10, 10)
+        self.background_layout.setSpacing(10)
+
+        self.background_widget.setLayout(self.background_layout)
+        self.buffer = TileBuffer(self.model)
+        self._update_base_data()
+
+    # TODO Implement scrolling with scroll wheel.
+    # def wheelEvent(self, a0: QtGui.QWheelEvent) -> None:
+    #     pass
+    def _update_base_data(self):
+        """
+        Updates the group data and the number of elements.
+        Updates the buffer and also the index lut.
+        """
+        self.number_of_elements = self.model.get_total_image_count()
+        self.group_infos = self.model.get_group_image_count()
+        self.buffer.update_number_of_elements()
+        index = 0
+        self.index_lut = []
+        for i in range(len(self.group_infos)):
+            c = self.group_infos[i]
+            self.index_lut.append((index, index + c.count))
+            index += c.count
+
+    def fetch_tile(self, index: int) -> BaseTileInfo:
+        """
+        Fetches tile from buffer given the index in the chronological sorting.
+
+        :param index: Index in chronological sorting
+        """
+        return self.buffer.fetch_tile(index)
+
+    def resizeEvent(self, a0: QResizeEvent) -> None:
+        super().resizeEvent(a0)
+        margin = self.background_layout.getContentsMargins()  # left, top, right, bottom
+        rem_width = self.width() - margin[0] - margin[2] * 2
+        self.background_widget.setFixedWidth(self.width())
+        self.elements_p_col = max(1, rem_width // self.tile_size)
+        self.compute_lut()
+        self.update_widget_count()
+
+    def update_widget_count(self):
+        """
+        Update the number of widgets that are loaded
+        """
+        # TODO implement
+        return 100
+
+    def compute_lut(self):
+        """
+        Computes the look up table for the rows and headers.
+
+        Precondition: The number_or_cols and number_of_rows are set.
+        """
+        # TODO update current image selcted
+        # TODO update current row
+
+        self.row_lut = []
+        self.index_lut = []
+        index = 0
+        row_count = 0
+
+        for i in range(len(self.group_infos)):
+            cur_info = self.group_infos[i]
+            img_count = cur_info.count
+
+            while img_count > 0:
+                row_count += 1
+                self.row_lut.append(i)
+                img_count -= self.elements_p_col
+
+        self.num_of_rows = row_count
+
+    @pyqtSlot()
+    def move_up(self):
+        """
+        Move the view up by one increment
+        """
+        # TODO implement
+        pass
+
+    @pyqtSlot()
+    def move_down(self):
+        """
+        Move the view down by one increment
+        """
+        # TODO implement
+        pass
+
+    pyqtSlot(int)
+    def move_to_index(self, index: int):
+        """
+        Given an index in the time series. Move the view to that index is in view.
+        """
+        pass
+
+    pyqtSlot(int)
+    def move_to_row(self, index: int):
+        """
+        Given a row, scroll to that row.
+        """
+        pass
+
+    def layout_elements(self):
+        """
+        Layout the elements in the view.
+        """
+        pass
+        # Todo update size of the background widget
+
+    def keyPressEvent(self, a0: QKeyEvent) -> None:
+        """
+        Catch keys from keyboard and move the carousel accordingly.
+        :param a0:
+        :return:
+        """
+        super().keyPressEvent(a0)
+        if a0.key() == Qt.Key.Key_Up:
+            self.move_up()
+        elif a0.key() == Qt.Key.Key_Down:
+            self.move_down()
+        else:
+            pass
+        self.layout_elements()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
