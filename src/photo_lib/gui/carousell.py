@@ -320,12 +320,22 @@ class BaseCycleCarousel(QFrame):
     # Signals
     image_changed = pyqtSignal(int)
     noe_changed = pyqtSignal(int)
+    page_size_changed = pyqtSignal(int)
 
     timer: QTimer = None
 
     @property
     def page_size(self):
         return self.__page_size
+
+    @page_size.setter
+    def page_size(self, value: int):
+        assert value > 0, "Page size must be positive"
+        if self.__page_size == value:
+            return
+
+        self.__page_size = value
+        self.page_size_changed.emit(value)
 
     @property
     def current_element(self):
@@ -419,7 +429,7 @@ class BaseCycleCarousel(QFrame):
         remaining_width /= 2
 
         # Number of widgets that fit one side
-        self.__page_size = int(remaining_width / (tile_size + self.spacing))
+        self.page_size = max(int(remaining_width / (tile_size + self.spacing)), 1)
 
         self.layout_widgets()
 
@@ -786,6 +796,7 @@ class DatabaseCarousel(QFrame):
         self.carouse_area.image_changed.connect(self.sc.setValue)
         self.carouse_area.image_changed.connect(lambda x: print(x))
         self.carouse_area.noe_changed.connect(self.update_scroll_bar)
+        self.carouse_area.page_size_changed.connect(self.sc.setPageStep)
 
     # def carousel_from_slider(self):
     #     """
