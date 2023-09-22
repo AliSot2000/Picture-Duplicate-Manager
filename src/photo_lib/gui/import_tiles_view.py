@@ -394,9 +394,20 @@ class PhotosTile(QFrame):
 
         self.model = model
         self.widgets = []
-        self.group_infos = []
-        self.row_lut = []
+        self.group_infos = np.array([])
+        self.row_lut = np.array([])
+        self.index_lut = np.array([])
+        self.header_lut = np.array([])
+        self.hidden_widgets = []
         self.widget_rows = []
+
+        # TODO remove
+        self.setMinimumHeight(1200)
+        self.setMinimumWidth(1200)
+        self.__image_selected = 12
+
+        self.current_header_widget_placeholder = QWidget()
+        self.current_header_widget_placeholder.setFixedHeight(self.label_height)
 
         self.background_widget = QWidget(self)
         self.background_widget.move(QPoint(0, 0))
@@ -408,6 +419,14 @@ class PhotosTile(QFrame):
         self.background_widget.setLayout(self.background_layout)
         self.buffer = TileBuffer(self.model)
         self._update_base_data()
+
+        for i in range(100):
+            t = IndexedTile()
+            t.setFixedWidth(self.tile_size)
+            t.setFixedHeight(self.tile_size)
+            self.widgets.append(t)
+
+        self.hidden_widgets = self.widgets
 
     @staticmethod
     def generate_label_text(gi: GroupCount) -> str:
