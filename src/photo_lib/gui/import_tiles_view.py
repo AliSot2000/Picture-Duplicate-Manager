@@ -573,15 +573,17 @@ class PhotosTile(QFrame):
         # TODO implement
         pass
 
-    pyqtSlot(int)
+    @pyqtSlot(int)
     def move_to_index(self, index: int):
         """
         Given an index in the time series. Move the view to that index is in view.
         """
         pass
 
-    pyqtSlot(int)
-    def move_to_row(self, index: int):
+    @pyqtSlot(int)
+    def move_to_row(self, row: int):
+        """
+        Given a row in the view, move the view to that row.
         """
         Given a row, scroll to that row.
         """
