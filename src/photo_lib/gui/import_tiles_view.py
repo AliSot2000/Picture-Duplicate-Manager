@@ -469,10 +469,23 @@ class PhotosTile(QFrame):
         super().resizeEvent(a0)
         margin = self.background_layout.getContentsMargins()  # left, top, right, bottom
         rem_width = self.width() - margin[0] - margin[2] * 2
+        new_epc = max(1, rem_width // self.tile_size)
         self.background_widget.setFixedWidth(self.width())
-        self.elements_p_col = max(1, rem_width // self.tile_size)
+
+        new_mnvr = math.ceil((self.height() - margin[1] - margin[3] - self.label_height) / self.tile_size)
+
+        # Move the
+        if self.current_header_widget is not None:
+            self.current_header_widget.setFixedWidth(rem_width)
+
+        if new_epc == self.elements_p_col and new_mnvr == self.max_num_vis_rows:
+            return
+
+        self.elements_p_col = new_epc
+        self.max_num_vis_rows = new_mnvr
         self.compute_lut()
         self.update_widget_count()
+        self.layout_elements()
 
     def update_widget_count(self):
         """
