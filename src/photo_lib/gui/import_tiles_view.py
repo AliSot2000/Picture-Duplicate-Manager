@@ -578,7 +578,8 @@ class PhotosTile(QFrame):
         """
         Given an index in the time series. Move the view to that index is in view.
         """
-        pass
+        row = self.index_lut[index]
+        self.move_to_row(row)
 
     @pyqtSlot(int)
     def move_to_row(self, row: int):
