@@ -539,7 +539,7 @@ class PhotosTile(QFrame):
                 new_index = index + (self.elements_p_col if self.elements_p_col < img_count else img_count)
                 row_lut.append(index)
 
-                for i in range(index, new_index):
+                for j in range(index, new_index):
                     index_lut.append(row_count)
 
                 if index <= self.image_selected < new_index:
@@ -595,7 +595,6 @@ class PhotosTile(QFrame):
         Layout the elements in the view.
         """
         # TODO generate rows. Generate widgets. Generate headers. Generate placeholders.
-
         # Empty layout
         while self.background_layout.count() > 0:
             self.background_layout.takeAt(0)
@@ -605,12 +604,36 @@ class PhotosTile(QFrame):
 
             if type(r) is QLabel or type(r) is QWidget:
                 self.background_layout.addWidget(r, i, 0, 1, self.elements_p_col)
+                r.setVisible(True)
             else:
-                assert type(r) is List, "Row must be a list if it is not a Label or Placeholder"
-                assert len(r) <= self.elements_p_col, "Row must have less or equal tho number of elements per column"
+                assert type(r) is list, f"Row must be a list if it is not a Label or Placeholder, type is  {type(r)}"
+                assert len(r) <= self.elements_p_col, (f"Row must have less or equal tho number of elements per "
+                                                       f"column, epc: {self.elements_p_col}, row: {len(r)}")
                 # Inserting widgets
                 for j in range(len(r)):
                     self.background_layout.addWidget(r[j], i, j, 1, 1)
+                    r[j].setVisible(True)
+
+        margin = self.background_layout.getContentsMargins()  # left, top, right, bottom
+        if self.current_header_widget is not None:
+            self.background_widget.setParent(None)
+            self.current_header_widget.setParent(None)
+            self.background_widget.setParent(self)
+            self.current_header_widget.setParent(self)
+            self.current_header_widget.move(margin[0], margin[1])
+
+        h = margin[1] + margin[3]
+        for i in range(len(self.widget_rows)):
+            if i > 0:
+                h += self.background_layout.spacing()
+            if type(self.widget_rows[i]) is list:
+                h += self.tile_size
+            else:
+                h += self.label_height
+            self.background_widget.setFixedHeight(h)
+
+        # Compute position of background widget
+        self.background_widget.move(0, 0)
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
