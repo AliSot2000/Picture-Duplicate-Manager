@@ -489,10 +489,33 @@ class PhotosTile(QFrame):
 
     def update_widget_count(self):
         """
-        Update the number of widgets that are loaded
+        Update the number of widgets that are loaded. Performs layout subsequently.
         """
         # TODO implement
-        return 100
+        now = (self.max_num_vis_rows + self.preload_row_count * 2) * self.elements_p_col
+        if now == len(self.widgets):
+            return
+
+        elif now < len(self.widgets):
+            self.build_rows()
+            assert len(self.hidden_widgets) >= now - len(self.widgets), \
+                "The number of hidden widgets is smaller than the number of widgets that we want to remove"
+            rm = self.hidden_widgets[:now - len(self.widgets)]
+            self.hidden_widgets = self.hidden_widgets[now - len(self.widgets):]
+
+            for w in rm:
+                w.deleteLater()
+
+        else:
+            assert now > len(self.widgets), "We should have to add widgets now"
+            widgets_to_add = now - len(self.widgets)
+            for i in range(widgets_to_add):
+                t = IndexedTile()
+                self.widgets.append(t)
+                self.hidden_widgets.append(t)
+                t.setFixedHeight(self.tile_size)
+                t.setFixedWidth(self.tile_size)
+            self.build_rows()
 
     def compute_lut(self):
         """
