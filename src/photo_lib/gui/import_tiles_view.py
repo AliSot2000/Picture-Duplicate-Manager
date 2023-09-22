@@ -262,6 +262,7 @@ class ImportView(QFrame):
             self.import_name.setText("Import Source Unknown")
 
 
+# TODO register clickable tiles to emmit the img_selected signal
 class PhotosTile(QFrame):
     model: Model
 
@@ -279,6 +280,7 @@ class PhotosTile(QFrame):
 
     # More (less open) values
     __elements_p_col: int = 5
+    __max_num_vis_rows: int = 0
     __num_of_rows: int = 0
 
     # Data structure
@@ -302,6 +304,20 @@ class PhotosTile(QFrame):
     widget_rows: List[Union[List[IndexedTile], QWidget, QLabel]] = None
     hidden_widgets: List[IndexedTile] = None
     current_header_widget_placeholder: QWidget = None
+    current_row_index: int = 0
+    scroll_offset: int = 0
+
+    @property
+    def max_num_vis_rows(self):
+        return self.__max_num_vis_rows
+
+    @max_num_vis_rows.setter
+    def max_num_vis_rows(self, value: int):
+        assert value > 0, "Max number of visible rows must be greater than 0"
+        if self.__max_num_vis_rows == value:
+            return
+
+        self.__max_num_vis_rows = value
 
     @property
     def cur_row(self):
