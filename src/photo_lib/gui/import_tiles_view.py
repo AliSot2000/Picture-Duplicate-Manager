@@ -523,8 +523,10 @@ class PhotosTile(QFrame):
 
         Precondition: The number_or_cols and number_of_rows are set.
         """
-        self.row_lut = []
-        self.index_lut = []
+        start = datetime.datetime.now()
+        row_lut = []
+        index_lut = []
+        header_lut = []
         index = 0
         row_count = 0
         cur_row = 0
@@ -535,15 +537,25 @@ class PhotosTile(QFrame):
 
             while img_count > 0:
                 new_index = index + (self.elements_p_col if self.elements_p_col < img_count else img_count)
+                row_lut.append(index)
+
+                for i in range(index, new_index):
+                    index_lut.append(row_count)
+
                 if index <= self.image_selected < new_index:
                     cur_row = row_count
                 index = new_index
                 row_count += 1
-                self.row_lut.append(i)
+                header_lut.append(i)
                 img_count -= self.elements_p_col
 
+        self.header_lut = np.array(header_lut, dtype=int)
+        self.row_lut = np.array(row_lut, dtype=int)
+        self.index_lut = np.array(index_lut, dtype=int)
         self.num_of_rows = row_count
         self.cur_row = cur_row
+        stop = datetime.datetime.now()
+        print(f"Compute lut took: {(stop - start).total_seconds()}")
 
     @pyqtSlot()
     def move_up(self):
