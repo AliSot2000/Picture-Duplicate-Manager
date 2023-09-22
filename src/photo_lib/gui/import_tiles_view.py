@@ -452,14 +452,10 @@ class PhotosTile(QFrame):
         Updates the buffer and also the index lut.
         """
         self.number_of_elements = self.model.get_total_image_count()
-        self.group_infos = self.model.get_group_image_count()
+        gi = self.model.get_group_image_count()
+        self.group_infos = np.array(gi, dtype=GroupCount)
         self.buffer.update_number_of_elements()
-        index = 0
-        self.index_lut = []
-        for i in range(len(self.group_infos)):
-            c = self.group_infos[i]
-            self.index_lut.append((index, index + c.count))
-            index += c.count
+        self.compute_lut()
 
     def fetch_tile(self, index: int) -> BaseTileInfo:
         """
