@@ -1529,7 +1529,6 @@ class PhotoDb:
         else:
             return self.img_ana_dup_search_old(level, procs, overwrite)
 
-
     def img_ana_dup_search_new(self, level: str, overwrite: bool = False,
                                separate_process: bool = True):
         """
@@ -1537,7 +1536,6 @@ class PhotoDb:
         the longer the comparison. O(n²) The implementation here is my own using parallel searching on global level.
         :param overwrite: Will drop an existing duplicates table if detected
         :param level: possible: all, year, month, day
-        :param procs: number of parallel processes
         :param separate_process: if true, the search will be performed in a separate process (bc gui)
         :return:
         """
