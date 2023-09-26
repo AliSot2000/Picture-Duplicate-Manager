@@ -50,8 +50,8 @@ class PhotoDb:
     trash_dir: str
 
     # database
-    cur: sqlite3.Cursor = None
-    con: sqlite3.Connection = None
+    cur: Union[None, sqlite3.Cursor] = None
+    con: Union[None, sqlite3.Connection] = None
 
     # allowed files in database:
     allowed_files: set = {".jpeg", ".jpg", ".png", ".mov", ".m4v", ".mp4", '.gif', '.3gp', '.dng', '.heic', '.heif', '.webp', '.tif', '.tiff'}
