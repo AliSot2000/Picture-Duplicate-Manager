@@ -28,6 +28,7 @@ from photo_lib.utils import rec_list_all, rec_walker, path_builder
 #   - Known duplicates table
 # TODO Account for cases when a file is modified - keep track of the new hash. So we need an initial hash and file size.
 # TODO Add a row for the last_import table.
+# TODO add index for datetime for faster searching
 # INFO: If you run the img_ana_dup_search from another file and not the gui, MAKE SURE TO EMPTY THE PIPE.
 # After around 1000 Calls, the pipe will be full and the program will freeze !!!
 
