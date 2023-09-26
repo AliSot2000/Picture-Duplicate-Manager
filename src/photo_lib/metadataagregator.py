@@ -5,6 +5,7 @@ import os
 import hashlib
 from dataclasses import dataclass
 from .tagsnshit import known  # find
+from typing import Union
 
 
 def anti_utc(dt_str: str, fmt_str: str):
@@ -351,7 +352,7 @@ class MetadataAggregator:
         f_hash = hash_file(path)
 
         content = None
-        cur_date: datetime.datetime = None
+        cur_date: Union[None, datetime.datetime] = None
         cur_tag: str = ""
 
         try:
