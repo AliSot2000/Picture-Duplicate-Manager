@@ -670,7 +670,70 @@ class PhotosTile(QFrame):
         """
         Given a row in the view, move the view to that row.
         """
-        Given a row, scroll to that row.
+        # TODO add handling if row is already loaded.
+
+        # Create the Header
+        self.current_header_widget = self.generate_header(self.header_lut[row])
+        self.current_header_widget.setFixedHeight(self.label_height)
+
+        self.hidden_widgets = [w for w in self.widgets]
+        self.widget_rows = [self._generate_row(row)]
+        r = self.widget_rows[0]
+        self.lowest_row = max(-1, row - self.preload_row_count - 1)
+        place_holder_put = False
+
+        # Generate the rows above
+        for i in range(row -1, self.lowest_row, -1):
+            if place_holder_put:
+                if self.header_lut[i] != self.header_lut[i+1]:
+                    self.widget_rows.insert(0, self.generate_header(self.header_lut[i]))
+                self.widget_rows.insert(0, self._generate_row(i))
+            else:
+                if self.header_lut[row] != self.header_lut[i]:
+                    # We are immediately followed by our picture. Insert the Label directly
+                    if i == row - 1:
+                        self.widget_rows.insert(0, self.current_header_widget)
+                        self.current_header_widget = None
+                    else:
+                        self.widget_rows.insert(0, self.current_header_widget_placeholder)
+                    place_holder_put = True
+                    self.widget_rows.insert(0, self._generate_row(i))
+                else:
+                    self.widget_rows.insert(0, self._generate_row(i))
+
+        self.current_row_index = self.widget_rows.index(r)
+        self.highest_row = min(row + self.preload_row_count + self.max_num_vis_rows + 1, self.num_of_rows)
+        # Generate Rows down
+        for i in range(row + 1, self.highest_row):
+            if self.header_lut[i - 1] != self.header_lut[i]:
+                self.widget_rows.append(self.generate_header(self.header_lut[i]))
+            self.widget_rows.append(self._generate_row(i))
+
+        self.cur_row = row
+        self.layout_elements()
+
+    def _generate_row(self, row: int) -> List[IndexedTile]:
+        """
+        Generates a row of widgets. This function does not perform layout.
+        """
+        if row == self.num_of_rows - 1:
+            end = self.number_of_elements
+        else:
+            end = self.row_lut[row + 1]
+
+        l = []
+        for i in range(self.row_lut[row], end):
+            tile = self.fetch_tile(i)
+            w = self.get_hidden_widget()
+            w.tile_info = tile
+            w.index = i
+            l.append(w)
+        print(len(l))
+        return l
+
+    def build_rows(self):
+        """
+        Build the rows. Function used by resizing event. This function does not perform layout.
         """
         pass
 
