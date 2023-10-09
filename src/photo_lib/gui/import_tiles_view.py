@@ -601,10 +601,61 @@ class PhotosTile(QFrame):
         Move the view down by one increment
         """
         # TODO implement
-        pass
         self.scroll_offset += 30
         self.background_widget.move(0, self.scroll_offset)
 
+    def widget_offset(self):
+        """
+        Gets the number of rows excluding label to the current index.
+        """
+        c = 0
+        for i in range(self.current_row_index):
+            c += int(type(self.widget_rows[i]) is list)
+        return c
+
+    def build_down(self):
+        """
+        Goes down one row of images.
+        """
+        wo = self.widget_offset()
+        if wo == self.preload_row_count:
+
+            # we have more space at the bottom and can load a new row:
+            if self.cur_row + self.preload_row_count + self.max_num_vis_rows + 1 < self.num_of_rows:
+                r = self.widget_rows.pop(0)
+
+                if type(r) is QLabel:
+                    r.deleteLater()
+                    r = self.widget_rows.pop(0)
+                    self.scroll_offset += self.label_height + self.background_layout.verticalSpacing()
+
+                elif type(r) is QWidget:
+                    r = self.widget_rows.pop(0)
+                    self.scroll_offset += self.label_height + self.background_layout.verticalSpacing()
+
+                assert type(r) is list, f"Row must be a list if it is not a Label, type is  {type(r)}"
+                self.scroll_offset += self.tile_size + self.background_layout.verticalSpacing()
+                for w in r:
+                    self.move_to_hidden(w)
+
+                self.lowest_row += 1
+
+                # check if we need a header:
+                if self.header_lut[self.highest_row] != self.header_lut[self.highest_row + 1]:
+                    self.widget_rows.append(self.generate_header(self.header_lut[self.highest_row]))
+
+                self.widget_rows.append(self._generate_row(self.highest_row + 1))
+                self.highest_row = self.highest_row + 1
+                self.layout_elements()
+            else:
+                self.current_row_index += 1
+        elif wo < self.preload_row_count:
+            self.current_row_index += 1
+        elif wo + 1 < len(self.widget_rows):
+            self.current_row_index += 1
+        else:
+            # We've reached the bottom of the view.
+            pass
 
     @pyqtSlot(int)
     def move_to_index(self, index: int):
