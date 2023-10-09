@@ -438,7 +438,6 @@ class PhotosTile(QFrame):
         self.hidden_widgets.append(t)
         t.setVisible(False)
 
-        self.hidden_widgets = self.widgets
     def get_hidden_widget(self) -> IndexedTile:
         """
         Returns a hidden widget. Unhides it as well.
@@ -446,6 +445,17 @@ class PhotosTile(QFrame):
         t = self.hidden_widgets.pop()
         t.setVisible(True)
         return t
+
+    def generate_header(self, index: int) -> QLabel:
+        """
+        Generates a Header Leabel with formatting for the given index.
+        """
+        gi = self.group_infos[index]
+        text = self.generate_label_text(gi)
+        l = QLabel(text)
+        l.setFixedHeight(self.label_height)
+        l.setStyleSheet("background-color: rgba(255, 255, 255, 200);")
+        return l
 
     @staticmethod
     def generate_label_text(gi: GroupCount) -> str:
