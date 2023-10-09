@@ -279,7 +279,7 @@ class PhotosTile(QFrame):
     __current_row: int = 0
 
     # More (less open) values
-    __elements_p_col: int = 5
+    __elements_p_col: int = 1
     __max_num_vis_rows: int = 0
     __num_of_rows: int = 0
 
