@@ -298,14 +298,19 @@ class PhotosTile(QFrame):
     # TODO font size
 
     widgets: List[IndexedTile] = None
+    hidden_widgets: List[IndexedTile] = None
+    widget_rows: List[Union[List[IndexedTile], QWidget, QLabel]] = None
     current_header_widget: Union[None, QLabel] = None
     background_widget: QWidget = None
     background_layout: QGridLayout = None
     widget_rows: List[Union[List[IndexedTile], QWidget, QLabel]] = None
     hidden_widgets: List[IndexedTile] = None
     current_header_widget_placeholder: QWidget = None
+
     current_row_index: int = 0
     scroll_offset: int = 0
+    lowest_row: int = 0
+    highest_row: int = 0
 
     @property
     def max_num_vis_rows(self):
