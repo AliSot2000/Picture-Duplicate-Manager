@@ -592,7 +592,8 @@ class PhotosTile(QFrame):
         Move the view up by one increment
         """
         # TODO implement
-        pass
+        self.scroll_offset -= 30
+        self.background_widget.move(0, self.scroll_offset)
 
     @pyqtSlot()
     def move_down(self):
@@ -601,6 +602,9 @@ class PhotosTile(QFrame):
         """
         # TODO implement
         pass
+        self.scroll_offset += 30
+        self.background_widget.move(0, self.scroll_offset)
+
 
     @pyqtSlot(int)
     def move_to_index(self, index: int):
