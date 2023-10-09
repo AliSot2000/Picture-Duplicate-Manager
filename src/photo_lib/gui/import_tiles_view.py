@@ -741,7 +741,6 @@ class PhotosTile(QFrame):
         """
         Layout the elements in the view.
         """
-        # TODO generate rows. Generate widgets. Generate headers. Generate placeholders.
         # Empty layout
         while self.background_layout.count() > 0:
             self.background_layout.takeAt(0)
