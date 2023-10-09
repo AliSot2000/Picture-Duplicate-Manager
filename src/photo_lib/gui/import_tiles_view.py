@@ -303,8 +303,6 @@ class PhotosTile(QFrame):
     current_header_widget: Union[None, QLabel] = None
     background_widget: QWidget = None
     background_layout: QGridLayout = None
-    widget_rows: List[Union[List[IndexedTile], QWidget, QLabel]] = None
-    hidden_widgets: List[IndexedTile] = None
     current_header_widget_placeholder: QWidget = None
 
     current_row_index: int = 0
