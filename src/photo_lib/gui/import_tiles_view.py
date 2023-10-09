@@ -431,8 +431,21 @@ class PhotosTile(QFrame):
             self.widgets.append(t)
             self.hidden_widgets.append(t)
 
+    def move_to_hidden(self, t: IndexedTile):
+        """
+        Stores the widget in the hidden widgets list. Also hides the widget.
+        """
+        self.hidden_widgets.append(t)
+        t.setVisible(False)
 
         self.hidden_widgets = self.widgets
+    def get_hidden_widget(self) -> IndexedTile:
+        """
+        Returns a hidden widget. Unhides it as well.
+        """
+        t = self.hidden_widgets.pop()
+        t.setVisible(True)
+        return t
 
     @staticmethod
     def generate_label_text(gi: GroupCount) -> str:
