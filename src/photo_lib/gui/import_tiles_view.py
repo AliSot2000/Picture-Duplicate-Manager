@@ -503,7 +503,7 @@ class PhotosTile(QFrame):
 
         new_mnvr = math.ceil((self.height() - margin[1] - margin[3] - self.label_height) / self.tile_size)
 
-        # Move the
+        # Move the header
         if self.current_header_widget is not None:
             self.current_header_widget.setFixedWidth(rem_width)
 
