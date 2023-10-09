@@ -771,7 +771,7 @@ class PhotosTile(QFrame):
         h = margin[1] + margin[3]
         for i in range(len(self.widget_rows)):
             if i > 0:
-                h += self.background_layout.spacing()
+                h += self.background_layout.verticalSpacing()
             if type(self.widget_rows[i]) is list:
                 h += self.tile_size
             else:
@@ -779,7 +779,7 @@ class PhotosTile(QFrame):
             self.background_widget.setFixedHeight(h)
 
         # Compute position of background widget
-        self.background_widget.move(0, 0)
+        self.background_widget.move(0, self.scroll_offset)
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
@@ -788,23 +788,31 @@ class PhotosTile(QFrame):
         :return:
         """
         super().keyPressEvent(a0)
-        if a0.key() == Qt.Key.Key_Up:
+        if a0.key() == Qt.Key.Key_Up and a0.modifiers() == Qt.KeyboardModifier.NoModifier:
             self.move_up()
-        elif a0.key() == Qt.Key.Key_Down:
+        elif a0.key() == Qt.Key.Key_Down and a0.modifiers() == Qt.KeyboardModifier.NoModifier:
             self.move_down()
+        elif a0.key() == Qt.Key.Key_Up and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            self.build_up()
+        elif a0.key() == Qt.Key.Key_Down and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            self.build_down()
         else:
             pass
-        self.layout_elements()
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
-    window = ImportView(Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/"))
-    window.model.current_import_table_name = "tbl_1998737548188488947"
+    m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
+    m.grouping = GroupingCriterion.YEAR_MONTH_DAY
+    # window = ImportView(m)
+    window = PhotosTile(m)
+    window.setMinimumWidth(400)
+    window.setMinimumHeight(400)
+    window.move_to_row(50)
+    # window.model.current_import_table_name = "tbl_1998737548188488947"
     window.model.build_tiles_from_table()
     window.setWindowTitle("Import View")
 
-    window.build_import_view()
+    # window.build_import_view()
     window.show()
     sys.exit(app.exec())
