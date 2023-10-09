@@ -425,9 +425,12 @@ class PhotosTile(QFrame):
 
         for i in range(100):
             t = IndexedTile()
+            t.setParent(self)
             t.setFixedWidth(self.tile_size)
             t.setFixedHeight(self.tile_size)
             self.widgets.append(t)
+            self.hidden_widgets.append(t)
+
 
         self.hidden_widgets = self.widgets
 
