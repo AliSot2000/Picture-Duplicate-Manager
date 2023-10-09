@@ -762,12 +762,12 @@ class PhotosTile(QFrame):
                     r[j].setVisible(True)
 
         margin = self.background_layout.getContentsMargins()  # left, top, right, bottom
-        if self.current_header_widget is not None:
-            self.background_widget.setParent(None)
-            self.current_header_widget.setParent(None)
-            self.background_widget.setParent(self)
-            self.current_header_widget.setParent(self)
-            self.current_header_widget.move(margin[0], margin[1])
+        # if self.current_header_widget is not None:
+        #     self.background_widget.setParent(None)
+        #     self.current_header_widget.setParent(None)
+        #     self.background_widget.setParent(self)
+        #     self.current_header_widget.setParent(self)
+        #     self.current_header_widget.move(margin[0], margin[1])
 
         h = margin[1] + margin[3]
         for i in range(len(self.widget_rows)):
