@@ -426,6 +426,7 @@ class PhotosTile(QFrame):
         for i in range(100):
             t = IndexedTile()
             t.setParent(self)
+            t.setVisible(False)
             t.setFixedWidth(self.tile_size)
             t.setFixedHeight(self.tile_size)
             self.widgets.append(t)
@@ -585,6 +586,7 @@ class PhotosTile(QFrame):
         self.cur_row = cur_row
         stop = datetime.datetime.now()
         print(f"Compute lut took: {(stop - start).total_seconds()}")
+        print(f"Number of rows: {self.num_of_rows}")
 
     @pyqtSlot()
     def move_up(self):
@@ -613,11 +615,18 @@ class PhotosTile(QFrame):
             c += int(type(self.widget_rows[i]) is list)
         return c
 
+    def build_up(self):
+        """
+        Goes up one row of images.
+        """
+        pass
+
     def build_down(self):
         """
         Goes down one row of images.
         """
         wo = self.widget_offset()
+        print(wo)
         if wo == self.preload_row_count:
 
             # we have more space at the bottom and can load a new row:
@@ -625,13 +634,17 @@ class PhotosTile(QFrame):
                 r = self.widget_rows.pop(0)
 
                 if type(r) is QLabel:
+                    print("Head is Label, deleting label")
                     r.deleteLater()
                     r = self.widget_rows.pop(0)
                     self.scroll_offset += self.label_height + self.background_layout.verticalSpacing()
+                    self.current_row_index -= 1
 
                 elif type(r) is QWidget:
+                    print("Head is QWidget, ignoring")
                     r = self.widget_rows.pop(0)
                     self.scroll_offset += self.label_height + self.background_layout.verticalSpacing()
+                    self.current_row_index -= 1
 
                 assert type(r) is list, f"Row must be a list if it is not a Label, type is  {type(r)}"
                 self.scroll_offset += self.tile_size + self.background_layout.verticalSpacing()
@@ -640,21 +653,35 @@ class PhotosTile(QFrame):
 
                 self.lowest_row += 1
 
+                # Need to decrement once for the removed element at the top, increment once since we are moving down.
+                # self.current_row_index -= 1
+                # self.current_row_index += 1
+
+                while type(self.widget_rows[self.current_row_index]) is not list:
+                    print("Updating")
+                    self.current_row_index += 1
+
                 # check if we need a header:
                 if self.header_lut[self.highest_row] != self.header_lut[self.highest_row + 1]:
                     self.widget_rows.append(self.generate_header(self.header_lut[self.highest_row]))
+                    print("Added a new header")
 
                 self.widget_rows.append(self._generate_row(self.highest_row + 1))
+                print("Added a new row")
                 self.highest_row = self.highest_row + 1
                 self.layout_elements()
+                self.cur_row += 1
             else:
                 self.current_row_index += 1
         elif wo < self.preload_row_count:
+            print("Upper border")
             self.current_row_index += 1
         elif wo + 1 < len(self.widget_rows):
+            print("Lower border")
             self.current_row_index += 1
         else:
             # We've reached the bottom of the view.
+            print("Reached end")
             pass
 
     @pyqtSlot(int)
@@ -682,7 +709,7 @@ class PhotosTile(QFrame):
         self.lowest_row = max(-1, row - self.preload_row_count - 1)
         place_holder_put = False
 
-        # Generate the rows above
+        # Generate the rows abovef
         for i in range(row -1, self.lowest_row, -1):
             if place_holder_put:
                 if self.header_lut[i] != self.header_lut[i+1]:
@@ -808,7 +835,7 @@ if __name__ == "__main__":
     window = PhotosTile(m)
     window.setMinimumWidth(400)
     window.setMinimumHeight(400)
-    window.move_to_row(50)
+    window.move_to_row(1600)
     # window.model.current_import_table_name = "tbl_1998737548188488947"
     window.model.build_tiles_from_table()
     window.setWindowTitle("Import View")
