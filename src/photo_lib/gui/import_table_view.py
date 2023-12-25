@@ -218,8 +218,6 @@ class TestWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-
-
     app = QApplication([])
     mw = TestWindow()
     mw.show()
