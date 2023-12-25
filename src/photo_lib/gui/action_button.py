@@ -3,6 +3,14 @@ from PyQt6.QtGui import QAction
 from typing import Union
 
 
+"""
+Class links a action with a button.
+
+On click the button will trigger the action.
+On chane of the action the button will update to match the action.
+"""
+
+
 class QActionButton(QPushButton):
     __target_action: Union[None, QAction] = None
 
