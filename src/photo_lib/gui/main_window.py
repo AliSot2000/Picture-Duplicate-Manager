@@ -111,7 +111,6 @@ class RootWindow(QMainWindow):
         # self.dummy_center.setStyleSheet("background-color: #000000; color: #ffffff;")
 
         self.stacked_layout.addWidget(self.compare_root)
-        self.stacked_layout.setCurrentWidget(self.compare_root)
         self.stacked_layout.addWidget(self.messageg_label)
         self.stacked_layout.setCurrentWidget(self.messageg_label)
         self.stacked_layout.addWidget(self.import_table_list)
