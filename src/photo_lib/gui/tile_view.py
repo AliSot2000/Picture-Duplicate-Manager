@@ -1,4 +1,5 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QGridLayout, QScrollArea, QPushButton, QLabel, QSplitter
+from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QGridLayout, QScrollArea, QPushButton, QLabel, \
+    QSplitter, QMainWindow, QScrollBar, QHBoxLayout
 from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint
 from PyQt6.QtGui import QResizeEvent, QKeyEvent
 import sys
@@ -16,174 +17,226 @@ from photo_lib.data_objects import ImportTileInfo, BaseTileInfo
 
 
 # TODO register clickable tiles to emmit the img_selected signal
-class PhotosTile(QFrame):
+class TileWidget(QFrame):
+    # Backend objects
     model: Model
-
-    # signals
-    num_of_rows_changed = pyqtSignal(int)
-    elm_p_col_changed = pyqtSignal(int)
-    img_selected = pyqtSignal()
-    cur_row_changed = pyqtSignal(int)
-
-    # Signal associated value
-    __number_of_elements: int = 0
-    __image_selected: int = 0
-    __selected_tile: BaseTileInfo = None
-    __current_row: int = 0
-
-    # More (less open) values
-    __elements_p_col: int = 1
-    __max_num_vis_rows: int = 0
-    __num_of_rows: int = 0
-
-    # Data structure
-    group_infos: np.ndarray
-    row_lut: np.ndarray       # Given a row -> gives the start index that are displayed there
-    index_lut: np.ndarray     # given an index -> gives the start and end row of that index
-    header_lut: np.array      # given a row -> gives the header for that row
     buffer: TileBuffer
+
+    # Signals
+    num_of_rows_changed = pyqtSignal(int)
+    # num_of_cols_changed = pyqtSignal(int)
+    # img_selected = pyqtSignal()  # read the current_element from the object
+    focus_row_changed = pyqtSignal(int)
+
+    # Properties about the view, writable
+    __number_of_visible_rows = 0
+    __number_of_columns = 0
+    __focus_row = 0
+    __number_of_rows = 0
+
+    # Properties about the view, read only
+    __number_of_generated_rows = 0
+    # __current_index = 0
+    # __current_tile_info: Union[BaseTileInfo, None] = None
+
+    # Further properties that don't need to be set
+    scroll_offset: int = 0
+
+    focus_row_offset: int = 0
+    focus_index: int = 0
+
+    lowest_row: int = 0
+    highest_row: int = 0
 
     # Layout
     # TODO config
     tile_size: int = 100  # Different tile size for year, month and day.
     preload_row_count: int = 5
     label_height: int = 30
+    __margin: Tuple[int, int, int, int] = (10, 10, 10, 10)  # left, top, right, bottom
     # TODO font size
 
-    widgets: List[IndexedTile] = None
-    hidden_widgets: List[IndexedTile] = None
-    widget_rows: List[Union[List[IndexedTile], QWidget, QLabel]] = None
-    current_header_widget: Union[None, QLabel] = None
+    # lookup tables
+    group_infos: np.ndarray
+    row_lut: np.ndarray  # Given a row -> gives the start index that are displayed there
+    index_lut: np.ndarray  # given an index -> gives the row that contains this index
+
+    widgets: List[IndexedTile] = None  # List of all widgets that are currently instantiated
+    hidden_widgets: List[IndexedTile] = None  # Widgets that are currently hidden
+    widget_rows: List[List[IndexedTile]] = None
     background_widget: QWidget = None
     background_layout: QGridLayout = None
-    current_header_widget_placeholder: QWidget = None
 
-    current_row_index: int = 0
-    scroll_offset: int = 0
-    lowest_row: int = 0
-    highest_row: int = 0
+    # ------------------------------------------------------------------------------------------------------------------
+    # Read/Write Properties
+    # ------------------------------------------------------------------------------------------------------------------
 
     @property
-    def max_num_vis_rows(self):
-        return self.__max_num_vis_rows
+    def margin(self):
+        return self.__margin
 
-    @max_num_vis_rows.setter
-    def max_num_vis_rows(self, value: int):
-        assert value > 0, "Max number of visible rows must be greater than 0"
-        if self.__max_num_vis_rows == value:
+    @margin.setter
+    def margin(self, value: Tuple[int, int, int, int]):
+        if value == self.__margin:
             return
 
-        self.__max_num_vis_rows = value
+        self.__margin = value
+        self.update_size()
 
     @property
-    def cur_row(self):
-        return self.__current_row
+    def number_of_visible_rows(self):
+        return self.__number_of_visible_rows
 
-    @cur_row.setter
-    def cur_row(self, value: int):
-        assert value >= 0, "Current row must be greater than 0"
-        if value == self.__current_row:
+    @number_of_visible_rows.setter
+    def number_of_visible_rows(self, value: int):
+        assert value > 0, "Number of visible rows must be greater than 0"
+        if value == self.__number_of_visible_rows:
             return
 
-        self.__current_row = value
-        self.cur_row_changed.emit(value)
+        self.__number_of_visible_rows = value
+        self.__number_of_generated_rows = value + 2 * self.preload_row_count
 
     @property
-    def selected_tile(self):
-        return self.__selected_tile
+    def number_of_columns(self):
+        return self.__number_of_columns
 
-    @property
-    def number_of_elements(self):
-        return self.__number_of_elements
-
-    @number_of_elements.setter
-    def number_of_elements(self, value: int):
-        assert value > 0, "Number of elements must be greater than 0"
-        self.__number_of_elements = value
-
-    @property
-    def image_selected(self):
-        return self.__image_selected
-
-    @image_selected.setter
-    def image_selected(self, value: int):
-        assert value >= 0, "Number of elements must be greater than 0"
-
-        if value >= self.number_of_elements:
-            raise ValueError("Image selected must be smaller than the number of elements")
-
-        if value == self.__image_selected:
-            return
-
-        self.__image_selected = value
-        self.__selected_tile = self.fetch_tile(value)
-        self.img_selected.emit()
-
-    @property
-    def num_of_rows(self):
-        return self.__num_of_rows
-
-    @num_of_rows.setter
-    def num_of_rows(self, value: int):
-        assert value > 0, "Number of rows must be greater than 0"
-        if self.__num_of_rows == value:
-            return
-
-        self.__num_of_rows = value
-        self.num_of_rows_changed.emit(value)
-
-    @property
-    def elements_p_col(self):
-        return self.__elements_p_col
-
-    @elements_p_col.setter
-    def elements_p_col(self, value: int):
+    @number_of_columns.setter
+    def number_of_columns(self, value: int):
         assert value > 0, "Number of elements per column must be greater than 0"
-        if self.__elements_p_col == value:
+        if value == self.__number_of_columns:
             return
 
-        self.__elements_p_col = value
-        self.elm_p_col_changed.emit(value)
+        self.__number_of_columns = value
+        # self.num_of_cols_changed.emit(self.__number_of_columns)
+
+    @property
+    def focus_row(self):
+        return self.__focus_row
+
+    @focus_row.setter
+    def focus_row(self, value: int):
+        assert value >= 0, "Current row must be greater than or equal to 0"
+        if value == self.__focus_row:
+            return
+
+        self.__focus_row = value
+        self.focus_row_changed.emit(self.__focus_row)
+
+    # @property
+    # def current_tile_info(self):
+    #     return self.__current_tile_info
+    #
+    # @current_tile_info.setter
+    # def current_tile_info(self, value: IndexedTile):
+    #     if value.tile_info == self.__current_tile_info:
+    #         return
+    #
+    #     self.__current_tile_info = value.tile_info
+    #     self.__current_index = value.index
+    #     self.img_selected.emit()
+
+    @property
+    def number_of_rows(self):
+        return self.__number_of_rows
+
+    @number_of_rows.setter
+    def number_of_rows(self, value: int):
+        assert value >= 0, "Number of rows must be greater than or equal to 0"
+        if value == self.__number_of_rows:
+            return
+
+        self.__number_of_rows = value
+        self.num_of_rows_changed.emit(self.__number_of_rows)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Read Properties
+    # ------------------------------------------------------------------------------------------------------------------
+
+    @property
+    def number_of_generated_rows(self):
+        return self.__number_of_generated_rows
+
+    # @property
+    # def current_index(self):
+    #     return self.__current_index
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Main Methods
+    # ------------------------------------------------------------------------------------------------------------------
 
     def __init__(self, model: Model):
         super().__init__()
-
         self.model = model
-        self.widgets = []
+        self.buffer = TileBuffer(model)
+
         self.group_infos = np.array([])
         self.row_lut = np.array([])
         self.index_lut = np.array([])
-        self.header_lut = np.array([])
+
+        self.widgets = []
         self.hidden_widgets = []
         self.widget_rows = []
 
-        # TODO remove
-        self.setMinimumHeight(1200)
-        self.setMinimumWidth(1200)
-        self.__image_selected = 12
-
-        self.current_header_widget_placeholder = QWidget()
-        self.current_header_widget_placeholder.setFixedHeight(self.label_height)
-
         self.background_widget = QWidget(self)
         self.background_widget.move(QPoint(0, 0))
+        self.background_widget.setStyleSheet("background-color: rgb(255, 255, 100);")
 
         self.background_layout = QGridLayout()
-        self.background_layout.setContentsMargins(10, 10, 10, 10)
+        self.background_layout.setContentsMargins(0, 0, 0, 0)
         self.background_layout.setSpacing(10)
 
         self.background_widget.setLayout(self.background_layout)
-        self.buffer = TileBuffer(self.model)
-        self._update_base_data()
 
-        for i in range(100):
-            t = IndexedTile()
-            t.setParent(self)
-            t.setVisible(False)
-            t.setFixedWidth(self.tile_size)
-            t.setFixedHeight(self.tile_size)
-            self.widgets.append(t)
-            self.hidden_widgets.append(t)
+    def prep_dev(self):
+        self.setMinimumWidth(1000)
+        self.setMinimumHeight(1000)
+        self.update_groups(GroupingCriterion.YEAR_MONTH_DAY)
+
+    def update_groups(self, grouping: GroupingCriterion):
+        """
+        Update the grouping criterion and rebuild the lookup tables.
+        """
+        self.model.grouping = grouping
+        self.group_infos = np.array(self.model.get_group_image_count(), dtype=GroupCount)
+
+    def build_lut(self):
+        """
+        Build the lookup tables for the grouping criterion.
+        :return:
+        """
+        start = datetime.datetime.now()
+        row_lut = []
+        index_lut = []
+        header_lut = []
+        index = 0
+        row_count = 0
+        cur_row = 0
+
+        for i in range(len(self.group_infos)):
+            cur_info = self.group_infos[i]
+            img_count = cur_info.count
+
+            while img_count > 0:
+                new_index = index + (self.number_of_columns if self.number_of_columns < img_count else img_count)
+                row_lut.append(index)
+
+                for j in range(index, new_index):
+                    index_lut.append(row_count)
+
+                if index <= self.focus_index < new_index:
+                    cur_row = row_count
+                index = new_index
+                row_count += 1
+                header_lut.append(i)
+                img_count -= self.number_of_columns
+
+        self.row_lut = np.array(row_lut, dtype=int)
+        self.index_lut = np.array(index_lut, dtype=int)
+        self.number_of_rows = row_count
+        self.focus_row = cur_row
+        stop = datetime.datetime.now()
+        print(f"Compute lut took: {(stop - start).total_seconds()}")
+        print(f"Number of rows: {self.number_of_rows}")
 
     def move_to_hidden(self, t: IndexedTile):
         """
@@ -200,304 +253,113 @@ class PhotosTile(QFrame):
         t.setVisible(True)
         return t
 
-    def generate_header(self, index: int) -> QLabel:
+    def resizeEvent(self, a0: QResizeEvent) -> None:
         """
-        Generates a Header Leabel with formatting for the given index.
+        Capture resize event and trigger update of size
         """
-        gi = self.group_infos[index]
-        text = self.generate_label_text(gi)
-        l = QLabel(text)
-        l.setFixedHeight(self.label_height)
-        l.setStyleSheet("background-color: rgba(255, 255, 255, 200);")
-        return l
+        super().resizeEvent(a0)
+        self.update_size()
 
-    @staticmethod
-    def generate_label_text(gi: GroupCount) -> str:
+    def update_size(self):
         """
-        Given a GroupCount object, generate the header for it.
+        Update the sizing of the elements, triggered by resize or by adaptation of the content margins
         """
-        if gi.group_crit == GroupingCriterion.YEAR_MONTH_DAY:
-            return gi.start_date.strftime("%A %d %B %Y")
-        elif gi.group_crit == GroupingCriterion.YEAR_MONTH:
-            return gi.start_date.strftime("%B %Y")
-        elif gi.group_crit == GroupingCriterion.YEAR:
-            return gi.start_date.strftime("%Y")
-        else:
-            return ""
+        margin = self.margin  # left, top, right, bottom
+        rem_width = self.width() - margin[0] - margin[2]
+        new_number_of_columns = max(1, rem_width // self.tile_size)
+        self.background_widget.setFixedWidth(rem_width)
 
-    # TODO Implement scrolling with scroll wheel.
-    # def wheelEvent(self, a0: QtGui.QWheelEvent) -> None:
-    #     pass
+        new_number_of_visible_rows = math.ceil((self.height() - margin[1] - margin[3]) / self.tile_size)
 
-    def _update_base_data(self):
+        if (new_number_of_columns == self.number_of_columns and
+                new_number_of_visible_rows == self.number_of_visible_rows):
+            return
+
+        self.number_of_columns = new_number_of_columns
+        self.number_of_visible_rows = new_number_of_visible_rows
+        self.build_lut()
+        self.increase_widget_count()
+        self.resize_layout()
+        self.decrease_widget_count()
+
+    def resize_layout(self):
         """
-        Updates the group data and the number of elements.
-        Updates the buffer and also the index lut.
+        Resize the layout to the correct size once a resize event is scheduled.
         """
-        self.number_of_elements = self.model.get_total_image_count()
-        gi = self.model.get_group_image_count()
-        self.group_infos = np.array(gi, dtype=GroupCount)
-        self.buffer.update_number_of_elements()
-        self.compute_lut()
+        # TODO serialize the image tiles and rebuild them into rows.
+        self.scroll_to_row(self.focus_row)
+
+    def increase_widget_count(self):
+        """
+        Given the maximum number of widgets displayed at time, increase the number of widgets if resize requires it.
+        """
+        # Guard if it's less or equal
+        print(f"Number of geneated rows: {self.number_of_generated_rows}, Number of columns: {self.number_of_columns}")
+        if self.number_of_generated_rows * self.number_of_columns <= len(self.widgets):
+            return
+
+        add_count = self.number_of_generated_rows * self.number_of_columns - len(self.widgets)
+        # Increase the number of widgets
+        for i in range(add_count):
+            t = IndexedTile()
+            t.setParent(self)
+            t.setFixedHeight(self.tile_size)
+            t.setFixedWidth(self.tile_size)
+            self.widgets.append(t)
+            self.move_to_hidden(t)
+
+        print(f"Added: {add_count} Widgets")
+
+    def decrease_widget_count(self):
+        """
+        Given the maximum number of widgets displayed at time, decrease the number of widgets if resize requires it.
+        """
+        # Guard if it's greater or equal
+        if self.number_of_columns * self.__number_of_columns >= len(self.widgets):
+            return
+
+        # Decrease the number of widgets
+        number_of_widgets_to_remove = len(self.widgets) - self.number_of_generated_rows * self.number_of_columns
+        assert len(self.hidden_widgets) >= number_of_widgets_to_remove, "Not enough hidden widgets to remove"
+        for i in range(number_of_widgets_to_remove):
+            t = self.get_hidden_widget()
+            self.widgets.remove(t)
+            t.deleteLater()
+
+        print(f"Removed {number_of_widgets_to_remove} Widgets")
+
+    def layout_from_datastructure(self):
+        """
+        Layout the widgets from the data structure.
+        """
+        for i in range(len(self.widget_rows)):
+            for j in range(len(self.widget_rows[i])):
+                t = self.widget_rows[i][j]
+                self.background_layout.addWidget(t, i, j)
+        self.place_background_widget()
+
+    def place_background_widget(self):
+        """
+        Place the background widget such that the correct row is displayed.
+        """
+        y = (self.focus_row_offset * self.tile_size
+             + max(0, self.focus_row_offset - 1) * self.background_layout.verticalSpacing()
+             - self.margin[1])
+
+        self.background_widget.move(QPoint(self.margin[0], -y + self.scroll_offset))
 
     def fetch_tile(self, index: int) -> BaseTileInfo:
         """
-        Fetches tile from buffer given the index in the chronological sorting.
-
-        :param index: Index in chronological sorting
+        Fetches a tile from the model.
         """
         return self.buffer.fetch_tile(index)
-
-    def resizeEvent(self, a0: QResizeEvent) -> None:
-        super().resizeEvent(a0)
-        margin = self.background_layout.getContentsMargins()  # left, top, right, bottom
-        rem_width = self.width() - margin[0] - margin[2] * 2
-        new_epc = max(1, rem_width // self.tile_size)
-        self.background_widget.setFixedWidth(self.width())
-
-        new_mnvr = math.ceil((self.height() - margin[1] - margin[3] - self.label_height) / self.tile_size)
-
-        # Move the header
-        if self.current_header_widget is not None:
-            self.current_header_widget.setFixedWidth(rem_width)
-
-        if new_epc == self.elements_p_col and new_mnvr == self.max_num_vis_rows:
-            return
-
-        self.elements_p_col = new_epc
-        self.max_num_vis_rows = new_mnvr
-        self.compute_lut()
-        self.update_widget_count()
-        self.layout_elements()
-
-    def update_widget_count(self):
-        """
-        Update the number of widgets that are loaded. Performs layout subsequently.
-        """
-        # TODO implement
-        now = (self.max_num_vis_rows + self.preload_row_count * 2) * self.elements_p_col
-        if now == len(self.widgets):
-            return
-
-        elif now < len(self.widgets):
-            self.build_rows()
-            assert len(self.hidden_widgets) >= now - len(self.widgets), \
-                "The number of hidden widgets is smaller than the number of widgets that we want to remove"
-            rm = self.hidden_widgets[:now - len(self.widgets)]
-            self.hidden_widgets = self.hidden_widgets[now - len(self.widgets):]
-
-            for w in rm:
-                w.deleteLater()
-
-        else:
-            assert now > len(self.widgets), "We should have to add widgets now"
-            widgets_to_add = now - len(self.widgets)
-            for i in range(widgets_to_add):
-                t = IndexedTile()
-                self.widgets.append(t)
-                self.hidden_widgets.append(t)
-                t.setFixedHeight(self.tile_size)
-                t.setFixedWidth(self.tile_size)
-            self.build_rows()
-
-    def compute_lut(self):
-        """
-        Computes the look up table for the rows and headers. Also updates the current row.
-
-        Precondition: The number_or_cols and number_of_rows are set.
-        """
-        start = datetime.datetime.now()
-        row_lut = []
-        index_lut = []
-        header_lut = []
-        index = 0
-        row_count = 0
-        cur_row = 0
-
-        for i in range(len(self.group_infos)):
-            cur_info = self.group_infos[i]
-            img_count = cur_info.count
-
-            while img_count > 0:
-                new_index = index + (self.elements_p_col if self.elements_p_col < img_count else img_count)
-                row_lut.append(index)
-
-                for j in range(index, new_index):
-                    index_lut.append(row_count)
-
-                if index <= self.image_selected < new_index:
-                    cur_row = row_count
-                index = new_index
-                row_count += 1
-                header_lut.append(i)
-                img_count -= self.elements_p_col
-
-        self.header_lut = np.array(header_lut, dtype=int)
-        self.row_lut = np.array(row_lut, dtype=int)
-        self.index_lut = np.array(index_lut, dtype=int)
-        self.num_of_rows = row_count
-        self.cur_row = cur_row
-        stop = datetime.datetime.now()
-        print(f"Compute lut took: {(stop - start).total_seconds()}")
-        print(f"Number of rows: {self.num_of_rows}")
-
-    @pyqtSlot()
-    def move_up(self):
-        """
-        Move the view up by one increment
-        """
-        # TODO implement
-        self.scroll_offset -= 30
-        self.background_widget.move(0, self.scroll_offset)
-
-    @pyqtSlot()
-    def move_down(self):
-        """
-        Move the view down by one increment
-        """
-        # TODO implement
-        self.scroll_offset += 30
-        self.background_widget.move(0, self.scroll_offset)
-
-    def widget_offset(self):
-        """
-        Gets the number of rows excluding label to the current index.
-        """
-        c = 0
-        for i in range(self.current_row_index):
-            c += int(type(self.widget_rows[i]) is list)
-        return c
-
-    def build_up(self):
-        """
-        Goes up one row of images.
-        """
-        pass
-
-    def build_down(self):
-        """
-        Goes down one row of images.
-        """
-        wo = self.widget_offset()
-        print(wo)
-        if wo == self.preload_row_count:
-
-            # we have more space at the bottom and can load a new row:
-            if self.cur_row + self.preload_row_count + self.max_num_vis_rows + 1 < self.num_of_rows:
-                r = self.widget_rows.pop(0)
-
-                if type(r) is QLabel:
-                    print("Head is Label, deleting label")
-                    r.deleteLater()
-                    r = self.widget_rows.pop(0)
-                    self.scroll_offset += self.label_height + self.background_layout.verticalSpacing()
-                    self.current_row_index -= 1
-
-                elif type(r) is QWidget:
-                    print("Head is QWidget, ignoring")
-                    r = self.widget_rows.pop(0)
-                    self.scroll_offset += self.label_height + self.background_layout.verticalSpacing()
-                    self.current_row_index -= 1
-
-                assert type(r) is list, f"Row must be a list if it is not a Label, type is  {type(r)}"
-                self.scroll_offset += self.tile_size + self.background_layout.verticalSpacing()
-                for w in r:
-                    self.move_to_hidden(w)
-
-                self.lowest_row += 1
-
-                # Need to decrement once for the removed element at the top, increment once since we are moving down.
-                # self.current_row_index -= 1
-                # self.current_row_index += 1
-
-                while type(self.widget_rows[self.current_row_index]) is not list:
-                    print("Updating")
-                    self.current_row_index += 1
-
-                # check if we need a header:
-                if self.header_lut[self.highest_row] != self.header_lut[self.highest_row + 1]:
-                    self.widget_rows.append(self.generate_header(self.header_lut[self.highest_row]))
-                    print("Added a new header")
-
-                self.widget_rows.append(self._generate_row(self.highest_row + 1))
-                print("Added a new row")
-                self.highest_row = self.highest_row + 1
-                self.layout_elements()
-                self.cur_row += 1
-            else:
-                self.current_row_index += 1
-        elif wo < self.preload_row_count:
-            print("Upper border")
-            self.current_row_index += 1
-        elif wo + 1 < len(self.widget_rows):
-            print("Lower border")
-            self.current_row_index += 1
-        else:
-            # We've reached the bottom of the view.
-            print("Reached end")
-            pass
-
-    @pyqtSlot(int)
-    def move_to_index(self, index: int):
-        """
-        Given an index in the time series. Move the view to that index is in view.
-        """
-        row = self.index_lut[index]
-        self.move_to_row(row)
-
-    @pyqtSlot(int)
-    def move_to_row(self, row: int):
-        """
-        Given a row in the view, move the view to that row.
-        """
-        # TODO add handling if row is already loaded.
-
-        # Create the Header
-        self.current_header_widget = self.generate_header(self.header_lut[row])
-        self.current_header_widget.setFixedHeight(self.label_height)
-
-        self.hidden_widgets = [w for w in self.widgets]
-        self.widget_rows = [self._generate_row(row)]
-        r = self.widget_rows[0]
-        self.lowest_row = max(-1, row - self.preload_row_count - 1)
-        place_holder_put = False
-
-        # Generate the rows abovef
-        for i in range(row -1, self.lowest_row, -1):
-            if place_holder_put:
-                if self.header_lut[i] != self.header_lut[i+1]:
-                    self.widget_rows.insert(0, self.generate_header(self.header_lut[i]))
-                self.widget_rows.insert(0, self._generate_row(i))
-            else:
-                if self.header_lut[row] != self.header_lut[i]:
-                    # We are immediately followed by our picture. Insert the Label directly
-                    if i == row - 1:
-                        self.widget_rows.insert(0, self.current_header_widget)
-                        self.current_header_widget = None
-                    else:
-                        self.widget_rows.insert(0, self.current_header_widget_placeholder)
-                    place_holder_put = True
-                    self.widget_rows.insert(0, self._generate_row(i))
-                else:
-                    self.widget_rows.insert(0, self._generate_row(i))
-
-        self.current_row_index = self.widget_rows.index(r)
-        self.highest_row = min(row + self.preload_row_count + self.max_num_vis_rows + 1, self.num_of_rows)
-        # Generate Rows down
-        for i in range(row + 1, self.highest_row):
-            if self.header_lut[i - 1] != self.header_lut[i]:
-                self.widget_rows.append(self.generate_header(self.header_lut[i]))
-            self.widget_rows.append(self._generate_row(i))
-
-        self.cur_row = row
-        self.layout_elements()
 
     def _generate_row(self, row: int) -> List[IndexedTile]:
         """
         Generates a row of widgets. This function does not perform layout.
         """
-        if row == self.num_of_rows - 1:
-            end = self.number_of_elements
+        if row == self.number_of_rows - 1:
+            end = self.buffer.number_of_elements
         else:
             end = self.row_lut[row + 1]
 
@@ -511,55 +373,32 @@ class PhotosTile(QFrame):
         print(len(l))
         return l
 
-    def build_rows(self):
+    @pyqtSlot(int)
+    def scroll_to_row(self, row: int):
         """
-        Build the rows. Function used by resizing event. This function does not perform layout.
+        Scroll to a given row.
         """
-        pass
+        assert row >= 0 and row < self.number_of_rows, f"Row out of bounds, [0, {self.number_of_rows}], {row}"
+        for r in self.widget_rows:
+            for w in r:
+                self.move_to_hidden(w)
 
-    def layout_elements(self):
-        """
-        Layout the elements in the view.
-        """
-        # Empty layout
-        while self.background_layout.count() > 0:
-            self.background_layout.takeAt(0)
+        self.focus_row = row
+        self.focus_row_offset = 0
+        self.focus_index = self.row_lut[row]
 
-        for i in range(len(self.widget_rows)):
-            r = self.widget_rows[i]
+        # get row associated with focused index
+        head_row = self.index_lut[self.focus_index]
 
-            if type(r) is QLabel or type(r) is QWidget:
-                self.background_layout.addWidget(r, i, 0, 1, self.elements_p_col)
-                r.setVisible(True)
-            else:
-                assert type(r) is list, f"Row must be a list if it is not a Label or Placeholder, type is  {type(r)}"
-                assert len(r) <= self.elements_p_col, (f"Row must have less or equal tho number of elements per "
-                                                       f"column, epc: {self.elements_p_col}, row: {len(r)}")
-                # Inserting widgets
-                for j in range(len(r)):
-                    self.background_layout.addWidget(r[j], i, j, 1, 1)
-                    r[j].setVisible(True)
+        lowest_row = max(0, head_row - self.focus_row_offset)
+        self.focus_row_offset = head_row - lowest_row
 
-        margin = self.background_layout.getContentsMargins()  # left, top, right, bottom
-        # if self.current_header_widget is not None:
-        #     self.background_widget.setParent(None)
-        #     self.current_header_widget.setParent(None)
-        #     self.background_widget.setParent(self)
-        #     self.current_header_widget.setParent(self)
-        #     self.current_header_widget.move(margin[0], margin[1])
+        self.widget_rows = []
+        highest_row = min(self.number_of_rows - 1, head_row + self.number_of_visible_rows + self.preload_row_count - 1)
+        for i in range(lowest_row, highest_row + 1):
+            self.widget_rows.append(self._generate_row(i))
 
-        h = margin[1] + margin[3]
-        for i in range(len(self.widget_rows)):
-            if i > 0:
-                h += self.background_layout.verticalSpacing()
-            if type(self.widget_rows[i]) is list:
-                h += self.tile_size
-            else:
-                h += self.label_height
-            self.background_widget.setFixedHeight(h)
-
-        # Compute position of background widget
-        self.background_widget.move(0, self.scroll_offset)
+        self.layout_from_datastructure()
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
@@ -569,22 +408,64 @@ class PhotosTile(QFrame):
         """
         super().keyPressEvent(a0)
         if a0.key() == Qt.Key.Key_Up and a0.modifiers() == Qt.KeyboardModifier.NoModifier:
-            self.move_up()
+            self.scroll_offset -= 10
+            self.place_background_widget()
         elif a0.key() == Qt.Key.Key_Down and a0.modifiers() == Qt.KeyboardModifier.NoModifier:
-            self.move_down()
+            self.scroll_offset += 10
+            self.place_background_widget()
         elif a0.key() == Qt.Key.Key_Up and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
-            self.build_up()
+            pass
         elif a0.key() == Qt.Key.Key_Down and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
-            self.build_down()
+            pass
         else:
             pass
 
 
+class TempRoot(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.dummy_widget = QWidget()
+        self.setCentralWidget(self.dummy_widget)
+
+        self.layout = QHBoxLayout()
+        self.layout.setSpacing(0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+
+        self.dummy_widget.setLayout(self.layout)
+
+        self.model = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
+        self.model.current_import_table_name = "tbl_-1886740392237389744"
+        self.tiles = TileWidget(self.model)
+        self.tiles.prep_dev()
+
+        self.layout.addWidget(self.tiles)
+
+        self.scrollbar = QScrollBar(Qt.Orientation.Vertical)
+        self.scrollbar.setMaximum(self.tiles.number_of_rows)
+        self.tiles.num_of_rows_changed.connect(self.set_max)
+        self.tiles.focus_row_changed.connect(self.set_val)
+        self.scrollbar.valueChanged.connect(self.tiles.scroll_to_row)
+
+        self.layout.addWidget(self.scrollbar)
+    def set_max(self, max: int):
+        print(f"Max: {max}")
+        self.scrollbar.setMaximum(max - 1)
+
+    def set_val (self, val: int):
+        print(f"Val: {val}")
+        self.scrollbar.setValue(val)
+
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
-    m.current_import_table_name = "tbl_-1886740392237389744"
-    m.build_tiles_from_table()
-    w = PhotosTile(m)
+    # m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
+    # m.current_import_table_name = "tbl_-1886740392237389744"
+    # w = TileWidget(m)
+    # w.prep_dev()
+    # w.show()
+    w = TempRoot()
     w.show()
+
     sys.exit(app.exec())
