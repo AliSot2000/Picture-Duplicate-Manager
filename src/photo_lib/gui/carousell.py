@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot,
 import sys
 from typing import List, Union
 from photo_lib.PhotoDatabase import BaseTileInfo
-from photo_lib.gui.clickable_image import ClickableTile, IndexedTile
+from photo_lib.gui.image_tile import ClickablePatch, IndexedTile
 from photo_lib.gui.model import Model, TileBuffer
 from photo_lib.gui.gui_utils import image_wrapper
 from photo_lib.data_objects import ImportTileInfo
@@ -23,8 +23,8 @@ should be replaced by a single widget to free even more space.
 
 class BaseCarousel(QScrollArea):
     image_changed = pyqtSignal()
-    images: List[ClickableTile]
-    current_select: Union[None, ClickableTile] = None
+    images: List[ClickablePatch]
+    current_select: Union[None, ClickablePatch] = None
     timer: QTimer = None
 
     movement_stop_timeout = 50
@@ -45,7 +45,7 @@ class BaseCarousel(QScrollArea):
                 self.set_image(img)
                 return
 
-    def set_image(self, image: ClickableTile):
+    def set_image(self, image: ClickablePatch):
         """
         Set the image to be displayed and add a Frame around it.
         :param image:
@@ -55,7 +55,7 @@ class BaseCarousel(QScrollArea):
         self.mark_image(image)
         self.image_changed.emit()
 
-    def mark_image(self, image: ClickableTile):
+    def mark_image(self, image: ClickablePatch):
         """
         Mark the image as selected.
         :param image:
@@ -154,7 +154,7 @@ class Carousel(BaseCarousel):
             tile = tiles[i]
 
             # Create the Widget
-            img = ClickableTile()
+            img = ClickablePatch()
             img.setFixedHeight(100)
             img.setMinimumWidth(self.height())
             img.image_loaded = False

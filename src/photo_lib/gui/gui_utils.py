@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QPushButton
-from photo_lib.gui.clickable_image import ClickableTile
+from photo_lib.gui.image_tile import ClickablePatch
 from typing import Union, List, Callable
 
 
@@ -29,7 +29,7 @@ def general_wrapper(func: Callable, **bake_kwargs):
         return func(*args, **bake_kwargs, **kwargs)
     return baked_argument_func
 
-def image_wrapper(image: ClickableTile, fn: Callable):
+def image_wrapper(image: ClickablePatch, fn: Callable):
     """
     Given a function and a tile, bake tile as argument into function call for signal.
     :param image: tile to bake in
