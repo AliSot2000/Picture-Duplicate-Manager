@@ -368,8 +368,7 @@ class TileWidget(QFrame):
         """
         Place the background widget such that the correct row is displayed.
         """
-        y = (self.focus_row_offset * self.tile_size
-             + max(0, self.focus_row_offset - 1) * self.background_layout.verticalSpacing()
+        y = (self.focus_row_offset * (self.tile_size + self.background_layout.verticalSpacing())
              - self.margin[1])
 
         self.background_widget.move(QPoint(self.margin[0], -y + self.scroll_offset))
