@@ -434,6 +434,7 @@ class TileWidget(QFrame):
             self.widget_rows.append(self._generate_row(i))
 
         self.layout_from_datastructure()
+        self.place_background_widget()
         self.scroll_buffer = None
 
     # ------------------------------------------------------------------------------------------------------------------
