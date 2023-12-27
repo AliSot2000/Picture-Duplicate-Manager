@@ -494,6 +494,18 @@ class TileWidget(QFrame):
     # ------------------------------------------------------------------------------------------------------------------
 
     @pyqtSlot(int)
+    def scroll_to_index(self, index: int):
+        """
+        Scroll to a given index. Naive implementation
+        """
+        assert 0 <= index < self.buffer.number_of_elements, \
+            f"Index out of bounds, [0, {self.buffer.number_of_elements}], {index}"
+
+        row = self.index_to_row_lut[index]
+        self.scroll_to_row(row)
+
+
+    @pyqtSlot(int)
     def scroll_slot(self, row: int):
         if row == self.focus_row:
             return
