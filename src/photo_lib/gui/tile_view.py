@@ -41,6 +41,7 @@ class TileWidget(QFrame):
 
     # Properties about the view, read only
     __number_of_generated_rows = 0
+    __focus_index: int = 0
     # __current_index = 0
     # __current_tile_info: Union[BaseTileInfo, None] = None
 
@@ -125,7 +126,8 @@ class TileWidget(QFrame):
             return
 
         self.__focus_row = value
-        self.focus_row_changed.emit(self.__focus_row)
+        self.__focus_index = self.row_to_index_lut[value]
+        self.focus_row_changed.emit(value)
 
     # @property
     # def current_tile_info(self):
@@ -164,6 +166,10 @@ class TileWidget(QFrame):
     # @property
     # def current_index(self):
     #     return self.__current_index
+
+    @property
+    def focus_index(self):
+        return self.__focus_index
 
     # ------------------------------------------------------------------------------------------------------------------
     # Main Methods
