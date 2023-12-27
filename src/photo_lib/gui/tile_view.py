@@ -417,6 +417,12 @@ class TileWidget(QFrame):
             for w in r:
                 self.move_to_hidden(w)
 
+        # Clamping to the maximum row
+        cutoff = self.number_of_rows - self.number_of_visible_rows + 1
+        if row > cutoff:
+            print(f"Clamping")
+            row = cutoff
+
         self.focus_row = row
 
         self.lowest_row = max(0, self.focus_row - self.preload_row_count)
