@@ -360,6 +360,10 @@ class TileWidget(QFrame):
             for j in range(len(self.widget_rows[i])):
                 t = self.widget_rows[i][j]
                 self.background_layout.addWidget(t, i, j)
+
+        # Make sure spacing in grid layout is consistent
+        self.background_layout.addWidget(self.layout_placeholder, len(self.widget_rows), 0, 1, self.number_of_columns)
+
         self.place_background_widget()
 
     def place_background_widget(self):
