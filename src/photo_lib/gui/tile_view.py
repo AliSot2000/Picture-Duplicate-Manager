@@ -639,9 +639,9 @@ class TileWidget(QFrame):
             self.scroll_offset += 10
             self.place_background_widget()
         elif a0.key() == Qt.Key.Key_Up and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
-            pass
+            self.build_up()
         elif a0.key() == Qt.Key.Key_Down and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
-            pass
+            self.build_down()
         elif a0.key() == Qt.Key.Key_R and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
             self.scroll_offset = 0
             self.place_background_widget()
