@@ -364,8 +364,6 @@ class TileWidget(QFrame):
         # Make sure spacing in grid layout is consistent
         self.background_layout.addWidget(self.layout_placeholder, len(self.widget_rows), 0, 1, self.number_of_columns)
 
-        self.place_background_widget()
-
     def place_background_widget(self):
         """
         Place the background widget such that the correct row is displayed.
