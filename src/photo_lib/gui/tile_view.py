@@ -49,7 +49,6 @@ class TileWidget(QFrame):
     scroll_offset: int = 0
 
     focus_row_offset: int = 0
-    focus_index: int = 0
 
     lowest_row: int = 0
     highest_row: int = 0
