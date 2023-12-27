@@ -118,7 +118,10 @@ class BaseImage(QFrame):
         qp = QPainter(self)
         qp.drawPixmap(r, self.pixmap)
 
-        # qp.drawRect(self.rect())
+        # rec = self.rect()
+        # rec.setWidth(rec.width() - 1)
+        # rec.setHeight(rec.height() - 1)
+        # qp.drawRect(rec)
 
     def empty_pixmap_painter(self):
         """
