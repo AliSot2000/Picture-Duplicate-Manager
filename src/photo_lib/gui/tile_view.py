@@ -273,17 +273,6 @@ class TileWidget(QFrame):
         t.setVisible(True)
         return t
 
-    def resizeEvent(self, a0: QResizeEvent) -> None:
-        """
-        Capture resize event and trigger update of size
-        """
-        global use_timers
-        if use_timers:
-            self.resize_timer.start(200)
-        else:
-            self.update_size()
-        super().resizeEvent(a0)
-
     def update_size(self):
         """
         Update the sizing of the elements, triggered by resize or by adaptation of the content margins
@@ -401,15 +390,6 @@ class TileWidget(QFrame):
         print(len(l))
         return l
 
-    @pyqtSlot(int)
-    def scroll_slot(self, row: int):
-        global use_timers
-        if use_timers:
-            self.scroll_buffer = row
-            self.scroll_timer.start(200)
-        else:
-            self.scroll_to_row(row)
-
     def scroll_to_row(self, row: int = None):
         """
         Scroll to a given row.
@@ -437,6 +417,41 @@ class TileWidget(QFrame):
 
         self.layout_from_datastructure()
         self.scroll_buffer = None
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Slots
+    # ------------------------------------------------------------------------------------------------------------------
+
+    @pyqtSlot(int)
+    def scroll_slot(self, row: int):
+        global use_timers
+        if use_timers:
+            self.scroll_buffer = row
+            self.scroll_timer.start(200)
+        else:
+            self.scroll_to_row(row)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Custom Event Overrides to capture and them or trigger custom actionis
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def resizeEvent(self, a0: QResizeEvent) -> None:
+        """
+        Capture resize event and trigger update of size
+        """
+        global use_timers
+        if use_timers:
+            self.resize_timer.start(200)
+        else:
+            self.update_size()
+        super().resizeEvent(a0)
+
+    def paintEvent(self, a0):
+        """
+        Capture the paint event in order to update the widget sizing.
+        """
+        super().paintEvent(a0)
+        self.background_widget.adjustSize()
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
