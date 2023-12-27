@@ -65,8 +65,8 @@ class TileWidget(QFrame):
 
     # lookup tables
     group_infos: np.ndarray
-    row_lut: np.ndarray  # Given a row -> gives the start index that are displayed there
-    index_lut: np.ndarray  # given an index -> gives the row that contains this index
+    row_to_index_lut: np.ndarray  # Given a row -> gives the start index that are displayed there
+    index_to_row_lut: np.ndarray  # given an index -> gives the row that contains this index
 
     widgets: List[IndexedTile] = None  # List of all widgets that are currently instantiated
     hidden_widgets: List[IndexedTile] = None  # Widgets that are currently hidden
@@ -182,8 +182,8 @@ class TileWidget(QFrame):
         self.buffer = TileBuffer(model)
 
         self.group_infos = np.array([])
-        self.row_lut = np.array([])
-        self.index_lut = np.array([])
+        self.row_to_index_lut = np.array([])
+        self.index_to_row_lut = np.array([])
 
         self.widgets = []
         self.hidden_widgets = []
@@ -258,8 +258,8 @@ class TileWidget(QFrame):
                 header_lut.append(i)
                 img_count -= self.number_of_columns
 
-        self.row_lut = np.array(row_lut, dtype=int)
-        self.index_lut = np.array(index_lut, dtype=int)
+        self.row_to_index_lut = np.array(row_lut, dtype=int)
+        self.index_to_row_lut = np.array(index_lut, dtype=int)
         self.number_of_rows = row_count
         self.focus_row = cur_row
         stop = datetime.datetime.now()
@@ -386,10 +386,10 @@ class TileWidget(QFrame):
         if row == self.number_of_rows - 1:
             end = self.buffer.number_of_elements
         else:
-            end = self.row_lut[row + 1]
+            end = self.row_to_index_lut[row + 1]
 
         l = []
-        for i in range(self.row_lut[row], end):
+        for i in range(self.row_to_index_lut[row], end):
             tile = self.fetch_tile(i)
             w = self.get_hidden_widget()
             w.tile_info = tile
