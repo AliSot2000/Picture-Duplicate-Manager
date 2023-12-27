@@ -495,6 +495,9 @@ class TileWidget(QFrame):
 
     @pyqtSlot(int)
     def scroll_slot(self, row: int):
+        if row == self.focus_row:
+            return
+
         global use_timers
         if use_timers:
             self.scroll_buffer = row
