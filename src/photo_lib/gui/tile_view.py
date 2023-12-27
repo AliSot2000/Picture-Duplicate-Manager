@@ -154,7 +154,7 @@ class TileWidget(QFrame):
             return
 
         self.__number_of_rows = value
-        self.num_of_rows_changed.emit(self.__number_of_rows)
+        self.num_of_rows_changed.emit(value)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Read Properties
