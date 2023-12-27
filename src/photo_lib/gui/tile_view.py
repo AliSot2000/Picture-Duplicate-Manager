@@ -59,6 +59,8 @@ class TileWidget(QFrame):
     tile_size: int = 100  # Different tile size for year, month and day.
     preload_row_count: int = 5
     label_height: int = 30
+    scroll_timeout: int = 300
+    resize_timeout: int = 200
     __margin: Tuple[int, int, int, int] = (10, 10, 10, 10)  # left, top, right, bottom
     # TODO font size
 
@@ -434,7 +436,7 @@ class TileWidget(QFrame):
         global use_timers
         if use_timers:
             self.scroll_buffer = row
-            self.scroll_timer.start(200)
+            self.scroll_timer.start(self.scroll_timeout)
         else:
             self.scroll_to_row(row)
 
@@ -448,7 +450,7 @@ class TileWidget(QFrame):
         """
         global use_timers
         if use_timers:
-            self.resize_timer.start(200)
+            self.resize_timer.start(self.resize_timeout)
         else:
             self.update_size()
         super().resizeEvent(a0)
