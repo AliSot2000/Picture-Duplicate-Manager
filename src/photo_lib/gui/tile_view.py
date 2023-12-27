@@ -521,7 +521,6 @@ class TileWidget(QFrame):
         row = self.index_to_row_lut[index]
         self.scroll_to_row(row)
 
-
     @pyqtSlot(int)
     def scroll_slot(self, row: int):
         if row == self.focus_row:
