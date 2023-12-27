@@ -187,9 +187,13 @@ class TileWidget(QFrame):
 
         self.background_layout = QGridLayout()
         self.background_layout.setContentsMargins(0, 0, 0, 0)
-        self.background_layout.setSpacing(10)
+        self.background_layout.setVerticalSpacing(10)
+        self.background_layout.setHorizontalSpacing(10)
 
         self.background_widget.setLayout(self.background_layout)
+        self.layout_placeholder = QWidget(self)
+        self.layout_placeholder.setFixedHeight(10)
+
         global use_timers
 
         if use_timers:
