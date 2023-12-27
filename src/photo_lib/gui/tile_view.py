@@ -665,7 +665,6 @@ class TempRoot(QMainWindow):
         self.model = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
         self.model.current_import_table_name = "tbl_-1886740392237389744"
         self.tiles = TileWidget(self.model)
-        self.tiles.prep_dev()
 
         self.layout.addWidget(self.tiles)
 
@@ -675,10 +674,23 @@ class TempRoot(QMainWindow):
         self.tiles.focus_row_changed.connect(self.set_val)
         self.scrollbar.valueChanged.connect(self.tiles.scroll_slot)
 
+        # needs to happen here so we capture the change event.
+        self.tiles.prep_dev()
+
         self.layout.addWidget(self.scrollbar)
-    def set_max(self, max: int):
+
+    def keyPressEvent(self, a0):
+        super().keyPressEvent(a0)
+        self.tiles.keyPressEvent(a0)
+
+    def keyReleaseEvent(self, a0):
+        super().keyReleaseEvent(a0)
+        self.tiles.keyReleaseEvent(a0)
+
+    def set_max(self):
+        max = self.tiles.number_of_rows - self.tiles.number_of_visible_rows + 1
         print(f"Max: {max}")
-        self.scrollbar.setMaximum(max - 1)
+        self.scrollbar.setMaximum(max)
 
     def set_val (self, val: int):
         print(f"Val: {val}")
