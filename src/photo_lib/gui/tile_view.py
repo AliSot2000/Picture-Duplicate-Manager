@@ -353,6 +353,9 @@ class TileWidget(QFrame):
         """
         Layout the widgets from the data structure.
         """
+        while self.background_layout.count() > 0:
+            self.background_layout.takeAt(0)
+
         for i in range(len(self.widget_rows)):
             for j in range(len(self.widget_rows[i])):
                 t = self.widget_rows[i][j]
