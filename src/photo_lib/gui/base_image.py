@@ -118,6 +118,8 @@ class BaseImage(QFrame):
         qp = QPainter(self)
         qp.drawPixmap(r, self.pixmap)
 
+        # qp.drawRect(self.rect())
+
     def empty_pixmap_painter(self):
         """
         In case there's no image loaded, paint a message on the widget.
