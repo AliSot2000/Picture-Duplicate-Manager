@@ -413,6 +413,23 @@ class TileWidget(QFrame):
                 return
 
         assert 0 <= row < self.number_of_rows, f"Row out of bounds, [0, {self.number_of_rows}], {row}"
+
+        # guaranteed that the row is not the same
+        if row == self.focus_row:
+            return
+
+        # Using build_up to get to the place if the row is already loaded but further up
+        if self.lowest_row <= row < self.focus_row:
+            while self.focus_row > row:
+                self.build_up()
+            return
+
+        # Using build_down to get to the place if the row is already loaded but further down
+        if self.highest_row >= row > self.focus_row:
+            while self.focus_row < row:
+                self.build_down()
+            return
+
         for r in self.widget_rows:
             for w in r:
                 self.move_to_hidden(w)
