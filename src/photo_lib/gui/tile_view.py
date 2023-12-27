@@ -373,6 +373,10 @@ class TileWidget(QFrame):
 
         self.background_widget.move(QPoint(self.margin[0], -y + self.scroll_offset))
 
+        # Perform resizing of background widget manually.
+        self.background_widget.updateGeometry()
+        self.background_widget.update()
+
     def fetch_tile(self, index: int) -> BaseTileInfo:
         """
         Fetches a tile from the model.
