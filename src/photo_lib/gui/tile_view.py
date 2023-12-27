@@ -1,3 +1,4 @@
+import warnings
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QGridLayout, QScrollArea, QPushButton, QLabel, \
     QSplitter, QMainWindow, QScrollBar, QHBoxLayout
 from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint, QTimer
