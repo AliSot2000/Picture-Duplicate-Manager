@@ -4,7 +4,7 @@ from typing import Union
 from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QSizePolicy, QMainWindow, QFrame, QWidget
 from PyQt6.QtCore import Qt
 from photo_lib.gui.clickable_image import ClickableImage
-from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes
+from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes, BaseTileInfo
 
 
 class ImageTile(QFrame):
@@ -65,6 +65,35 @@ class ImageTile(QFrame):
 
     def reset_mark(self):
         self.setStyleSheet("")
+
+
+# Class named patch because squareness not enforced
+class ClickablePatch(ClickableImage):
+    @property
+    def tile_info(self):
+        return self.__tile_info
+
+    @tile_info.setter
+    def tile_info(self, value: BaseTileInfo):
+        self.__tile_info = value
+        if self.__tile_info is not None:
+            self.file_path = value.path
+        else:
+            self.file_path = None
+
+
+class IndexedTile(ClickablePatch):
+    __tile_info: Union[BaseTileInfo, None] = None
+    index: int = -1
+
+    def heightForWidth(self, a0: int) -> int:
+        """
+        Override this function to make the image tile square.
+
+        :param a0: default param, ignored.
+        :return:
+        """
+        return self.width()
 
 
 if __name__ == '__main__':

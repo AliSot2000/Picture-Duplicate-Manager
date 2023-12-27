@@ -67,26 +67,6 @@ class ClickableImage(LoadingBaseImage):
             self._load_image()
 
 
-class ClickableTile(ClickableImage):
-    __tile_info: Union[BaseTileInfo, None] = None
-
-    @property
-    def tile_info(self):
-        return self.__tile_info
-
-    @tile_info.setter
-    def tile_info(self, value: BaseTileInfo):
-        self.__tile_info = value
-        if self.__tile_info is not None:
-            self.file_path = value.path
-        else:
-            self.file_path = None
-
-
-class IndexedTile(ClickableTile):
-    index: int = -1
-
-
 def helper():
     print("Helper called")
 
