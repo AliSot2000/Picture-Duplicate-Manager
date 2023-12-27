@@ -426,18 +426,13 @@ class TileWidget(QFrame):
                 self.move_to_hidden(w)
 
         self.focus_row = row
-        self.focus_row_offset = 0
-        self.focus_index = self.row_lut[row]
 
-        # get row associated with focused index
-        head_row = self.index_lut[self.focus_index]
-
-        lowest_row = max(0, head_row - self.focus_row_offset)
-        self.focus_row_offset = head_row - lowest_row
+        self.lowest_row = max(0, self.focus_row - self.preload_row_count)
+        self.focus_row_offset = self.focus_row - self.lowest_row
 
         self.widget_rows = []
-        highest_row = min(self.number_of_rows - 1, head_row + self.number_of_visible_rows + self.preload_row_count - 1)
-        for i in range(lowest_row, highest_row + 1):
+        self.highest_row = min(self.number_of_rows - 1, self.focus_row + self.number_of_visible_rows + self.preload_row_count - 1)
+        for i in range(self.lowest_row, self.highest_row + 1):
             self.widget_rows.append(self._generate_row(i))
 
         self.layout_from_datastructure()
@@ -460,6 +455,9 @@ class TileWidget(QFrame):
             pass
         elif a0.key() == Qt.Key.Key_Down and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
             pass
+        elif a0.key() == Qt.Key.Key_R and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            self.scroll_offset = 0
+            self.place_background_widget()
         else:
             pass
 
