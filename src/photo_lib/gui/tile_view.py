@@ -438,6 +438,58 @@ class TileWidget(QFrame):
         self.scroll_buffer = None
 
     # ------------------------------------------------------------------------------------------------------------------
+    # Helper functions which perform repeated tasks of building rows at bottom or top or delete row at bottom or top
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def _add_row_bottom(self):
+        """
+        Add row to bottom of data structure, doesn't update the widgets!
+        """
+        assert self.highest_row < self.number_of_rows - 1, "Cannot add row at bottom, already at bottom"
+        self.highest_row += 1
+        self.widget_rows.append(self._generate_row(self.highest_row))
+
+    def _add_row_top(self):
+        """
+        Add row to the top of data structure, doesn't update the widgets!
+        """
+        assert self.lowest_row > 0, "Cannot add row at top, already at top"
+        self.lowest_row -= 1
+        self.widget_rows.insert(0, self._generate_row(self.lowest_row))
+
+    def _remove_row_bottom(self):
+        """
+        Removes a row at the bottom of the data structure, doesn't update the widgets!
+        """
+        assert self.highest_row > self.lowest_row, "To few rows to remove row"
+        row = self.widget_rows.pop()
+        self.highest_row -= 1
+
+        # Store the widgets away so they can be reused
+        for widget in row:
+            self.move_to_hidden(widget)
+
+    def _remove_row_top(self):
+        """
+        Removes a row at the top of the data structure, doesn't update the widgets!
+        """
+        assert self.highest_row > self.lowest_row, "To few rows to remove row"
+        row = self.widget_rows.pop(0)
+        self.lowest_row += 1
+
+        # Store the widgets away so they can be reused
+        for widget in row:
+            self.move_to_hidden(widget)
+
+    def dump_widgets(self):
+        """
+        Helper function to dump the indexes of the widgets for debugging purposes
+        """
+        for row in self.widget_rows:
+            indexes = [str(col.index) for col in row]
+            print(", ".join(indexes))
+
+    # ------------------------------------------------------------------------------------------------------------------
     # Slots
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -449,6 +501,92 @@ class TileWidget(QFrame):
             self.scroll_timer.start(self.scroll_timeout)
         else:
             self.scroll_to_row(row)
+
+    @pyqtSlot()
+    def build_down(self):
+        """
+        Build next row below the current lowest row. Does nothing if bottom is reached.
+        """
+        # we've reached the bottom, cannot build any further
+        if self.highest_row == self.number_of_rows - 1:
+            cutoff = self.number_of_rows - self.number_of_visible_rows + 1
+
+            # we've crossed the threshold, clamp to the maximum row and replace the background widget
+            if self.focus_row > cutoff:
+                warnings.warn("Focus row bigger than cutoff, clamping")
+                self.focus_row = cutoff
+                self.focus_row_offset = self.focus_row - self.lowest_row
+                self.place_background_widget()
+                return
+
+            elif self.focus_row == cutoff:
+                print(f"Bottom reached")
+                return
+
+            # we've still got rows that aren't visible, changing the focus_row and focus_row_offset is enough
+            self._remove_row_top()
+            self.focus_row += 1
+            self.layout_from_datastructure()
+            self.place_background_widget()
+            return
+
+        # we're at the very top and we can go ahead an increase the number of rows without deleting one.
+        if self.focus_row_offset < self.preload_row_count:
+            self.focus_row_offset += 1
+            self.focus_row += 1
+            self._add_row_bottom()
+            # TODO improve calls (only add to gridlayout don't remove)
+            self.layout_from_datastructure()
+            self.place_background_widget()
+            return
+
+        # we're somewhere in the middle, row offset is constant, widget placement is constant, only new rows need
+        # to be added and removed
+        self._remove_row_top()
+        self._add_row_bottom()
+        self.focus_row += 1
+        self.layout_from_datastructure()
+
+    def build_up(self):
+        """
+        Build next row above the current highest row. Does nothing if top is reached.
+        """
+        # we've reached the top, cannot build any further
+        if self.lowest_row == 0:
+            # we've crossed the threshold, clamp to the minimum row and replace the background widget
+            if self.focus_row < 0:
+                warnings.warn("Focus row smaller than 0, why is this possible?")
+                self.focus_row = 0
+                self.focus_row_offset = 0
+                self.place_background_widget()
+                return
+
+            elif self.focus_row == 0:
+                print(f"Top reached")
+                return
+
+            # we've still got rows that aren't visible, changing the focus_row and focus_row_offset and removing rows
+            # at the bottom
+            self.focus_row -= 1
+            self.focus_row_offset -= 1
+            self._remove_row_bottom()
+            self.layout_from_datastructure()
+            self.place_background_widget()
+            return
+
+        # we're at the very bottom and we can go ahead an increase the number of rows without deleting one.
+        if self.highest_row == self.number_of_rows - 1 and len(self.widget_rows) < self.number_of_generated_rows:
+            self.focus_row -= 1
+            self._add_row_top()
+            self.layout_from_datastructure()
+            return
+
+        # we're somewhere in the middle, row offset is constant, widget placement is constant, only new rows need
+        # to be added and removed
+        self._remove_row_bottom()
+        self._add_row_top()
+        self.focus_row -= 1
+        self.layout_from_datastructure()
 
     # ------------------------------------------------------------------------------------------------------------------
     # Custom Event Overrides to capture and them or trigger custom actionis
