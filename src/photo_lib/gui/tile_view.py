@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QGridLayout, QScrollArea, QPushButton, QLabel, \
     QSplitter, QMainWindow, QScrollBar, QHBoxLayout
-from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint, QTimer
 from PyQt6.QtGui import QResizeEvent, QKeyEvent
 import sys
 import datetime
@@ -16,11 +16,15 @@ from photo_lib.gui.gui_utils import general_wrapper
 from photo_lib.data_objects import ImportTileInfo, BaseTileInfo
 
 
+use_timers = True
+
+
 # TODO register clickable tiles to emmit the img_selected signal
 class TileWidget(QFrame):
     # Backend objects
     model: Model
     buffer: TileBuffer
+    scroll_buffer: Union[int, None] = None
 
     # Signals
     num_of_rows_changed = pyqtSignal(int)
@@ -186,6 +190,16 @@ class TileWidget(QFrame):
         self.background_layout.setSpacing(10)
 
         self.background_widget.setLayout(self.background_layout)
+        global use_timers
+
+        if use_timers:
+            self.resize_timer = QTimer()
+            self.resize_timer.setSingleShot(True)
+            self.resize_timer.timeout.connect(self.update_size)
+
+            self.scroll_timer = QTimer()
+            self.scroll_timer.setSingleShot(True)
+            self.scroll_timer.timeout.connect(self.scroll_to_row)
 
     def prep_dev(self):
         self.setMinimumWidth(1000)
@@ -257,8 +271,12 @@ class TileWidget(QFrame):
         """
         Capture resize event and trigger update of size
         """
+        global use_timers
+        if use_timers:
+            self.resize_timer.start(200)
+        else:
+            self.update_size()
         super().resizeEvent(a0)
-        self.update_size()
 
     def update_size(self):
         """
@@ -374,11 +392,25 @@ class TileWidget(QFrame):
         return l
 
     @pyqtSlot(int)
-    def scroll_to_row(self, row: int):
+    def scroll_slot(self, row: int):
+        global use_timers
+        if use_timers:
+            self.scroll_buffer = row
+            self.scroll_timer.start(200)
+        else:
+            self.scroll_to_row(row)
+
+    def scroll_to_row(self, row: int = None):
         """
         Scroll to a given row.
         """
-        assert row >= 0 and row < self.number_of_rows, f"Row out of bounds, [0, {self.number_of_rows}], {row}"
+        # Fetch scroll from buffer if triggered by timer
+        if row is None:
+            row = self.scroll_buffer
+            if row is None:
+                return
+
+        assert 0 <= row < self.number_of_rows, f"Row out of bounds, [0, {self.number_of_rows}], {row}"
         for r in self.widget_rows:
             for w in r:
                 self.move_to_hidden(w)
@@ -399,6 +431,7 @@ class TileWidget(QFrame):
             self.widget_rows.append(self._generate_row(i))
 
         self.layout_from_datastructure()
+        self.scroll_buffer = None
 
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
@@ -445,7 +478,7 @@ class TempRoot(QMainWindow):
         self.scrollbar.setMaximum(self.tiles.number_of_rows)
         self.tiles.num_of_rows_changed.connect(self.set_max)
         self.tiles.focus_row_changed.connect(self.set_val)
-        self.scrollbar.valueChanged.connect(self.tiles.scroll_to_row)
+        self.scrollbar.valueChanged.connect(self.tiles.scroll_slot)
 
         self.layout.addWidget(self.scrollbar)
     def set_max(self, max: int):
