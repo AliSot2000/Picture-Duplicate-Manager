@@ -10,7 +10,6 @@ from photo_lib.gui.base_image import BaseImage
 from photo_lib.gui.base_image_loader import LoadingBaseImage
 
 
-# TODO zoom out, recentering of image.
 
 class ZoomImage(LoadingBaseImage):
     # zoom_in = pyqtSignal()
