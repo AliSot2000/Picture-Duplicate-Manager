@@ -92,11 +92,11 @@ class TileWidget(QFrame):
         self.update_size()
 
     @property
-    def number_of_visible_rows(self):
+    def max_number_of_visible_rows(self):
         return self.__number_of_visible_rows
 
-    @number_of_visible_rows.setter
-    def number_of_visible_rows(self, value: int):
+    @max_number_of_visible_rows.setter
+    def max_number_of_visible_rows(self, value: int):
         assert value > 0, "Number of visible rows must be greater than 0"
         if value == self.__number_of_visible_rows:
             return
@@ -291,14 +291,14 @@ class TileWidget(QFrame):
         new_number_of_columns = max(1, rem_width // self.tile_size)
         self.background_widget.setFixedWidth(rem_width)
 
-        new_number_of_visible_rows = math.ceil((self.height() - margin[1] - margin[3]) / self.tile_size)
-
+        max_new_number_of_visible_rows = math.ceil((self.height() - margin[1] - margin[3]) / self.tile_size)
         if (new_number_of_columns == self.number_of_columns and
-                new_number_of_visible_rows == self.number_of_visible_rows):
+                max_new_number_of_visible_rows == self.max_number_of_visible_rows):
             return
 
         self.number_of_columns = new_number_of_columns
-        self.number_of_visible_rows = new_number_of_visible_rows
+        self.max_number_of_visible_rows = max_new_number_of_visible_rows
+
         self.build_lut()
         self.increase_widget_count()
         self.resize_layout()
@@ -469,6 +469,7 @@ class TileWidget(QFrame):
 
         self.widget_rows = []
         self.highest_row = min(self.number_of_rows - 1, self.focus_row + self.number_of_visible_rows + self.preload_row_count - 1)
+                               + self.max_number_of_visible_rows
         for i in range(self.lowest_row, self.highest_row + 1):
             self.widget_rows.append(self._generate_row(i))
 
