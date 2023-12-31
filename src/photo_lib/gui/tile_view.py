@@ -722,7 +722,6 @@ class TempRoot(QMainWindow):
         self.scrollbar.setValue(val)
 
 
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
