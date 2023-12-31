@@ -201,8 +201,6 @@ class TileWidget(QFrame):
         self.background_layout.setHorizontalSpacing(10)
 
         self.background_widget.setLayout(self.background_layout)
-        self.layout_placeholder = QWidget(self)
-        self.layout_placeholder.setFixedHeight(10)
 
         global use_timers
 
@@ -363,13 +361,24 @@ class TileWidget(QFrame):
         while self.background_layout.count() > 0:
             self.background_layout.takeAt(0)
 
-        for i in range(len(self.widget_rows)):
-            for j in range(len(self.widget_rows[i])):
-                t = self.widget_rows[i][j]
+        for i in range(len(self.layout_rows)):
+            # Placeholder for the header
+            if type(self.layout_rows[i]) is QFrame:
+                self.background_layout.addWidget(self.layout_rows[i], i, 0, 1, self.number_of_columns)
+                continue
+
+            # Row of widgets
+            for j in range(len(self.layout_rows[i])):
+                t = self.layout_rows[i][j]
                 self.background_layout.addWidget(t, i, j)
 
+        # for i in range(len(self.widget_rows)):
+        #     for j in range(len(self.widget_rows[i])):
+        #         t = self.widget_rows[i][j]
+        #         self.background_layout.addWidget(t, i, j)
+
         # Make sure spacing in grid layout is consistent
-        self.background_layout.addWidget(self.layout_placeholder, len(self.widget_rows), 0, 1, self.number_of_columns)
+        # self.background_layout.addWidget(self.layout_placeholder, len(self.widget_rows), 0, 1, self.number_of_columns)
 
     def place_background_widget(self):
         """
