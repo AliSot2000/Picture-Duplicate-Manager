@@ -757,6 +757,9 @@ class ImportRecyclingCarousel(BaseCycleCarousel):
 
 
 class DatabaseCarousel(QFrame):
+    """
+    Full widget containing also the scroll bar and tying the carousel and the scrollbar together.
+    """
     # TODO config
     margin: int = 10
     scrollbar_height: int = 15
