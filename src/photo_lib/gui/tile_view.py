@@ -65,8 +65,9 @@ class TileWidget(QFrame):
 
     # lookup tables
     group_infos: np.ndarray
-    row_to_index_lut: np.ndarray  # Given a row -> gives the start index that are displayed there
-    index_to_row_lut: np.ndarray  # given an index -> gives the row that contains this index
+    row_to_index_lut: np.ndarray    # Given a row -> gives the start index that are displayed there
+    index_to_row_lut: np.ndarray    # given an index -> gives the row that contains this index
+    row_to_header_lut: np.array     # given a row -> gives the header for that row
 
     widgets: List[IndexedTile] = None  # List of all widgets that are currently instantiated
     hidden_widgets: List[IndexedTile] = None  # Widgets that are currently hidden
@@ -184,6 +185,7 @@ class TileWidget(QFrame):
         self.group_infos = np.array([])
         self.row_to_index_lut = np.array([])
         self.index_to_row_lut = np.array([])
+        self.row_to_header_lut = np.array([])
 
         self.widgets = []
         self.hidden_widgets = []
@@ -258,6 +260,7 @@ class TileWidget(QFrame):
                 header_lut.append(i)
                 img_count -= self.number_of_columns
 
+        self.row_to_header_lut = np.array(header_lut, dtype=int)
         self.row_to_index_lut = np.array(row_lut, dtype=int)
         self.index_to_row_lut = np.array(index_lut, dtype=int)
         self.number_of_rows = row_count
