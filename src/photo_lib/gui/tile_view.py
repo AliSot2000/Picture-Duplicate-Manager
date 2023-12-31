@@ -444,6 +444,12 @@ class TileWidget(QFrame):
             print(f"Clamping")
             row = cutoff
 
+        self._scroll_to_row(row)
+
+    def _scroll_to_row(self, row: int = None):
+        """
+        Scroll to row only with clamping.
+        """
         self.focus_row = row
 
         self.lowest_row = max(0, self.focus_row - self.preload_row_count)
