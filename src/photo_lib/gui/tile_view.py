@@ -47,6 +47,7 @@ class TileWidget(QFrame):
 
     # Further properties that don't need to be set
     scroll_offset: int = 0
+    min_number_of_visible_rows: int = 0
 
     focus_row_offset: int = 0
 
@@ -292,6 +293,13 @@ class TileWidget(QFrame):
         self.background_widget.setFixedWidth(rem_width)
 
         max_new_number_of_visible_rows = math.ceil((self.height() - margin[1] - margin[3]) / self.tile_size)
+        self.min_number_of_visible_rows = math.floor((self.height()
+                                                     - margin[1]
+                                                     - margin[3]) /
+                                                    (self.tile_size
+                                                     + self.header_height
+                                                     + 2 * self.background_layout.verticalSpacing()))
+        print(f"Min number of visible rows: {self.min_number_of_visible_rows}")
         if (new_number_of_columns == self.number_of_columns and
                 max_new_number_of_visible_rows == self.max_number_of_visible_rows):
             return
@@ -468,8 +476,11 @@ class TileWidget(QFrame):
         self.focus_row_offset = self.focus_row - self.lowest_row
 
         self.widget_rows = []
-        self.highest_row = min(self.number_of_rows - 1, self.focus_row + self.number_of_visible_rows + self.preload_row_count - 1)
+        self.highest_row = min(self.number_of_rows - 1,
+                               self.focus_row
                                + self.max_number_of_visible_rows
+                               + self.preload_row_count
+                               - 1)
         for i in range(self.lowest_row, self.highest_row + 1):
             self.widget_rows.append(self._generate_row(i))
 
