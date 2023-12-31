@@ -407,25 +407,6 @@ class TileWidget(QFrame):
         """
         return self.buffer.fetch_tile(index)
 
-    def _generate_row(self, row: int) -> List[IndexedTile]:
-        """
-        Generates a row of widgets. This function does not perform layout.
-        """
-        if row == self.number_of_rows - 1:
-            end = self.buffer.number_of_elements
-        else:
-            end = self.row_to_index_lut[row + 1]
-
-        l = []
-        for i in range(self.row_to_index_lut[row], end):
-            tile = self.fetch_tile(i)
-            w = self.get_hidden_widget()
-            w.tile_info = tile
-            w.index = i
-            l.append(w)
-        print(len(l))
-        return l
-
     def scroll_to_row(self, row: int = None):
         """
         Scroll to a given row.
@@ -491,6 +472,34 @@ class TileWidget(QFrame):
     # ------------------------------------------------------------------------------------------------------------------
     # Helper functions which perform repeated tasks of building rows at bottom or top or delete row at bottom or top
     # ------------------------------------------------------------------------------------------------------------------
+
+    def _generate_row(self, row: int) -> List[IndexedTile]:
+        """
+        Generates a row of widgets. This function does not perform layout.
+        """
+        if row == self.number_of_rows - 1:
+            end = self.buffer.number_of_elements
+        else:
+            end = self.row_to_index_lut[row + 1]
+
+        l = []
+        for i in range(self.row_to_index_lut[row], end):
+            tile = self.fetch_tile(i)
+            w = self.get_hidden_widget()
+            w.tile_info = tile
+            w.index = i
+            l.append(w)
+        print(len(l))
+        return l
+
+    def _generate_placeholder(self):
+        """
+        Generate a placeholder for the moment
+        """
+        temp = QFrame(self)
+        temp.setFixedHeight(self.header_height)
+        temp.setFrameStyle(QFrame.Shape.StyledPanel | QFrame.Shadow.Raised)
+        return temp
 
     def _add_row_bottom(self):
         """
