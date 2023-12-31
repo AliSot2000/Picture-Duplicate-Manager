@@ -576,7 +576,6 @@ class TileWidget(QFrame):
             self.focus_row_offset += 1
             self.focus_row += 1
             self._add_row_bottom()
-            # TODO improve calls (only add to gridlayout don't remove)
             self.layout_from_datastructure()
             self.place_background_widget()
             return
