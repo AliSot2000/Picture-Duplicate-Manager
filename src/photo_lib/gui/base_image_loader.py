@@ -27,6 +27,7 @@ class LoadingBaseImage(BaseImage):
         img_loader.load_image(self)
         img_loader.check_futures()
 
-    def __del__(self):
+    def deleteLater(self):
         global img_loader
         img_loader.unregister(self)
+        super().deleteLater()
