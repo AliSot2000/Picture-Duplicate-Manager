@@ -839,9 +839,9 @@ class TempRoot(QMainWindow):
         self.tiles.keyReleaseEvent(a0)
 
     def set_max(self):
-        max = self.tiles.number_of_rows - self.tiles.number_of_visible_rows + 1
-        print(f"Max: {max}")
-        self.scrollbar.setMaximum(max)
+        # max = self.tiles.number_of_rows - self.tiles.min_number_of_visible_rows + 1
+        print(f"Max: {self.tiles.number_of_rows}")
+        self.scrollbar.setMaximum(self.tiles.number_of_rows - 1)
 
     def set_val (self, val: int):
         print(f"Val: {val}")
