@@ -667,7 +667,7 @@ class TileWidget(QFrame):
         """
         # we've reached the bottom, cannot build any further
         if self.highest_row == self.number_of_rows - 1:
-            cutoff = self.number_of_rows - self.number_of_visible_rows + 1
+            cutoff = self.number_of_rows - self.min_number_of_visible_rows + 1
 
             # we've crossed the threshold, clamp to the maximum row and replace the background widget
             if self.focus_row > cutoff:
