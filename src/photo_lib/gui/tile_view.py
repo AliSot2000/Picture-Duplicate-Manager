@@ -613,13 +613,25 @@ class TileWidget(QFrame):
             row = self.layout_rows.pop(0)
             assert type(row) is list, "Row after header must be a header"
 
-    def dump_widgets(self):
+    def dump_widgets(self, layout: bool = True, widget: bool = False):
         """
         Helper function to dump the indexes of the widgets for debugging purposes
         """
-        for row in self.widget_rows:
-            indexes = [str(col.index) for col in row]
-            print(", ".join(indexes))
+        if widget or layout:
+            print(f"-"*100)
+        if widget:
+            for row in self.widget_rows:
+                indexes = [str(col.index) for col in row]
+                print(", ".join(indexes))
+            print(f"-" * 100)
+        if layout:
+            for row in self.layout_rows:
+                if type(row) is QFrame:
+                    print("Header")
+                else:
+                    indexes = [str(col.index) for col in row]
+                    print(", ".join(indexes))
+            print(f"-"*100)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Slots
