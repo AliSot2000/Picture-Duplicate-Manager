@@ -526,7 +526,7 @@ class TileWidget(QFrame):
             w.tile_info = tile
             w.index = i
             l.append(w)
-        print(len(l))
+        # print(f"Length of Row: {len(l)}")
         return l
 
     def _generate_placeholder(self):
