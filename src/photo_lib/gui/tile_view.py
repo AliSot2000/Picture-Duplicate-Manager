@@ -607,6 +607,12 @@ class TileWidget(QFrame):
         for widget in row:
             self.move_to_hidden(widget)
 
+        row = self.layout_rows.pop(0)
+        if type(row) is QFrame:
+            row.deleteLater()
+            row = self.layout_rows.pop(0)
+            assert type(row) is list, "Row after header must be a header"
+
     def dump_widgets(self):
         """
         Helper function to dump the indexes of the widgets for debugging purposes
