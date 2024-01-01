@@ -588,6 +588,13 @@ class TileWidget(QFrame):
         for widget in row:
             self.move_to_hidden(widget)
 
+        # Remove the row
+        self.layout_rows.pop()
+
+        # Remove the next row too, if it's a header
+        if type(self.layout_rows[-1]) is QFrame:
+            self.layout_rows.pop().deleteLater()
+
     def _remove_row_top(self):
         """
         Removes a row at the top of the data structure, doesn't update the widgets!
