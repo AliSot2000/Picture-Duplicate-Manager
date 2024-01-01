@@ -74,6 +74,7 @@ class TileWidget(QFrame):
     widgets: List[IndexedTile] = None  # List of all widgets that are currently instantiated
     hidden_widgets: List[IndexedTile] = None  # Widgets that are currently hidden
     widget_rows: List[List[IndexedTile]] = None
+    layout_rows: List[Union[QFrame, List[IndexedTile]]] = None
     background_widget: QWidget = None
     background_layout: QGridLayout = None
 
