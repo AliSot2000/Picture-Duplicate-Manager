@@ -559,7 +559,22 @@ class TileWidget(QFrame):
         """
         assert self.lowest_row > 0, "Cannot add row at top, already at top"
         self.lowest_row -= 1
-        self.widget_rows.insert(0, self._generate_row(self.lowest_row))
+
+        widget_row = self._generate_row(self.lowest_row)
+
+        # Add placeholder for title if necessary
+        if (self.row_to_header_lut[self.lowest_row + 1] != self.row_to_header_lut[self.lowest_row]
+                and type(self.layout_rows[0]) is not QFrame):
+            self.layout_rows.insert(0, self._generate_placeholder())
+
+        # Insert the row generated
+        self.layout_rows.insert(0, widget_row)
+
+        # Insert first header if we're at the top
+        if self.lowest_row == 0:
+            self.layout_rows.insert(0, self._generate_placeholder())
+
+        self.widget_rows.insert(0, widget_row)
 
     def _remove_row_bottom(self):
         """
