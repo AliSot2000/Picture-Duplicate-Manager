@@ -61,6 +61,7 @@ class TileWidget(QFrame):
     label_height: int = 30
     scroll_timeout: int = 300
     resize_timeout: int = 200
+    header_height: int = 35
     __margin: Tuple[int, int, int, int] = (10, 10, 10, 10)  # left, top, right, bottom
     # TODO font size
 
