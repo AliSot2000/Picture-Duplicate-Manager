@@ -303,7 +303,7 @@ class TileWidget(QFrame):
                                                     (self.tile_size
                                                      + self.header_height
                                                      + 2 * self.background_layout.verticalSpacing()))
-        print(f"Min number of visible rows: {self.min_number_of_visible_rows}")
+
         if (new_number_of_columns == self.number_of_columns and
                 max_new_number_of_visible_rows == self.max_number_of_visible_rows):
             return
