@@ -321,7 +321,7 @@ class TileWidget(QFrame):
         Resize the layout to the correct size once a resize event is scheduled.
         """
         # TODO serialize the image tiles and rebuild them into rows.
-        row = self.scroll_buffer
+        row = self.focus_row
         if row is None:
             return
 
