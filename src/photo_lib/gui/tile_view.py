@@ -332,7 +332,7 @@ class TileWidget(QFrame):
         Given the maximum number of widgets displayed at time, increase the number of widgets if resize requires it.
         """
         # Guard if it's less or equal
-        print(f"Number of geneated rows: {self.number_of_generated_rows}, Number of columns: {self.number_of_columns}")
+        print(f"Number of generated rows: {self.number_of_generated_rows}, Number of columns: {self.number_of_columns}")
         if self.number_of_generated_rows * self.number_of_columns <= len(self.widgets):
             return
 
