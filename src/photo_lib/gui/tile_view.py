@@ -219,8 +219,8 @@ class TileWidget(QFrame):
             self.scroll_timer.timeout.connect(self.scroll_to_row)
 
     def prep_dev(self):
-        self.setMinimumWidth(1000)
-        self.setMinimumHeight(1000)
+        self.setMinimumWidth(200)
+        self.setMinimumHeight(200)
         self.update_groups(GroupingCriterion.YEAR_MONTH_DAY)
         self.update_size()
         # self.scroll_to_row(20)
