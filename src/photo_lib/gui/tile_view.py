@@ -193,6 +193,7 @@ class TileWidget(QFrame):
         self.widgets = []
         self.hidden_widgets = []
         self.widget_rows = []
+        self.layout_rows = []
 
         self.background_widget = QWidget(self)
         self.background_widget.move(QPoint(0, 0))
