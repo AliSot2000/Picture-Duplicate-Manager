@@ -182,6 +182,7 @@ class TileWidget(QFrame):
         super().__init__()
         self.model = model
         self.buffer = TileBuffer(model)
+        self.resizeEvent = self.__init_resize_event
 
         self.group_infos = np.array([])
         self.row_to_index_lut = np.array([])
@@ -665,7 +666,13 @@ class TileWidget(QFrame):
     # Custom Event Overrides to capture and them or trigger custom actionis
     # ------------------------------------------------------------------------------------------------------------------
 
-    def resizeEvent(self, a0: QResizeEvent) -> None:
+    def __init_resize_event(self, a0) -> None:
+        self.update_size()
+        self._scroll_to_row(0)
+        super().resizeEvent(a0)
+        self.resizeEvent = self.__normal_resize_event
+
+    def __normal_resize_event(self, a0: QResizeEvent) -> None:
         """
         Capture resize event and trigger update of size
         """
