@@ -485,6 +485,23 @@ class TileWidget(QFrame):
         for i in range(self.lowest_row, self.highest_row + 1):
             self.widget_rows.append(self._generate_row(i))
 
+        # Clear the leayout rows
+        for row in self.layout_rows:
+            if type(row) is QFrame:
+                row.deleteLater()
+
+        self.layout_rows = []
+
+        # Insert first header
+        if self.lowest_row == 0:
+            self.layout_rows.append(self._generate_placeholder())
+
+        # Add the rows
+        for i in range(self.lowest_row, self.highest_row + 1):
+            if i > self.lowest_row and self.row_to_header_lut[i] != self.row_to_header_lut[i - 1]:
+                self.layout_rows.append(self._generate_placeholder())
+            self.layout_rows.append(self.widget_rows[i - self.lowest_row])
+
         self.layout_from_datastructure()
         self.place_background_widget()
         self.scroll_buffer = None
