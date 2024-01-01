@@ -420,6 +420,14 @@ class TileWidget(QFrame):
 
         assert 0 <= row < self.number_of_rows, f"Row out of bounds, [0, {self.number_of_rows}], {row}"
 
+        # Clamping to the maximum row
+        cutoff = self.number_of_rows - self.min_number_of_visible_rows + 1
+        if row > cutoff:
+            print(f"Clamping")
+            row = cutoff
+
+        self._scroll_to_row(row)
+
         # guaranteed that the row is not the same
         if row == self.focus_row:
             return
@@ -436,22 +444,14 @@ class TileWidget(QFrame):
                 self.build_down()
             return
 
-        for r in self.widget_rows:
-            for w in r:
-                self.move_to_hidden(w)
-
-        # Clamping to the maximum row
-        cutoff = self.number_of_rows - self.number_of_visible_rows + 1
-        if row > cutoff:
-            print(f"Clamping")
-            row = cutoff
-
-        self._scroll_to_row(row)
-
     def _scroll_to_row(self, row: int = None):
         """
         Scroll to row only with clamping.
         """
+        for r in self.widget_rows:
+            for w in r:
+                self.move_to_hidden(w)
+
         self.focus_row = row
 
         self.lowest_row = max(0, self.focus_row - self.preload_row_count)
