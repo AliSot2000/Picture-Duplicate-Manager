@@ -393,9 +393,25 @@ class TileWidget(QFrame):
         """
         Place the background widget such that the correct row is displayed.
         """
-        y = (self.focus_row_offset * (self.tile_size + self.background_layout.verticalSpacing())
-             - self.margin[1])
+        # y = (self.focus_row_offset * (self.tile_size + self.background_layout.verticalSpacing())
+        #      - self.margin[1])
+        y = 0
 
+        for i in range(len(self.layout_rows)):
+            row = self.layout_rows[i]
+            if type(row) is QFrame:
+                y += self.header_height + self.background_layout.verticalSpacing()
+            else:
+                assert type(row) is list, "Row must be either a list of widgets or a header"
+                y += self.tile_size + self.background_layout.verticalSpacing()
+
+            if self.layout_rows[i + 1] is self.widget_rows[self.focus_row_offset]:
+                if type(self.layout_rows[i]) is QFrame:
+                    y -= self.header_height + self.background_layout.verticalSpacing()
+                break
+
+        y -= self.margin[1]
+        # print(f"Background Widget Position: {self.margin[0], -y + self.scroll_offset}")
         self.background_widget.move(QPoint(self.margin[0], -y + self.scroll_offset))
 
         # Perform resizing of background widget manually.
