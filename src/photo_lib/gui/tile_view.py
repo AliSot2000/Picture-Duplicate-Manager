@@ -18,7 +18,7 @@ from photo_lib.data_objects import ImportTileInfo, BaseTileInfo
 
 
 use_timers_resize = True
-use_timers_scroll = True
+use_timers_scroll = False
 
 
 # TODO register clickable tiles to emmit the img_selected signal
