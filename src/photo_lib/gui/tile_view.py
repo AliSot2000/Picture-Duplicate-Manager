@@ -30,6 +30,7 @@ class TileWidget(QFrame):
 
     # Signals
     num_of_rows_changed = pyqtSignal(int)
+    page_size_changed = pyqtSignal(int)
     # num_of_cols_changed = pyqtSignal(int)
     # img_selected = pyqtSignal()  # read the current_element from the object
     focus_row_changed = pyqtSignal(int)
