@@ -241,8 +241,6 @@ class TileWidget(QFrame):
         self.setMinimumWidth(350)
         self.setMinimumHeight(350)
         self.update_groups(GroupingCriterion.YEAR_MONTH_DAY)
-        self.update_size()
-        # self.scroll_to_row(20)
 
     def update_groups(self, grouping: GroupingCriterion):
         """
