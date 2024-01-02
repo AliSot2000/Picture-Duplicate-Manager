@@ -547,6 +547,31 @@ class TileWidget(QFrame):
         # print(f"Length of Row: {len(l)}")
         return l
 
+    def generate_header(self, index: int) -> QLabel:
+        """
+        Generates a Header Leabel with formatting for the given index.
+        """
+        gi = self.group_infos[index]
+        text = self.generate_label_text(gi)
+        l = QLabel(text)
+        l.setFixedHeight(self.header_height)
+        l.setStyleSheet("background-color: rgba(255, 255, 255, 200);")
+        return l
+
+    @staticmethod
+    def generate_label_text(gi: GroupCount) -> str:
+        """
+        Given a GroupCount object, generate the header for it.
+        """
+        if gi.group_crit == GroupingCriterion.YEAR_MONTH_DAY:
+            return gi.start_date.strftime("%A %d %B %Y")
+        elif gi.group_crit == GroupingCriterion.YEAR_MONTH:
+            return gi.start_date.strftime("%B %Y")
+        elif gi.group_crit == GroupingCriterion.YEAR:
+            return gi.start_date.strftime("%Y")
+        else:
+            return ""
+
     def _generate_placeholder(self):
         """
         Generate a placeholder for the moment
