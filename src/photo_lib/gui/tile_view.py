@@ -17,7 +17,8 @@ from photo_lib.gui.gui_utils import general_wrapper
 from photo_lib.data_objects import ImportTileInfo, BaseTileInfo
 
 
-use_timers = True
+use_timers_resize = True
+use_timers_scroll = True
 
 
 # TODO register clickable tiles to emmit the img_selected signal
@@ -207,13 +208,15 @@ class TileWidget(QFrame):
 
         self.background_widget.setLayout(self.background_layout)
 
-        global use_timers
+        global use_timers_resize
+        global use_timers_scroll
 
-        if use_timers:
+        if use_timers_resize:
             self.resize_timer = QTimer()
             self.resize_timer.setSingleShot(True)
             self.resize_timer.timeout.connect(self.update_size)
 
+        if use_timers_scroll:
             self.scroll_timer = QTimer()
             self.scroll_timer.setSingleShot(True)
             self.scroll_timer.timeout.connect(self.scroll_to_row)
@@ -654,8 +657,8 @@ class TileWidget(QFrame):
         if row == self.focus_row:
             return
 
-        global use_timers
-        if use_timers:
+        global use_timers_scroll
+        if use_timers_scroll:
             self.scroll_buffer = row
             self.scroll_timer.start(self.scroll_timeout)
         else:
@@ -760,8 +763,8 @@ class TileWidget(QFrame):
         """
         Capture resize event and trigger update of size
         """
-        global use_timers
-        if use_timers:
+        global use_timers_resize
+        if use_timers_resize:
             self.resize_timer.start(self.resize_timeout)
         else:
             self.update_size()
