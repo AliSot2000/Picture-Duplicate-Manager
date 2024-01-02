@@ -856,7 +856,7 @@ QScrollBar::handle:vertical {
         print(f"Max: {self.tiles.number_of_rows}")
         self.scrollbar.setMaximum(self.tiles.number_of_rows - 1)
 
-    def set_val (self, val: int):
+    def set_val(self, val: int):
         print(f"Val: {val}")
         self.scrollbar.setValue(val)
 
