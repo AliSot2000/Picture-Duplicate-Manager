@@ -823,9 +823,22 @@ class TempRoot(QMainWindow):
         self.scrollbar.setMaximum(self.tiles.number_of_rows)
         self.tiles.num_of_rows_changed.connect(self.set_max)
         self.tiles.focus_row_changed.connect(self.set_val)
-        self.scrollbar.valueChanged.connect(self.tiles.scroll_slot)
+        self.scrollbar.valueChanged.connect(self.set_value)
+        style_sheet = """
+QScrollBar:vertical {
+    border: 1px dashed black;
+    width: 15px;
+}  
 
-        # needs to happen here so we capture the change event.
+QScrollBar::handle:vertical {
+    min-height: 50px;
+}
+
+
+"""
+        self.scrollbar.setStyleSheet(style_sheet)
+
+        # needs to happen here, so we capture the change event.
         self.tiles.prep_dev()
 
         self.layout.addWidget(self.scrollbar)
