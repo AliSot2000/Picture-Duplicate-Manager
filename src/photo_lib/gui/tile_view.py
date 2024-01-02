@@ -76,7 +76,7 @@ class TileWidget(QFrame):
     widgets: List[IndexedTile] = None  # List of all widgets that are currently instantiated
     hidden_widgets: List[IndexedTile] = None  # Widgets that are currently hidden
     widget_rows: List[List[IndexedTile]] = None
-    layout_rows: List[Union[QFrame, List[IndexedTile]]] = None
+    layout_rows: List[Union[QLabel, List[IndexedTile]]] = None
     background_widget: QWidget = None
     background_layout: QGridLayout = None
 
@@ -392,7 +392,7 @@ class TileWidget(QFrame):
 
         for i in range(len(self.layout_rows)):
             # Placeholder for the header
-            if type(self.layout_rows[i]) is QFrame:
+            if type(self.layout_rows[i]) is QLabel:
                 self.background_layout.addWidget(self.layout_rows[i], i, 0, 1, self.number_of_columns)
                 continue
 
@@ -419,14 +419,14 @@ class TileWidget(QFrame):
 
         for i in range(len(self.layout_rows)):
             row = self.layout_rows[i]
-            if type(row) is QFrame:
+            if type(row) is QLabel:
                 y += self.header_height + self.background_layout.verticalSpacing()
             else:
                 assert type(row) is list, "Row must be either a list of widgets or a header"
                 y += self.tile_size + self.background_layout.verticalSpacing()
 
             if self.layout_rows[i + 1] is self.widget_rows[self.focus_row_offset]:
-                if type(self.layout_rows[i]) is QFrame:
+                if type(self.layout_rows[i]) is QLabel:
                     y -= self.header_height + self.background_layout.verticalSpacing()
                 break
 
@@ -504,7 +504,7 @@ class TileWidget(QFrame):
 
         # Clear the leayout rows
         for row in self.layout_rows:
-            if type(row) is QFrame:
+            if type(row) is QLabel:
                 row.deleteLater()
 
         self.layout_rows = []
@@ -581,8 +581,8 @@ class TileWidget(QFrame):
 
         # Add placeholder for title if necessary
         if (self.row_to_header_lut[self.lowest_row + 1] != self.row_to_header_lut[self.lowest_row]
-                and type(self.layout_rows[0]) is not QFrame):
             self.layout_rows.insert(0, self._generate_placeholder())
+                and type(self.layout_rows[0]) is not QLabel):
 
         # Insert the row generated
         self.layout_rows.insert(0, widget_row)
@@ -609,7 +609,7 @@ class TileWidget(QFrame):
         self.layout_rows.pop()
 
         # Remove the next row too, if it's a header
-        if type(self.layout_rows[-1]) is QFrame:
+        if type(self.layout_rows[-1]) is QLabel:
             self.layout_rows.pop().deleteLater()
 
     def _remove_row_top(self):
@@ -625,7 +625,7 @@ class TileWidget(QFrame):
             self.move_to_hidden(widget)
 
         row = self.layout_rows.pop(0)
-        if type(row) is QFrame:
+        if type(row) is QLabel:
             row.deleteLater()
             row = self.layout_rows.pop(0)
             assert type(row) is list, "Row after header must be a header"
@@ -643,7 +643,7 @@ class TileWidget(QFrame):
             print(f"-" * 100)
         if layout:
             for row in self.layout_rows:
-                if type(row) is QFrame:
+                if type(row) is QLabel:
                     print("Header")
                 else:
                     indexes = [str(col.index) for col in row]
