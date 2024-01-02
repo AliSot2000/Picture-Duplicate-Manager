@@ -512,12 +512,12 @@ class TileWidget(QFrame):
 
         # Insert first header
         if self.lowest_row == 0:
-            self.layout_rows.append(self._generate_placeholder())
+            self.layout_rows.append(self.generate_header(0))
 
         # Add the rows
         for i in range(self.lowest_row, self.highest_row + 1):
             if i > self.lowest_row and self.row_to_header_lut[i] != self.row_to_header_lut[i - 1]:
-                self.layout_rows.append(self._generate_placeholder())
+                self.layout_rows.append(self.generate_header(self.row_to_header_lut[i]))
             self.layout_rows.append(self.widget_rows[i - self.lowest_row])
 
         self.layout_from_datastructure()
@@ -591,7 +591,7 @@ class TileWidget(QFrame):
 
         # Insert header if necessary
         if self.row_to_header_lut[self.highest_row - 1] != self.row_to_header_lut[self.highest_row]:
-            self.layout_rows.append(self._generate_placeholder())
+            self.layout_rows.append(self.generate_header(self.row_to_header_lut[self.highest_row]))
         self.layout_rows.append(widget_row)
 
         self.widget_rows.append(widget_row)
@@ -615,7 +615,7 @@ class TileWidget(QFrame):
 
         # Insert first header if we're at the top
         if self.lowest_row == 0:
-            self.layout_rows.insert(0, self._generate_placeholder())
+            self.layout_rows.insert(0, self.generate_header(0))
 
         self.widget_rows.insert(0, widget_row)
 
