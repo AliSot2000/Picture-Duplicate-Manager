@@ -462,8 +462,6 @@ class TileWidget(QFrame):
             print(f"Clamping")
             row = cutoff
 
-        self._scroll_to_row(row)
-
         # guaranteed that the row is not the same
         if row == self.focus_row:
             return
@@ -479,6 +477,8 @@ class TileWidget(QFrame):
             while self.focus_row < row:
                 self.build_down()
             return
+
+        self._scroll_to_row(row)
 
     def _scroll_to_row(self, row: int = None):
         """
@@ -505,6 +505,7 @@ class TileWidget(QFrame):
         # Clear the leayout rows
         for row in self.layout_rows:
             if type(row) is QLabel:
+                row.setVisible(False)
                 row.deleteLater()
 
         self.layout_rows = []
@@ -581,8 +582,8 @@ class TileWidget(QFrame):
 
         # Add placeholder for title if necessary
         if (self.row_to_header_lut[self.lowest_row + 1] != self.row_to_header_lut[self.lowest_row]
-            self.layout_rows.insert(0, self._generate_placeholder())
                 and type(self.layout_rows[0]) is not QLabel):
+            self.layout_rows.insert(0, self.generate_header(self.row_to_header_lut[self.lowest_row]))
 
         # Insert the row generated
         self.layout_rows.insert(0, widget_row)
