@@ -827,6 +827,7 @@ class TempRoot(QMainWindow):
         self.tiles.num_of_rows_changed.connect(self.set_max)
         self.tiles.focus_row_changed.connect(self.set_val)
         self.scrollbar.valueChanged.connect(self.set_value)
+        self.scrollbar.sliderReleased.connect(self.send_value)
         style_sheet = """
 QScrollBar:vertical {
     border: 1px dashed black;
@@ -845,6 +846,14 @@ QScrollBar::handle:vertical {
         self.tiles.prep_dev()
 
         self.layout.addWidget(self.scrollbar)
+
+    def send_value(self):
+        self.tiles.scroll_slot(self.scrollbar.value())
+
+    def set_value(self, v: int):
+                # Single button press, capture it and propagate it to the tile widget
+        if not self.scrollbar.isSliderDown():
+            self.tiles.scroll_slot(v)
 
     def keyPressEvent(self, a0):
         super().keyPressEvent(a0)
