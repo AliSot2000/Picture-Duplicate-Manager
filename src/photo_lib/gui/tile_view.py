@@ -40,6 +40,7 @@ class TileWidget(QFrame):
     __number_of_columns = 0
     __focus_row = 0
     __number_of_rows = 0
+    __min_number_of_visible_rows: int = 0
 
     # Properties about the view, read only
     __number_of_generated_rows = 0
@@ -49,7 +50,6 @@ class TileWidget(QFrame):
 
     # Further properties that don't need to be set
     scroll_offset: int = 0
-    min_number_of_visible_rows: int = 0
 
     focus_row_offset: int = 0
 
@@ -83,6 +83,21 @@ class TileWidget(QFrame):
     # ------------------------------------------------------------------------------------------------------------------
     # Read/Write Properties
     # ------------------------------------------------------------------------------------------------------------------
+
+    @property
+    def min_number_of_visible_rows(self):
+        return self.__min_number_of_visible_rows
+
+    @min_number_of_visible_rows.setter
+    def min_number_of_visible_rows(self, value: int):
+        assert value >= 0, "Minimum Number of Visible Rows needs to be greq zero"
+        if value == self.__min_number_of_visible_rows:
+            return
+
+        temp = self.__min_number_of_visible_rows
+        self.__min_number_of_visible_rows = value
+
+        self.page_size_changed.emit(max(1, value))
 
     @property
     def margin(self):
