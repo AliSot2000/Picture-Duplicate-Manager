@@ -747,6 +747,7 @@ class TileWidget(QFrame):
         self._add_row_bottom()
         self.focus_row += 1
         self.layout_from_datastructure()
+        self.place_background_widget()
 
     def build_up(self):
         """
@@ -788,6 +789,7 @@ class TileWidget(QFrame):
         self._add_row_top()
         self.focus_row -= 1
         self.layout_from_datastructure()
+        self.place_background_widget()
 
     # ------------------------------------------------------------------------------------------------------------------
     # Custom Event Overrides to capture and them or trigger custom actionis
