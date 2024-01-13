@@ -524,6 +524,92 @@ class TileWidget(QFrame):
         self.place_background_widget()
         self.scroll_buffer = None
 
+    def _build_down(self):
+        """
+        Build next row below the current lowest row. Does nothing if bottom is reached.
+        """
+        # we've reached the bottom, cannot build any further
+        if self.highest_row == self.number_of_rows - 1:
+            cutoff = self.number_of_rows - self.min_number_of_visible_rows + 1
+
+            # we've crossed the threshold, clamp to the maximum row and replace the background widget
+            if self.focus_row > cutoff:
+                warnings.warn("Focus row bigger than cutoff, clamping")
+                self.focus_row = cutoff
+                self.focus_row_offset = self.focus_row - self.lowest_row
+                self.place_background_widget()
+                return
+
+            elif self.focus_row == cutoff:
+                print(f"Bottom reached")
+                return
+
+            # we've still got rows that aren't visible, changing the focus_row and focus_row_offset is enough
+            self._remove_row_top()
+            self.focus_row += 1
+            self.layout_from_datastructure()
+            self.place_background_widget()
+            return
+
+        # we're at the very top and we can go ahead an increase the number of rows without deleting one.
+        if self.focus_row_offset < self.preload_row_count:
+            self.focus_row_offset += 1
+            self.focus_row += 1
+            self._add_row_bottom()
+            self.layout_from_datastructure()
+            self.place_background_widget()
+            return
+
+        # we're somewhere in the middle, row offset is constant, widget placement is constant, only new rows need
+        # to be added and removed
+        self._remove_row_top()
+        self._add_row_bottom()
+        self.focus_row += 1
+        self.layout_from_datastructure()
+        self.place_background_widget()
+
+    def _build_up(self):
+        """
+        Build next row above the current highest row. Does nothing if top is reached.
+        """
+        # we've reached the top, cannot build any further
+        if self.lowest_row == 0:
+            # we've crossed the threshold, clamp to the minimum row and replace the background widget
+            if self.focus_row < 0:
+                warnings.warn("Focus row smaller than 0, why is this possible?")
+                self.focus_row = 0
+                self.focus_row_offset = 0
+                self.place_background_widget()
+                return
+
+            elif self.focus_row == 0:
+                print(f"Top reached")
+                return
+
+            # we've still got rows that aren't visible, changing the focus_row and focus_row_offset and removing rows
+            # at the bottom
+            self.focus_row -= 1
+            self.focus_row_offset -= 1
+            self._remove_row_bottom()
+            self.layout_from_datastructure()
+            self.place_background_widget()
+            return
+
+        # we're at the very bottom and we can go ahead an increase the number of rows without deleting one.
+        if self.highest_row == self.number_of_rows - 1 and len(self.widget_rows) < self.number_of_generated_rows:
+            self.focus_row -= 1
+            self._add_row_top()
+            self.layout_from_datastructure()
+            return
+
+        # we're somewhere in the middle, row offset is constant, widget placement is constant, only new rows need
+        # to be added and removed
+        self._remove_row_bottom()
+        self._add_row_top()
+        self.focus_row -= 1
+        self.layout_from_datastructure()
+        self.place_background_widget()
+
     # ------------------------------------------------------------------------------------------------------------------
     # Helper functions which perform repeated tasks of building rows at bottom or top or delete row at bottom or top
     # ------------------------------------------------------------------------------------------------------------------
@@ -703,93 +789,6 @@ class TileWidget(QFrame):
             self.scroll_timer.start(self.scroll_timeout)
         else:
             self.scroll_to_row(row)
-
-    @pyqtSlot()
-    def build_down(self):
-        """
-        Build next row below the current lowest row. Does nothing if bottom is reached.
-        """
-        # we've reached the bottom, cannot build any further
-        if self.highest_row == self.number_of_rows - 1:
-            cutoff = self.number_of_rows - self.min_number_of_visible_rows + 1
-
-            # we've crossed the threshold, clamp to the maximum row and replace the background widget
-            if self.focus_row > cutoff:
-                warnings.warn("Focus row bigger than cutoff, clamping")
-                self.focus_row = cutoff
-                self.focus_row_offset = self.focus_row - self.lowest_row
-                self.place_background_widget()
-                return
-
-            elif self.focus_row == cutoff:
-                print(f"Bottom reached")
-                return
-
-            # we've still got rows that aren't visible, changing the focus_row and focus_row_offset is enough
-            self._remove_row_top()
-            self.focus_row += 1
-            self.layout_from_datastructure()
-            self.place_background_widget()
-            return
-
-        # we're at the very top and we can go ahead an increase the number of rows without deleting one.
-        if self.focus_row_offset < self.preload_row_count:
-            self.focus_row_offset += 1
-            self.focus_row += 1
-            self._add_row_bottom()
-            self.layout_from_datastructure()
-            self.place_background_widget()
-            return
-
-        # we're somewhere in the middle, row offset is constant, widget placement is constant, only new rows need
-        # to be added and removed
-        self._remove_row_top()
-        self._add_row_bottom()
-        self.focus_row += 1
-        self.layout_from_datastructure()
-        self.place_background_widget()
-
-    def build_up(self):
-        """
-        Build next row above the current highest row. Does nothing if top is reached.
-        """
-        # we've reached the top, cannot build any further
-        if self.lowest_row == 0:
-            # we've crossed the threshold, clamp to the minimum row and replace the background widget
-            if self.focus_row < 0:
-                warnings.warn("Focus row smaller than 0, why is this possible?")
-                self.focus_row = 0
-                self.focus_row_offset = 0
-                self.place_background_widget()
-                return
-
-            elif self.focus_row == 0:
-                print(f"Top reached")
-                return
-
-            # we've still got rows that aren't visible, changing the focus_row and focus_row_offset and removing rows
-            # at the bottom
-            self.focus_row -= 1
-            self.focus_row_offset -= 1
-            self._remove_row_bottom()
-            self.layout_from_datastructure()
-            self.place_background_widget()
-            return
-
-        # we're at the very bottom and we can go ahead an increase the number of rows without deleting one.
-        if self.highest_row == self.number_of_rows - 1 and len(self.widget_rows) < self.number_of_generated_rows:
-            self.focus_row -= 1
-            self._add_row_top()
-            self.layout_from_datastructure()
-            return
-
-        # we're somewhere in the middle, row offset is constant, widget placement is constant, only new rows need
-        # to be added and removed
-        self._remove_row_bottom()
-        self._add_row_top()
-        self.focus_row -= 1
-        self.layout_from_datastructure()
-        self.place_background_widget()
 
     # ------------------------------------------------------------------------------------------------------------------
     # Custom Event Overrides to capture and them or trigger custom actionis
