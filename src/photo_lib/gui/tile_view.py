@@ -233,6 +233,7 @@ class TileWidget(QFrame):
         self.movement_animation = QPropertyAnimation(self.background_widget, b"pos")
         self.movement_animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
         self.movement_animation.setDuration(200)
+        self.movement_animation.finished.connect(self.update_widget)
 
         global use_timers_resize
         global use_timers_scroll
