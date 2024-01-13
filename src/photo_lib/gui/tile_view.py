@@ -254,6 +254,7 @@ class TileWidget(QFrame):
     def build_lut(self):
         """
         Build the lookup tables for the grouping criterion.
+
         :return:
         """
         start = datetime.datetime.now()
