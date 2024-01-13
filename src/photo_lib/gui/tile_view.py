@@ -239,6 +239,7 @@ class TileWidget(QFrame):
             self.scroll_timer.timeout.connect(self.scroll_to_row)
 
     def prep_dev(self):
+        print(f"INFO: CAll to prep_cev")
         self.setMinimumWidth(350)
         self.setMinimumHeight(350)
         self.update_groups(GroupingCriterion.YEAR_MONTH_DAY)
