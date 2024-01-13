@@ -475,6 +475,37 @@ class TileWidget(QFrame):
         """
         return self.buffer.fetch_tile(index)
 
+    def scroll_animation(self, row: int):
+        """
+        Start scroll animation and buffer the row into a temp variable
+        """
+        # We're beyond the top built row
+        if row < self.lowest_row:
+            self.scroll_to_row(row)
+            return
+
+        # +1 is a bit questionable
+        if row > self.highest_row - self.max_number_of_visible_rows + 1:
+            self.scroll_to_row(row)
+            return
+
+        self.new_focus_row = row
+        self.new_focus_row_offset = self.focus_row_offset + (self.new_focus_row - self.focus_row)
+        target = self.place_background_widget(self.new_focus_row_offset)
+        self.movement_animation.setStartValue(self.background_widget.pos())
+        self.movement_animation.setEndValue(target)
+        self.movement_animation.start()
+
+    def update_widget(self):
+        """
+        At the end of the animation, update the widget
+        """
+        if self.new_focus_row is None:
+            return
+
+        self.scroll_to_row(self.new_focus_row)
+        self.new_focus_row = None
+
     def scroll_to_row(self, row: int = None):
         """
         Scroll to a given row.
