@@ -857,12 +857,13 @@ class TileWidget(QFrame):
         if row == self.focus_row:
             return
 
-        global use_timers_scroll
-        if use_timers_scroll:
-            self.scroll_buffer = row
-            self.scroll_timer.start(self.scroll_timeout)
-        else:
-            self.scroll_to_row(row)
+        # global use_timers_scroll
+        # if use_timers_scroll:
+        #     self.scroll_buffer = row
+        #     self.scroll_timer.start(self.scroll_timeout)
+        # else:
+        #     self.scroll_to_row(row)
+        self.scroll_animation(row)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Custom Event Overrides to capture and them or trigger custom actionis
