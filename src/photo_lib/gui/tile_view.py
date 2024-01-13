@@ -73,6 +73,7 @@ class TileWidget(QFrame):
     index_to_row_lut: np.ndarray    # given an index -> gives the row that contains this index
     row_to_header_lut: np.array     # given a row -> gives the header for that row
 
+    # Widgets and Layout structures
     widgets: List[IndexedTile] = None  # List of all widgets that are currently instantiated
     hidden_widgets: List[IndexedTile] = None  # Widgets that are currently hidden
     widget_rows: List[List[IndexedTile]] = None
