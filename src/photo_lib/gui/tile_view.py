@@ -1,7 +1,7 @@
 import warnings
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QGridLayout, QScrollArea, QPushButton, QLabel, \
     QSplitter, QMainWindow, QScrollBar, QHBoxLayout
-from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint, QTimer
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QResizeEvent, QKeyEvent
 import sys
 import datetime
@@ -53,6 +53,9 @@ class TileWidget(QFrame):
 
     focus_row_offset: int = 0
 
+    new_focus_row: Union[int, None] = None
+    new_focus_row_offset: Union[int, None] = None
+
     lowest_row: int = 0
     highest_row: int = 0
 
@@ -80,6 +83,8 @@ class TileWidget(QFrame):
     layout_rows: List[Union[QLabel, List[IndexedTile]]] = None
     background_widget: QWidget = None
     background_layout: QGridLayout = None
+
+    movement_animation: QPropertyAnimation
 
     # ------------------------------------------------------------------------------------------------------------------
     # Read/Write Properties
@@ -225,6 +230,10 @@ class TileWidget(QFrame):
 
         self.background_widget.setLayout(self.background_layout)
 
+        self.movement_animation = QPropertyAnimation(self.background_widget, b"pos")
+        self.movement_animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        self.movement_animation.setDuration(200)
+
         global use_timers_resize
         global use_timers_scroll
 
@@ -311,18 +320,28 @@ class TileWidget(QFrame):
         """
         Update the sizing of the elements, triggered by resize or by adaptation of the content margins
         """
-        margin = self.margin  # left, top, right, bottom
+        # left, top, right, bottom
+        margin = self.margin
+
+        # Remaining width minus margins
         rem_width = self.width() - margin[0] - margin[2]
+
+        # Number of columns that fit into the remaining width
         new_number_of_columns = max(1, rem_width // self.tile_size)
+
+        # Set width of Background Widget
         self.background_widget.setFixedWidth(rem_width)
 
+        # Compute new maximum number of visible rows
         max_new_number_of_visible_rows = math.ceil((self.height() - margin[1] - margin[3]) / self.tile_size)
+
+        # Compute new minimum number of visible rows
         self.min_number_of_visible_rows = math.floor((self.height()
-                                                     - margin[1]
-                                                     - margin[3]) /
-                                                    (self.tile_size
-                                                     + self.header_height
-                                                     + 2 * self.background_layout.verticalSpacing()))
+                                                      - margin[1]
+                                                      - margin[3]) /
+                                                     (self.tile_size
+                                                      + self.header_height
+                                                      + 2 * self.background_layout.verticalSpacing()))
 
         if (new_number_of_columns == self.number_of_columns and
                 max_new_number_of_visible_rows == self.max_number_of_visible_rows):
@@ -472,13 +491,13 @@ class TileWidget(QFrame):
         # Using build_up to get to the place if the row is already loaded but further up
         if self.lowest_row <= row < self.focus_row:
             while self.focus_row > row:
-                self.build_up()
+                self._build_up()
             return
 
         # Using build_down to get to the place if the row is already loaded but further down
         if self.highest_row >= row > self.focus_row:
             while self.focus_row < row:
-                self.build_down()
+                self._build_down()
             return
 
         self._scroll_to_row(row)
@@ -508,7 +527,7 @@ class TileWidget(QFrame):
         # Clear the leayout rows
         for row in self.layout_rows:
             if type(row) is QLabel:
-                row.setVisible(False)
+                # row.setVisible(False)
                 row.deleteLater()
 
         self.layout_rows = []
@@ -750,7 +769,7 @@ class TileWidget(QFrame):
         Helper function to dump the indexes of the widgets for debugging purposes
         """
         if widget or layout:
-            print(f"-"*100)
+            print(f"-" * 100)
         if widget:
             for row in self.widget_rows:
                 indexes = [str(col.index) for col in row]
@@ -763,7 +782,7 @@ class TileWidget(QFrame):
                 else:
                     indexes = [str(col.index) for col in row]
                     print(", ".join(indexes))
-            print(f"-"*100)
+            print(f"-" * 100)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Slots
@@ -799,7 +818,7 @@ class TileWidget(QFrame):
 
     def __init_resize_event(self, a0) -> None:
         self.update_size()
-        self._scroll_to_row(0)
+        # self._scroll_to_row(0)
         super().resizeEvent(a0)
         self.resizeEvent = self.__normal_resize_event
 
@@ -835,10 +854,10 @@ class TileWidget(QFrame):
             self.scroll_offset += 10
             self.place_background_widget()
         elif a0.key() == Qt.Key.Key_Up and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
-            self.build_up()
+            self._build_up()
             self.dump_widgets()
         elif a0.key() == Qt.Key.Key_Down and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
-            self.build_down()
+            self._build_down()
             self.dump_widgets()
         elif a0.key() == Qt.Key.Key_R and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
             self.scroll_offset = 0
@@ -872,6 +891,7 @@ class TempRoot(QMainWindow):
         self.tiles.focus_row_changed.connect(self.set_val)
         self.scrollbar.valueChanged.connect(self.set_value)
         self.scrollbar.sliderReleased.connect(self.send_value)
+        self.tiles.page_size_changed.connect(self.scrollbar.setPageStep)
         style_sheet = """
         QScrollBar:vertical {
             border: 1px dashed black;
@@ -893,7 +913,7 @@ class TempRoot(QMainWindow):
         self.tiles.scroll_slot(self.scrollbar.value())
 
     def set_value(self, v: int):
-                # Single button press, capture it and propagate it to the tile widget
+        # Single button press, capture it and propagate it to the tile widget
         if not self.scrollbar.isSliderDown():
             self.tiles.scroll_slot(v)
 
