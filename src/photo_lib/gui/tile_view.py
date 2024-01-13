@@ -432,13 +432,18 @@ class TileWidget(QFrame):
         # Make sure spacing in grid layout is consistent
         # self.background_layout.addWidget(self.layout_placeholder, len(self.widget_rows), 0, 1, self.number_of_columns)
 
-    def place_background_widget(self):
+    def place_background_widget(self, target_offset: int = None):
         """
         Place the background widget such that the correct row is displayed.
         """
         # y = (self.focus_row_offset * (self.tile_size + self.background_layout.verticalSpacing())
         #      - self.margin[1])
         y = 0
+
+        if target_offset is None:
+            tos = self.focus_row_offset
+        else:
+            tos = target_offset
 
         for i in range(len(self.layout_rows)):
             row = self.layout_rows[i]
@@ -448,18 +453,21 @@ class TileWidget(QFrame):
                 assert type(row) is list, "Row must be either a list of widgets or a header"
                 y += self.tile_size + self.background_layout.verticalSpacing()
 
-            if self.layout_rows[i + 1] is self.widget_rows[self.focus_row_offset]:
+            if self.layout_rows[i + 1] is self.widget_rows[tos]:
                 if type(self.layout_rows[i]) is QLabel:
                     y -= self.header_height + self.background_layout.verticalSpacing()
                 break
 
         y -= self.margin[1]
         # print(f"Background Widget Position: {self.margin[0], -y + self.scroll_offset}")
-        self.background_widget.move(QPoint(self.margin[0], -y + self.scroll_offset))
+        if target_offset is None:
+            self.background_widget.move(QPoint(self.margin[0], -y + self.scroll_offset))
 
-        # Perform resizing of background widget manually.
-        self.background_widget.updateGeometry()
-        self.background_widget.update()
+            # Perform resizing of background widget manually.
+            self.background_widget.updateGeometry()
+            self.background_widget.update()
+        else:
+            return QPoint(self.margin[0], -y + self.scroll_offset)
 
     def fetch_tile(self, index: int) -> BaseTileInfo:
         """
