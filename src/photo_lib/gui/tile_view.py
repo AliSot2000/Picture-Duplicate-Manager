@@ -638,7 +638,7 @@ class TileWidget(QFrame):
             self.layout_from_datastructure()
             self.place_background_widget()
 
-    def _build_up(self):
+    def _build_up(self, layout: bool = True):
         """
         Build next row above the current highest row. Does nothing if top is reached.
         """
@@ -649,7 +649,8 @@ class TileWidget(QFrame):
                 warnings.warn("Focus row smaller than 0, why is this possible?")
                 self.focus_row = 0
                 self.focus_row_offset = 0
-                self.place_background_widget()
+                if layout:
+                    self.place_background_widget()
                 return
 
             elif self.focus_row == 0:
@@ -661,15 +662,17 @@ class TileWidget(QFrame):
             self.focus_row -= 1
             self.focus_row_offset -= 1
             self._remove_row_bottom()
-            self.layout_from_datastructure()
-            self.place_background_widget()
+            if layout:
+                self.layout_from_datastructure()
+                self.place_background_widget()
             return
 
         # we're at the very bottom and we can go ahead an increase the number of rows without deleting one.
         if self.highest_row == self.number_of_rows - 1 and len(self.widget_rows) < self.number_of_generated_rows:
             self.focus_row -= 1
             self._add_row_top()
-            self.layout_from_datastructure()
+            if layout:
+                self.layout_from_datastructure()
             return
 
         # we're somewhere in the middle, row offset is constant, widget placement is constant, only new rows need
@@ -677,8 +680,9 @@ class TileWidget(QFrame):
         self._remove_row_bottom()
         self._add_row_top()
         self.focus_row -= 1
-        self.layout_from_datastructure()
-        self.place_background_widget()
+        if layout:
+            self.layout_from_datastructure()
+            self.place_background_widget()
 
     # ------------------------------------------------------------------------------------------------------------------
     # Helper functions which perform repeated tasks of building rows at bottom or top or delete row at bottom or top
