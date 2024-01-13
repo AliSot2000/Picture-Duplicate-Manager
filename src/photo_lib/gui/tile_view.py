@@ -590,7 +590,7 @@ class TileWidget(QFrame):
         self.place_background_widget()
         self.scroll_buffer = None
 
-    def _build_down(self):
+    def _build_down(self, layout: bool = True):
         """
         Build next row below the current lowest row. Does nothing if bottom is reached.
         """
@@ -603,7 +603,8 @@ class TileWidget(QFrame):
                 warnings.warn("Focus row bigger than cutoff, clamping")
                 self.focus_row = cutoff
                 self.focus_row_offset = self.focus_row - self.lowest_row
-                self.place_background_widget()
+                if layout:
+                    self.place_background_widget()
                 return
 
             elif self.focus_row == cutoff:
@@ -613,8 +614,9 @@ class TileWidget(QFrame):
             # we've still got rows that aren't visible, changing the focus_row and focus_row_offset is enough
             self._remove_row_top()
             self.focus_row += 1
-            self.layout_from_datastructure()
-            self.place_background_widget()
+            if layout:
+                self.layout_from_datastructure()
+                self.place_background_widget()
             return
 
         # we're at the very top and we can go ahead an increase the number of rows without deleting one.
@@ -622,8 +624,9 @@ class TileWidget(QFrame):
             self.focus_row_offset += 1
             self.focus_row += 1
             self._add_row_bottom()
-            self.layout_from_datastructure()
-            self.place_background_widget()
+            if layout:
+                self.layout_from_datastructure()
+                self.place_background_widget()
             return
 
         # we're somewhere in the middle, row offset is constant, widget placement is constant, only new rows need
@@ -631,8 +634,9 @@ class TileWidget(QFrame):
         self._remove_row_top()
         self._add_row_bottom()
         self.focus_row += 1
-        self.layout_from_datastructure()
-        self.place_background_widget()
+        if layout:
+            self.layout_from_datastructure()
+            self.place_background_widget()
 
     def _build_up(self):
         """
