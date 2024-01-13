@@ -531,13 +531,17 @@ class TileWidget(QFrame):
         # Using build_up to get to the place if the row is already loaded but further up
         if self.lowest_row <= row < self.focus_row:
             while self.focus_row > row:
-                self._build_up()
+                self._build_up(False)
+            self.layout_from_datastructure()
+            self.place_background_widget()
             return
 
         # Using build_down to get to the place if the row is already loaded but further down
         if self.highest_row >= row > self.focus_row:
             while self.focus_row < row:
-                self._build_down()
+                self._build_down(False)
+            self.layout_from_datastructure()
+            self.place_background_widget()
             return
 
         self._scroll_to_row(row)
