@@ -36,7 +36,7 @@ class TileWidget(QFrame):
     focus_row_changed = pyqtSignal(int)
 
     # Properties about the view, writable
-    __number_of_visible_rows = 0
+    __max_number_of_visible_rows = 0
     __number_of_columns = 0
     __focus_row = 0
     __number_of_rows = 0
@@ -113,16 +113,16 @@ class TileWidget(QFrame):
 
     @property
     def max_number_of_visible_rows(self):
-        return self.__number_of_visible_rows
+        return self.__max_number_of_visible_rows
 
     @max_number_of_visible_rows.setter
     def max_number_of_visible_rows(self, value: int):
         assert value > 0, "Number of visible rows must be greater than 0"
-        if value == self.__number_of_visible_rows:
+        if value == self.__max_number_of_visible_rows:
             return
 
-        self.__number_of_visible_rows = value
-        self.__number_of_generated_rows = value + 2 * self.preload_row_count
+        self.__max_number_of_visible_rows = value
+        self.__number_of_generated_rows = value + 2 * (self.preload_row_count + value)
 
     @property
     def number_of_columns(self):
