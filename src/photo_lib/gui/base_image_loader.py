@@ -23,7 +23,7 @@ class LoadingBaseImage(BaseImage):
         Schedule the image to be loaded with the image loader
         """
         global img_loader
-        # self.pixmap = None clearing if picture nees to be checked more precicely
+        # self.pixmap = None clearing if picture nees to be checked more precisely
         img_loader.load_image(self)
         img_loader.check_futures()
 
@@ -31,3 +31,4 @@ class LoadingBaseImage(BaseImage):
         global img_loader
         img_loader.unregister(self)
         super().deleteLater()
+        print(f"DEBUG: Deleted Later {self}")
