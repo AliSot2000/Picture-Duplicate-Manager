@@ -59,11 +59,9 @@ class BaseImage(QFrame):
             self.__load_image_flg = True
             self.load_image()
 
-    def _load_image(self):
+    def perform_load_image(self):
         """
-        Load the image from the file path into ram and set the pixmap
-
-        :return:
+        Fetches the file path, and loads it into ram. This is a blocking operation.
         """
         assert self.file_path is not None, "File path must be set before loading image."
         self.pixmap = QPixmap(self.file_path)
