@@ -215,12 +215,12 @@ class ZoomImage(LoadingBaseImage):
         except ValueError:
             self.__scale_offset = 1
 
-    def _load_image(self):
+    def load_image(self):
         """
         Load the image from the file path into ram and set the pixmap
         :return:
         """
-        super()._load_image()
+        super().load_image()
         self.timer.singleShot(100, self.resetImage)
 
     def paintEvent(self, event):

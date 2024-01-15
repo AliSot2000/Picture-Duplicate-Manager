@@ -57,7 +57,7 @@ class BaseImage(QFrame):
         self.__file_path = value
         if value is not None:
             self.__load_image_flg = True
-            self._load_image()
+            self.load_image()
 
     def _load_image(self):
         """
@@ -79,7 +79,8 @@ class BaseImage(QFrame):
         if not self.pixmap.isNull() and self.isVisible():
             self.update()
 
-    def _unload_image(self):
+    def load_image(self):
+    def unload_image(self):
         """
         Removes the image from ram. The widget will draw a dark gray rectangle.
         :return:
@@ -145,4 +146,4 @@ class BaseImage(QFrame):
 
         # Attempt to reload the image.
         if self.file_path is not None:
-            self._load_image()
+            self.load_image()

@@ -39,9 +39,9 @@ class ClickableImage(LoadingBaseImage):
             return
         self.__image_loaded = value
         if self.__image_loaded and self.file_path is not None:
-            self._load_image()
+            self.load_image()
         else:
-            self._unload_image()
+            self.unload_image()
 
     @property
     def file_path(self):
@@ -62,7 +62,7 @@ class ClickableImage(LoadingBaseImage):
         self.__file_path = value
 
         if self.__file_path is not None and self.image_loaded:
-            self._load_image()
+            self.load_image()
 
 
 def helper():
