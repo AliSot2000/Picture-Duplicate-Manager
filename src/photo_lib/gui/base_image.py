@@ -80,6 +80,13 @@ class BaseImage(QFrame):
             self.update()
 
     def load_image(self):
+        """
+        Base Implementation of loading image into RAM (might use multithreading in different instance).
+
+        :return:
+        """
+        self.perform_load_image()
+
     def unload_image(self):
         """
         Removes the image from ram. The widget will draw a dark gray rectangle.

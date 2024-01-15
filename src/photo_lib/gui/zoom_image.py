@@ -133,7 +133,6 @@ class ZoomImage(LoadingBaseImage):
         new_t = mtc / new_s + self.__offset
         self.__offset -= new_t - current_t
 
-
     def moveImage(self, p: Union[QPoint, QPointF]):
         """
         Moves the image horizontally by d pixels.
@@ -197,7 +196,6 @@ class ZoomImage(LoadingBaseImage):
         self.__scale_offset = int((math.log2( r.height() / self.pixmap.height()) - 1) * 100)
         self.__fitting_scale = self.__scale_offset
         self.update()
-
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         """
