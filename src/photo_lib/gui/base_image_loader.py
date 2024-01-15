@@ -19,7 +19,7 @@ class LoadingBaseImage(BaseImage):
         img_loader.register(self)
         self.file_path = file_path
 
-    def _load_image(self):
+    def load_image(self):
         """
         Schedule the image to be loaded with the image loader
         """
