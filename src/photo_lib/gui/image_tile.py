@@ -69,6 +69,11 @@ class NamedTile(QFrame):
 
 # Class named patch because squareness not enforced
 class ClickablePatch(ClickableImage):
+    """
+    Creates a clickable image which gets a tile_info dataclass to get the image instead of the file_path.
+    """
+    __tile_info: Union[BaseTileInfo, None] = None
+
     @property
     def tile_info(self):
         return self.__tile_info
@@ -83,7 +88,11 @@ class ClickablePatch(ClickableImage):
 
 
 class IndexedTile(ClickablePatch):
-    __tile_info: Union[BaseTileInfo, None] = None
+    """
+    Has a index - to keep track of the index in the database (for display purposes).
+
+    Also forces the aspect ratio to be square. -> Tile Name
+    """
     index: int = -1
 
     def heightForWidth(self, a0: int) -> int:
