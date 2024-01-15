@@ -755,7 +755,6 @@ class ImportRecyclingCarousel(BaseCycleCarousel):
         self.model.build_tiles_from_table()
 
 
-
 class DatabaseCarousel(QFrame):
     """
     Full widget containing also the scroll bar and tying the carousel and the scrollbar together.
