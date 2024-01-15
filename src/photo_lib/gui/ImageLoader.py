@@ -15,18 +15,20 @@ def load_store_img(img: BaseImage):
     :param img: Image to load.
     :return bool: True if the image was loaded, False if not.
     """
-    img.pixmap = QPixmap(img.file_path)
-
-    if (ext := os.path.splitext(img.file_path)[1].lower()) not in [".png", ".jpg", ".jpeg", ".gif"]:
-        warnings.warn(f"File must be an image. File Extension: {ext}")
-    try:
-        img.width_div_height = img.pixmap.width() / img.pixmap.height()
-    except ZeroDivisionError:
-        img.width_div_height = 1.0
-
-    img.updateGeometry()
-    if not img.pixmap.isNull() and img.isVisible():
-        img.update()
+    img.perform_load_image()
+    # img.pixmap = QPixmap(img.file_path)
+    #
+    # if (ext := os.path.splitext(img.file_path)[1].lower()) not in [".png", ".jpg", ".jpeg", ".gif"]:
+    #     warnings.warn(f"File must be an image. File Extension: {ext}")
+    # try:
+    #     img.width_div_height = img.pixmap.width() / img.pixmap.height()
+    # except ZeroDivisionError:
+    #     img.width_div_height = 1.0
+    #
+    # img.updateGeometry()
+    # if not img.pixmap.isNull() and img.isVisible():
+    #     img.update()
+    return True
 
 
 @dataclass
