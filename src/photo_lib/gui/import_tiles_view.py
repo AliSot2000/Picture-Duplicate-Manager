@@ -266,11 +266,10 @@ if __name__ == "__main__":
     m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
     m.grouping = GroupingCriterion.YEAR_MONTH_DAY
     # window = ImportView(m)
-    window = PhotosTile(m)
+    window = ImportView(m)
     window.setMinimumWidth(400)
     window.setMinimumHeight(400)
-    window.move_to_row(1600)
-    # window.model.current_import_table_name = "tbl_1998737548188488947"
+    window.model.current_import_table_name = "tbl_1998737548188488947"
     window.model.build_tiles_from_table()
     window.setWindowTitle("Import View")
 
