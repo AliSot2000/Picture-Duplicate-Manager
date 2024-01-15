@@ -81,6 +81,12 @@ class ImageLoader:
         for future in self.futures:
             if not future.future.done():
                 new_futures.append(future)
+            else:
+                try:
+                    r = future.future.result()
+                except Exception as e:
+                    print(f"Error loading image: {e}")
+                    r = False
 
         new_count = len(new_futures)
         self.futures = new_futures
