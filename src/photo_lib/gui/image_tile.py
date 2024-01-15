@@ -19,7 +19,7 @@ class NamedTile(QFrame):
     clickable_image: ClickableImage
     b_layout: QVBoxLayout
 
-    open_image_callback = None
+    # open_image_callback = None
 
     def __init__(self, info: ImportTileInfo):
         super().__init__()
