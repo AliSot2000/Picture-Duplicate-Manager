@@ -107,7 +107,7 @@ class IndexedTile(ClickablePatch):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    widget = ImageTile(ImportTileInfo(1, '/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2159.JPG',
+    widget = NamedTile(ImportTileInfo(1, '/home/alisot2000/Documents/06 ReposNCode/PictureMerger/test-images/IMG_2159.JPG',
                                       False, False, MatchTypes.No_Match))
     root = QMainWindow()
     root.setCentralWidget(widget)
