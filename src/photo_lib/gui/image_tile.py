@@ -7,7 +7,7 @@ from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes, BaseTileInfo
 
 
-class ImageTile(QFrame):
+class NamedTile(QFrame):
 
     tile_info: Union[ImportTileInfo, None] = None
 

@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QCheckBox, QApplication, Q
 from PyQt6 import QtGui
 from PyQt6.QtCore import QSize, Qt
 
-from photo_lib.gui.image_tile import ImageTile
+from photo_lib.gui.image_tile import NamedTile
 from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes
 
 
@@ -17,7 +17,7 @@ class Row(QFrame):
     """
     h_layout: QHBoxLayout
 
-    def __init__(self, tiles: List[Union[QWidget, ImageTile]]):
+    def __init__(self, tiles: List[Union[QWidget, NamedTile]]):
         """
         Initialize and add a list of image tiles.
 
@@ -45,7 +45,7 @@ class PictureBlock(QFrame):
     # TODO needs to go into config or something.
     tile_size: int = 200
     last_n_h_tiles: int = -1
-    img_tiles: List[ImageTile] = None
+    img_tiles: List[NamedTile] = None
 
     v_layout: QVBoxLayout
 
@@ -85,7 +85,7 @@ class PictureBlock(QFrame):
         self.img_tiles = []
 
         for tile_info in tile_infos:
-            tile = ImageTile(tile_info)
+            tile = NamedTile(tile_info)
             tile.setMaximumHeight(self.tile_size)
             tile.setMaximumWidth(self.tile_size)
             tile.b_layout.setContentsMargins(0, 0, 0, 0)

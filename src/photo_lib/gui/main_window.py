@@ -11,7 +11,7 @@ from photo_lib.gui.modals import (DateTimeModal, FolderSelectModal, TaskSelectMo
                                   FileExtensionDialog)
 from photo_lib.gui.media_pane import MediaPane
 from photo_lib.gui.import_table_view import ImportTableList
-from photo_lib.gui.image_tile import ImageTile
+from photo_lib.gui.image_tile import NamedTile
 from photo_lib.data_objects import ProcessComType, Progress, Views, LongRunningActions, ImportTileInfo, MatchTypes
 from typing import Union
 
@@ -214,7 +214,7 @@ class RootWindow(QMainWindow):
         self.import_big_screen.build_all()
         self.open_import_tiles()
 
-    def import_tile_click(self, tile: ImageTile):
+    def import_tile_click(self, tile: NamedTile):
         """
         When a tile is clicked, we set that tile as active and we switch to the big screen view.
         :param tile: tile that was clicked to open image in big screen.

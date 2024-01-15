@@ -7,7 +7,7 @@ import math
 import numpy as np
 from typing import Union, List, Tuple
 from photo_lib.gui.named_picture_block import CheckNamedPictureBlock
-from photo_lib.gui.image_tile import ImageTile, IndexedTile
+from photo_lib.gui.image_tile import NamedTile, IndexedTile
 from photo_lib.gui.model import Model, GroupCount, GroupingCriterion, TileBuffer
 from photo_lib.PhotoDatabase import MatchTypes
 from photo_lib.gui.gui_utils import general_wrapper
@@ -33,8 +33,8 @@ class ImportView(QFrame):
 
     blocks: List[CheckNamedPictureBlock] = None
 
-    image_clicked = pyqtSignal(ImageTile)
-    tiles: List[ImageTile] = None
+    image_clicked = pyqtSignal(NamedTile)
+    tiles: List[NamedTile] = None
 
     def __init__(self, model: Model):
         """
@@ -152,7 +152,7 @@ class ImportView(QFrame):
                 self.scroll_area.ensureWidgetVisible(t.clickable_image)
                 break
 
-    def _tile_clicked(self, tile: ImageTile):
+    def _tile_clicked(self, tile: NamedTile):
         """
         Function that is called when an image tile is clicked. Emits the image_clicked signal.
         Do not call this function from outside the class.
