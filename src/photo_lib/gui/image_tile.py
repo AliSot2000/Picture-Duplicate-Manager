@@ -8,6 +8,10 @@ from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes, BaseTileInfo
 
 
 class NamedTile(QFrame):
+    """
+    An always square image tile that can be clicked on to emit a signal. The tile also has a text label with the
+    file name. The tile can also be colored to indicate if it is marked for import or not.
+    """
 
     tile_info: Union[ImportTileInfo, None] = None
 
@@ -18,10 +22,6 @@ class NamedTile(QFrame):
     open_image_callback = None
 
     def __init__(self, info: ImportTileInfo):
-        """
-        An always square image tile that can be clicked on to emit a signal. The tile also has a text label with the
-        file name. The tile can also be colored to indicate if it is marked for import or not.
-        """
         super().__init__()
         self.tile_info = info
 
