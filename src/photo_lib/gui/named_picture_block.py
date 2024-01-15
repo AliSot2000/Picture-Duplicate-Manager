@@ -284,6 +284,7 @@ class CheckNamedPictureBlock(QFrame):
                     self.marked_not_for_import()
                 for tile in self.picture_block.img_tiles:
                     tile.reset_mark()
+
     def set_imported(self):
         """
         All files were imported. Set block state to imported.
