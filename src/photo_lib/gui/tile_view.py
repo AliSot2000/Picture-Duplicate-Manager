@@ -2,7 +2,7 @@ import warnings
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QGridLayout, QScrollArea, QPushButton, QLabel, \
     QSplitter, QMainWindow, QScrollBar, QHBoxLayout
 from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint, QTimer, QPropertyAnimation, QEasingCurve
-from PyQt6.QtGui import QResizeEvent, QKeyEvent
+from PyQt6.QtGui import QResizeEvent, QKeyEvent, QPixmapCache
 import sys
 import datetime
 import math
@@ -989,6 +989,7 @@ class TempRoot(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    v = QPixmapCache.setCacheLimit(1024)
     # m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
     # m.current_import_table_name = "tbl_-1886740392237389744"
     # w = TileWidget(m)
