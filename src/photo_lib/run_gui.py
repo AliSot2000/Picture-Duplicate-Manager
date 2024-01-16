@@ -14,5 +14,6 @@ if __name__ == "__main__":
     window.build_import_views()
     window.open_import_big_screen()
     h = QImageReader.setAllocationLimit(0)
+    v = QPixmapCache.setCacheLimit(1024)
     window.show()
     sys.exit(app.exec())
