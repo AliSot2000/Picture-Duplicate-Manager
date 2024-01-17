@@ -21,6 +21,7 @@ use_timers_scroll = False
 
 
 # TODO register clickable tiles to emmit the img_selected signal
+# TODO deleting the pixmap doesn't free the ram for some reason.
 class TileWidget(QFrame):
     # Backend objects
     model: Model
@@ -907,10 +908,10 @@ class TileWidget(QFrame):
             self.place_background_widget()
         elif a0.key() == Qt.Key.Key_Up and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
             self._build_up()
-            self.dump_widgets()
+            # self.dump_widgets()
         elif a0.key() == Qt.Key.Key_Down and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
             self._build_down()
-            self.dump_widgets()
+            # self.dump_widgets()
         elif a0.key() == Qt.Key.Key_R and a0.modifiers() == Qt.KeyboardModifier.ControlModifier:
             self.scroll_offset = 0
             self.place_background_widget()
