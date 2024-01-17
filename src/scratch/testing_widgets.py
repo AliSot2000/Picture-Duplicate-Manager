@@ -1,9 +1,8 @@
-
 from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QGridLayout, QFrame, QLabel, QScrollBar, QVBoxLayout
 from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent, QWheelEvent, QKeyEvent, QColor
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer, pyqtSlot
 from photo_lib.PhotoDatabase import BaseTileInfo
-from photo_lib.gui.clickable_image import ClickableTile
+from photo_lib.gui.clickable_image import ClickableImage
 from photo_lib.gui.model import Model
 from photo_lib.gui.gui_utils import image_wrapper
 from photo_lib.data_objects import ImportTileInfo
@@ -400,7 +399,7 @@ class RecyclingCarousel(QFrame):
         return count
 
 
-class PotentCarousel(QFrame):
+class CarouselView(QFrame):
     # TODO config
     margin: int = 10
     scrollbar_height: int = 15
@@ -510,7 +509,7 @@ if __name__ == "__main__":
     m = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
     # m.current_import_table_name = "tbl_-3399138825726121575"
     m.build_tiles_from_table()
-    window = PotentCarousel(m)
+    window = CarouselView(m)
     # window = RecyclingCarousel(m)
     # window = TestingTamplatingCarousel(m)
     # window.build_carousel()
