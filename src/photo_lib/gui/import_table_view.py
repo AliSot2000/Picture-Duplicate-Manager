@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QMessageBox, QMainWindow, QApplication
+from PyQt6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QMessageBox, QMainWindow, QApplication, QScrollArea
 from PyQt6.QtGui import QAction
 from photo_lib.gui.gui_utils import general_wrapper
 from photo_lib.gui.model import Model
@@ -207,7 +207,8 @@ class TestWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.model = Model(folder_path="/media/alisot2000/DumpStuff/work_dummy/")
+        # self.model = Model(folder_path="/media/alisot2000/DumpStuff/work_dummy/")
+        self.model = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
         self.view = ImportTableList(model=self.model)
         self.view.fetch_tables()
 
@@ -215,6 +216,28 @@ class TestWindow(QMainWindow):
 
         menu = self.menuBar().addMenu("Import Table Actions")
         menu.addAction(self.view.del_all_tables_action)
+
+
+# class TestWindow(QMainWindow):
+#     def __init__(self):
+#         super().__init__()
+#
+#         # self.model = Model(folder_path="/media/alisot2000/DumpStuff/work_dummy/")
+#         self.model = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
+#         self.view = ImportTableList(model=self.model)
+#         self.view.fetch_tables()
+#
+#         self.view_wrapper = QScrollArea()
+#         self.view_wrapper.setWidget(self.view)
+#
+#         self.setCentralWidget(self.view_wrapper)
+#
+#         menu = self.menuBar().addMenu("Import Table Actions")
+#         menu.addAction(self.view.del_all_tables_action)
+#
+#     def resizeEvent(self, a0):
+#         super().resizeEvent(a0)
+#         self.view.resizeEvent(a0)
 
 
 if __name__ == "__main__":
