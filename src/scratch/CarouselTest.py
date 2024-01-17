@@ -1,15 +1,11 @@
-from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QGridLayout, QFrame, QLabel, QScrollBar, QVBoxLayout
-from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent, QWheelEvent, QKeyEvent, QColor
-from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer, pyqtSlot
-from photo_lib.PhotoDatabase import BaseTileInfo
-from photo_lib.gui.clickable_image import ClickableImage
-from photo_lib.gui.model import Model
-from photo_lib.gui.gui_utils import image_wrapper
-from photo_lib.data_objects import ImportTileInfo
-from typing import List, Union
-import datetime
 import sys
-import math
+from typing import List
+
+from PyQt6.QtCore import Qt, QPoint, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QResizeEvent, QKeyEvent, QColor
+from PyQt6.QtWidgets import QApplication, QFrame, QLabel, QScrollBar
+
+from photo_lib.gui.model import Model
 
 
 class MyLabel(QLabel):
@@ -159,7 +155,7 @@ class RecyclingCarousel(QFrame):
 
         # More images to load to the left
         if first.index > 0:
-            last.index = first.index -1
+            last.index = first.index - 1
             col = QColor.fromHsvF((last.index / self.number_of_elements), 1.0, 1.0)
             self.widgets = [last] + self.widgets[:-1]
             s = f"background-color: rgba{col.getRgb()}"
@@ -246,10 +242,10 @@ class RecyclingCarousel(QFrame):
             # Assign new values
             self.widgets[self.center_widget].index = index
             for i in range(self.center_widget + 1, len(self.widgets)):
-                self.widgets[i].index = self.widgets[i-1].index + 1
+                self.widgets[i].index = self.widgets[i - 1].index + 1
 
             for i in range(self.center_widget - 1, -1, -1):
-                self.widgets[i].index = self.widgets[i+1].index - 1
+                self.widgets[i].index = self.widgets[i + 1].index - 1
 
             # update colors
             for i in range(len(self.widgets)):
@@ -313,7 +309,7 @@ class RecyclingCarousel(QFrame):
         center = self.width() // 2
 
         for i in range(0, self.center_widget):
-            k = self.center_widget - i -1
+            k = self.center_widget - i - 1
             x_l = center - w / 2 - self.spacing * k - w * (k + 1) - w * self.center_spacing
             self.widgets[i].move(QPoint(x_l, 0))
 
@@ -338,7 +334,7 @@ class RecyclingCarousel(QFrame):
                 self.widgets[0].deleteLater()
                 self.widgets[-1].deleteLater()
                 self.widgets = self.widgets[1:-1]
-                self.center_widget = self.center_widget -1
+                self.center_widget = self.center_widget - 1
                 return
 
             # we're at a threshold and it's the left one
