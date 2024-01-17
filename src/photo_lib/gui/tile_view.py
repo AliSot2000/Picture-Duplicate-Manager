@@ -870,6 +870,10 @@ class TileWidget(QFrame):
     # ------------------------------------------------------------------------------------------------------------------
 
     def __init_resize_event(self, a0) -> None:
+        """
+        Initial call to resize_event will execute this function. It is used to make sure that we have updated the size
+        once so the initial layout is made.
+        """
         self.update_size()
         # self._scroll_to_row(0)
         super().resizeEvent(a0)
