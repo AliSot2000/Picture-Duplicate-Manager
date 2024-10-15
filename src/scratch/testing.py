@@ -1,4 +1,7 @@
+import math
 import sys
+import time
+
 from PyQt6.QtWidgets import (
     QApplication,
     QLabel,
@@ -16,10 +19,10 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QPixmap, QPainter, QFont, QPixmapCache, QResizeEvent
 from PyQt6.QtCore import Qt, QPropertyAnimation, QPoint, QEasingCurve
-import random
-import os
-from photo_lib.gui.image_tile import IndexedTile
-from photo_lib.gui.base_image import BaseImage
+# import random
+# import os
+# from photo_lib.gui.image_tile import IndexedTile
+# from photo_lib.gui.base_image import BaseImage
 
 
 # https://stackoverflow.com/questions/17935691/stylesheet-on-qscrollbar-leaves-background-of-scrollbar-with-checkerboard-patter
@@ -34,16 +37,19 @@ class RootWindow(QMainWindow):
 
         self.placeholder = QWidget()
         self.placeholder_layout = QGridLayout()
+        self.placeholder_layout.setSpacing(10)
         self.placeholder.setLayout(self.placeholder_layout)
         self.placeholder_layout.setContentsMargins(0, 0, 0, 0)
 
         self.style_sheet_input = QTextEdit()
         self.submit_btn = QPushButton("Submit")
         self.submit_btn.clicked.connect(self.set_style_sheet)
+
         self.scroll_max = QSlider(Qt.Orientation.Horizontal)
         self.scroll_max.valueChanged.connect(self.max_set)
         self.scroll_max.setMaximum(1000)
         self.scroll_max.setMinimum(50)
+
         self.page_size = QSlider(Qt.Orientation.Horizontal)
         self.page_size.valueChanged.connect(self.page_set)
         self.page_size.setMaximum(50)
@@ -140,10 +146,10 @@ class RootWindow(QMainWindow):
         # }
         # """
         # self.sc.setStyleSheet(style_sheet)
-        print(self.sc.style())
-        print(f"'{self.sc.styleSheet()}'")
 
         self.l = QHBoxLayout()
+        self.l.setContentsMargins(10, 10, 10, 10)
+        self.l.setSpacing(10)
         # self.l = QVBoxLayout()
         self.dummy_widget.setLayout(self.l)
 
@@ -151,19 +157,59 @@ class RootWindow(QMainWindow):
         self.l.addWidget(self.sc)
 
         self.setCentralWidget(self.dummy_widget)
+
+        # Spacing
+        self.upper_pad = QLabel("", self)
+        self.upper_pad.setVisible(False)
+        self.upper_pad.setStyleSheet("QLabel {background: rgba(255, 128, 0, 128);}")
+
+        self.lower_pad = QLabel("", self)
+        self.lower_pad.setVisible(False)
+        self.lower_pad.setStyleSheet("QLabel {background: rgba(255, 128, 0, 128);}")
+
+        # Arrows
+        self.upper_arrow = QLabel("", self)
+        self.upper_arrow.setVisible(False)
+        self.upper_arrow.setStyleSheet("QLabel {background: rgba(128, 255, 0, 128);}")
+
+        self.lower_arrow = QLabel("", self)
+        self.lower_arrow.setVisible(False)
+        self.lower_arrow.setStyleSheet("QLabel {background: rgba(128, 255, 0, 128);}")
+
+        # Page
+        self.upper_page = QLabel("", self)
+        self.upper_page.setVisible(False)
+        self.upper_page.setStyleSheet("QLabel {background: rgba(0, 255, 128, 128);}")
+
+        self.lower_page = QLabel("", self)
+        self.lower_page.setVisible(False)
+        self.lower_page.setStyleSheet("QLabel {background: rgba(0, 255, 128, 128);}")
+
+        # Scrollbar
+        self.scrollbar = QLabel("", self)
+        self.scrollbar.setVisible(False)
+        self.scrollbar.setStyleSheet("QLabel {background: rgba(0, 128, 255, 128);}")
+
         self.indicator = QLabel("Indicator", self)
-        self.indicator.setVisible(False)
+        self.indicator.setStyleSheet("QLabel {background: red;}")
+        self.indicator.setVisible(True)
         self.indicator.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.indicator.setFixedHeight(26)
+        self.indicator.setFixedWidth(100)
 
     def do_shit(self, *args, **kwargs):
         print(f"Args {args}")
         print(f"Kwargs {kwargs}")
+        self.indicator.setVisible(True)
+        self.upper_pad.setVisible(True)
+        self.lower_pad.setVisible(True)
+        self.upper_arrow.setVisible(True)
+        self.lower_arrow.setVisible(True)
+        self.upper_page.setVisible(True)
+        self.lower_page.setVisible(True)
+        self.scrollbar.setVisible(True)
 
 
-        style = self.sc.style()
-        x = self.sc.style().pixelMetric(style.PixelMetric.PM_ScrollBarSliderMin)
-        print(x)
-        print(style.PixelMetric(style.PixelMetric.PM_ScrollBarSliderMin))
 
     def max_set(self, v: int):
         self.sc.setMaximum(v)
@@ -182,31 +228,99 @@ class RootWindow(QMainWindow):
 
     def show_indicator(self):
         self.indicator.setVisible(True)
+        self.upper_pad.setVisible(True)
+        self.lower_pad.setVisible(True)
+        self.upper_arrow.setVisible(True)
+        self.lower_arrow.setVisible(True)
+        self.upper_page.setVisible(True)
+        self.lower_page.setVisible(True)
+        self.scrollbar.setVisible(True)
         self.value_reader()
 
     def hide_indicator(self):
         self.indicator.setVisible(False)
+        self.upper_pad.setVisible(False)
+        self.lower_pad.setVisible(False)
+        self.upper_arrow.setVisible(False)
+        self.lower_arrow.setVisible(False)
+        self.upper_page.setVisible(False)
+        self.lower_page.setVisible(False)
+        self.scrollbar.setVisible(False)
 
     def value_reader(self):
+        print(f"Scrollbar Size:", self.sc.size())
         min_handle_height = self.sc.style().pixelMetric(QStyle.PixelMetric.PM_ScrollBarSliderMin)
         no_arrows = self.sc.height() - self.sc.width() * 2
         relative = self.sc.value() / (self.sc.maximum() - self.sc.minimum())
-        # should be
-        # movement_range = no_arrows - 50
-        # is
+
+        # Height should be page step / document length
+        bar_height_rel = self.sc.pageStep() / (self.sc.maximum() - self.sc.minimum() + self.sc.pageStep())
+        bar_height_px = math.floor(bar_height_rel * no_arrows)
+        handle_height = max(min_handle_height, bar_height_px)
+        print(handle_height)
+
+        # INFO
+        #   => Need to keep track of height of separator?
+
         self.indicator.setText(str(self.sc.value()))
-        movement_range = self.sc.height() - 50
-        self.indicator.move(self.width() - 15 - self.indicator.width(),
-                            int(relative * movement_range + 25 + 10 - self.indicator.height() / 2))
+        movement_range = no_arrows - handle_height
+        self.indicator.move(self.width() - self.sc.width() - 10 - self.indicator.width(),
+                            int(relative * movement_range
+                                + (handle_height / 2)
+                                + 10
+                                + self.sc.width()
+                                - self.indicator.height() / 2))
+
+        # Spacing
+        self.lower_pad.setFixedWidth(self.width())
+        self.lower_pad.setFixedHeight(10)
+        self.lower_pad.move(0, self.height() - 10)
+
+        self.upper_pad.setFixedWidth(self.width())
+        self.upper_pad.setFixedHeight(10)
+        self.upper_pad.move(0, 0)
+
+        # Arrows
+        self.lower_arrow.setFixedHeight(self.sc.width())
+        self.lower_arrow.setFixedWidth(self.width())
+        self.lower_arrow.move(0, self.height() - 10 - self.sc.width())
+
+        self.upper_arrow.setFixedHeight(self.sc.width())
+        self.upper_arrow.setFixedWidth(self.width())
+        self.upper_arrow.move(0, 10)
+
+        # Page
+        self.lower_page.setFixedWidth(self.width())
+        self.lower_page.setFixedHeight(int(math.ceil(movement_range * (1 - relative))))
+        self.lower_page.move(0, 10 + self.sc.width() + int(movement_range * relative + handle_height))
+
+        self.upper_page.setFixedWidth(self.width())
+        self.upper_page.setFixedHeight(int(movement_range * relative))
+        self.upper_page.move(0, 10 + self.sc.width())
+
+        # Handle
+        self.scrollbar.setFixedWidth(self.width())
+        self.scrollbar.setFixedHeight(handle_height)
+        self.scrollbar.move(0, 10 + self.sc.width() + int(relative * movement_range))
+
+        # Getting position of
+        # stl = self.style()
+        # Doesn't work: v is empty QRect()
+        # v = stl.subControlRect(stl.ComplexControl.CC_ScrollBar, None, stl.SubControl.SC_ScrollBarSlider, self.sc)
+        # stl.subElement doesn't work because it has no scrollbar stuff
+
+
         if self.sc.isSliderDown():
             print(f"Slider is down")
         else:
             print(f"Slider is up")
 
 
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # app.style().pixelMetric(QApplication.Style.PixelMetric.PM_ScrollBarExtent)
+    x = app.style().pixelMetric(QApplication.style().PixelMetric.PM_ScrollBarExtent)
+    print(x)
     print(QPixmapCache.cacheLimit())
     QPixmapCache.setCacheLimit(1024)
     print(QPixmapCache.cacheLimit())
