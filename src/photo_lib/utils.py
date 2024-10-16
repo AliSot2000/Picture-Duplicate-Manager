@@ -3,7 +3,7 @@ import os
 
 def rec_list_all(path: str):
     """
-    Recursive list everything contained beneth this path.
+    Recursive list everything contained within this path.
     :param path:
     :return:
     """
