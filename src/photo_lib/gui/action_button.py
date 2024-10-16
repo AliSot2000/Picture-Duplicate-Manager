@@ -46,7 +46,7 @@ class QActionButton(QPushButton):
 
     def update_button_from_action(self):
         """
-        Copy the attributes relevante to the button from the action.
+        Copy the attributes relevant to the button from the action.
         :return:
         """
 
