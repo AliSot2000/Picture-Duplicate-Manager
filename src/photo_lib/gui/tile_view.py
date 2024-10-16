@@ -866,7 +866,7 @@ class TileWidget(QFrame):
         self.scroll_animation(row)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Custom Event Overrides to capture and them or trigger custom actionis
+    # Custom Event Overrides to capture and them or trigger custom actions
     # ------------------------------------------------------------------------------------------------------------------
 
     def __init_resize_event(self, a0) -> None:
