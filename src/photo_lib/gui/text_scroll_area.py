@@ -53,11 +53,13 @@ class TextScroller(QScrollArea):
         """
         self.call_share_scroll = False
 
-        x_target = rx * self.horizontalScrollBar().maximum()
-        y_target = ry * self.verticalScrollBar().maximum()
+        x_target = (rx * (self.horizontalScrollBar().maximum() - self.horizontalScrollBar().minimum())
+                    + self.horizontalScrollBar().minimum())
+        y_target = (ry * (self.verticalScrollBar().maximum() - self.horizontalScrollBar().minimum())
+                    + self.horizontalScrollBar().minimum())
 
-        self.horizontalScrollBar().setValue(x_target)
-        self.verticalScrollBar().setValue(y_target)
+        self.horizontalScrollBar().setValue(int(x_target))
+        self.verticalScrollBar().setValue(int(y_target))
         self.call_share_scroll = True
 
     def scrollContentsBy(self, dx: int, dy: int) -> None:
