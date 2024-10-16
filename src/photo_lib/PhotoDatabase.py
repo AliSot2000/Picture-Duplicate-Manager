@@ -11,7 +11,7 @@ import cv2
 from photo_lib.metadataagregator import MetadataAggregator, FileMetaData
 import shutil
 import warnings
-from difPy.dif import dif
+# from difPy.dif import dif
 from _queue import Empty
 import multiprocessing as mp
 import multiprocessing.connection as mpconn
@@ -1701,8 +1701,9 @@ class PhotoDb:
                     time.sleep(1)
                     continue
 
-                duplicates = dif(task_dir, show_progress=False, show_output=False)
-                results.put(duplicates.result)
+                # duplicates = dif(task_dir, show_progress=False, show_output=False)
+                raise NotImplementedError("Diffpy upgraded - no longer accurate")
+                # results.put(None)
 
             print("Difpy Exiting")
 
