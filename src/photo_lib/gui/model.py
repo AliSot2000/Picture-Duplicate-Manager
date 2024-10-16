@@ -123,7 +123,8 @@ class Model:
 
     # TODO config
     wait_timeout: int = 10
-    exiftool_location = "/usr/bin/Image-ExifTool-12.44/exiftool"
+    # exiftool_location = "/usr/bin/Image-ExifTool-12.44/exiftool"
+    exiftool_location = "/usr/bin/exiftool"
 
     def get_default_extensions(self):
         """
