@@ -51,6 +51,7 @@ class NamedTile(QFrame):
         """
         return self.width()
 
+    # TODO update colors
     def set_imported(self):
         # Set color green
         self.setStyleSheet("background-color: rgb(200, 255, 200);")
