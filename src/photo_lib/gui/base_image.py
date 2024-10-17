@@ -53,7 +53,7 @@ class BaseImage(QFrame):
         if value == self.__file_path:
             return
 
-        # The file path is different and we need to laod the image
+        # The file path is different, and we need to laod the image
         self.__file_path = value
         if value is not None:
             self.__load_image_flg = True
