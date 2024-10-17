@@ -11,6 +11,7 @@ On chane of the action the button will update to match the action.
 """
 
 
+# TODO check the usage and remove potentially redundant code
 class QActionButton(QPushButton):
     __target_action: Union[None, QAction] = None
 
