@@ -2,7 +2,7 @@ import warnings
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QGridLayout, QScrollArea, QPushButton, QLabel, \
     QSplitter, QMainWindow, QScrollBar, QHBoxLayout
 from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint, QTimer, QPropertyAnimation, QEasingCurve
-from PyQt6.QtGui import QResizeEvent, QKeyEvent, QPixmapCache
+from PyQt6.QtGui import QResizeEvent, QKeyEvent, QPixmapCache, QFont, QFontMetrics
 import sys
 import datetime
 import math
@@ -205,6 +205,7 @@ class TileWidget(QFrame):
 
     def __init__(self, model: Model):
         super().__init__()
+
         self.model = model
         self.buffer = TileBuffer(model)
         self.resizeEvent = self.__init_resize_event
@@ -221,7 +222,7 @@ class TileWidget(QFrame):
 
         self.background_widget = QWidget(self)
         self.background_widget.move(QPoint(0, 0))
-        self.background_widget.setStyleSheet("background-color: rgb(255, 255, 100);")
+        self.background_widget.setStyleSheet("background-color: palette(base);")
 
         self.background_layout = QGridLayout()
         self.background_layout.setContentsMargins(0, 0, 0, 0)
@@ -715,7 +716,7 @@ class TileWidget(QFrame):
         text = self.generate_label_text(gi)
         l = QLabel(text)
         l.setFixedHeight(self.header_height)
-        l.setStyleSheet("background-color: rgba(255, 255, 255, 200);")
+        l.setStyleSheet("background-color: palette(alternate-base);")
         top = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin)
         right = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutRightMargin)
         bottom = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin)
