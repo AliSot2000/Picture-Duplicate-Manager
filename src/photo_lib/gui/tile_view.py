@@ -67,7 +67,7 @@ class TileWidget(QFrame):
     scroll_timeout: int = 300
     resize_timeout: int = 200
     header_height: int = 35
-    __margin: Tuple[int, int, int, int] = (10, 10, 10, 10)  # left, top, right, bottom
+    __content_margin: Tuple[int, int, int, int]  # left, top, right, bottom
     # TODO font size
 
     # lookup tables
@@ -106,15 +106,15 @@ class TileWidget(QFrame):
         self.page_size_changed.emit(max(1, value))
 
     @property
-    def margin(self):
-        return self.__margin
+    def content_margin(self):
+        return self.__content_margin
 
-    @margin.setter
-    def margin(self, value: Tuple[int, int, int, int]):
-        if value == self.__margin:
+    @content_margin.setter
+    def content_margin(self, value: Tuple[int, int, int, int]):
+        if value == self.__content_margin:
             return
 
-        self.__margin = value
+        self.__content_margin = value
         self.update_size()
 
     @property
@@ -322,7 +322,7 @@ class TileWidget(QFrame):
         Update the sizing of the elements, triggered by resize or by adaptation of the content margins
         """
         # left, top, right, bottom
-        margin = self.margin
+        margin = self.content_margin
 
         # Remaining width minus margins
         rem_width = self.width() - margin[0] - margin[2]
@@ -458,16 +458,16 @@ class TileWidget(QFrame):
                     y -= self.header_height + self.background_layout.verticalSpacing()
                 break
 
-        y -= self.margin[1]
+        y -= self.content_margin[1]
         # print(f"Background Widget Position: {self.margin[0], -y + self.scroll_offset}")
         if target_offset is None:
-            self.background_widget.move(QPoint(self.margin[0], -y + self.scroll_offset))
+            self.background_widget.move(QPoint(self.content_margin[0], -y + self.scroll_offset))
 
             # Perform resizing of background widget manually.
             self.background_widget.updateGeometry()
             self.background_widget.update()
         else:
-            return QPoint(self.margin[0], -y + self.scroll_offset)
+            return QPoint(self.content_margin[0], -y + self.scroll_offset)
 
     def fetch_tile(self, index: int) -> BaseTileInfo:
         """
@@ -716,6 +716,11 @@ class TileWidget(QFrame):
         l = QLabel(text)
         l.setFixedHeight(self.header_height)
         l.setStyleSheet("background-color: rgba(255, 255, 255, 200);")
+        top = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin)
+        right = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutRightMargin)
+        bottom = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin)
+        left = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutLeftMargin)
+        l.setContentsMargins(left, top, right, bottom)
         return l
 
     @staticmethod
