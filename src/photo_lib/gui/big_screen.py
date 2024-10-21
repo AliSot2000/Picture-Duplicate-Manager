@@ -77,9 +77,10 @@ class TestWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         h = QImageReader.setAllocationLimit(0)
-        self.model = Model(folder_path="/media/alisot2000/DumpStuff/dummy_db/")
+        self.model = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
         # self.model.current_import_table_name = "tbl_1998737548188488947"
-        self.model.current_import_table_name = "tbl_2836637745918598915"
+        # self.model.current_import_table_name = "tbl_2836637745918598915"
+        self.model.current_import_table_name = "tbl_1956399513045249017"
         self.model.build_tiles_from_table()
 
         self.setWindowTitle("BigScreen")
