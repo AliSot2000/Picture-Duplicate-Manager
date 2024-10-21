@@ -2,7 +2,7 @@ import sys
 
 from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QPalette
-from PyQt6.QtWidgets import QApplication, QWidget, QGridLayout, QMainWindow, QLabel
+from PyQt6.QtWidgets import QApplication, QWidget, QGridLayout, QMainWindow, QLabel, QFrame
 
 
 class TestTemp(QMainWindow):
@@ -10,7 +10,7 @@ class TestTemp(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.l = QGridLayout()
-        #
+        self.use_frame = True
         self.dummy_widget = QWidget()
         self.setCentralWidget(self.dummy_widget)
         self.dummy_widget.setLayout(self.l)
@@ -42,15 +42,19 @@ class TestTemp(QMainWindow):
         ]
 
         groups = [
-            QPalette.ColorGroup.Disabled,
             QPalette.ColorGroup.Active,
-            QPalette.ColorGroup.Inactive
+            QPalette.ColorGroup.Inactive,
+            QPalette.ColorGroup.Disabled
         ]
+
+        for i in range(len(groups)):
+            lbl = QLabel(str(groups[i]))
+            self.l.addWidget(lbl, 0, i + 1)
 
         for i in range(len(roles)):
             widgets = []
             lbl = QLabel(str(roles[i]))
-            self.l.addWidget(lbl, i, 0)
+            self.l.addWidget(lbl, i + 1, 0)
             widgets.append(lbl)
 
             for j in range(len(groups)):
@@ -59,11 +63,15 @@ class TestTemp(QMainWindow):
                 g = col.green()
                 b = col.blue()
                 styleSheet = f"background-color: rgba({r}, {g}, {b}, 1);"
-                w = QWidget()
+                if self.use_frame:
+                    w = QFrame()
+                    w.setFrameStyle(QFrame.Shape.Box)
+                else:
+                    w = QWidget()
                 w.setFixedSize(QSize(50, 20))
                 w.setStyleSheet(styleSheet)
 
-                self.l.addWidget(w, i, j + 1)
+                self.l.addWidget(w, i + 1, j + 1)
                 widgets.append(w)
 
             self.w.append(widgets)
