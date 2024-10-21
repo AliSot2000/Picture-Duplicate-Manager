@@ -966,16 +966,7 @@ class TempRoot(QMainWindow):
         self.scrollbar.valueChanged.connect(self.set_value)
         self.scrollbar.sliderReleased.connect(self.send_value)
         self.tiles.page_size_changed.connect(self.scrollbar.setPageStep)
-        style_sheet = """
-        QScrollBar:vertical {
-            border: 1px dashed black;
-            width: 15px;
-        }  
-        
-        QScrollBar::handle:vertical {
-            min-height: 50px;
-        }
-        """
+
         # self.scrollbar.setStyleSheet(style_sheet)
 
         # needs to happen here, so we capture the change event.
