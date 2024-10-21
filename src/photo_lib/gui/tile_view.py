@@ -226,6 +226,8 @@ class TileWidget(QFrame):
 
         self.background_layout = QGridLayout()
         self.background_layout.setContentsMargins(0, 0, 0, 0)
+
+        # use getters for computation.
         self.background_layout.setVerticalSpacing(10)
         self.background_layout.setHorizontalSpacing(10)
 
@@ -238,6 +240,15 @@ class TileWidget(QFrame):
 
         global use_timers_resize
         global use_timers_scroll
+
+        top = right = bottom = left = 0
+        self.__content_margin = (left, top, right, bottom)
+
+        top = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin)
+        right = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutRightMargin)
+        bottom = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin)
+        left = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutLeftMargin)
+        self.label_height = QFontMetrics(QFont()).height() + top + bottom
 
         if use_timers_resize:
             self.resize_timer = QTimer()
