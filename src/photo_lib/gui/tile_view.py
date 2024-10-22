@@ -846,7 +846,7 @@ class TileWidget(QFrame):
 
     def _remove_row_bottom(self):
         """
-        Removes a row at the bottom of the data structure, doesn't update the widgets!
+        Removes a row at the bottom of the view, doesn't update the widgets!
         """
         # INFO: Update the WIDGET rows
         assert self.highest_row > self.lowest_row, "To few rows to remove row"
