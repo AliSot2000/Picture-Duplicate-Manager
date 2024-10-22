@@ -499,6 +499,7 @@ class TileWidget(QFrame):
                 assert type(row) is list, "Row must be either a list of widgets or a header"
                 y += self.tile_size + self.background_layout.verticalSpacing()
 
+            # TODO move into upper block
             if self.layout_rows[i + 1] is self.widget_rows[tos]:
                 if type(self.layout_rows[i]) is QLabel:
                     y -= self.header_height + self.background_layout.verticalSpacing()
