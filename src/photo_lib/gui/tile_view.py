@@ -597,6 +597,7 @@ class TileWidget(QFrame):
         """
         Scroll to row only with clamping.
         """
+        # INFO: Build WIDGET rows first
         for r in self.widget_rows:
             for w in r:
                 self.move_to_hidden(w)
@@ -615,7 +616,8 @@ class TileWidget(QFrame):
         for i in range(self.lowest_row, self.highest_row + 1):
             self.widget_rows.append(self._generate_row(i))
 
-        # Clear the leayout rows
+        # INFO: Build LAYOUT rows
+        # Clear the layout rows
         for row in self.layout_rows:
             if type(row) is QLabel:
                 # row.setVisible(False)
@@ -812,6 +814,7 @@ class TileWidget(QFrame):
         """
         Add row to the top of data structure, doesn't update the widgets!
         """
+        # INFO: Update the LAYOUT rows
         assert self.lowest_row > 0, "Cannot add row at top, already at top"
         self.lowest_row -= 1
 
@@ -829,12 +832,14 @@ class TileWidget(QFrame):
         if self.lowest_row == 0:
             self.layout_rows.insert(0, self.generate_header(0))
 
+        # INFO: update the WIDGET rows
         self.widget_rows.insert(0, widget_row)
 
     def _remove_row_bottom(self):
         """
         Removes a row at the bottom of the data structure, doesn't update the widgets!
         """
+        # INFO: Update the WIDGET rows
         assert self.highest_row > self.lowest_row, "To few rows to remove row"
         row = self.widget_rows.pop()
         self.highest_row -= 1
@@ -843,6 +848,7 @@ class TileWidget(QFrame):
         for widget in row:
             self.move_to_hidden(widget)
 
+        # INFO: Now update the LAYOUT rows
         # Remove the row
         self.layout_rows.pop()
 
@@ -854,6 +860,7 @@ class TileWidget(QFrame):
         """
         Removes a row at the top of the data structure, doesn't update the widgets!
         """
+        # INFO: Update the WIDGET rows
         assert self.highest_row > self.lowest_row, "To few rows to remove row"
         row = self.widget_rows.pop(0)
         self.lowest_row += 1
@@ -862,6 +869,7 @@ class TileWidget(QFrame):
         for widget in row:
             self.move_to_hidden(widget)
 
+        # INFO: Now update the LAYOUT rows
         row = self.layout_rows.pop(0)
         if type(row) is QLabel:
             row.deleteLater()
