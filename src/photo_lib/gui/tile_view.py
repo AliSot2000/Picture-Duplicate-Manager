@@ -984,6 +984,155 @@ class TileWidget(QFrame):
             pass
 
 
+class DatabaseTileView(QFrame):
+    glayout: QGridLayout
+    scrollbar: QScrollBar
+    tiles: TileWidget
+
+    header_label: QLabel
+    header_slider: QSlider
+    header_slider_value: QLabel
+
+    indicator: QLabel
+
+    # TODO config
+    longest_possible_string_name = "Wednesday 31 September 9999"
+
+    def __init__(self, model: Model):
+        super().__init__()
+        self.glayout = QGridLayout()
+        self.glayout.setSpacing(0)
+        self.glayout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.glayout)
+
+        top = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin)
+        right = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutRightMargin)
+        bottom = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin)
+        left = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutLeftMargin)
+
+        header_height = QFontMetrics(QFont()).height() + top + bottom
+
+        self.header_label = QLabel("Some sample text")
+        self.header_label.setFixedHeight(header_height)
+        self.header_label.setContentsMargins(left, top, right, bottom)
+        self.header_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        self.header_slider = QSlider(Qt.Orientation.Horizontal)
+        self.header_slider.setFixedWidth(100)
+        self.header_slider.setMinimum(100)
+        self.header_slider.setMaximum(500)
+        # Connect signals to header_slider
+        self.header_slider.valueChanged.connect(self.write_value_to_label)
+        self.header_slider.sliderReleased.connect(self.update_tile_size)
+
+        self.header_slider_value = QLabel("Tile Size: 100")
+        self.header_slider_value.setFixedHeight(header_height)
+        self.header_slider_value.setContentsMargins(left, top, 0, bottom)
+        self.header_slider_value.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
+        self.scrollbar = QScrollBar(Qt.Orientation.Vertical)
+        self.scrollbar.sliderReleased.connect(self.update_scroll_on_release)
+        self.scrollbar.valueChanged.connect(self.update_scroll_on_change)
+        self.scrollbar.sliderPressed.connect(self.set_indicator_visible)
+
+        self.tiles = TileWidget(model)
+        self.tiles.prep_dev()
+        self.tiles.num_of_rows_changed.connect(self.set_scrollbar_max)
+        self.tiles.focus_row_changed.connect(self.scrollbar.setValue)
+        self.tiles.page_size_changed.connect(self.scrollbar.setPageStep)
+
+        self.glayout.addWidget(self.header_label, 0, 0, 1, 1)
+        self.glayout.addWidget(self.header_slider, 0, 1, 1, 1)
+        self.glayout.addWidget(self.header_slider_value, 0, 2, 1, 1)
+
+        self.glayout.addWidget(self.tiles, 1, 0, 1, 3)
+
+        self.glayout.addWidget(self.scrollbar, 1, 3, 1, 1)
+
+        indicator_width = QFontMetrics(QFont()).boundingRect(self.longest_possible_string_name).width() + left + right
+
+        self.indicator = QLabel("Indicator", self)
+        self.indicator.setStyleSheet("background-color: palette(dark); color: palette(accent);")
+        self.indicator.setContentsMargins(left, top, right, bottom)
+        self.indicator.setVisible(False)
+        self.indicator.setFixedHeight(header_height)
+        self.indicator.setFixedWidth(indicator_width)
+
+    def set_scrollbar_max(self, v: int):
+        """
+        Set the Maximum of the scrollbar. Needs to be 1 smaller than the actual value since it's inclusive for the
+        scrollbar.
+
+        :param v: new maximum value
+        """
+        self.scrollbar.setMaximum(v - 1)
+
+    def write_value_to_label(self, v: int):
+        """
+        Function writes the current slider value to the slider label so the user knows about the tile size
+
+        :param v: new value of the slider
+        """
+        self.header_slider_value.setText(f"Tile Size: {v}")
+
+    def update_tile_size(self):
+        """
+        Once the slider is released, the slider value is written to the tiles widget which updates accordingly
+        """
+        self.tiles.tile_size = self.header_slider.value()
+
+    def update_scroll_on_release(self):
+        """
+        Connection to forward the value of the scrollbar to the tile widget so it scrolls to the right position
+        """
+        self.tiles.scroll_slot(self.scrollbar.value())
+        self.indicator.setVisible(False)
+
+    def set_indicator_visible(self):
+        """
+        Set the indicator to be visible
+        """
+        self.indicator.setVisible(True)
+
+    def update_scroll_on_change(self, v: int):
+        """
+        Update the tiles window when the value changed but the slider wasn't touched for that
+
+        :param v: new value
+        """
+        # Single button press, capture it and propagate it to the tile widget
+        self.update_indicator()
+        if not self.scrollbar.isSliderDown():
+            self.tiles.scroll_slot(v)
+
+
+    def update_indicator(self):
+        """
+        Update the indicator position and text
+        """
+        min_handle_height = self.scrollbar.style().pixelMetric(self.style().PixelMetric.PM_ScrollBarSliderMin)
+        no_arrows = (self.scrollbar.height() - self.scrollbar.width() * 2)
+        relative = self.scrollbar.value() / (self.scrollbar.maximum() - self.scrollbar.minimum())
+
+        # Height should be page step / document length
+        bar_height_rel = (self.scrollbar.pageStep()
+                          / (self.scrollbar.maximum() - self.scrollbar.minimum() + self.scrollbar.pageStep()))
+        bar_height_px = math.floor(bar_height_rel * no_arrows)
+        handle_height = max(min_handle_height, bar_height_px)
+
+        movement_range = no_arrows - handle_height
+        self.indicator.move(self.scrollbar.pos().x() - self.indicator.width(),
+                            int(relative * movement_range
+                                + (handle_height / 2)
+                                + self.scrollbar.width()
+                                - self.indicator.height() / 2
+                                + self.scrollbar.pos().y()))
+
+        self.indicator.setText(self.tiles.get_indicator_text(self.scrollbar.value()))
+
+
+
+
 class TempRoot(QMainWindow):
     def __init__(self):
         super().__init__()
