@@ -285,6 +285,14 @@ class TileWidget(QFrame):
         self.setMinimumHeight(350)
         self.update_groups(GroupingCriterion.YEAR_MONTH_DAY)
 
+    def update_tile_sizes(self):
+        """
+        Go through all tiles and seit their size
+        """
+        for w in self.widgets:
+            w.setFixedHeight(self.tile_size)
+            w.setFixedWidth(self.tile_size)
+
     def update_groups(self, grouping: GroupingCriterion):
         """
         Update the grouping criterion and rebuild the lookup tables.
