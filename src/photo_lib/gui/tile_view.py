@@ -465,6 +465,7 @@ class TileWidget(QFrame):
         """
         Layout the widgets from the data structure.
         """
+        # Empty the background layout
         while self.background_layout.count() > 0:
             self.background_layout.takeAt(0)
 
