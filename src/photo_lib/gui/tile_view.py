@@ -604,13 +604,13 @@ class TileWidget(QFrame):
 
         self.focus_row = row
 
-        self.lowest_row = max(0, self.focus_row - self.preload_row_count)
+        self.lowest_row = max(0, self.focus_row - self.preload_row_count - self.max_number_of_visible_rows)
         self.focus_row_offset = self.focus_row - self.lowest_row
 
         self.widget_rows = []
         self.highest_row = min(self.number_of_rows - 1,
                                self.focus_row
-                               + self.max_number_of_visible_rows
+                               + 2 * self.max_number_of_visible_rows
                                + self.preload_row_count
                                - 1)
         for i in range(self.lowest_row, self.highest_row + 1):
