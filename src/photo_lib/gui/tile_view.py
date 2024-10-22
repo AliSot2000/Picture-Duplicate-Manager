@@ -788,6 +788,13 @@ class TileWidget(QFrame):
         else:
             return ""
 
+    def get_indicator_text(self, index: int) -> str:
+        """
+        Get the indicator text for the given index. Needed for the moving indicator that moves with the scrollbar.
+        """
+        gi = self.group_infos[self.row_to_header_lut[index]]
+        return self.generate_label_text(gi)
+
     def _generate_placeholder(self):
         """
         Generate a placeholder for the moment
