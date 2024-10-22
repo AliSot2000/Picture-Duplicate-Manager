@@ -32,10 +32,10 @@ class QActionButton(QPushButton):
 
     @target_action.setter
     def target_action(self, target_action: QAction):
-        # if target_action is present,
+        # if target_action is present, we disconnect the signals
         if self.__target_action is not None:
-            self.target_action.changed.connect(self.update_button_from_action)
-            self.clicked.disconnect(self.target_action.trigger)
+            self.__target_action.changed.disconnect(self.update_button_from_action)
+            self.clicked.disconnect(self.__target_action.trigger)
 
         self.__target_action = target_action
         self.update_button_from_action()
