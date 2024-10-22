@@ -242,11 +242,18 @@ class TileWidget(QFrame):
         self.background_widget.setStyleSheet("background-color: palette(base);")
 
         self.background_layout = QGridLayout()
-        self.background_layout.setContentsMargins(0, 0, 0, 0)
+        # self.background_layout.setContentsMargins(0, 0, 0, 0)
 
-        # use getters for computation.
-        self.background_layout.setVerticalSpacing(10)
-        self.background_layout.setHorizontalSpacing(10)
+        top = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin)
+        bottom = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin)
+        left = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutLeftMargin)
+        right = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutRightMargin)
+        v_space = int((top + bottom) / 2)
+        h_space = int((left + right) / 2)
+        self.header_height = QFontMetrics(QFont()).height() + top + bottom
+
+        self.background_layout.setVerticalSpacing(v_space)
+        self.background_layout.setHorizontalSpacing(h_space)
 
         self.background_widget.setLayout(self.background_layout)
 
@@ -258,14 +265,9 @@ class TileWidget(QFrame):
         global use_timers_resize
         global use_timers_scroll
 
+        # Setting our own content margins
         top = right = bottom = left = 0
         self.__content_margin = (left, top, right, bottom)
-
-        top = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin)
-        right = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutRightMargin)
-        bottom = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin)
-        left = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutLeftMargin)
-        self.label_height = QFontMetrics(QFont()).height() + top + bottom
 
         if use_timers_resize:
             self.resize_timer = QTimer()
