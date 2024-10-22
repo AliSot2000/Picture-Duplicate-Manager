@@ -358,27 +358,40 @@ class TileWidget(QFrame):
 
     def update_size(self):
         """
-        Update the sizing of the elements, triggered by resize or by adaptation of the content margins
+        Update the sizing of the elements, triggered by resize or by adaptation of the content margins,
+        or a change in tile_size
         """
         # left, top, right, bottom
-        margin = self.content_margin
+        margin_widget = self.content_margin
+        margin_layout = self.background_layout.contentsMargins()
 
         # Remaining width minus margins
-        rem_width = self.width() - margin[0] - margin[2]
+        rem_width = self.width() - margin_widget[0] - margin_widget[2] - margin_layout.left()  - margin_layout.right()
+        background_remaining_width = self.width() - margin_widget[0] - margin_widget[2]
 
         # Number of columns that fit into the remaining width
         new_number_of_columns = max(1, rem_width // self.tile_size)
 
         # Set width of Background Widget
-        self.background_widget.setFixedWidth(rem_width)
+        if self.background_widget.width() != background_remaining_width:
+            self.background_widget.setFixedWidth(background_remaining_width)
+            # for l in self.layout_rows:
+            #     if isinstance(l, QLabel):
+            #         l.setFixedWidth(rem_width)
 
         # Compute new maximum number of visible rows
-        max_new_number_of_visible_rows = math.ceil((self.height() - margin[1] - margin[3]) / self.tile_size)
+        max_new_number_of_visible_rows = math.ceil((self.height()
+                                                    - margin_widget[1]
+                                                    - margin_widget[3]
+                                                    - margin_layout.top()
+                                                    - margin_layout.bottom()) / self.tile_size)
 
         # Compute new minimum number of visible rows
         self.min_number_of_visible_rows = math.floor((self.height()
-                                                      - margin[1]
-                                                      - margin[3]) /
+                                                      - margin_widget[1]
+                                                      - margin_widget[3]
+                                                      - margin_layout.top()
+                                                      - margin_layout.bottom()) /
                                                      (self.tile_size
                                                       + self.header_height
                                                       + 2 * self.background_layout.verticalSpacing()))
