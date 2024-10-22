@@ -61,12 +61,10 @@ class TileWidget(QFrame):
     # TODO config
     __tile_size: int = 100  # Different tile size for year, month and day.
     preload_row_count: int = 5
-    label_height: int = 30
     scroll_timeout: int = 300
     resize_timeout: int = 200
     header_height: int = 35
     __content_margin: Tuple[int, int, int, int]  # left, top, right, bottom
-    # TODO font size
 
     # lookup tables
     group_infos: np.ndarray
