@@ -1164,9 +1164,9 @@ class TempRoot(QMainWindow):
         self.scrollbar.setMaximum(self.tiles.number_of_rows)
         self.tiles.num_of_rows_changed.connect(self.set_max)
         self.tiles.focus_row_changed.connect(self.set_val)
+        self.tiles.page_size_changed.connect(self.scrollbar.setPageStep)
         self.scrollbar.valueChanged.connect(self.set_value)
         self.scrollbar.sliderReleased.connect(self.send_value)
-        self.tiles.page_size_changed.connect(self.scrollbar.setPageStep)
 
         # self.scrollbar.setStyleSheet(style_sheet)
 
