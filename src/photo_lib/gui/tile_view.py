@@ -8,7 +8,7 @@ import numpy as np
 from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QResizeEvent, QKeyEvent, QPixmapCache, QFont, QFontMetrics
 from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QGridLayout, QLabel, \
-    QMainWindow, QScrollBar, QHBoxLayout
+    QMainWindow, QScrollBar, QHBoxLayout, QSlider, QSizePolicy
 
 from photo_lib.data_objects import BaseTileInfo
 from photo_lib.gui.image_tile import IndexedTile
