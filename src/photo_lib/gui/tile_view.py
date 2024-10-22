@@ -19,7 +19,6 @@ use_timers_scroll = False
 
 
 # TODO register clickable tiles to emmit the img_selected signal
-# TODO deleting the pixmap doesn't free the ram for some reason.
 class TileWidget(QFrame):
     # Backend objects
     model: Model
@@ -32,6 +31,7 @@ class TileWidget(QFrame):
     # num_of_cols_changed = pyqtSignal(int)
     # img_selected = pyqtSignal()  # read the current_element from the object
     focus_row_changed = pyqtSignal(int)
+    tile_size_changed = pyqtSignal(int)
 
     # Properties about the view, writable
     __max_number_of_visible_rows = 0
@@ -59,7 +59,7 @@ class TileWidget(QFrame):
 
     # Layout
     # TODO config
-    tile_size: int = 100  # Different tile size for year, month and day.
+    __tile_size: int = 100  # Different tile size for year, month and day.
     preload_row_count: int = 5
     label_height: int = 30
     scroll_timeout: int = 300
@@ -87,6 +87,23 @@ class TileWidget(QFrame):
     # ------------------------------------------------------------------------------------------------------------------
     # Read/Write Properties
     # ------------------------------------------------------------------------------------------------------------------
+
+    @property
+    def tile_size(self):
+        return self.__tile_size
+
+    @tile_size.setter
+    def tile_size(self, value: int):
+        assert value > 0, "Tile size must be greater than 0"
+        if value == self.__tile_size:
+            return
+
+        self.__tile_size = value
+
+        self.update_size()
+        self.update_tile_sizes()
+
+        self.tile_size_changed.emit(value)
 
     @property
     def min_number_of_visible_rows(self):
