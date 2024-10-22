@@ -232,6 +232,8 @@ class TileWidget(QFrame):
 
         self.widgets = []
         self.hidden_widgets = []
+
+        # Data structures for View
         self.widget_rows = []
         self.layout_rows = []
 
