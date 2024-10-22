@@ -613,6 +613,7 @@ class TileWidget(QFrame):
                                + 2 * self.max_number_of_visible_rows
                                + self.preload_row_count
                                - 1)
+
         for i in range(self.lowest_row, self.highest_row + 1):
             self.widget_rows.append(self._generate_row(i))
 
