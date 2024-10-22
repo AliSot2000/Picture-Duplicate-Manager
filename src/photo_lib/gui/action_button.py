@@ -1,5 +1,7 @@
-from PyQt6.QtWidgets import QPushButton
-from PyQt6.QtGui import QAction
+import sys
+
+from PyQt6.QtWidgets import QPushButton, QApplication
+from PyQt6.QtGui import QAction, QIcon
 from typing import Union
 
 
