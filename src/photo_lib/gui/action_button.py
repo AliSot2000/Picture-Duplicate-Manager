@@ -70,3 +70,10 @@ class QActionButton(QPushButton):
         self.setEnabled(self.target_action.isEnabled())
         self.setCheckable(self.target_action.isCheckable())
         self.setChecked(self.target_action.isChecked())
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    btn = QActionButton()
+
+    btn.target_action = None
