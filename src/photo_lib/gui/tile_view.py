@@ -765,6 +765,7 @@ class TileWidget(QFrame):
         text = self.generate_label_text(gi)
         l = QLabel(text)
         l.setFixedHeight(self.header_height)
+
         l.setStyleSheet("background-color: palette(alternate-base);")
         top = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin)
         right = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutRightMargin)
