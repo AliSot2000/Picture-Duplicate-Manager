@@ -480,20 +480,10 @@ class TileWidget(QFrame):
                 t = self.layout_rows[i][j]
                 self.background_layout.addWidget(t, i, j)
 
-        # for i in range(len(self.widget_rows)):
-        #     for j in range(len(self.widget_rows[i])):
-        #         t = self.widget_rows[i][j]
-        #         self.background_layout.addWidget(t, i, j)
-
-        # Make sure spacing in grid layout is consistent
-        # self.background_layout.addWidget(self.layout_placeholder, len(self.widget_rows), 0, 1, self.number_of_columns)
-
     def place_background_widget(self, target_offset: int = None):
         """
         Place the background widget such that the correct row is displayed.
         """
-        # y = (self.focus_row_offset * (self.tile_size + self.background_layout.verticalSpacing())
-        #      - self.margin[1])
         y = 0
 
         if target_offset is None:
