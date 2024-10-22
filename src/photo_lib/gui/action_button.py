@@ -52,6 +52,13 @@ class QActionButton(QPushButton):
         """
 
         if self.target_action is None:
+            self.setText("")
+            self.setStatusTip("")
+            self.setToolTip("")
+            self.setIcon(QIcon())
+            self.setEnabled(False)
+            self.setChecked(False)
+            self.setCheckable(False)
             return
 
         self.setText(self.target_action.text())
