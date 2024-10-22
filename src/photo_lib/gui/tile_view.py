@@ -780,7 +780,7 @@ class TileWidget(QFrame):
         Given a GroupCount object, generate the header for it.
         """
         if gi.group_crit == GroupingCriterion.YEAR_MONTH_DAY:
-            return gi.start_date.strftime("%A %d %B %Y")
+            return gi.start_date.strftime("%A, %d %B %Y")
         elif gi.group_crit == GroupingCriterion.YEAR_MONTH:
             return gi.start_date.strftime("%B %Y")
         elif gi.group_crit == GroupingCriterion.YEAR:
