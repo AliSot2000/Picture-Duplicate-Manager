@@ -1,20 +1,18 @@
-import warnings
-from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QGridLayout, QScrollArea, QPushButton, QLabel, \
-    QSplitter, QMainWindow, QScrollBar, QHBoxLayout
-from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint, QTimer, QPropertyAnimation, QEasingCurve
-from PyQt6.QtGui import QResizeEvent, QKeyEvent, QPixmapCache, QFont, QFontMetrics
-import sys
 import datetime
 import math
-import numpy as np
+import sys
+import warnings
 from typing import Union, List, Tuple
-from photo_lib.gui.named_picture_block import CheckNamedPictureBlock
+
+import numpy as np
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint, QTimer, QPropertyAnimation, QEasingCurve
+from PyQt6.QtGui import QResizeEvent, QKeyEvent, QPixmapCache, QFont, QFontMetrics
+from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QGridLayout, QLabel, \
+    QMainWindow, QScrollBar, QHBoxLayout
+
+from photo_lib.data_objects import BaseTileInfo
 from photo_lib.gui.image_tile import IndexedTile
 from photo_lib.gui.model import Model, GroupCount, GroupingCriterion, TileBuffer
-from photo_lib.PhotoDatabase import MatchTypes
-from photo_lib.gui.gui_utils import general_wrapper
-from photo_lib.data_objects import ImportTileInfo, BaseTileInfo
-
 
 use_timers_resize = True
 use_timers_scroll = False
