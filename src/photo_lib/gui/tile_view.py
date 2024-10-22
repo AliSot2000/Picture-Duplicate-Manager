@@ -620,7 +620,7 @@ class TileWidget(QFrame):
         # INFO: Build LAYOUT rows
         # Clear the layout rows
         for row in self.layout_rows:
-            if type(row) is QLabel:
+            if isinstance(row, QLabel):
                 # row.setVisible(False)
                 row.deleteLater()
 
@@ -854,7 +854,7 @@ class TileWidget(QFrame):
         self.layout_rows.pop()
 
         # Remove the next row too, if it's a header
-        if type(self.layout_rows[-1]) is QLabel:
+        if isinstance(self.layout_rows[-1], QLabel):
             self.layout_rows.pop().deleteLater()
 
     def _remove_row_top(self):
@@ -872,7 +872,7 @@ class TileWidget(QFrame):
 
         # INFO: Now update the LAYOUT rows
         row = self.layout_rows.pop(0)
-        if type(row) is QLabel:
+        if isinstance(row, QLabel):
             row.deleteLater()
             row = self.layout_rows.pop(0)
             assert type(row) is list, "Row after header must be a header"
