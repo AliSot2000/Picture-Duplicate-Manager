@@ -1,4 +1,6 @@
-from PyQt6.QtWidgets import QHBoxLayout, QFrame, QLabel
+import sys
+
+from PyQt6.QtWidgets import QHBoxLayout, QFrame, QLabel, QApplication
 from photo_lib.gui.action_button import QActionButton
 
 
@@ -41,3 +43,10 @@ class ButtonBar(QFrame):
         # print(f"Margins: {m.left()} {m.top()} {m.right()} {m.bottom()}")
         # self.setGeometry(0, 0, 500, 50)
         # self.setStyleSheet("background-color: #000000; color: #ffffff;")
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    root = ButtonBar()
+    root.show()
+    sys.exit(app.exec())
