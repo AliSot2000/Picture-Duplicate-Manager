@@ -1,28 +1,21 @@
 import math
 import sys
-import time
 
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmapCache
 from PyQt6.QtWidgets import (
     QApplication,
     QLabel,
     QWidget,
     QMainWindow,
     QScrollBar,
-    QFrame,
     QHBoxLayout,
-    QVBoxLayout,
     QTextEdit,
     QGridLayout,
     QPushButton,
     QSlider,
     QStyle
 )
-from PyQt6.QtGui import QPixmap, QPainter, QFont, QPixmapCache, QResizeEvent
-from PyQt6.QtCore import Qt, QPropertyAnimation, QPoint, QEasingCurve
-# import random
-# import os
-# from photo_lib.gui.image_tile import IndexedTile
-# from photo_lib.gui.base_image import BaseImage
 
 
 # https://stackoverflow.com/questions/17935691/stylesheet-on-qscrollbar-leaves-background-of-scrollbar-with-checkerboard-patter
@@ -69,83 +62,6 @@ class RootWindow(QMainWindow):
         self.sc.valueChanged.connect(self.value_reader)
         self.sc.sliderReleased.connect(self.hide_indicator)
         self.sc.sliderPressed.connect(self.show_indicator)
-
-        # self.sc.setFixedWidth(15)
-        self.sc.setPageStep(10)
-        style_sheet = """
-        QScrollBar:vertical {
-            border: 1px solid black;
-            width: 15px;
-            color: green;
-        }
-
-        QScrollBar::handle {       
-            min-height: 30px;
-            max-height: 30px;
-            padding: 15px, 0px, 15px, 0px;
-        }    
-        
-        QScrollBar::down-arrow {
-            /* No observable Effects: 
-            min-width: 15px;    
-            min-height: 15px;
-            color: red; 
-            margin: 15px, 0px, 0px, 0px;
-            outline: 1px solid black;
-    
-            */ 
-            /* background-color: magenta; */
-            padding: 5px;
-            color: red;
-        }
-        
-        QScrollBar::up-arrow {
-            padding: 5px;
-            color: blue;
-        }
-        """
-        # style_sheet = """
-        # QScrollBar:horizontal {
-        #     border: 2px solid green;
-        #     background: cyan;
-        #     height: 15px;
-        #     margin: 0px 40px 0 0px;
-        # }
-        #
-        # QScrollBar::handle:horizontal {
-        #     background: gray;
-        #     min-width: 20px;
-        # }
-        #
-        # QScrollBar::add-line:horizontal {
-        #     background: blue;
-        #     width: 16px;
-        #     subcontrol-position: right;
-        #     subcontrol-origin: margin;
-        #     border: 2px solid black;
-        # }
-        #
-        # QScrollBar::sub-line:horizontal {
-        #     background: magenta;
-        #     width: 16px;
-        #     subcontrol-position: top right;
-        #     subcontrol-origin: margin;
-        #     border: 2px solid black;
-        #     position: absolute;
-        #     right: 20px;
-        # }
-        #
-        # QScrollBar:left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
-        #     width: 3px;
-        #     height: 3px;
-        #     background: pink;
-        # }
-        #
-        # QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
-        #     background: none;
-        # }
-        # """
-        # self.sc.setStyleSheet(style_sheet)
 
         self.l = QHBoxLayout()
         self.l.setContentsMargins(10, 10, 10, 10)
