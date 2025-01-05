@@ -18,19 +18,6 @@ PydanticTZStr = Annotated[str,
                           AfterValidator(validate_zone_str)]
 
 
-class Config(BaseModel):
-    allowed_extensions: List[str]
-
-    exiftool: Union[str, None]
-    db_version: Union[str, None]
-
-    trash: Union[str, None]
-    thumbnail: Union[str, None]
-
-    path_suffix: PathSuffix = PathSuffix.NONE
-
-    add_safety_exif_tags: bool = True
-
 
 class DateTimeParser(BaseModel):
     """
@@ -86,5 +73,21 @@ class DateTimeParser(BaseModel):
         arbitrary_types_allowed=True,
     )
 
+
 class InternalDateTimeParser(DateTimeParser):
     tz_timestamp: List[str] = Field(default_factory=lambda: ["Placeholder"])
+
+class Config(BaseModel):
+    allowed_extensions: List[str]
+
+    exiftool: Union[str, None]
+    db_version: Union[str, None]
+
+    trash: Union[str, None]
+    thumbnail: Union[str, None]
+
+    path_suffix: PathSuffix = PathSuffix.NONE
+
+    add_safety_exif_tags: bool = True
+
+    datetime_fmt: Union[DateTimeParser, None] = None
