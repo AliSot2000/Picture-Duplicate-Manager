@@ -48,7 +48,7 @@ class Views(Enum):
     Import_Tables_View = 7
 
 class LongRunningActions(Enum):
-    PrepareImport= 1
+    PrepareImport = 1
     Deduplicate_With_Database = 2
     Deduplicate_Without_Database = 3
     Import_Images = 4
@@ -59,3 +59,15 @@ class GroupingCriterion(Enum):
     YEAR = 1
     YEAR_MONTH = 2
     YEAR_MONTH_DAY = 3
+
+class PathSuffix(Enum):
+    NONE = 0
+    ORG_NAME = 1
+    KEY = 2
+
+class DateTimeCategory(str, Enum):
+    AWARE = "aware"
+    UNAWARE = "unaware"
+    DATE = "date"
+    TIME = "time"
+    TIMESTAMP = "timestamp"
