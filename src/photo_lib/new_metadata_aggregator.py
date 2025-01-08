@@ -753,5 +753,201 @@ class NewMetadataAggregator:
 
         return results
 
+    # ==================================================================================================================
+    # GPS Parsers
+    # ==================================================================================================================
+
+    def _parse_gps_split(self, gps_str: str, key: str, sep: str = None) -> Union[GPSParsingResult, None]:
+        """
+        Parse Split Result into lat, long, [alt].
+
+        :param gps_str: String to split. Order is assumed to be lat, long, alt
+        :param key: Key, that got the value
+        :parm sep: Separator to use between keys. Defaults to ' ' <- space
+
+        :return: GPSParsingResult if parsing successful, else None
+        """
+        sep = " " if sep is None else sep
+        split = gps_str.split(sep)
+        if len(split) < 2:
+            self.logger.warning(f"GPS Composite Tag with insufficient elements found."
+                                f" Key: {key}, Value: {gps_str}")
+            return None
+
+        elif len(split) == 2:
+            lat, long = split
+            alt = None
+
+        elif len(split) == 3:
+            lat, long, alt = split
+
+        else:
+            self.logger.warning(f"GPS Composite Tag with too many elements found."
+                                f" Key: {key}, Value: {gps_str}")
+            return None
+
+        # Attempt to parse the floats
+        try:
+            lat = float(lat)
+        except ValueError:
+            self.logger.error(f"Failed to Parse Latitude from GPS Composite Tag. "
+                              f"Key: {key}, Value: {gps_str}")
+            return None
+
+        try:
+            long = float(long)
+        except ValueError:
+            self.logger.error(f"Failed to Parse Longitude from GPS Composite Tag. "
+                              f"Key: {key}, Value: {gps_str}")
+            return None
+
+        try:
+            alt = float(alt) if alt is not None else None
+        except ValueError:
+            self.logger.error(f"Failed to Parse Altitude from GPS Composite Tag. "
+                              f"Key: {key}, Value: {gps_str}")
+            return None
+
+        return GPSParsingResult(lat=lat, long=long, key=key, alt=alt)
+
+    # INFO: Maybe the separator needs to be parametrized as well.
+    def gps_composite_parser(self, md: dict) -> List[GPSParsingResult]:
+        """
+        Parse GPS Composite Keys. i.e. a key with lat, long, [alt].
+        Values separated by spaces.
+        """
+        results = []
+        for composite_key in self.dt_cfg.gps_composite_key:
+            gps_value = md.get(composite_key)
+
+            # Check we're having actually something
+            if gps_value is None:
+                continue
+
+            local_res = self._parse_gps_split(gps_str=gps_value, key=composite_key)
+            if local_res is not None:
+                results.append(local_res)
+
+        return results
+
+    # INFO: Maybe the separator needs to be parametrized as well.
+    def gps_prefix_composite_parser(self, md: dict) -> List[GPSParsingResult]:
+        """
+        Parse Prefix GPS Composite Keys. i.e. a key with lat, long, [alt]. and for which the key starts with a known
+        prefix. E.G. prefix: 'QuickTime:GPSCoordinates' parses 'QuickTime:GPSCoordinates-deu-CH', ...
+
+        Values separated by spaces.
+        """
+        results = []
+        for gps_pf_k in self.dt_cfg.gps_prefix_composite_key:
+            for key, value in md.items():
+                if not key.startswith(gps_pf_k):
+                    continue
+
+                if value is None:
+                    continue
+
+                local_res = self._parse_gps_split(gps_str=value, key=key)
+                if local_res is not None:
+                    results.append(local_res)
+
+        return results
+
+    def gps_multikey_parser(self, md: dict) -> List[GPSParsingResult]:
+        """
+        Parse Multikey GPS Data.
+
+        :param md: Metadata
+        :return: list of GPSParsingResults
+        """
+        results = []
+        for multikey in self.dt_cfg.gps_multi_key:
+            lat_val = md.get(multikey.lat_val) if md.get(multikey.lat_val) is not None else None
+            lat_ref = md.get(multikey.lat_ref) if md.get(multikey.lat_ref) is not None else None
+
+            long_val = md.get(multikey.long_val) if md.get(multikey.long_val) is not None else None
+            long_ref = md.get(multikey.long_ref) if md.get(multikey.long_ref) is not None else None
+
+            alt_val = md.get(multikey.alt_val) if md.get(multikey.alt_val) is not None else None
+            alt_ref = md.get(multikey.alt_ref) if md.get(multikey.alt_ref) is not None else None
+
+            # Not all necessary values present
+            if lat_val is None or long_val is None:
+                continue
+
+            try:
+                lat = float(lat_val)
+            except ValueError:
+                self.logger.error(f"Failed to Parse Latitude from GPS Multikey Tag. "
+                                  f"Key: {multikey.lat_val}, Value: {lat_val}")
+                continue
+
+            try:
+                long = float(long_val)
+            except ValueError:
+                self.logger.error(f"Failed to Parse Longitude from GPS Multikey Tag. "
+                                  f"Key: {multikey.long_val}, Value: {long_val}")
+                continue
+
+            if lat_ref is not None:
+                if lat_ref.lower().strip() not in ("n", "s"):
+                    self.logger.warning(f"Failed to Parse Latitude Reference."
+                                        f" Key: {multikey.lat_val}, Value: {lat_ref}")
+
+                if lat_ref.lower().strip() == "s" and lat > 0:
+                    self.logger.warning(f"Positive Latitude Value for South Latitude. Inverting Latitude."
+                                        f" Key: {multikey.lat_val}, Value: {lat_ref}")
+                    lat = -lat
+
+            if long_ref is not None:
+                if long_ref.lower().strip() not in ("e", "w"):
+                    self.logger.warning(f"Failed to Parse Longitude Reference."
+                                        f" Key: {multikey.long_val}, Value: {long_ref}")
+
+                if long_ref.lower().strip() == "w" and long > 0:
+                    self.logger.warning(f"Positive Longitude Value for West Longitude. Inverting Longitude."
+                                        f" Key: {multikey.long_val}, Value: {long_ref}")
+                    long = -long
+
+            alt = None
+            if alt_val is not None:
+                try:
+                    alt = float(alt_val)
+                except ValueError:
+                    self.logger.error(f"Failed to Parse Altitude from GPS Multikey Tag. "
+                                      f" Key: {multikey.alt_val}, Value: {alt_val}")
+
+                # Attempt to parse alt ref
+                if alt is not None and alt_ref is not None:
+                    if type(alt_ref) is str:
+                        if alt_ref.lower().strip() not in ("0", "1"):
+                            self.logger.warning(f"Unexpected Alt Ref Format: "
+                                                f" Key: {multikey.alt_val}, Value: {alt_ref}")
+                            palt_ref = None
+                        else:
+                            palt_ref = int(alt_ref)
+
+                    elif type(alt_ref) is float or type(alt_ref) is int:
+                        if not (alt_ref == 0 or alt_ref == 1):
+                            self.logger.warning(f"Unexpected Alt Ref Format: "
+                                                f" Key: {multikey.alt_val}, Value: {alt_ref}")
+                            palt_ref = None
+                        else:
+                            palt_ref = alt_ref
+                    else:
+                        self.logger.warning(f"Unexpected Alt Ref Type: "
+                                            f" Key: {multikey.alt_val}, Value: {alt_ref}")
+                        palt_ref = None
+
+                    # PRECONDITION: Because of the previous try except block it holds that alt is a float if it is not None
+                    if palt_ref is not None and palt_ref == 1 and alt > 0:
+                        self.logger.warning(f"Positive Altitude Value for below sea level (0). Inverting Altitude. "
+                                            f"Key: {multikey.alt_val}, Value: {alt}")
+                        alt = -alt
+
+            results.append(GPSParsingResult(key=multikey, lat=lat, long=long, alt=alt))
+        return results
+
+
 if __name__ == "__main__":
     mda = NewMetadataAggregator(mp.Queue())
