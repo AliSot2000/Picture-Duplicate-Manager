@@ -10,7 +10,7 @@
 
 ## Import View
 - [X] Add import View to the main Window
-- [X] When clicked, open the bigScreen Image (with with comparison if possible. If not, just the bigScreen Image)
+- [X] When clicked, open the bigScreen Image (with comparison if possible. If not, just the bigScreen Image)
 - [X] Close image with ESC
 - [X] Check button needs to update the subsection the image is in.
 - [X] Add button to import
@@ -24,7 +24,7 @@
 - [X] Add check button 
 - [X] Show image in database when with button (show associated metadata as well)
 
-## Caroussell
+## Carousel
 - [X] Add functions to update the bigscreen
 - [X] Generate Carousel
 - [X] Unload images when out of view.
