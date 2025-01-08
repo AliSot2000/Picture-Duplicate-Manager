@@ -430,6 +430,12 @@ class NewMetadataAggregator:
     # Parse Functions
     # ==================================================================================================================
 
+    def search_possible_new_keys(self):
+        """
+        Go through available metadata keys and search for keys which aren't already covered by the config. Only Simple Keys are
+        """
+        ...
+
     def metadata_to_datetime(self, md: dict):
         """
         Fully parse all datetime objects of the image. Also attempt to parse all GPS information.
