@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Union
 import datetime
 from photo_lib.custom_enum import *
+from config import DoubleKey
 
 """
 Dataclasses related to the backend of the phtoto library.
@@ -104,3 +105,10 @@ class GroupCount:
     count: int
     group_crit: GroupingCriterion
     start_date: Union[None, datetime.datetime]
+
+
+@dataclass
+class DateTimeParsingResult:
+    key: Union[str, DoubleKey]
+    dt: Union[datetime.datetime, None]
+    src: DateTimeCategory
