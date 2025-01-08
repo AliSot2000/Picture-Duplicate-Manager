@@ -682,7 +682,7 @@ class NewMetadataAggregator:
                 results.append(DateTimeParsingResult(key=key, dt=valid_res[0][0], src=valid_res[0][1]))
 
             else:
-                self.logger.debug(f"No valid format found for key {key}, {md.get(key)}")
+                self.logger.debug(f"No valid format found for key {key}, {md.get(key)} (static)")
 
         return results
 
