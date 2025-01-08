@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, ConfigDict, AfterValidator
 from typing import Union, List, Dict, Tuple, Annotated
 from photo_lib.custom_enum import PathSuffix, DateTimeCategory
 
-# TODO implement config
+
 def validate_zone_str(arg: str) -> str:
     """
     Try to parse a ZoneInfo object and return the string again
