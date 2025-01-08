@@ -103,6 +103,12 @@ class NewMetadataAggregator:
 
         return InternalDateTimeParser.model_validate(existing_json)
 
+    def export_discovered(self, tgt_path: str, config: Config):
+        """
+        Export the newly found things to config.
+        """
+        ...
+
     # ==================================================================================================================
     # General
     # ==================================================================================================================
