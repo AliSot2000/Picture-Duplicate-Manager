@@ -66,6 +66,7 @@ class PathSuffix(Enum):
     KEY = 2
 
 class DateTimeCategory(str, Enum):
+    NONE = "none"
     AWARE = "aware"
     UNAWARE = "unaware"
     DATE = "date"
