@@ -744,6 +744,13 @@ class NewMetadataAggregator:
                                                                     tz=formats[0].tz)]
 
                             ))
+            elif len(valid_res) > 0:
+                assert len(valid_res) == 1, (f"Found multiple valid formats for keys "
+                                             f"{keys.first_key} + {keys.second_key}: {dt}")
+                results.append(DateTimeParsingResult(key=keys, dt=valid_res[0][0], src=valid_res[0][1]))
+            else:
+                self.logger.debug(f"No valid format found for key {keys.first_key} + {keys.second_key}: {dt} (static")
+
         return results
 
 if __name__ == "__main__":
