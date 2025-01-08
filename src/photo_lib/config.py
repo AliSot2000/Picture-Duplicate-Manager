@@ -84,6 +84,24 @@ class DoubleKeyStatic(DoubleKeyFormat):
                                         description="List of Known Lookup Formats")
 
 
+class GPSMultiKey(BaseModel):
+    lat_val: str = Field(...,
+                         description="Latitude Value")
+    lat_ref: str = Field(...,
+                        description="Latitude Indicator can be N or S (case insensitive)")
+    long_val: str = Field(...,
+                          description="Longitude Value")
+    long_ref: str = Field(...,
+                         description="Longitude Indicator can be W or E (case insensitive)")
+    alt_val: str = Field(...,
+                        description="Altitude Value")
+    alt_ref: str = Field(...,
+                         description="Altitute Reference can be 0 or 1, 1 iff above sea level ")
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+
 class InternalDoubleKeyStatic(DoubleKeyFormat):
     """
     Double Key Lookup with a statically known timezone. This is the format used internally to allow for easy iteration.
@@ -140,6 +158,19 @@ class DateTimeParser(BaseModel):
         Field(...,
               description="Some double keys contain a timezone unaware datetime but it is defined in the spec for these"
                           "keys what timezone the keys has (usually UTC).")
+
+    gps_composite_key: List[str] = \
+        Field(...,
+              description="List of keys containing composited gps info. two or three floats lat, long, [alt] ")
+
+    gps_multi_key: List[GPSMultiKey] = \
+        Field(...,
+              description="List of GPSMultiKey objects containing GPS info across multiple metadata fields.")
+
+    gps_prefix_composite_key: List[str] = \
+        Field(...,
+              description="Each string indicates a prefix of a key, that if matched contains composite data: "
+                          "lat, long, [alt]")
 
     model_config = ConfigDict(
         populate_by_name=True,
