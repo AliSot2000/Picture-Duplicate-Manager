@@ -440,7 +440,7 @@ class NewMetadataAggregator:
         dts.extend(self.simple_unaware_static_tz_parser(md))
         dts.extend(self.double_unaware_static_tz_parser(md))
 
-    def simple_key_parser(self, md: dict) -> List[Tuple[Union[datetime.datetime, None], DateTimeCategory]]:
+    def simple_key_parser(self, md: dict) -> List[DateTimeParsingResult]:
         """
         Go through all simple keys of the config:
 
@@ -473,7 +473,7 @@ class NewMetadataAggregator:
 
                 # Successfully found a new format
                 if dt is not None:
-                    results.append((dt, dt))
+                    results.append(DateTimeParsingResult(key=key, dt=dt, src=dts))
 
                     if self.new_dt_cfg.simple_keys.get(key) is None:
                         self.new_dt_cfg.simple_keys[key] = []
@@ -484,14 +484,14 @@ class NewMetadataAggregator:
             # Add valid result to the overall results.
             elif len(valid_res) > 0:
                 assert len(valid_res) == 1, f"Found multiple valid formats for key {key}: {md.get(key)}"
-                results.extend(valid_res)
+                results.append(DateTimeParsingResult(key=key, dt=valid_res[0][0], src=valid_res[0][1]))
 
             else:
                 self.logger.debug(f"No valid format found for key {key}: {md.get(key)}")
 
         return results
 
-    def double_key_parse(self, md: dict) -> List[Tuple[Union[datetime.datetime, None], DateTimeCategory]]:
+    def double_key_parse(self, md: dict) -> List[DateTimeParsingResult]:
         """
         Go through all double keys of the config:
 
@@ -529,7 +529,7 @@ class NewMetadataAggregator:
             if len(valid_res) == 0 and self.discover:
                 dt, dts, idx = self._dt_test_all(dt=dt_a, key=f"{keys.first_key} + {keys.second_key}")
                 if dt is not None:
-                    results.append((dt, dts))
+                    results.append(DateTimeParsingResult(key=keys, dt=dt, src=dts))
 
                     if keys in new_dt_keys:
                         # The key exists, so we add the new format to it
@@ -548,14 +548,14 @@ class NewMetadataAggregator:
             elif len(valid_res) > 0:
                 assert len(valid_res) == 1, (f"Found multiple valid formats for keys "
                                              f"{keys.first_key} + {keys.second_key}: {dt}")
-                results.extend(valid_res)
+                results.append(DateTimeParsingResult(key=keys, dt=valid_res[0][0], src=valid_res[0][1]))
 
             else:
                 self.logger.debug(f"No valid format found for key {keys.first_key} + {keys.second_key}: {dt}")
 
         return results
 
-    def simple_prefix_key_parser(self, md: dict) -> List[Tuple[Union[datetime.datetime, None], DateTimeCategory]]:
+    def simple_prefix_key_parser(self, md: dict) -> List[DateTimeParsingResult]:
         """
         Go through all prefix key of the config:
 
@@ -589,7 +589,7 @@ class NewMetadataAggregator:
                 if len(valid_res) == 0 and self.discover:
                     dt, dts, idx = self._dt_test_all(dt=md.get(key), key=key)
                     if dt is not None:
-                        results.append((dt, dts))
+                        results.append(DateTimeParsingResult(key=key, dt=dt, src=dts))
 
                         if self.new_dt_cfg.prefix_keys.get(key) is None:
                             self.new_dt_cfg.prefix_keys[key] = []
@@ -603,15 +603,14 @@ class NewMetadataAggregator:
 
                 elif len(valid_res) > 0:
                     assert len(valid_res) == 1, f"Found multiple valid formats for key {key}, {md.get(key)}"
-                    results.extend(valid_res)
+                    results.append(DateTimeParsingResult(key=key, dt=valid_res[0][0], src=valid_res[0][1]))
 
                 else:
                     self.logger.debug(f"No valid format found for key {key}, {md.get(key)}")
 
         return results
 
-    def simple_unaware_static_tz_parser(self, md: dict) \
-        -> List[Tuple[Union[datetime.datetime, None], DateTimeCategory]]:
+    def simple_unaware_static_tz_parser(self, md: dict) -> List[DateTimeParsingResult]:
         """
         Parse simple keys which don't have a timezone in the value but whose timezone is defined in the standard of the
         key. E.G. GPS-DateTime is always in UTC but doesn't come with the Z at the end.
@@ -642,7 +641,7 @@ class NewMetadataAggregator:
                 dt, dts, idx = self._dt_test_all(md.get(key), key=key)
 
                 if dt is not None:
-                    results.append((dt, dts))
+                    results.append(DateTimeParsingResult(key=key, dt=dt, src=dts))
 
                     if self.new_dt_cfg.internal_simple_unaware_known_tz.get(key) is None:
                         self.new_dt_cfg.internal_simple_unaware_known_tz[key] = []
@@ -654,15 +653,14 @@ class NewMetadataAggregator:
                     )
             elif len(valid_res) > 0:
                 assert len(valid_res) == 1, f"Found multiple valid formats for key {key}, {md.get(key)}"
-                results.extend(valid_res)
+                results.append(DateTimeParsingResult(key=key, dt=valid_res[0][0], src=valid_res[0][1]))
 
             else:
                 self.logger.debug(f"No valid format found for key {key}, {md.get(key)}")
 
         return results
 
-    def double_unaware_static_tz_parser(self, md: dict) \
-        -> List[Tuple[Union[datetime.datetime, None], DateTimeCategory]]:
+    def double_unaware_static_tz_parser(self, md: dict) -> List[DateTimeParsingResult]:
         """
         Parse double keys which don't have a timezone in the value but whose timezone is defined in the standard of the
         key. E.G. EXIF:GPSDateStamp, EXIF:GPSTimeStamp
@@ -700,7 +698,7 @@ class NewMetadataAggregator:
                 dt, dts, idx = self._dt_test_all(dt=dt, key=f"{keys.first_key} + {keys.second_key}")
 
                 if dt is not None:
-                    results.append((dt, dts))
+                    results.append(DateTimeParsingResult(key=keys, dt=dt, src=dts))
 
                     if keys in new_dt_keys:
                         self.new_dt_cfg.internal_double_unaware_known_tz[new_dt_keys.index(keys)].formats.append(
