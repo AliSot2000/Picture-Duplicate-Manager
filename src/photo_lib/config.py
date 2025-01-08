@@ -149,6 +149,20 @@ class DateTimeParser(BaseModel):
 class InternalDateTimeParser(DateTimeParser):
     tz_timestamp: List[str] = Field(default_factory=lambda: ["Placeholder"])
 
+    internal_simple_unaware_known_tz: Dict[str, List[InternalStaticLookupSource]] = \
+        Field(...,
+              description="Some simple keys contain a timezone unaware datetime but it is defined in the spec for this "
+                          "key what timezone the key has (usually UTC). For ease of use, the timezone is copied into "
+                          "each format. However, within a key, the timezone must be the same.")
+
+    internal_double_unaware_known_tz: List[InternalDoubleKeyStatic] = \
+        Field(...,
+              description="Some double keys contain a timezone unaware datetime but it is defined in the spec for these"
+                          "keys what timezone the keys has (usually UTC). For ease of use, the timezone is copied into "
+                          "each format. However, within a key, the timezone must be the same.")
+
+
+
 class Config(BaseModel):
     allowed_extensions: List[str]
 
