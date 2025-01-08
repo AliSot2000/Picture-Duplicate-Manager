@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Optional
 import datetime
 from photo_lib.custom_enum import *
-from config import DoubleKey
+from photo_lib.config import DoubleKey, GPSMultiKey
 
 """
 Dataclasses related to the backend of the phtoto library.
@@ -112,3 +112,14 @@ class DateTimeParsingResult:
     key: Union[str, DoubleKey]
     dt: Union[datetime.datetime, None]
     src: DateTimeCategory
+
+
+@dataclass
+class GPSParsingResult:
+    lat: float
+    long: float
+
+    key: Union[str, GPSMultiKey]
+
+    alt: Optional[float] = None
+
