@@ -10,9 +10,10 @@ import time
 import exiftool
 
 from photo_lib.config import (InternalDateTimeParser, DateTimeParser, LookupSource, StaticLookupSource,
-                              InternalStaticLookupSource, DoubleKey, DoubleKeyFormat, DoubleKeyStatic, InternalDoubleKeyStatic)
+                              InternalStaticLookupSource, DoubleKey, DoubleKeyFormat, DoubleKeyStatic,
+                              InternalDoubleKeyStatic, Config)
 from photo_lib.custom_enum import DateTimeCategory
-from photo_lib.data_objects import DateTimeParsingResult
+from photo_lib.data_objects import DateTimeParsingResult, GPSParsingResult
 
 
 # https://docs.python.org/3/howto/logging.html#logging-flow
@@ -439,6 +440,19 @@ class NewMetadataAggregator:
         dts.extend(self.simple_prefix_key_parser(md))
         dts.extend(self.simple_unaware_static_tz_parser(md))
         dts.extend(self.double_unaware_static_tz_parser(md))
+
+        gps_rst = []
+        gps_rst.extend(self.gps_composite_parser(md))
+        gps_rst.extend(self.gps_prefix_composite_parser(md))
+        gps_rst.extend(self.gps_multikey_parser(md))
+
+        if len(gps_rst) > 2:
+            print(gps_rst)
+        # if len(dts) > 3:
+        #     for r in dts:
+        #         print(r)
+        #
+        # print("-"*120)
 
     def simple_key_parser(self, md: dict) -> List[DateTimeParsingResult]:
         """
