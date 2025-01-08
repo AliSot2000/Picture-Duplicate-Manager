@@ -163,7 +163,6 @@ class InternalDateTimeParser(DateTimeParser):
                           "each format. However, within a key, the timezone must be the same.")
 
 
-
 class Config(BaseModel):
     allowed_extensions: List[str]
 
@@ -178,3 +177,4 @@ class Config(BaseModel):
     add_safety_exif_tags: bool = True
 
     datetime_fmt: Union[DateTimeParser, None] = None
+    fallback_tz: Union[str, None] = None
