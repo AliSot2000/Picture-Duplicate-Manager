@@ -1,7 +1,8 @@
 import zoneinfo
+from typing import Union, List, Dict, Annotated
 
 from pydantic import BaseModel, Field, ConfigDict, AfterValidator
-from typing import Union, List, Dict, Tuple, Annotated
+
 from photo_lib.custom_enum import PathSuffix, DateTimeCategory
 
 
