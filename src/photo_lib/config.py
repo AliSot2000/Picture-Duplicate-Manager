@@ -13,10 +13,82 @@ def validate_zone_str(arg: str) -> str:
     return arg
 
 
+PydanticTZStr = Annotated[str, AfterValidator(validate_zone_str)]
 
-PydanticTZStr = Annotated[str,
-                          AfterValidator(validate_zone_str)]
 
+class LookupSource(BaseModel):
+    """
+    Lookup Source in the provided formats.
+    - Index used to get the right element of the format list
+    - Source used to determine which format list to use
+    """
+    index: int = Field(...,
+                       description="Index in the Lookup Table")
+    source: DateTimeCategory = Field(...,
+                                     description="Lookup Table to use.")
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
+
+class StaticLookupSource(BaseModel):
+    """
+    Static Lookup for the keys which have a statically known timezone and this don't contain the timezone info
+    within the key.
+
+    - Formats contains the list of known formats for that key
+    - tz static timezone of that key. Like US/Pacific. Default None is UTC
+    """
+    formats: List[LookupSource] = Field(...,
+        description="List of Known Lookup Formats")
+    tz: Union[str, None] = Field(None,
+                                 description="Timezone String (like US/Pacific) or None for UTC")
+
+
+class InternalStaticLookupSource(LookupSource):
+    """
+    Internal Lookup Source. The timezone now moved into the Lookup Source.
+    """
+
+    tz: Union[str, None] = Field(None,
+                                 description="Timezone String (like US/Pacific) or None for UTC")
+
+
+class DoubleKey(BaseModel):
+    """
+    Object containing two keys which form a datetime object.
+    """
+    first_key: str = Field(...,
+                           description="First Key for the Double Key")
+    second_key: str = Field(...,
+                            description="Second Key for the Double Key")
+
+
+class DoubleKeyFormat(DoubleKey):
+    """
+    Object also containing the list of known formats that a given double key has.
+    """
+    formats: List[LookupSource] = Field(...,
+                                        description="List of Known Lookup Formats")
+
+
+class DoubleKeyStatic(DoubleKeyFormat):
+    """
+    Double Key Lookup with a statically known timezone. This is the format used in the config. H
+    as only a single timezone.
+    """
+    formats: StaticLookupSource = Field(...,
+                                        description="List of Known Lookup Formats")
+
+
+class InternalDoubleKeyStatic(DoubleKeyFormat):
+    """
+    Double Key Lookup with a statically known timezone. This is the format used internally to allow for easy iteration.
+    """
+    formats: List[InternalStaticLookupSource] = Field(...,
+                                                      description="List of Known Double Keys")
 
 
 class DateTimeParser(BaseModel):
@@ -39,18 +111,18 @@ class DateTimeParser(BaseModel):
     tz_time_formats: List[str] = Field(...,
                                        description="List of Formats which contain only the time.")
 
-    simple_keys: Dict[str, List[Tuple[int, DateTimeCategory]]] = \
+    simple_keys: Dict[str, List[LookupSource]] = \
         Field(...,
               description="Dictionary of key-value pairs. The key is the key in the metadata dict returned by the "
                           "exiftool and the list is all known variants of the datetime format that can be in that key.")
 
-    prefix_keys: Dict[str, List[Tuple[int, DateTimeCategory]]] = \
+    prefix_keys: Dict[str, List[LookupSource]] = \
         Field(...,
               description="Some Keys are available in multiple editions. Example: QuickTime:CreationDate shows up as "
                           "is but also as QuickTime:CreationDate-de QuickTime:CreationDate-fra and "
                           "QuickTime:CreationDate-un. To parse keys which share a common prefix, use this type.")
 
-    double_keys: List[Tuple[List[str], List[Tuple[int, DateTimeCategory]]]] = \
+    double_keys: List[DoubleKeyFormat] = \
         Field(...,
               description="Datetime values are stretched across two key.s Example: IPTC:DateCreated, IPTC:TimeCreated "
                           "The first element of the tuple contains the two keys in the Date Time [Offset]. There are "
@@ -58,15 +130,15 @@ class DateTimeParser(BaseModel):
                           "timezone. Example: EXIF:ModifyDate, EXIF:OffsetTime"
               )
 
-    simple_unaware_known_tz: Dict[str, List[Tuple[int, DateTimeCategory, Union[str, None]]]] = \
+    simple_unaware_known_tz: Dict[str, StaticLookupSource] = \
         Field(...,
               description="Some simple keys contain a timezone unaware datetime but it is defined in the spec for this "
-                          "key what timezone the key has (usually UTC)")
+                          "key what timezone the key has (usually UTC).")
 
-    double_unaware_known_tz: List[Tuple[List[str], List[Tuple[int, DateTimeCategory, Union[str, None]]]]] = \
+    double_unaware_known_tz: List[DoubleKeyStatic] = \
         Field(...,
               description="Some double keys contain a timezone unaware datetime but it is defined in the spec for these"
-                          "keys what timezone the keys has (usually UTC)")
+                          "keys what timezone the keys has (usually UTC).")
 
     model_config = ConfigDict(
         populate_by_name=True,
