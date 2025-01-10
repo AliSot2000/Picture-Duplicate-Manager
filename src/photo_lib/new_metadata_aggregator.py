@@ -18,8 +18,13 @@ from photo_lib.data_objects import DateTimeParsingResult, GPSParsingResult
 # Flags, TZinfo, GPS + Datetime, Datetime NO TZ,  File TZ only,
 class NewMetadataAggregator:
     eth: exiftool.ExifToolHelper
+    tzf: timezonefinder.TimezoneFinder = timezonefinder.TimezoneFinder()
     dt_cfg: InternalDateTimeParser
     new_dt_cfg: Optional[InternalDateTimeParser] = None
+
+    # Handling priority of where to get the utc offset from.
+    default_tz: str
+    tz_priority: List[DateTimeSource]
 
     # Set of keys to ignore when attempting to find new keys containing datetime information
     ignore_keys: List[str] = ["ICC_Profile:ProfileDateTime"]
