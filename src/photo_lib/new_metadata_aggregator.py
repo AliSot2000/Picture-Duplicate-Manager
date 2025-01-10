@@ -146,6 +146,11 @@ class NewMetadataAggregator:
             self.new_dt_cfg.internal_simple_unaware_known_tz = {}
             self.new_dt_cfg.internal_double_unaware_known_tz = []
 
+            # Not even strictly necessary
+            self.new_dt_cfg.gps_multi_key = []
+            self.new_dt_cfg.gps_composite_key = []
+            self.new_dt_cfg.gps_prefix_composite_key = []
+
     # ==================================================================================================================
     # Base Functions Datetime Parsing
     # ==================================================================================================================
