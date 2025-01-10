@@ -62,22 +62,6 @@ class NewMetadataAggregator:
         level = logging.DEBUG if self.__verbose else logging.INFO
         self.logger.setLevel(level)
 
-    def setup_logging(self, add_handlers: bool = True):
-        """
-        Set up the logger for the class.
-        """
-        if self.index is None:
-            self.logger = logging.getLogger("MetadataAggregator")
-        else:
-            self.logger = logging.getLogger(f"MetadataAggregator_{self.index:03}")
-
-        # If the logger has no handlers, we assume add the default queue handler. A User can modify the logger himself
-        # by adding different handlers and this won't be overwritten.
-        if len(self.logger.handlers) == 0 and add_handlers:
-            handler = logging.handlers.QueueHandler(self.logging_queue)
-            self.logger.addHandler(handler)
-            self.logger.setLevel(logging.DEBUG if self.verbose else logging.INFO)
-
     @staticmethod
     def build_internal_config(cfg: DateTimeParser) -> InternalDateTimeParser:
         """
