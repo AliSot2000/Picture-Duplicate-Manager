@@ -8,10 +8,9 @@ from typing import List, Union, Tuple, Optional, Dict
 import exiftool
 import timezonefinder
 
-from photo_lib.config import (InternalDateTimeParser, DateTimeParser, LookupSource, StaticLookupSource,
-                              InternalStaticLookupSource, DoubleKey, DoubleKeyFormat, DoubleKeyStatic,
-                              InternalDoubleKeyStatic, Config)
-from photo_lib.custom_enum import DateTimeCategory
+from photo_lib.config import (InternalDateTimeParser, DateTimeParser, LookupSource, InternalStaticLookupSource,
+                              DoubleKey, DoubleKeyFormat, InternalDoubleKeyStatic, Config)
+from photo_lib.custom_enum import DateTimeCategory, DateTimeSource
 from photo_lib.data_objects import DateTimeParsingResult, GPSParsingResult
 
 
