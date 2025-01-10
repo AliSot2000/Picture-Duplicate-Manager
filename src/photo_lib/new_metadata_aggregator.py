@@ -330,6 +330,13 @@ class NewMetadataAggregator:
         except ValueError:
             pass
 
+        try:
+            rmdt = dt[:10] + dt[11:]
+            datetime.datetime.strptime(rmdt, "%Y:%m:%d %H:%M:%S.%f")
+            return True
+        except ValueError:
+            pass
+
         return False
 
     def _parse_raw_value(self, dt: Union[str, int, None],
