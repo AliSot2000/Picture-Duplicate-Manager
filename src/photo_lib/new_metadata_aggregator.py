@@ -1,13 +1,12 @@
 import datetime
 import logging
-import logging.handlers as handlers
 import multiprocessing as mp
 import os
 import zoneinfo
 from typing import List, Union, Tuple, Optional, Dict
 
-import time
 import exiftool
+import timezonefinder
 
 from photo_lib.config import (InternalDateTimeParser, DateTimeParser, LookupSource, StaticLookupSource,
                               InternalStaticLookupSource, DoubleKey, DoubleKeyFormat, DoubleKeyStatic,
