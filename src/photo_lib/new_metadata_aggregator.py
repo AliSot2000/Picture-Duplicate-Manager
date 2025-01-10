@@ -652,7 +652,9 @@ class NewMetadataAggregator:
                 dt, dts, idx = self._dt_test_all(md.get(key), key=key)
 
                 if dt is not None:
-                    results.append(DateTimeParsingResult(key=key, dt=dt, src=dts))
+                    zone = zoneinfo.ZoneInfo(formats[0].tz) if formats[0].tz is not None else datetime.timezone.utc
+                    dt = dt.replace(tzinfo=zone)
+                    results.append(DateTimeParsingResult(key=key, dt=dt, src=DateTimeCategory.AWARE))
 
                     if self.new_dt_cfg.internal_simple_unaware_known_tz.get(key) is None:
                         self.new_dt_cfg.internal_simple_unaware_known_tz[key] = []
@@ -664,7 +666,7 @@ class NewMetadataAggregator:
                     )
             elif len(valid_res) > 0:
                 assert len(valid_res) == 1, f"Found multiple valid formats for key {key}, {md.get(key)}"
-                results.append(DateTimeParsingResult(key=key, dt=valid_res[0][0], src=valid_res[0][1]))
+                results.append(DateTimeParsingResult(key=key, dt=valid_res[0][0], src=DateTimeCategory.AWARE))
 
             else:
                 self.logger.debug(f"No valid format found for key {key}, {md.get(key)} (static)")
@@ -709,7 +711,9 @@ class NewMetadataAggregator:
                 dt, dts, idx = self._dt_test_all(dt=dt, key=f"{keys.first_key} + {keys.second_key}")
 
                 if dt is not None:
-                    results.append(DateTimeParsingResult(key=keys, dt=dt, src=dts))
+                    zone = zoneinfo.ZoneInfo(formats[0].tz) if formats[0].tz is not None else datetime.timezone.utc
+                    dt = dt.replace(tzinfo=zone)
+                    results.append(DateTimeParsingResult(key=keys, dt=dt, src=DateTimeCategory.AWARE))
 
                     if keys in new_dt_keys:
                         self.new_dt_cfg.internal_double_unaware_known_tz[new_dt_keys.index(keys)].formats.append(
@@ -732,7 +736,7 @@ class NewMetadataAggregator:
             elif len(valid_res) > 0:
                 assert len(valid_res) == 1, (f"Found multiple valid formats for keys "
                                              f"{keys.first_key} + {keys.second_key}: {dt}")
-                results.append(DateTimeParsingResult(key=keys, dt=valid_res[0][0], src=valid_res[0][1]))
+                results.append(DateTimeParsingResult(key=keys, dt=valid_res[0][0], src=DateTimeCategory.AWARE))
             else:
                 self.logger.debug(f"No valid format found for key {keys.first_key} + {keys.second_key}: {dt} (static")
 
