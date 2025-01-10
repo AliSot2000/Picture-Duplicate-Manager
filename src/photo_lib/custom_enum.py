@@ -72,3 +72,11 @@ class DateTimeCategory(str, Enum):
     DATE = "date"
     TIME = "time"
     TIMESTAMP = "timestamp"
+
+
+class DateTimeSource(Enum):
+    ANY_AWARE = 0
+    FILE_AWARE = 1
+    UNAWARE_GPS = 2
+    UNAWARE_DEFAULT = 3
+    DATE_OR_TIME = 4
