@@ -216,8 +216,7 @@ class NewMetadataAggregator:
 
         # Parsing successful, exchange the zone info.
         zone = zoneinfo.ZoneInfo(tz) if tz is not None else datetime.timezone.utc
-        dto.replace(tzinfo=zone)
-        return dto, DateTimeCategory.AWARE
+        return dto.replace(tzinfo=zone), DateTimeCategory.AWARE
 
     def _dt_test_all(self, dt: Union[str, int], key: str) -> \
             Tuple[Union[datetime.datetime, None], DateTimeCategory, int]:
