@@ -43,7 +43,6 @@ class NewMetadataAggregator:
     # Util
     # ==================================================================================================================
 
-
     @property
     def verbose(self):
         return self.__verbose
