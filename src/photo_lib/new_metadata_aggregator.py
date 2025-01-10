@@ -456,7 +456,11 @@ class NewMetadataAggregator:
         """
         ...
 
-    def metadata_to_datetime(self, md: dict):
+    def metadata_to_datetime(self, md: dict) -> Tuple[
+        DateTimeParsingResult,
+        DateTimeSource,
+        Union[None, GPSParsingResult]
+    ]:
         """
         Fully parse all datetime objects of the image. Also attempt to parse all GPS information.
 
