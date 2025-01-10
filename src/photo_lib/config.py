@@ -1,5 +1,5 @@
 import zoneinfo
-from typing import Union, List, Dict, Annotated
+from typing import Union, List, Dict, Annotated, Optional
 
 from pydantic import BaseModel, Field, ConfigDict, AfterValidator
 
@@ -87,15 +87,15 @@ class DoubleKeyStatic(DoubleKeyFormat):
 class GPSMultiKey(BaseModel):
     lat_val: str = Field(...,
                          description="Latitude Value")
-    lat_ref: str = Field(...,
+    lat_ref: Optional[str] = Field(None,
                         description="Latitude Indicator can be N or S (case insensitive)")
     long_val: str = Field(...,
                           description="Longitude Value")
-    long_ref: str = Field(...,
+    long_ref: Optional[str] = Field(None,
                          description="Longitude Indicator can be W or E (case insensitive)")
     alt_val: str = Field(...,
                         description="Altitude Value")
-    alt_ref: str = Field(...,
+    alt_ref: Optional[str] = Field(None,
                          description="Altitute Reference can be 0 or 1, 1 iff above sea level ")
 
     model_config = ConfigDict(
