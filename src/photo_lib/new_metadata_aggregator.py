@@ -107,7 +107,8 @@ class NewMetadataAggregator:
                  verbose: bool = False,
                  ignore_keys: List[str] = None,
                  search_keys: List[str] = None,
-                 index: int = None):
+                 default_tz: str = None,
+                 tz_priority: List[DateTimeSource] = None):
         """
         Path to exiftool executable. Used as an override.
         """
@@ -131,8 +132,30 @@ class NewMetadataAggregator:
         self.search = search
 
         # Logging attrs
-        self.index = index
-        self.logging_queue = logging_queue
+        self.logger = logger
+
+        if default_tz is None:
+            self.default_tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzname()
+
+        if tz_priority is not None:
+            no_dup = set(tz_priority)
+
+            if len(no_dup) != len(tz_priority):
+                raise ValueError("Duplicate Key in Time Zone Priority")
+
+            if len(no_dup) < len(DateTimeSource._member_names_):
+                raise ValueError("Not Sources present, you must order all priorities first.")
+
+            # INFO: Cannot use set, lose order.
+            self.tz_priority = tz_priority
+
+        else:
+            self.tz_priority = [DateTimeSource.ANY_AWARE,
+                                DateTimeSource.UNAWARE_GPS,
+                                DateTimeSource.UNAWARE_DEFAULT,
+                                DateTimeSource.DATE_OR_TIME,
+                                DateTimeSource.FILE_AWARE]
+
 
         if self.ignore_keys is not None:
             self.ignore_keys = ignore_keys
