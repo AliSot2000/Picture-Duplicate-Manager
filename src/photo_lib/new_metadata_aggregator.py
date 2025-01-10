@@ -95,7 +95,7 @@ class NewMetadataAggregator:
     # ==================================================================================================================
 
     def __init__(self,
-                 logging_queue: mp.Queue,
+                 logger: logging.Logger,
                  path: str = None,
                  discover: bool = False,
                  search: bool = False,
