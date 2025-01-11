@@ -162,10 +162,10 @@ class NewMetadataAggregator:
                                 DateTimeSource.FILE_AWARE]
 
 
-        if self.ignore_keys is not None:
+        if ignore_keys is not None:
             self.ignore_keys = ignore_keys
 
-        if self.search_keys is not None:
+        if search_keys is not None:
             self.search_keys = search_keys
 
         if self.discover or self.search:
@@ -183,6 +183,9 @@ class NewMetadataAggregator:
             self.new_dt_cfg.gps_multi_key = []
             self.new_dt_cfg.gps_composite_key = []
             self.new_dt_cfg.gps_prefix_composite_key = []
+
+            # Clear google photos metadata keys
+            self.new_dt_cfg.google_photos_datetime = []
 
     # ==================================================================================================================
     # Base Functions Datetime Parsing and Utility
