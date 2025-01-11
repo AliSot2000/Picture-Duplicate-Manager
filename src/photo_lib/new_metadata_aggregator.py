@@ -41,6 +41,10 @@ class NewMetadataAggregator:
     # Try to parse any key that contains any of the search_keys strings and which isn't contained in the igonre_keys
     search: bool
 
+    # Use dateutil. Will parse more but cannot retrieve format.
+    use_dateutil: bool
+    dt_util_count = 0
+
     # print status information about parsing
     __verbose: bool
 
