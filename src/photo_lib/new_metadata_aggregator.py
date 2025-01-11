@@ -446,6 +446,79 @@ class NewMetadataAggregator:
 
         return uk, ufmt, new_dt_keys
 
+    @staticmethod
+    def build_datetime_from_date_and_time(date: datetime.datetime, time: datetime.datetime) -> datetime.datetime:
+        """
+        Populate datetime object from date and time.
+
+        :param date: datetime object to take the date from
+        :param time: datetime object to take the time from
+
+        :return: datetime object with joint values from date and time
+        """
+        return datetime.datetime(
+            year=date.year,
+            month=date.month,
+            day=date.day,
+            hour=time.hour,
+            minute=time.minute,
+            second=time.second,
+            tzinfo=time.tzinfo,
+        )
+
+    @staticmethod
+    def partition_datetime_results(dts: List[DateTimeParsingResult]) -> Tuple[
+        List[DateTimeParsingResult],
+        List[DateTimeParsingResult],
+        List[DateTimeParsingResult],
+        List[DateTimeParsingResult],
+        List[DateTimeParsingResult],
+    ]:
+        """
+        Partition the Datetime parsing result into lists according to the DateTimeSource
+
+        :param dts: List of DateTimeParsingResult objects to partition
+
+        :return: five lists of DateTimeParsingResult objects, in the following order:
+        - aware objects
+        - unaware objects
+        - date objects
+        - time objects
+        - file objects
+        """
+        aware = []
+        unaware = []
+        date = []
+        time = []
+        file = []
+
+        # Partition the Datetime into separate lists
+        for dtr in dts:
+            assert dtr.src not in (DateTimeCategory.NONE, DateTimeCategory.TIMESTAMP), \
+                f"Unsupported Result from parsing datetime {dtr.src}"
+
+            if isinstance(dtr.key, str) and dtr.key.lower().startswith("file"):
+                file.append(dtr)
+            elif dtr.src == DateTimeCategory.AWARE:
+                aware.append(dtr)
+            elif dtr.src == DateTimeCategory.DATE:
+                date.append(dtr)
+            elif dtr.src == DateTimeCategory.TIME:
+                time.append(dtr)
+            elif dtr.src == DateTimeCategory.UNAWARE:
+                unaware.append(dtr)
+            else:
+                raise Exception(f"Tertiem Non Datur. This option shouldn't be possible. {dtr.src}")
+
+        # Sort all the list of datetimes
+        unaware = sorted(unaware, key=lambda x: x.dt)
+        aware = sorted(aware, key=lambda x: x.dt)
+        date = sorted(date, key=lambda x: x.dt)
+        time = sorted(time, key=lambda x: x.dt)
+        file = sorted(file, key=lambda x: x.dt)
+
+        return unaware, aware, date, time, file
+
     # ==================================================================================================================
     # Parse Functions
     # ==================================================================================================================
@@ -978,13 +1051,12 @@ class NewMetadataAggregator:
         results = []
         for multikey in self.dt_cfg.gps_multi_key:
             lat_val = md.get(multikey.lat_val) if md.get(multikey.lat_val) is not None else None
-            lat_ref = md.get(multikey.lat_ref) if md.get(multikey.lat_ref) is not None else None
-
             long_val = md.get(multikey.long_val) if md.get(multikey.long_val) is not None else None
-            long_ref = md.get(multikey.long_ref) if md.get(multikey.long_ref) is not None else None
-
             alt_val = md.get(multikey.alt_val) if md.get(multikey.alt_val) is not None else None
-            alt_ref = md.get(multikey.alt_ref) if md.get(multikey.alt_ref) is not None else None
+
+            lat_ref = md.get(multikey.lat_ref) if multikey.lat_ref is not None else None
+            long_ref = md.get(multikey.long_ref) if multikey.long_ref is not None else None
+            alt_ref = md.get(multikey.alt_ref) if multikey.alt_ref is not None else None
 
             # Not all necessary values present
             if lat_val is None or long_val is None:
@@ -1065,4 +1137,4 @@ class NewMetadataAggregator:
 
 
 if __name__ == "__main__":
-    mda = NewMetadataAggregator(mp.Queue())
+    mda = NewMetadataAggregator()
