@@ -546,7 +546,7 @@ class NewMetadataAggregator:
         """
         ...
 
-    def metadata_to_datetime(self, md: dict) -> Tuple[
+    def metadata_to_datetime(self, md: dict, google_photos_result: List[DateTimeParsingResult] = None) -> Tuple[
         DateTimeParsingResult,
         DateTimeSource,
         Union[None, GPSParsingResult]
@@ -559,6 +559,9 @@ class NewMetadataAggregator:
         - Timezone unaware Format + GPS
         - Config Default Timezone
         - System Timezone
+
+        :param md: Dictionary of metadata
+        :param google_photos_result: List of DateTimeParsingResult objects
         """
         dts = []
         dts.extend(self.simple_key_parser(md))
@@ -581,7 +584,8 @@ class NewMetadataAggregator:
             for z in range(1, len(zones)):
                 assert zones[z] == zones[z - 1]
 
-        aware, unaware, date, time, file = self.partition_datetime_results(dts)
+        aware, unaware, date, time, file, google_photo_aware, google_photo_unaware = \
+            self.partition_datetime_results(dts, google_photos_result)
 
         for prio in self.tz_priority:
             # Any aware, return the first key from the aware
@@ -661,6 +665,21 @@ class NewMetadataAggregator:
 
                 res = DateTimeParsingResult(key=key, dt=new_dt, src=src), DateTimeSource.DATE_OR_TIME, None
                 return res
+
+            # Using Google Photos from aware
+            elif prio == DateTimeSource.GOOGLE_PHOTOS_AWARE:
+                if len(google_photo_aware) > 0:
+                    return google_photo_aware[0], DateTimeSource.GOOGLE_PHOTOS_AWARE, None
+
+            # Using Google Photos which aren't aware.
+            elif prio == DateTimeSource.GOOGLE_PHOTOS_UNAWARE:
+                if len(google_photo_unaware) > 0:
+                    assert False, "Google Photos Unaware encountered!"
+                    dt_new = google_photo_unaware[0].dt.replace(tzinfo=zoneinfo.ZoneInfo(self.default_tz))
+                    prs = DateTimeParsingResult(key=google_photo_unaware[0].key,
+                                                dt=dt_new,
+                                                src=google_photo_unaware[0].src)
+                    return prs, DateTimeSource.GOOGLE_PHOTOS_UNAWARE, None
 
             else:
                 raise ValueError("Tertiem Non Datur")
