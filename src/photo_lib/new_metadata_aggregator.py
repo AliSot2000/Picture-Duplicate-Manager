@@ -341,6 +341,9 @@ class NewMetadataAggregator:
         if isinstance(dt, int):
             return False
 
+        if isinstance(dt, float):
+            return False
+
         if dt == "0000:00:00 00:00:00":
             return True
 
