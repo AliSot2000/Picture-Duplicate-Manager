@@ -418,7 +418,18 @@ class NewMetadataAggregator:
         elif formats_dt is not None:
             local_res = [self._coercing_dt_parser(dt, f.index, f.source, f.tz) for f in formats_dt]
 
-        return list(filter(lambda r: r[0] is not None, local_res))
+        res =  list(filter(lambda r: r[0] is not None, local_res))
+
+        if len(res) == 0 and self.use_dateutil and not self.discover and isinstance(dt, str):
+                try:
+                    dt = parser.parse(dt)
+                    src = DateTimeCategory.AWARE if dt.tzinfo is not None else DateTimeCategory.UNAWARE
+                    self.dt_util_count += 1
+                    return [(dt, src)]
+                except dateutil.parser.ParserError:
+                    return []
+
+        return res
 
     def build_key_union_simple_key(self,
                                    cur_dict: Dict[str, List[LookupSource]],
