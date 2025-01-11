@@ -579,11 +579,59 @@ class NewMetadataAggregator:
     # Parse Functions
     # ==================================================================================================================
 
-    def search_possible_new_keys(self):
+    def search_possible_new_keys(self, md: dict):
         """
-        Go through available metadata keys and search for keys which aren't already covered by the config. Only Simple Keys are
+        Go through available metadata keys and search for keys which aren't already covered by the config.
+        Because we don't want to make too many assumptions, the newly discovered keys are relegated to the simple_keys
+        group from which the user is supposed to fetch the keys he deems useful.
+
+        The user is also expected to place the keys in the appropriate location and create double or prefix keys if
+        necessary.
         """
-        ...
+        union = self._get_all_keys(self.dt_cfg)
+        union.extend(self._get_all_keys(self.new_dt_cfg))
+        union.extend(list(self.found_keys.keys()))
+
+        compressed_keys = set(union)
+        pruned_dict = {}
+
+        # Remove all prefix keys from the metadata
+        prefix_keys = set(list(self.dt_cfg.prefix_keys.keys()) + list(self.new_dt_cfg.prefix_keys.keys()))
+        for pfk in prefix_keys:
+
+            # Remove all prefix keys from the metadata
+            for key, value in md.items():
+                if not key.startswith(pfk):
+                    pruned_dict[key] = value
+
+        new_keys = []
+
+        # POST-CONDITION: Metadata doesn't contain any prefix keys.
+        for key in pruned_dict.keys():
+            # We detect a known key
+            if key in compressed_keys:
+                continue
+
+            # We detect a key from the ignore list
+            if key in self.ignore_keys:
+                continue
+
+            # Add the new keys to the list
+            for tgt in self.search_keys:
+                if tgt.lower() in key.lower():
+                    new_keys.append(key)
+
+        # Abort if we don't have anyting new
+        if len(new_keys) == 0:
+            return
+
+        compressed_new_keys = set(new_keys)
+        for key in compressed_new_keys:
+            val = md.get(key)
+            if val is None:
+                continue
+
+            self.found_keys[key] = val
 
     def metadata_to_datetime(self, md: dict, google_photos_result: List[DateTimeParsingResult] = None) -> Tuple[
         DateTimeParsingResult,
