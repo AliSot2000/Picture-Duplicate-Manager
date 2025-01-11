@@ -191,6 +191,30 @@ class NewMetadataAggregator:
     # Base Functions Datetime Parsing and Utility
     # ==================================================================================================================
 
+    @staticmethod
+    def _get_all_keys(cfg: InternalDateTimeParser) -> List[str]:
+        """
+        Get all regular keys from a given config.
+
+        :param cfg: Config object. from which to get all keys
+
+        :return: List of regular keys
+        """
+        # Build union of all known keys, first union of dt_cfg
+        union = list(cfg.simple_keys.keys())
+        union += list(cfg.simple_unaware_known_tz.keys())
+
+        for dk in cfg.double_keys:
+            union.append(dk.first_key)
+            union.append(dk.second_key)
+
+        for dk in cfg.internal_double_unaware_known_tz:
+            union.append(dk.first_key)
+            union.append(dk.second_key)
+
+        return union
+
+
     def _dt_parser(self, dt: str, fmt: int, source: DateTimeCategory) \
             -> Tuple[Union[datetime.datetime, None], DateTimeCategory]:
         """
