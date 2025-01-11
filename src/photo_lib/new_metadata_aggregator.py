@@ -1208,6 +1208,82 @@ class NewMetadataAggregator:
 
         return None
 
+    # ==================================================================================================================
+    # Google Photos Metadata Parser
+    # ==================================================================================================================
+
+    def parse_google_photos_metadata(self, md: dict) -> List[DateTimeParsingResult]:
+        """
+        Parse the Datetime info from the Google Photos Metadata and return DateTimeResults
+
+        :param md: Google Photos Metadata
+        """
+        results = []
+        dt_keys = self.dt_cfg.google_photos_datetime + self.new_dt_cfg.google_photos_datetime
+
+        for src in dt_keys:
+            # Walk along the path to get to the final key
+            outer_continue = False
+            res = md
+            for p in src.path:
+                if isinstance(res, dict):
+                    res = res.get(p)
+                elif isinstance(res, list):
+                    assert isinstance(p, int), "List Index needs to be an int"
+                    try:
+                        res = res[p]
+                    except IndexError:
+                        res = None
+
+                elif res is None:
+                    outer_continue = True
+                    break
+                else:
+                    self.logger.warning(f"Failed to Parse Google Photos Metadata. ")
+                    self.logger.debug(f"Path: {src.path} couldn't resolve in {json.dumps(md)}")
+
+            # No result found, continue
+            if outer_continue or res is None:
+                continue
+
+            # Check type of result
+            assert isinstance(res, str) or isinstance(res, int), "String or Int for datetime or timestamp"
+            dtr = self._parse_raw_value(dt=res, formats=src.formats)
+
+            # Handle mal format and aborts
+            if dtr is None:
+                continue
+
+            if len(dtr) == 0 and self.discover:
+                dt, dts, idx = self._dt_test_all(dt=res, key=", ".join(src.path))
+
+                # Found a new format
+                if dt is not None:
+                    results.append(DateTimeParsingResult(key=src.path, dt=dt, src=dts))
+
+                    tgt_idx = -1
+                    for i in range(len(self.new_dt_cfg.google_fotos_metadata)):
+                        elm = self.new_dt_cfg.google_fotos_metadata[i]
+                        if elm.path == src.path:
+                            tgt_idx = i
+                            break
+
+                    if tgt_idx != -1:
+                        self.new_dt_cfg.google_fotos_metadata[tgt_idx].formats.append(LookupSource(index=idx, source=dts))
+                    else:
+                        self.new_dt_cfg.google_fotos_metadata.append(
+                            GoogleFotoDatetime(path=src.path, formats=[LookupSource(index=idx, source=dts)])
+                        )
+
+            elif len(dtr) > 0:
+                assert len(dtr) == 1, f"Found multiple valid formats for key {src.path}: {res}"
+                results.append(DateTimeParsingResult(key=src.path, dt=dtr[0][0], src=dtr[0][1]))
+
+            else:
+                self.logger.debug(f"No valid format found for key {src.path}: {res}")
+
+        return results
+
 
 if __name__ == "__main__":
-    mda = NewMetadataAggregator()
+    mda = NewMetadataAggregator(logging.getLogger("MetadataAggregator"))
