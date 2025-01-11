@@ -482,13 +482,100 @@ class NewMetadataAggregator:
         gps_rst.extend(self.gps_prefix_composite_parser(md))
         gps_rst.extend(self.gps_multikey_parser(md))
 
-        if len(gps_rst) > 2:
-            print(gps_rst)
-        # if len(dts) > 3:
-        #     for r in dts:
-        #         print(r)
-        #
-        # print("-"*120)
+        # For debugging purposes, we're checking the zones are all equal
+        if __debug__:
+            zones = []
+            for res in gps_rst:
+                zones.append(self.tzf.timezone_at(lat=res.lat, lng=res.long))
+
+            for z in range(1, len(zones)):
+                assert zones[z] == zones[z - 1]
+
+        aware, unaware, date, time, file = self.partition_datetime_results(dts)
+
+        for prio in self.tz_priority:
+            # Any aware, return the first key from the aware
+            if prio == DateTimeSource.ANY_AWARE:
+                # PRECONDITION: At least one element is aware
+                if len(aware) > 0:
+                    return aware[0], DateTimeSource.ANY_AWARE, None
+
+            # Use unaware but add zone info from gps
+            elif prio == DateTimeSource.UNAWARE_GPS:
+                if len(unaware) > 0 and len(gps_rst) > 0:
+                    # PRECONDITION: At least one unaware element is present and at least one gps element is present
+                    # Parse the GPS Data
+                    zones = []
+                    valid_gps_results = []
+                    for res in gps_rst:
+                        r = self.tzf.timezone_at(lat=res.lat, lng=res.long)
+                        if r is not None:
+                            zones.append(r)
+                            valid_gps_results.append(res)
+
+                    # Check with the point was a timezone associated
+                    if len(zones) == 0:
+                        continue
+                    tz = zoneinfo.ZoneInfo(zones[0])
+                    new_dt = unaware[0].dt.replace(tzinfo=tz)
+                    dt_pr = DateTimeParsingResult(key=unaware[0].key, dt=new_dt, src=unaware[0].src)
+                    return dt_pr, DateTimeSource.UNAWARE_GPS, valid_gps_results[0]
+
+            # Using Default Timezone from
+            elif prio == DateTimeSource.UNAWARE_DEFAULT:
+                if len(unaware) > 0:
+                    # PRECONDITION: At least one unaware element is present
+                    # We're using the default attribute for the timezone
+                    new_dt = unaware[0].dt.replace(tzinfo=zoneinfo.ZoneInfo(self.default_tz))
+                    dt_pr = DateTimeParsingResult(key=unaware[0].key, dt=new_dt, src=unaware[0].src)
+
+                    return dt_pr, DateTimeSource.UNAWARE_DEFAULT, None
+
+            # Using datetime from File Metadata
+            elif prio == DateTimeSource.FILE_AWARE:
+                if len(file) > 0:
+                    # PRECONDITION: At least one file element is present
+                    return file[0], DateTimeSource.FILE_AWARE, None
+                else:
+                    raise ValueError("There should always be file metadata")
+
+            # Only partial results found
+            elif prio == DateTimeSource.DATE_OR_TIME:
+                # We have a date and a time, so we're combining them into a datetime, using the default timezone.
+                if len(date) > 0 and len(time) > 0:
+                    # PRECONDITION: At least one date and at least one time element is present
+                    new_dt = self.build_datetime_from_date_and_time(date=date[0].dt, time=time[0].dt)
+                    key = DoubleKey(first_key=date[0].key, second_key=time[0].key)
+                    src = DateTimeCategory.AWARE if new_dt.tzinfo is not None else DateTimeCategory.UNAWARE
+
+                # We only have a non-file date, joining this info with the file info
+                elif len(date) > 0 and len(time) == 0:
+                    # PRECONDITION: At least one date element is present
+                    new_dt = self.build_datetime_from_date_and_time(date=date[0].dt, time=file[0].dt)
+                    key = date[0].key
+                    src = DateTimeCategory.DATE
+
+                # We only have a non-file time, joining this info with the file info
+                elif len(date) == 0 and len(time) > 0:
+                    # PRECONDITION: At least one time element is present
+                    new_dt = self.build_datetime_from_date_and_time(date=file[0].dt, time=time[0].dt)
+                    key = time[0].key
+                    src = DateTimeCategory.TIME
+                else:
+                    # Neither time nor date element present, ignore
+                    continue
+
+                # Adding default timezone if not provided
+                if new_dt.tzinfo is None:
+                    new_dt = new_dt.replace(tzinfo=zoneinfo.ZoneInfo(self.default_tz))
+
+                res = DateTimeParsingResult(key=key, dt=new_dt, src=src), DateTimeSource.DATE_OR_TIME, None
+                return res
+
+            else:
+                raise ValueError("Tertiem Non Datur")
+
+        raise ValueError("Shouldn't be able to get here.")
 
     def simple_key_parser(self, md: dict) -> List[DateTimeParsingResult]:
         """
