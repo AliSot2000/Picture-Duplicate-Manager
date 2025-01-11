@@ -296,7 +296,7 @@ class NewMetadataAggregator:
         If format was found successfully: datetime.datetime, DateTimeCategory, index
         IF format was not found, None, DateTimeCategory.NONE, -1
         """
-        if isinstance(dt, int):
+        if isinstance(dt, int) or isinstance(dt, float):
             try:
                 r = datetime.datetime.fromtimestamp(float(dt))
                 self.logger.debug(f"Found {dt} at in key {key} as timestamp")
