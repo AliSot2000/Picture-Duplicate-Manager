@@ -180,7 +180,7 @@ class NewMetadataAggregator:
             self.new_dt_cfg.gps_prefix_composite_key = []
 
     # ==================================================================================================================
-    # Base Functions Datetime Parsing
+    # Base Functions Datetime Parsing and Utility
     # ==================================================================================================================
 
     def _dt_parser(self, dt: str, fmt: int, source: DateTimeCategory) \
