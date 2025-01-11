@@ -84,6 +84,19 @@ class DoubleKeyStatic(DoubleKeyFormat):
                                         description="List of Known Lookup Formats")
 
 
+class GoogleFotoDatetime(BaseModel):
+    """
+    Google Fotos Metadata kdy
+    """
+    path: List[Union[str, int]]
+    formats: List[LookupSource] = Field(...,
+        description="Google Fotos Metadata")
+
+    model_config = ConfigDict(
+        populate_by_name=True
+    )
+
+
 class GPSMultiKey(BaseModel):
     lat_val: str = Field(...,
                          description="Latitude Value")
@@ -158,6 +171,10 @@ class DateTimeParser(BaseModel):
         Field(...,
               description="Some double keys contain a timezone unaware datetime but it is defined in the spec for these"
                           "keys what timezone the keys has (usually UTC).")
+
+    google_photos_datetime: List[GoogleFotoDatetime] = \
+        Field(...,
+              description="List of paths in the Google Fotos Metadata Dict.")
 
     gps_composite_key: List[str] = \
         Field(...,
