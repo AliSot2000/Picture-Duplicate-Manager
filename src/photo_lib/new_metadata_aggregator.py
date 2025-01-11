@@ -467,7 +467,9 @@ class NewMetadataAggregator:
         )
 
     @staticmethod
-    def partition_datetime_results(dts: List[DateTimeParsingResult]) -> Tuple[
+    def partition_datetime_results(dts: List[DateTimeParsingResult], gpr: List[DateTimeParsingResult] = None) -> Tuple[
+        List[DateTimeParsingResult],
+        List[DateTimeParsingResult],
         List[DateTimeParsingResult],
         List[DateTimeParsingResult],
         List[DateTimeParsingResult],
@@ -478,6 +480,7 @@ class NewMetadataAggregator:
         Partition the Datetime parsing result into lists according to the DateTimeSource
 
         :param dts: List of DateTimeParsingResult objects to partition
+        :param gpr: List of DateTimeParsingResult objects from google_photos to partition
 
         :return: five lists of DateTimeParsingResult objects, in the following order:
         - aware objects
@@ -485,12 +488,16 @@ class NewMetadataAggregator:
         - date objects
         - time objects
         - file objects
+        - google photos aware objects
+        - google photos unaware objects
         """
         aware = []
         unaware = []
         date = []
         time = []
         file = []
+        google_photos_aware = []
+        google_photos_unaware = []
 
         # Partition the Datetime into separate lists
         for dtr in dts:
@@ -510,14 +517,22 @@ class NewMetadataAggregator:
             else:
                 raise Exception(f"Tertiem Non Datur. This option shouldn't be possible. {dtr.src}")
 
+        if gpr is not None:
+            for dtr in gpr:
+                if dtr.src == DateTimeCategory.AWARE:
+                    google_photos_aware.append(dtr)
+                    google_photos_unaware.append(dtr)
+
         # Sort all the list of datetimes
         unaware = sorted(unaware, key=lambda x: x.dt)
         aware = sorted(aware, key=lambda x: x.dt)
         date = sorted(date, key=lambda x: x.dt)
         time = sorted(time, key=lambda x: x.dt)
         file = sorted(file, key=lambda x: x.dt)
+        google_photos_aware = sorted(google_photos_aware, key=lambda x: x.dt)
+        google_photos_unaware = sorted(google_photos_unaware, key=lambda x: x.dt)
 
-        return unaware, aware, date, time, file
+        return unaware, aware, date, time, file, google_photos_aware, google_photos_unaware
 
     # ==================================================================================================================
     # Parse Functions
