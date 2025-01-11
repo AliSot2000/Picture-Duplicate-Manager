@@ -4,7 +4,7 @@ import logging
 import multiprocessing as mp
 import os
 import zoneinfo
-from typing import List, Union, Tuple, Optional, Dict
+from typing import List, Union, Tuple, Optional, Dict, Any
 
 import hashlib
 import exiftool
@@ -31,6 +31,7 @@ class NewMetadataAggregator:
     # Set of keys to ignore when attempting to find new keys containing datetime information
     ignore_keys: List[str] = ["ICC_Profile:ProfileDateTime"]
     search_keys: List[str] = ["date", "time", "stamp"]
+    found_keys: Dict[str, Any] = {}
 
     # Attempt to mew formats for existing keys
     discover: bool
