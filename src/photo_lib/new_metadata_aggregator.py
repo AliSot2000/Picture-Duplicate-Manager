@@ -249,12 +249,18 @@ class NewMetadataAggregator:
 
         fmt_str = lookup[fmt]
 
+        is_utc =  "%Z" in fmt_str and "UTC" in dt
+
         try:
             # We're not parsing a time stamp so use the strptime method for strings
             if source != DateTimeCategory.TIMESTAMP:
-                return datetime.datetime.strptime(dt, fmt_str), source
+                res = datetime.datetime.strptime(dt, fmt_str)
+                if res.tzinfo is None and is_utc:
+                    res = res.replace(tzinfo=datetime.timezone.utc)
+                return res, source
             else:
-                return datetime.datetime.fromtimestamp(float(dt)), DateTimeCategory.AWARE
+                return (datetime.datetime.fromtimestamp(float(dt)).replace(tzinfo=datetime.timezone.utc),
+                        DateTimeCategory.AWARE)
         except ValueError:
             return None, DateTimeCategory.NONE
 
