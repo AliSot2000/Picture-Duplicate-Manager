@@ -80,3 +80,5 @@ class DateTimeSource(Enum):
     UNAWARE_GPS = 2
     UNAWARE_DEFAULT = 3
     DATE_OR_TIME = 4
+    GOOGLE_PHOTOS_AWARE = 5
+    GOOGLE_PHOTOS_UNAWARE = 6
