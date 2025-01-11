@@ -108,6 +108,7 @@ class NewMetadataAggregator:
                  discover: bool = False,
                  search: bool = False,
                  verbose: bool = False,
+                 use_dateutil: bool = False,
                  ignore_keys: List[str] = None,
                  search_keys: List[str] = None,
                  default_tz: str = None,
@@ -133,6 +134,7 @@ class NewMetadataAggregator:
         self.discover = discover
         self.__verbose = verbose
         self.search = search
+        self.use_dateutil = use_dateutil
 
         # Logging attrs
         self.logger = logger
