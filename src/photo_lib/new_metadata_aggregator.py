@@ -1251,7 +1251,7 @@ class NewMetadataAggregator:
 
                     # PRECONDITION: Because of the previous try except block it holds that alt is a float if it is not None
                     if palt_ref is not None and palt_ref == 1 and alt > 0:
-                        self.logger.warning(f"Positive Altitude Value for below sea level (0). Inverting Altitude. "
+                        self.logger.warning(f"Positive Altitude Value for below sea level (1). Inverting Altitude. "
                                             f"Key: {multikey.alt_val}, Value: {alt}")
                         alt = -alt
 
