@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union, Optional
+from typing import Union, Optional, List
 import datetime
 from photo_lib.custom_enum import *
 from photo_lib.config import DoubleKey, GPSMultiKey
@@ -109,7 +109,7 @@ class GroupCount:
 
 @dataclass
 class DateTimeParsingResult:
-    key: Union[str, DoubleKey]
+    key: Union[str, DoubleKey, List[Union[str, int]]]
     dt: Union[datetime.datetime, None]
     src: DateTimeCategory
 
