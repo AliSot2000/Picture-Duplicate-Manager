@@ -1171,6 +1171,43 @@ class NewMetadataAggregator:
             results.append(GPSParsingResult(key=multikey, lat=lat, long=long, alt=alt))
         return results
 
+    # ==================================================================================================================
+    # File Utils
+    # ==================================================================================================================
+
+    @staticmethod
+    def hash_file(path: str) -> str:
+        """
+        Hashes a file with sha256
+        :param path: file_path to hash
+        :return:
+        """
+        sha256_hash = hashlib.sha256()
+        with open(path, "rb") as f:
+            # Read and update hash string value in blocks of 4K
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+            result = sha256_hash.hexdigest()
+        return result
+
+    def load_google_metadata(self, path: str) -> Union[dict, None]:
+        """
+        Load the metadata available from google photos.
+
+        :param path: file_path to load metadata from
+        """
+        metadata_path = os.path.splitext(path)[0] + ".json"
+
+        if os.path.exists(metadata_path):
+            try:
+                with open(metadata_path, "r") as f:
+                    metadata = json.load(f)
+                    return metadata
+            except json.decoder.JSONDecodeError:
+                self.logger.error(f"Failed to Parse Google Photos Metadata. ")
+
+        return None
+
 
 if __name__ == "__main__":
     mda = NewMetadataAggregator()
