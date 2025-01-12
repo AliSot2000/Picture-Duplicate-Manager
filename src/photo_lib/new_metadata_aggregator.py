@@ -456,7 +456,13 @@ class NewMetadataAggregator:
         """
         assert self.discover, "Union key needs to be built with discover=True"
         # Build union of keys. We need to perform the union like this because we might have added keys with search mode
-        uk = list(set(list(cur_dict.keys()) + list(new_dict.keys())))
+        uk = list(set(cur_dict.keys()))
+
+        if __debug__:
+            for key in new_dict.keys():
+                if key not in uk:
+                    raise ValueError("new_dt_cfg must contain new formats for existing keys not new keys")
+
 
         # Build the union of the formats
         simple_union = {}
@@ -492,11 +498,14 @@ class NewMetadataAggregator:
         new_dt_keys = [DoubleKey.model_validate(l.model_dump()) for l in new_list]
         new_dt_fmts = [l.formats for l in new_list]
 
-        uk = []
-        for double_key in dt_keys + new_dt_keys:
-            if double_key not in uk:
-                uk.append(double_key)
+        uk = dt_keys
         ufmt = [[] for _ in uk]
+
+        # Check for subset only in debug mode.
+        if __debug__:
+            for elm in new_dt_keys:
+                if not elm in uk:
+                    raise ValueError("new_dt_cfg must contain new formats for existing keys not new keys")
 
         # Setting the format and  key lookup lists
         for i in range(len(uk)):
