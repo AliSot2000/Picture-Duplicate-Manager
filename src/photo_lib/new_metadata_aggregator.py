@@ -337,6 +337,9 @@ class NewMetadataAggregator:
         # loading the exiftool
         self.eth = exiftool.ExifToolHelper(executable=path)
 
+        # Logging attrs
+        self.logger = logger
+
         # Get the known formats from the config
         cfg_p = os.path.join(os.path.dirname(__file__), "datetime_fmt.json")
         if not os.path.exists(cfg_p):
@@ -348,14 +351,16 @@ class NewMetadataAggregator:
         parser_config = DateTimeParser.model_validate_json(content)
         self.dt_cfg = self.build_internal_config(parser_config)
 
+        if discover and use_dateutil:
+            self.logger.warning("discover and use_dateutil set, discover overrides use_dateutil to False.")
+            use_dateutil = False
+
         # Setting values from args
         self.__discover = discover
         self.__verbose = verbose
         self.__search = search
         self.__use_dateutil = use_dateutil
-
-        # Logging attrs
-        self.logger = logger
+        self.__use_google_photos_metadata = use_google_photos_metadata
 
         if default_tz is None:
             self.default_tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzname()
