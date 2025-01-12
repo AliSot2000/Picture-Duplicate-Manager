@@ -498,10 +498,171 @@ class NewMetadataAggregator:
 
         return dts, gps_rst
 
+    def handle_file(self, file: str) -> MetadataParsingResult:
+        """
+        Handle generation of all metadata for a given file.
+
+        :raises FileNotFoundError: If file does not exist.
+        """
+        # Basic checks on the path
+        p = os.path.abspath(file)
+        if not os.path.exists(p):
+            raise FileNotFoundError(f"File {p} does not exist.")
+
+        # Run the exiftool
+        try:
+            md = self.eth.get_metadata(file)[0]
+        except exiftool.exceptions.ExifToolExecuteError as e:
+            self.logger.exception(f"Failed to Parse file: {p}", exc_info=e)
+            md = None
+
+        # Get the Google photos metadata if present as well as the file hash
+        gfmd = self.load_google_metadata(file)
+
+        # No metadata available, default to file system
+        if md is None and gfmd is None:
+            self.logger.warning(f"Could not get metadata nor google fotos metadata for file {p}")
+            dt, key = self.fallback_filesystem(p)
+            file_hash = self.hash_file(file)
+            return MetadataParsingResult(filename=os.path.basename(p),
+                                         dirname=os.path.dirname(p),
+                                         creation_date=dt,
+                                         naming_tag=key,
+                                         file_hash=file_hash,
+                                         tz_name=dt.tzinfo)
+
+        # Check the presence of md and parse teh stuff
+        assert md is not None, "Need exiftool results to progress"
+
+        if self.search:
+            self.search_possible_new_keys(md)
+
+        dtr, gps_rst = self.parse_exiftool_result(md)
+
+        # Get the first matching exiftool_result
+        exiftool_result = self.get_first_matching_dtr(candidate_results=dtr, gps_rst=gps_rst)
+        assert exiftool_result[0].dt.tzinfo is not None, "We ALWAYS want a timezone when using the new parser, EXIFTOOL"
+
+        # Handle google photos result
+        if self.use_google_photos_metadata and gfmd is not None:
+            google_dtr = self.parse_google_photos_metadata(gfmd)
+            google_result = self.get_first_matching_dtr(candidate_results=google_dtr, gps_rst=gps_rst)
+            assert google_result[0].dt.tzinfo is not None, "We ALWAYS want a timezone when using the new parser, GF"
+
+            # Earlier Datetime Found in the Google Results.
+            if google_result[0].dt < exiftool_result[0].dt:
+                assert isinstance(google_result[0].key, list), "Unexpected Format of Google Photos MDPS"
+                key = "GooglePhotosMetadata:" + ",".join(google_result[0].key)
+
+                return self.build_metadata_parsing_result(
+                    pr=google_result, path=p, metadata=md, google_photos_metadata=gfmd, naming_tag=key
+                )
+
+        if isinstance(exiftool_result[0].key, str):
+            key = exiftool_result[0].key
+        elif isinstance(exiftool_result[0].key, DoubleKey):
+            key = exiftool_result[0].key.first_key + ", " + exiftool_result[0].key.second_key
+        else:
+            raise TypeError("Unexpected key type form metadata parser")
+
+        return self.build_metadata_parsing_result(
+            pr=exiftool_result, path=p, metadata=md, naming_tag=key, google_photos_metadata=gfmd
+        )
 
     # ==================================================================================================================
     # Base Functions Datetime Parsing and Utility
     # ==================================================================================================================
+
+    def build_metadata_parsing_result(self,
+                                      pr: Tuple[DateTimeParsingResult, DateTimeSource, Union[None, GPSParsingResult]],
+                                      path: str,
+                                      naming_tag: str,
+                                      metadata: Optional[dict] = None,
+                                      google_photos_metadata: Optional[dict] = None):
+        """
+        Build the parsing result for the given Metadata
+
+        :param pr: Result from get_first_matching_dtr (either google photos metadata or exiftool metadata)
+        :param path: Path to the file
+        :param metadata: Metadata from exiftool
+        :param naming_tag: Source of the datetime.
+        :param google_photos_metadata: Google Photos metadata if exists
+        """
+        gps_loc = (pr[2].lat, pr[2].long) if pr[2] is not None else None
+        file_hash = self.hash_file(path)
+
+        return MetadataParsingResult(
+            filename=os.path.basename(path),
+            dirname=os.path.dirname(path),
+            creation_date=pr[0].dt,
+            naming_tag=naming_tag,
+            file_hash=file_hash,
+
+            metadata=metadata,
+            google_photos_metadata=google_photos_metadata,
+            gps_loc=gps_loc,
+            tz_name=pr[0].dt.tzname(),
+            source=pr[1].name
+        )
+
+    def fallback_filesystem(self, path: str) ->  Tuple[datetime.datetime, str]:
+        """
+        Fallback, get the earliest time from the file system.
+        """
+        assert os.path.exists(path), f"File {path} does not exist."
+        dt = []
+        stat = os.stat(path)
+
+        # Get st_mtime
+        try:
+            s = stat.st_mtime
+            dt.append((s, "OS:File:ST_MTIME"))
+        except OSError:
+            pass
+        except AttributeError:
+            pass
+        except Exception as e:
+            self.logger.error(f"Unexpected Error trying to get file system datetime from file {path}", exc_info=e)
+
+        # Get st_atime
+        try:
+            s = stat.st_atime
+            dt.append((s, "OS:File:ST_ATIME"))
+        except OSError:
+            pass
+        except AttributeError:
+            pass
+        except Exception as e:
+            self.logger.error(f"Unexpected Error trying to get file system datetime from file {path}", exc_info=e)
+
+        # Get st_ctime
+        try:
+            s = stat.st_ctime
+            dt.append((s, "OS:File:ST_CTIME"))
+        except OSError:
+            pass
+        except AttributeError:
+            pass
+        except Exception as e:
+            self.logger.error(f"Unexpected Error trying to get file system datetime from file {path}", exc_info=e)
+
+        # Get st_ctime
+        try:
+            s = stat.st_birthtime
+            dt.append((s, "OS:File:ST_BIRTHTIME"))
+        except OSError:
+            pass
+        except AttributeError:
+            pass
+        except Exception as e:
+            self.logger.error(f"Unexpected Error trying to get file system datetime from file {path}", exc_info=e)
+
+        # Get earliest time
+        dt = sorted(dt, key=lambda _dt: _dt[0])
+        assert len(dt) > 0, "At least one file system time needs to exist"
+        ts = datetime.datetime.fromtimestamp(dt[0][0], tz=ZoneInfo(self.default_tz))
+
+        return ts, dt[0][1]
 
     @staticmethod
     def _get_all_keys(cfg: InternalDateTimeParser) -> List[str]:
