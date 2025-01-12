@@ -36,13 +36,13 @@ class NewMetadataAggregator:
     found_keys: Dict[str, Any] = {}
 
     # Attempt to mew formats for existing keys
-    discover: bool
+    __discover: bool
 
     # Try to parse any key that contains any of the search_keys strings and which isn't contained in the igonre_keys
-    search: bool
+    __search: bool
 
     # Use dateutil. Will parse more but cannot retrieve format.
-    use_dateutil: bool
+    __use_dateutil: bool
     dt_util_count = 0
 
     # print status information about parsing
@@ -72,6 +72,18 @@ class NewMetadataAggregator:
 
         level = logging.DEBUG if self.__verbose else logging.INFO
         self.logger.setLevel(level)
+
+    @property
+    def discover(self):
+        return self.__discover
+
+    @property
+    def use_dateutil(self):
+        return self.__use_dateutil
+
+    @property
+    def search(self):
+        return self.__search
 
     @staticmethod
     def build_internal_config(cfg: DateTimeParser) -> InternalDateTimeParser:
@@ -137,10 +149,10 @@ class NewMetadataAggregator:
         self.dt_cfg = self.build_internal_config(parser_config)
 
         # Setting values from args
-        self.discover = discover
+        self.__discover = discover
         self.__verbose = verbose
-        self.search = search
-        self.use_dateutil = use_dateutil
+        self.__search = search
+        self.__use_dateutil = use_dateutil
 
         # Logging attrs
         self.logger = logger
