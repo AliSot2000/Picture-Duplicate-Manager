@@ -609,6 +609,8 @@ class NewMetadataAggregator:
         The user is also expected to place the keys in the appropriate location and create double or prefix keys if
         necessary.
         """
+        assert self.search, "Search must be called with the search attribute set."
+
         union = self._get_all_keys(self.dt_cfg)
         union.extend(self._get_all_keys(self.new_dt_cfg))
         union.extend(list(self.found_keys.keys()))
