@@ -528,7 +528,7 @@ class NewMetadataAggregator:
         return union
 
 
-    def _dt_parser(self, dt: str, fmt: int, source: DateTimeCategory) \
+    def _dt_parser(self, dt: Union[str, int, float], fmt: int, source: DateTimeCategory) \
             -> Tuple[Union[datetime.datetime, None], DateTimeCategory]:
         """
         Parser to get the file creation time.
@@ -577,7 +577,7 @@ class NewMetadataAggregator:
         except ValueError:
             return None, DateTimeCategory.NONE
 
-    def _coercing_dt_parser(self, dt: str, fmt: int, source: DateTimeCategory, tz: Union[str, None]) \
+    def _coercing_dt_parser(self, dt: Union[str, int, float], fmt: int, source: DateTimeCategory, tz: Union[str, None]) \
             -> Tuple[Union[datetime.datetime, None], DateTimeCategory]:
         """
         Same as _tz_parser, except will replace the timezone parsed with the one from the tz argument.
@@ -693,7 +693,7 @@ class NewMetadataAggregator:
 
         return False
 
-    def _parse_raw_value(self, dt: Union[str, int, None],
+    def _parse_raw_value(self, dt: Union[str, int, float, None],
                          formats: List[LookupSource] = None,
                          formats_dt: List[InternalStaticLookupSource] = None) \
         -> Union[None, List[Tuple[datetime.datetime, DateTimeCategory]]]:
