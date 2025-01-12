@@ -54,8 +54,6 @@ class NewMetadataAggregator:
 
     # Logger
     logger: logging.Logger = None
-    index: Optional[int] = None
-    logging_queue: mp.Queue
 
     # ==================================================================================================================
     # Util
