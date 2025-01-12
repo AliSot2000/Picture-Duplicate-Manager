@@ -454,20 +454,17 @@ class NewMetadataAggregator:
         """
         Build the union of the keys and formats from the dt_cfg and new_dt_cfg for the simple_key parsers.
         """
-        if self.discover:
-            # Build union of keys. We need to perform the union like this because we might have added keys with search mode
-            uk = list(set(list(cur_dict.keys()) + list(new_dict.keys())))
+        assert self.discover, "Union key needs to be built with discover=True"
+        # Build union of keys. We need to perform the union like this because we might have added keys with search mode
+        uk = list(set(list(cur_dict.keys()) + list(new_dict.keys())))
 
-            # Build the union of the formats
-            simple_union = {}
-            for key in uk:
-                la = cur_dict.get(key) if cur_dict.get(key) is not None else []
-                lb = new_dict.get(key) if new_dict.get(key) is not None else []
+        # Build the union of the formats
+        simple_union = {}
+        for key in uk:
+            la = cur_dict.get(key) if cur_dict.get(key) is not None else []
+            lb = new_dict.get(key) if new_dict.get(key) is not None else []
 
-                simple_union[key] = la + lb
-
-        else:
-            simple_union = cur_dict
+            simple_union[key] = la + lb
 
         return simple_union
 
@@ -486,35 +483,28 @@ class NewMetadataAggregator:
         Union of all formats (new and current)
         List of New Keys (used for adding newly discovered formats)
         """
+        assert self.discover, "Union key needs to be built with discover=True"
+
         # Build union of formats from dt_cfg and new_dt_cfg
-        if self.discover:
-            dt_keys = [DoubleKey.model_validate(l.model_dump()) for l in cur_list]
-            dt_fmts = [l.formats for l in cur_list]
+        dt_keys = [DoubleKey.model_validate(l.model_dump()) for l in cur_list]
+        dt_fmts = [l.formats for l in cur_list]
 
-            new_dt_keys = [DoubleKey.model_validate(l.model_dump()) for l in new_list]
-            new_dt_fmts = [l.formats for l in new_list]
+        new_dt_keys = [DoubleKey.model_validate(l.model_dump()) for l in new_list]
+        new_dt_fmts = [l.formats for l in new_list]
 
-            uk = []
-            for double_key in dt_keys + new_dt_keys:
-                if double_key not in uk:
-                    uk.append(double_key)
-            ufmt = [[] for _ in uk]
+        uk = []
+        for double_key in dt_keys + new_dt_keys:
+            if double_key not in uk:
+                uk.append(double_key)
+        ufmt = [[] for _ in uk]
 
-            # Setting the format and  key lookup lists
-            for i in range(len(uk)):
-                key = uk[i]
-                la = dt_fmts[dt_keys.index(key)] if key in dt_keys else []
-                lb = new_dt_fmts[new_dt_keys.index(key)] if key in new_dt_keys else []
+        # Setting the format and  key lookup lists
+        for i in range(len(uk)):
+            key = uk[i]
+            la = dt_fmts[dt_keys.index(key)] if key in dt_keys else []
+            lb = new_dt_fmts[new_dt_keys.index(key)] if key in new_dt_keys else []
 
-                ufmt[i] = la + lb
-
-        # use only dt_cfg because no discover
-        else:
-            uk = [DoubleKey.model_validate(l.model_dump()) for l in cur_list]
-            ufmt = [l.formats for l in cur_list]
-
-            # Needs to be defined for no issues with code inspection
-            new_dt_keys = []
+            ufmt[i] = la + lb
 
         return uk, ufmt, new_dt_keys
 
