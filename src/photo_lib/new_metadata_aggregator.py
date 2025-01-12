@@ -508,6 +508,43 @@ class NewMetadataAggregator:
 
         return uk, ufmt, new_dt_keys
 
+    def build_google_photos_key_union(self, default_keys: List[GoogleFotoDatetime], new_keys: List[GoogleFotoDatetime])\
+            -> List[GoogleFotoDatetime]:
+        """
+        Build union of formats for Google Photos.
+
+        :param default_keys: List of default GoogleFotoDatetimes
+        :param new_keys: List of new GoogleFotoDatetimes
+
+        :returns List of GoogleFotoDatetimes
+        """
+        assert self.discover, "Google Photos key needs to be built with discover=True"
+
+        if len(default_keys) < len(new_keys):
+            raise ValueError("Using discover. no new keys are added only new formats added to existing keys.")
+
+        # Ensure we don't have duplicates
+        if __debug__:
+            path_lookup = []
+            for k in default_keys:
+                if k.path in k:
+                    raise ValueError("Duplicate Path in default_keys")
+                path_lookup.append(k.path)
+        else:
+            path_lookup = [k.path for k in default_keys]
+
+        # Prepopulate the
+        results: List[Union[None, GoogleFotoDatetime]] = [None for _ in range(len(default_keys))]
+
+        for keys in default_keys + new_keys:
+            index = path_lookup.index(keys.path)
+            if results[index] is None:
+                results[index] = GoogleFotoDatetime(path=keys.path, formats=keys.formats)
+            else:
+                results[index].formats.extend(keys.formats)
+
+        return results
+
     @staticmethod
     def build_datetime_from_date_and_time(date: datetime.datetime, time: datetime.datetime) -> datetime.datetime:
         """
