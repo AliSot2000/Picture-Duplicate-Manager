@@ -757,7 +757,7 @@ class NewMetadataAggregator:
         zone = zoneinfo.ZoneInfo(tz) if tz is not None else datetime.timezone.utc
         return dto.replace(tzinfo=zone), DateTimeCategory.AWARE
 
-    def _dt_test_all(self, dt: Union[str, int], key: str) -> \
+    def _dt_test_all(self, dt: Union[str, int, float], key: str) -> \
             Tuple[Union[datetime.datetime, None], DateTimeCategory, int]:
         """
         Test all found formats and check if they match
@@ -777,6 +777,9 @@ class NewMetadataAggregator:
             except ValueError:
                 pass
             return None, DateTimeCategory.NONE, -1
+
+        if not isinstance(dt, str):
+            raise TypeError(f"Unexpected Type for Datetime: {type(dt).__name__}")
 
         # Build list of all sources.
         task_list = [
