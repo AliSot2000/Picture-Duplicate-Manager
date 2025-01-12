@@ -644,7 +644,7 @@ class NewMetadataAggregator:
                 if tgt.lower() in key.lower():
                     new_keys.append(key)
 
-        # Abort if we don't have anyting new
+        # Abort if we don't have anything new
         if len(new_keys) == 0:
             return
 
