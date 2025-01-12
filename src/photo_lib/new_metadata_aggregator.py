@@ -143,7 +143,87 @@ class NewMetadataAggregator:
 
     def export_discovered(self, union: bool = True) -> DateTimeParser:
         """
-        ...
+        Export the formats which were newly discovered.
+
+        :param union: If true, export discovered formats in addition to the already known formats.
+
+        :returns: DateTimeParser with the formats we found.
+        """
+        if not self.discover:
+            raise ValueError("Discover needs to be set for new formats to be discovered.")
+
+        if not union:
+            ext_simple_known_tz, ext_double_known_tz = self.rebuild_external_config(
+                internal_simple_unaware_known_tz=self.new_dt_cfg.internal_simple_unaware_known_tz,
+                internal_double_unaware_known_tz=self.new_dt_cfg.internal_double_unaware_known_tz
+            )
+            union_simple_key = union_prefix_key = {}
+            union_double_keys = []
+            union_google_photos = self.dt_cfg.google_photos_datetime
+        else:
+            union_simple_key = self.build_key_union_simple_key(cur_dict=self.dt_cfg.simple_keys,
+                                                               new_dict=self.new_dt_cfg.simple_keys)
+            union_prefix_key = self.build_key_union_simple_key(cur_dict=self.dt_cfg.prefix_keys,
+                                                               new_dict=self.new_dt_cfg.prefix_keys)
+            union_internal_simple_unaware_known_tz = self.build_key_union_simple_key(
+                cur_dict=self.dt_cfg.internal_simple_unaware_known_tz,
+                new_dict=self.new_dt_cfg.internal_simple_unaware_known_tz
+            )
+
+            double_key_list, double_fmt_list, _ = self.build_key_union_double_key(
+                cur_list=self.dt_cfg.double_keys,
+                new_list=self.new_dt_cfg.double_keys,
+            )
+
+            double_key_st_list, double_fmt_st_list, _ = self.build_key_union_double_key(
+                cur_list=self.dt_cfg.internal_double_unaware_known_tz,
+                new_list=self.new_dt_cfg.internal_double_unaware_known_tz
+            )
+
+            # Build the double keys
+            union_double_keys = []
+            for keys, formats in zip(double_key_list, double_fmt_list):
+                union_double_keys.append(DoubleKeyFormat(first_key=keys.first_key,
+                                                   second_key=keys.second_key,
+                                                   formats=formats))
+
+            # Build the internal double key unaware known tz
+            union_internal_double_key_st = []
+            for keys, formats in zip(double_key_st_list, double_fmt_st_list):
+                union_internal_double_key_st.append(InternalDoubleKeyStatic(first_key=keys.first_key,
+                                                                      second_key=keys.second_key,
+                                                                      formats=formats))
+
+            ext_simple_known_tz, ext_double_known_tz = self.rebuild_external_config(
+                internal_simple_unaware_known_tz=union_internal_simple_unaware_known_tz,
+                internal_double_unaware_known_tz=union_internal_double_key_st
+            )
+            union_google_photos = self.build_google_photos_key_union(default_keys=self.dt_cfg.google_photos_datetime,
+                                                                     new_keys=self.new_dt_cfg.google_photos_datetime)
+
+
+        return DateTimeParser(
+            # Formats
+            tz_aware_formats=self.dt_cfg.tz_aware_formats,
+            tz_unaware_formats=self.dt_cfg.tz_unaware_formats,
+            tz_date_formats=self.dt_cfg.tz_date_formats,
+            tz_time_formats=self.dt_cfg.tz_time_formats,
+
+            # Keys to retrieve from
+            simple_keys=union_simple_key if self.discover else self.new_dt_cfg.simple_keys,
+            double_keys=union_double_keys if self.discover else self.new_dt_cfg.double_keys,
+            prefix_keys=union_prefix_key if self.discover else self.new_dt_cfg.prefix_keys,
+            simple_unaware_known_tz=ext_simple_known_tz,
+            double_unaware_known_tz=ext_double_known_tz,
+
+            # Google Photos Keys
+            google_photos_datetime=union_google_photos,
+
+            # GPS Keys
+            gps_composite_key=self.dt_cfg.gps_composite_key,
+            gps_prefix_composite_key=self.dt_cfg.gps_prefix_composite_key,
+            gps_multi_key=self.dt_cfg.gps_multi_key
+        )
 
     # ==================================================================================================================
     # General
