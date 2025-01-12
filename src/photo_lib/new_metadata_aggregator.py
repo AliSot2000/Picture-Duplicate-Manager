@@ -392,7 +392,7 @@ class NewMetadataAggregator:
         if search_keys is not None:
             self.search_keys = search_keys
 
-        if self.discover or self.search:
+        if self.discover:
             # We're clearing out the keys to be able to fill them later on.
             self.new_dt_cfg = InternalDateTimeParser.model_validate_json(self.dt_cfg.model_dump_json())
             self.new_dt_cfg.simple_keys = {}
