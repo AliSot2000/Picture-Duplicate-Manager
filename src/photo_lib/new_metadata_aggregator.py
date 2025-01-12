@@ -380,9 +380,7 @@ class NewMetadataAggregator:
         else:
             self.tz_priority = [DateTimeSource.ANY_AWARE,
                                 DateTimeSource.UNAWARE_GPS,
-                                DateTimeSource.GOOGLE_PHOTOS_AWARE,
                                 DateTimeSource.UNAWARE_DEFAULT,
-                                DateTimeSource.GOOGLE_PHOTOS_UNAWARE,
                                 DateTimeSource.DATE_OR_TIME,
                                 DateTimeSource.FILE_AWARE]
             assert len(self.tz_priority) == len(DateTimeSource._member_names_), "Not all Sources covered. Fix CLass"
