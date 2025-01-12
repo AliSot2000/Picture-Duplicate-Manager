@@ -1349,9 +1349,11 @@ class NewMetadataAggregator:
         :param md: Google Photos Metadata
         """
         results = []
-        dt_keys = self.dt_cfg.google_photos_datetime
         if self.discover:
-            dt_keys += self.new_dt_cfg.google_photos_datetime
+            dt_keys = self.build_google_photos_key_union(default_keys=self.dt_cfg.google_photos_datetime,
+                                                         new_keys=self.new_dt_cfg.google_photos_datetime)
+        else:
+            dt_keys = self.dt_cfg.google_photos_datetime
 
         for src in dt_keys:
             # Walk along the path to get to the final key
