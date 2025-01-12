@@ -13,7 +13,8 @@ import timezonefinder
 from dateutil import parser
 
 from photo_lib.config import (InternalDateTimeParser, DateTimeParser, LookupSource, InternalStaticLookupSource,
-                              DoubleKey, DoubleKeyFormat, InternalDoubleKeyStatic, Config, GoogleFotoDatetime)
+                              DoubleKey, DoubleKeyFormat, InternalDoubleKeyStatic, GoogleFotoDatetime,
+                              StaticLookupSource, DoubleKeyStatic)
 from photo_lib.custom_enum import DateTimeCategory, DateTimeSource
 from photo_lib.data_objects import DateTimeParsingResult, GPSParsingResult
 
@@ -122,7 +123,6 @@ class NewMetadataAggregator:
 
         :return: Repopulated config
         """
-        Export the newly found things to config.
         # Populate the simple_key_unaware_known_tz
         new_simple_unaware_known_tz = {}
         for key, value in internal_simple_unaware_known_tz.items():
@@ -140,6 +140,8 @@ class NewMetadataAggregator:
             )
 
         return new_simple_unaware_known_tz, new_double_unaware_known_tz
+
+    def export_discovered(self, union: bool = True) -> DateTimeParser:
         """
         ...
 
