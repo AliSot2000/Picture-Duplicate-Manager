@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Tuple
 import datetime
 from photo_lib.custom_enum import *
 from photo_lib.config import DoubleKey, GPSMultiKey
@@ -122,4 +122,20 @@ class GPSParsingResult:
     key: Union[str, GPSMultiKey]
 
     alt: Optional[float] = None
+
+
+@dataclass
+class MetadataParsingResult:
+    filename: str
+    dirname: str
+    creation_date: datetime.datetime
+    naming_tag: str
+    file_hash: str
+
+    metadata: Optional[dict] = None
+    google_photos_metadata: Optional[dict] = None
+    gps_loc: Optional[Tuple[float, float]] = None
+    tz_name: Optional[str] = None
+    source: Optional[str] = None
+
 
