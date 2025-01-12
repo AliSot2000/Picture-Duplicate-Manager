@@ -236,6 +236,7 @@ class NewMetadataAggregator:
                  search: bool = False,
                  verbose: bool = False,
                  use_dateutil: bool = False,
+                 use_google_photos_metadata: bool = True,
                  ignore_keys: List[str] = None,
                  search_keys: List[str] = None,
                  default_tz: str = None,
