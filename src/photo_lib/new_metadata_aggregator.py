@@ -5,6 +5,7 @@ import logging
 import os
 import zoneinfo
 from typing import List, Union, Tuple, Optional, Dict, Any
+from zoneinfo import ZoneInfo
 
 import dateutil.parser
 import exiftool
@@ -15,7 +16,7 @@ from photo_lib.config import (InternalDateTimeParser, DateTimeParser, LookupSour
                               DoubleKey, DoubleKeyFormat, InternalDoubleKeyStatic, GoogleFotoDatetime,
                               StaticLookupSource, DoubleKeyStatic)
 from photo_lib.custom_enum import DateTimeCategory, DateTimeSource
-from photo_lib.data_objects import DateTimeParsingResult, GPSParsingResult
+from photo_lib.data_objects import DateTimeParsingResult, GPSParsingResult, MetadataParsingResult
 
 
 # https://docs.python.org/3/howto/logging.html#logging-flow
