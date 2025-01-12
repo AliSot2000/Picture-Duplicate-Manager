@@ -698,13 +698,12 @@ class NewMetadataAggregator:
             self.partition_datetime_results(dts, google_photos_result)
 
         for prio in self.tz_priority:
-            # Any aware, return the first key from the aware
+            # ==================================
             if prio == DateTimeSource.ANY_AWARE:
-                # PRECONDITION: At least one element is aware
                 if len(aware) > 0:
                     return aware[0], DateTimeSource.ANY_AWARE, None
 
-            # Use unaware but add zone info from gps
+            # =====================================
             elif prio == DateTimeSource.UNAWARE_GPS:
                 if len(unaware) > 0 and len(gps_rst) > 0:
                     # PRECONDITION: At least one unaware element is present and at least one gps element is present
@@ -725,7 +724,7 @@ class NewMetadataAggregator:
                     dt_pr = DateTimeParsingResult(key=unaware[0].key, dt=new_dt, src=unaware[0].src)
                     return dt_pr, DateTimeSource.UNAWARE_GPS, valid_gps_results[0]
 
-            # Using Default Timezone from
+            # ==========================================
             elif prio == DateTimeSource.UNAWARE_DEFAULT:
                 if len(unaware) > 0:
                     # PRECONDITION: At least one unaware element is present
@@ -735,7 +734,7 @@ class NewMetadataAggregator:
 
                     return dt_pr, DateTimeSource.UNAWARE_DEFAULT, None
 
-            # Using datetime from File Metadata
+            # =====================================
             elif prio == DateTimeSource.FILE_AWARE:
                 if len(file) > 0:
                     # PRECONDITION: At least one file element is present
@@ -743,7 +742,7 @@ class NewMetadataAggregator:
                 else:
                     raise ValueError("There should always be file metadata")
 
-            # Only partial results found
+            # =======================================
             elif prio == DateTimeSource.DATE_OR_TIME:
                 # We have a date and a time, so we're combining them into a datetime, using the default timezone.
                 if len(date) > 0 and len(time) > 0:
@@ -776,12 +775,12 @@ class NewMetadataAggregator:
                 res = DateTimeParsingResult(key=key, dt=new_dt, src=src), DateTimeSource.DATE_OR_TIME, None
                 return res
 
-            # Using Google Photos from aware
+            # ==============================================
             elif prio == DateTimeSource.GOOGLE_PHOTOS_AWARE:
                 if len(google_photo_aware) > 0:
                     return google_photo_aware[0], DateTimeSource.GOOGLE_PHOTOS_AWARE, None
 
-            # Using Google Photos which aren't aware.
+            # ================================================
             elif prio == DateTimeSource.GOOGLE_PHOTOS_UNAWARE:
                 if len(google_photo_unaware) > 0:
                     assert False, "Google Photos Unaware encountered!"
