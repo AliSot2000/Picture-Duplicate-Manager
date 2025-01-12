@@ -411,6 +411,95 @@ class NewMetadataAggregator:
             # Clear google photos metadata keys
             self.new_dt_cfg.google_photos_datetime = []
 
+    def search_possible_new_keys(self, md: dict):
+        """
+        Go through available metadata keys and search for keys which aren't already covered by the config.
+        Because we don't want to make too many assumptions, the newly discovered keys are relegated to the simple_keys
+        group from which the user is supposed to fetch the keys he deems useful.
+
+        The user is also expected to place the keys in the appropriate location and create double or prefix keys if
+        necessary.
+        """
+        assert self.search, "Search must be called with the search attribute set."
+
+        union = self._get_all_keys(self.dt_cfg)
+        union.extend(self._get_all_keys(self.new_dt_cfg))
+        union.extend(list(self.found_keys.keys()))
+
+        compressed_keys = set(union)
+        pruned_dict = {}
+
+        # Remove all prefix keys from the metadata
+        prefix_keys = set(list(self.dt_cfg.prefix_keys.keys()) + list(self.new_dt_cfg.prefix_keys.keys()))
+        for pfk in prefix_keys:
+
+            # Remove all prefix keys from the metadata
+            for key, value in md.items():
+                if not key.startswith(pfk):
+                    pruned_dict[key] = value
+
+        new_keys = []
+
+        # POST-CONDITION: Metadata doesn't contain any prefix keys.
+        for key in pruned_dict.keys():
+            # We detect a known key
+            if key in compressed_keys:
+                continue
+
+            # We detect a key from the ignore list
+            if key in self.ignore_keys:
+                continue
+
+            # Add the new keys to the list
+            for tgt in self.search_keys:
+                if tgt.lower() in key.lower():
+                    new_keys.append(key)
+
+        # Abort if we don't have anything new
+        if len(new_keys) == 0:
+            return
+
+        compressed_new_keys = set(new_keys)
+        for key in compressed_new_keys:
+            val = md.get(key)
+            if val is None:
+                continue
+
+            self.found_keys[key] = val
+
+    def parse_exiftool_result(self, md: dict) -> Tuple[List[DateTimeParsingResult], List[GPSParsingResult]]:
+        """
+        Parse the content of the exiftool metadata into a list of DateTimeParsingResults. And if available also a list
+        of GPSParsingResult.
+
+        :param md: Metadata dict from exiftool.
+
+        :returns: List of DateTimeParsingResult objects, List of GPSParsingResult objects
+        """
+        dts = []
+        dts.extend(self.simple_key_parser(md))
+        dts.extend(self.double_key_parse(md))
+        dts.extend(self.simple_prefix_key_parser(md))
+        dts.extend(self.simple_unaware_static_tz_parser(md))
+        dts.extend(self.double_unaware_static_tz_parser(md))
+
+        gps_rst = []
+        gps_rst.extend(self.gps_composite_parser(md))
+        gps_rst.extend(self.gps_prefix_composite_parser(md))
+        gps_rst.extend(self.gps_multikey_parser(md))
+
+        # For debugging purposes, we're checking the zones are all equal
+        if __debug__:
+            zones = []
+            for res in gps_rst:
+                zones.append(self.tzf.timezone_at(lat=res.lat, lng=res.long))
+
+            for z in range(1, len(zones)):
+                assert zones[z] == zones[z - 1]
+
+        return dts, gps_rst
+
+
     # ==================================================================================================================
     # Base Functions Datetime Parsing and Utility
     # ==================================================================================================================
@@ -845,208 +934,13 @@ class NewMetadataAggregator:
                 aware.append(new_pr)
                 aware = sorted(aware, key=lambda x: x.dt)
 
-            # Ensure we don't use the date or time, since we added something else. 
+            # Ensure we don't use the date or time, since we added something else.
             date = time = []
         return unaware, aware, date, time, file
 
     # ==================================================================================================================
     # Parse Functions
     # ==================================================================================================================
-
-    def search_possible_new_keys(self, md: dict):
-        """
-        Go through available metadata keys and search for keys which aren't already covered by the config.
-        Because we don't want to make too many assumptions, the newly discovered keys are relegated to the simple_keys
-        group from which the user is supposed to fetch the keys he deems useful.
-
-        The user is also expected to place the keys in the appropriate location and create double or prefix keys if
-        necessary.
-        """
-        assert self.search, "Search must be called with the search attribute set."
-
-        union = self._get_all_keys(self.dt_cfg)
-        union.extend(self._get_all_keys(self.new_dt_cfg))
-        union.extend(list(self.found_keys.keys()))
-
-        compressed_keys = set(union)
-        pruned_dict = {}
-
-        # Remove all prefix keys from the metadata
-        prefix_keys = set(list(self.dt_cfg.prefix_keys.keys()) + list(self.new_dt_cfg.prefix_keys.keys()))
-        for pfk in prefix_keys:
-
-            # Remove all prefix keys from the metadata
-            for key, value in md.items():
-                if not key.startswith(pfk):
-                    pruned_dict[key] = value
-
-        new_keys = []
-
-        # POST-CONDITION: Metadata doesn't contain any prefix keys.
-        for key in pruned_dict.keys():
-            # We detect a known key
-            if key in compressed_keys:
-                continue
-
-            # We detect a key from the ignore list
-            if key in self.ignore_keys:
-                continue
-
-            # Add the new keys to the list
-            for tgt in self.search_keys:
-                if tgt.lower() in key.lower():
-                    new_keys.append(key)
-
-        # Abort if we don't have anything new
-        if len(new_keys) == 0:
-            return
-
-        compressed_new_keys = set(new_keys)
-        for key in compressed_new_keys:
-            val = md.get(key)
-            if val is None:
-                continue
-
-            self.found_keys[key] = val
-
-    def metadata_to_datetime(self, md: dict, google_photos_result: List[DateTimeParsingResult] = None) -> Tuple[
-        DateTimeParsingResult,
-        DateTimeSource,
-        Union[None, GPSParsingResult]
-    ]:
-        """
-        Fully parse all datetime objects of the image. Also attempt to parse all GPS information.
-
-        Precedence of Timezone:
-        - Timezone Aware Datetime formats
-        - Timezone unaware Format + GPS
-        - Config Default Timezone
-        - System Timezone
-
-        :param md: Dictionary of metadata
-        :param google_photos_result: List of DateTimeParsingResult objects
-        """
-        dts = []
-        dts.extend(self.simple_key_parser(md))
-        dts.extend(self.double_key_parse(md))
-        dts.extend(self.simple_prefix_key_parser(md))
-        dts.extend(self.simple_unaware_static_tz_parser(md))
-        dts.extend(self.double_unaware_static_tz_parser(md))
-
-        gps_rst = []
-        gps_rst.extend(self.gps_composite_parser(md))
-        gps_rst.extend(self.gps_prefix_composite_parser(md))
-        gps_rst.extend(self.gps_multikey_parser(md))
-
-        # For debugging purposes, we're checking the zones are all equal
-        if __debug__:
-            zones = []
-            for res in gps_rst:
-                zones.append(self.tzf.timezone_at(lat=res.lat, lng=res.long))
-
-            for z in range(1, len(zones)):
-                assert zones[z] == zones[z - 1]
-
-        aware, unaware, date, time, file, google_photo_aware, google_photo_unaware = \
-            self.partition_datetime_results(dts, google_photos_result)
-
-        for prio in self.tz_priority:
-            # ==================================
-            if prio == DateTimeSource.ANY_AWARE:
-                if len(aware) > 0:
-                    return aware[0], DateTimeSource.ANY_AWARE, None
-
-            # =====================================
-            elif prio == DateTimeSource.UNAWARE_GPS:
-                if len(unaware) > 0 and len(gps_rst) > 0:
-                    # PRECONDITION: At least one unaware element is present and at least one gps element is present
-                    # Parse the GPS Data
-                    zones = []
-                    valid_gps_results = []
-                    for res in gps_rst:
-                        r = self.tzf.timezone_at(lat=res.lat, lng=res.long)
-                        if r is not None:
-                            zones.append(r)
-                            valid_gps_results.append(res)
-
-                    # Check with the point was a timezone associated
-                    if len(zones) == 0:
-                        continue
-                    tz = zoneinfo.ZoneInfo(zones[0])
-                    new_dt = unaware[0].dt.replace(tzinfo=tz)
-                    dt_pr = DateTimeParsingResult(key=unaware[0].key, dt=new_dt, src=unaware[0].src)
-                    return dt_pr, DateTimeSource.UNAWARE_GPS, valid_gps_results[0]
-
-            # ==========================================
-            elif prio == DateTimeSource.UNAWARE_DEFAULT:
-                if len(unaware) > 0:
-                    # PRECONDITION: At least one unaware element is present
-                    # We're using the default attribute for the timezone
-                    new_dt = unaware[0].dt.replace(tzinfo=zoneinfo.ZoneInfo(self.default_tz))
-                    dt_pr = DateTimeParsingResult(key=unaware[0].key, dt=new_dt, src=unaware[0].src)
-
-                    return dt_pr, DateTimeSource.UNAWARE_DEFAULT, None
-
-            # =====================================
-            elif prio == DateTimeSource.FILE_AWARE:
-                if len(file) > 0:
-                    # PRECONDITION: At least one file element is present
-                    return file[0], DateTimeSource.FILE_AWARE, None
-                else:
-                    raise ValueError("There should always be file metadata")
-
-            # =======================================
-            elif prio == DateTimeSource.DATE_OR_TIME:
-                # We have a date and a time, so we're combining them into a datetime, using the default timezone.
-                if len(date) > 0 and len(time) > 0:
-                    # PRECONDITION: At least one date and at least one time element is present
-                    new_dt = self.build_datetime_from_date_and_time(date=date[0].dt, time=time[0].dt)
-                    key = DoubleKey(first_key=date[0].key, second_key=time[0].key)
-                    src = DateTimeCategory.AWARE if new_dt.tzinfo is not None else DateTimeCategory.UNAWARE
-
-                # We only have a non-file date, joining this info with the file info
-                elif len(date) > 0 and len(time) == 0:
-                    # PRECONDITION: At least one date element is present
-                    new_dt = self.build_datetime_from_date_and_time(date=date[0].dt, time=file[0].dt)
-                    key = date[0].key
-                    src = DateTimeCategory.DATE
-
-                # We only have a non-file time, joining this info with the file info
-                elif len(date) == 0 and len(time) > 0:
-                    # PRECONDITION: At least one time element is present
-                    new_dt = self.build_datetime_from_date_and_time(date=file[0].dt, time=time[0].dt)
-                    key = time[0].key
-                    src = DateTimeCategory.TIME
-                else:
-                    # Neither time nor date element present, ignore
-                    continue
-
-                # Adding default timezone if not provided
-                if new_dt.tzinfo is None:
-                    new_dt = new_dt.replace(tzinfo=zoneinfo.ZoneInfo(self.default_tz))
-
-                res = DateTimeParsingResult(key=key, dt=new_dt, src=src), DateTimeSource.DATE_OR_TIME, None
-                return res
-
-            # ==============================================
-            elif prio == DateTimeSource.GOOGLE_PHOTOS_AWARE:
-                if len(google_photo_aware) > 0:
-                    return google_photo_aware[0], DateTimeSource.GOOGLE_PHOTOS_AWARE, None
-
-            # ================================================
-            elif prio == DateTimeSource.GOOGLE_PHOTOS_UNAWARE:
-                if len(google_photo_unaware) > 0:
-                    assert False, "Google Photos Unaware encountered!"
-                    dt_new = google_photo_unaware[0].dt.replace(tzinfo=zoneinfo.ZoneInfo(self.default_tz))
-                    prs = DateTimeParsingResult(key=google_photo_unaware[0].key,
-                                                dt=dt_new,
-                                                src=google_photo_unaware[0].src)
-                    return prs, DateTimeSource.GOOGLE_PHOTOS_UNAWARE, None
-
-            else:
-                raise ValueError("Tertiem Non Datur")
-
-        raise ValueError("Shouldn't be able to get here.")
 
     def simple_key_parser(self, md: dict) -> List[DateTimeParsingResult]:
         """
