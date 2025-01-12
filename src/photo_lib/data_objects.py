@@ -134,7 +134,8 @@ class MetadataParsingResult:
 
     metadata: Optional[dict] = None
     google_photos_metadata: Optional[dict] = None
-    gps_loc: Optional[Tuple[float, float]] = None
+    gps_lat: Optional[float] = None
+    gps_long: Optional[float] = None
     tz_name: Optional[str] = None
     source: Optional[str] = None
 

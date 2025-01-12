@@ -588,7 +588,8 @@ class NewMetadataAggregator:
         :param naming_tag: Source of the datetime.
         :param google_photos_metadata: Google Photos metadata if exists
         """
-        gps_loc = (pr[2].lat, pr[2].long) if pr[2] is not None else None
+        gps_lat = pr[2].lat if pr[2] is not None else None
+        gps_long = pr[2].long if pr[2] is not None else None
         file_hash = self.hash_file(path)
 
         return MetadataParsingResult(
@@ -600,7 +601,8 @@ class NewMetadataAggregator:
 
             metadata=metadata,
             google_photos_metadata=google_photos_metadata,
-            gps_loc=gps_loc,
+            gps_lat=gps_lat,
+            gps_long=gps_long,
             tz_name=pr[0].dt.tzname(),
             source=pr[1].name
         )
