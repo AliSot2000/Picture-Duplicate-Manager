@@ -376,7 +376,6 @@ class NewMetadataAggregator:
 
             # INFO: Cannot use set, lose order.
             self.tz_priority = tz_priority
-
         else:
             self.tz_priority = [DateTimeSource.ANY_AWARE,
                                 DateTimeSource.UNAWARE_GPS,
@@ -385,7 +384,7 @@ class NewMetadataAggregator:
                                 DateTimeSource.GOOGLE_PHOTOS_UNAWARE,
                                 DateTimeSource.DATE_OR_TIME,
                                 DateTimeSource.FILE_AWARE]
-
+            assert len(self.tz_priority) < len(DateTimeSource._member_names_), "Not all Sources covered. Fix CLass"
 
         if ignore_keys is not None:
             self.ignore_keys = ignore_keys
