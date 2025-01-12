@@ -821,12 +821,6 @@ class NewMetadataAggregator:
             else:
                 raise Exception(f"Tertiem Non Datur. This option shouldn't be possible. {dtr.src}")
 
-        if gpr is not None:
-            for dtr in gpr:
-                if dtr.src == DateTimeCategory.AWARE:
-                    google_photos_aware.append(dtr)
-                    google_photos_unaware.append(dtr)
-
         # Sort all the list of datetimes
         unaware = sorted(unaware, key=lambda x: x.dt)
         aware = sorted(aware, key=lambda x: x.dt)
@@ -837,6 +831,7 @@ class NewMetadataAggregator:
         google_photos_unaware = sorted(google_photos_unaware, key=lambda x: x.dt)
 
         return unaware, aware, date, time, file, google_photos_aware, google_photos_unaware
+        return unaware, aware, date, time, file
 
     # ==================================================================================================================
     # Parse Functions
