@@ -808,10 +808,13 @@ class NewMetadataAggregator:
         :param md: Metadata to parse
         :return: Tuple of (datetime, DateTimeCategory). If no valid format is found, return None
         """
-        simple_union = self.build_key_union_simple_key(
-            cur_dict=self.dt_cfg.simple_keys,
-            new_dict=self.new_dt_cfg.simple_keys if self.new_dt_cfg is not None else {}
-        )
+        if self.discover:
+            simple_union = self.build_key_union_simple_key(
+                cur_dict=self.dt_cfg.simple_keys,
+                new_dict=self.new_dt_cfg.simple_keys
+            )
+        else:
+            simple_union = self.dt_cfg.simple_keys
 
         # Try to parse all keys from the given metadata
         results = []
@@ -859,10 +862,17 @@ class NewMetadataAggregator:
         :param md: Metadata to parse
         :return: Tuple of (datetime, DateTimeCategory). If no valid format is found, return None
         """
-        uk, ufmt, new_dt_keys = self.build_key_union_double_key(
-            cur_list=self.dt_cfg.double_keys,
-            new_list=self.new_dt_cfg.double_keys if self.new_dt_cfg is not None else []
-        )
+        if self.discover:
+            uk, ufmt, new_dt_keys = self.build_key_union_double_key(
+                cur_list=self.dt_cfg.double_keys,
+                new_list=self.new_dt_cfg.double_keys
+            )
+        else:
+            uk = [DoubleKey.model_validate(l.model_dump()) for l in self.dt_cfg.double_keys]
+            ufmt = [l.formats for l in self.dt_cfg.double_keys]
+
+            # Needs to be defined for no issues with code inspection
+            new_dt_keys = []
 
         results = []
         for keys, formats in zip(uk, ufmt):
@@ -923,10 +933,12 @@ class NewMetadataAggregator:
         :param md: Metadata to parse
         :return: Tuple of (datetime, DateTimeCategory). If no valid format is found, return None
         """
-        simple_union = self.build_key_union_simple_key(
-            cur_dict=self.dt_cfg.prefix_keys,
-            new_dict=self.new_dt_cfg.prefix_keys if self.new_dt_cfg is not None else {}
-        )
+        if self.discover:
+            simple_union = self.build_key_union_simple_key(
+                cur_dict=self.dt_cfg.prefix_keys,
+                new_dict=self.new_dt_cfg.prefix_keys)
+        else:
+            simple_union = self.dt_cfg.prefix_keys
 
         results = []
         for prefix, formats in simple_union.items():
@@ -980,10 +992,12 @@ class NewMetadataAggregator:
         :param md: Metadata to parse
         :return: Tuple of (datetime, DateTimeCategory). If no valid format is found, return None
         """
-        simple_union = self.build_key_union_simple_key(
-            cur_dict=self.dt_cfg.internal_simple_unaware_known_tz,
-            new_dict=self.new_dt_cfg.internal_simple_unaware_known_tz if self.new_dt_cfg is not None else {}
-        )
+        if self.discover:
+            simple_union = self.build_key_union_simple_key(
+                cur_dict=self.dt_cfg.internal_simple_unaware_known_tz,
+                new_dict=self.new_dt_cfg.internal_simple_unaware_known_tz)
+        else:
+            simple_union = self.dt_cfg.internal_simple_unaware_known_tz
 
         results = []
         for key, formats in simple_union.items():
@@ -1032,10 +1046,17 @@ class NewMetadataAggregator:
         :param md: Metadata to parse
         :return: Tuple of (datetime, DateTimeCategory). If no valid format is found, return None
         """
-        uk, ufmt, new_dt_keys = self.build_key_union_double_key(
-            cur_list=self.dt_cfg.internal_double_unaware_known_tz,
-            new_list=self.new_dt_cfg.internal_double_unaware_known_tz if self.new_dt_cfg is not None else [],
-        )
+        if self.discover:
+            uk, ufmt, new_dt_keys = self.build_key_union_double_key(
+                cur_list=self.dt_cfg.internal_double_unaware_known_tz,
+                new_list=self.new_dt_cfg.internal_double_unaware_known_tz
+            )
+        else:
+            uk = [DoubleKey.model_validate(l.model_dump()) for l in self.dt_cfg.internal_double_unaware_known_tz]
+            ufmt = [l.formats for l in self.dt_cfg.internal_double_unaware_known_tz]
+
+            # Needs to be defined for no issues with code inspection
+            new_dt_keys = []
 
         results = []
         for keys, formats in zip(uk, ufmt):
