@@ -46,6 +46,9 @@ class NewMetadataAggregator:
     __use_dateutil: bool
     dt_util_count = 0
 
+    # Use the Metadata of Google Photos if available.
+    __use_google_photos_metadata: bool
+
     # print status information about parsing
     __verbose: bool
 
@@ -81,6 +84,10 @@ class NewMetadataAggregator:
     @property
     def use_dateutil(self):
         return self.__use_dateutil
+
+    @property
+    def use_google_photos_metadata(self):
+        return self.__use_google_photos_metadata
 
     @property
     def search(self):
