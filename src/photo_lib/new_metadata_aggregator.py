@@ -110,9 +110,36 @@ class NewMetadataAggregator:
 
         return InternalDateTimeParser.model_validate(existing_json)
 
-    def export_discovered(self, tgt_path: str, config: Config):
+    @staticmethod
+    def rebuild_external_config(internal_simple_unaware_known_tz: Dict[str, List[InternalStaticLookupSource]],
+                                internal_double_unaware_known_tz: List[InternalDoubleKeyStatic]) \
+        -> Tuple[Dict[str, StaticLookupSource], List[DoubleKeyStatic]]:
+        """
+        Repopulate simple_unaware_known_tz and double_unaware_known_tz from the internal fields.
+
+        :param internal_simple_unaware_known_tz: Internal Representation of simple unaware keys with static tz
+        :param internal_double_unaware_known_tz: Internal Representation of double unaware keys with static tz
+
+        :return: Repopulated config
         """
         Export the newly found things to config.
+        # Populate the simple_key_unaware_known_tz
+        new_simple_unaware_known_tz = {}
+        for key, value in internal_simple_unaware_known_tz.items():
+            formats = [LookupSource(index=v.index, source=v.source) for v in value]
+            new_simple_unaware_known_tz[key] = StaticLookupSource(formats=formats, tz=value[0].tz)
+
+
+        # Populate the double_unaware_known_tz
+        new_double_unaware_known_tz = []
+        for elm in internal_double_unaware_known_tz:
+            formats = [LookupSource(index=f.index, source=f.source) for f in elm.formats]
+            sls = StaticLookupSource(formats=formats, tz=elm.formats[0].tz)
+            new_double_unaware_known_tz.append(
+                DoubleKeyStatic(first_key=elm.first_key, second_key=elm.second_key, formats=sls)
+            )
+
+        return new_simple_unaware_known_tz, new_double_unaware_known_tz
         """
         ...
 
