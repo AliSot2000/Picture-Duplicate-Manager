@@ -778,10 +778,7 @@ class NewMetadataAggregator:
             tzinfo=time.tzinfo,
         )
 
-    @staticmethod
-    def partition_datetime_results(dts: List[DateTimeParsingResult], gpr: List[DateTimeParsingResult] = None) -> Tuple[
-        List[DateTimeParsingResult],
-        List[DateTimeParsingResult],
+    def partition_datetime_results(self, dts: List[DateTimeParsingResult]) -> Tuple[
         List[DateTimeParsingResult],
         List[DateTimeParsingResult],
         List[DateTimeParsingResult],
@@ -792,7 +789,6 @@ class NewMetadataAggregator:
         Partition the Datetime parsing result into lists according to the DateTimeSource
 
         :param dts: List of DateTimeParsingResult objects to partition
-        :param gpr: List of DateTimeParsingResult objects from google_photos to partition
 
         :return: five lists of DateTimeParsingResult objects, in the following order:
         - aware objects
@@ -800,16 +796,12 @@ class NewMetadataAggregator:
         - date objects
         - time objects
         - file objects
-        - google photos aware objects
-        - google photos unaware objects
         """
         aware = []
         unaware = []
         date = []
         time = []
         file = []
-        google_photos_aware = []
-        google_photos_unaware = []
 
         # Partition the Datetime into separate lists
         for dtr in dts:
