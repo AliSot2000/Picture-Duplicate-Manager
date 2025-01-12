@@ -827,10 +827,26 @@ class NewMetadataAggregator:
         date = sorted(date, key=lambda x: x.dt)
         time = sorted(time, key=lambda x: x.dt)
         file = sorted(file, key=lambda x: x.dt)
-        google_photos_aware = sorted(google_photos_aware, key=lambda x: x.dt)
-        google_photos_unaware = sorted(google_photos_unaware, key=lambda x: x.dt)
 
-        return unaware, aware, date, time, file, google_photos_aware, google_photos_unaware
+        # Add single time and single date into a DoubleKey
+        if len(time) > 0 and len(date) > 0:
+            new_dt_value = self.build_datetime_from_date_and_time(date=date[0].dt, time=time[0].dt)
+
+            if new_dt_value.tzinfo is None:
+                new_pr = DateTimeParsingResult(dt=new_dt_value,
+                                               src=DateTimeCategory.UNAWARE,
+                                               key=DoubleKey(first_key=date[0].key, second_key=time[0].key))
+                unaware.append(new_pr)
+                unaware = sorted(unaware, key=lambda x: x.dt)
+            else:
+                new_pr = DateTimeParsingResult(dt=new_dt_value,
+                                               src=DateTimeCategory.UNAWARE,
+                                               key=DoubleKey(first_key=date[0].key, second_key=time[0].key))
+                aware.append(new_pr)
+                aware = sorted(aware, key=lambda x: x.dt)
+
+            # Ensure we don't use the date or time, since we added something else. 
+            date = time = []
         return unaware, aware, date, time, file
 
     # ==================================================================================================================
