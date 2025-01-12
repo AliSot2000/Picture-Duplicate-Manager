@@ -1628,7 +1628,9 @@ class NewMetadataAggregator:
                 continue
 
             # Check type of result
-            assert isinstance(res, str) or isinstance(res, int), "String or Int for datetime or timestamp"
+            assert isinstance(res, str) or isinstance(res, int) or isinstance(res, float), \
+                "String or Int or Float for datetime or timestamp"
+
             dtr = self._parse_raw_value(dt=res, formats=src.formats)
 
             # Handle mal format and aborts
