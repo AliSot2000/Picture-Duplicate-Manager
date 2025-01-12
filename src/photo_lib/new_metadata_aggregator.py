@@ -246,7 +246,93 @@ class NewMetadataAggregator:
                  default_tz: str = None,
                  tz_priority: List[DateTimeSource] = None):
         """
-        Path to exiftool executable. Used as an override.
+        Initialize the Metadata Aggregator. Logger is a parameter since this process might be in a subprocess and need
+        special logging setup.
+
+        Searching
+        =========
+
+        When parsing the metadata, you can provide a list of keys to search for. When parsing the metadata,
+        all keys which contain one of the search_keys and which are not in the `ignore_keys` or in the keys in the
+        config, will be added to the `found_keys` attribute of the class. The value in the dict is the value in the
+        metadata (so you have an example).
+        Searching is only done when the `search` parameter is set to `True`.
+
+
+        Discover
+        ========
+        
+        When parsing the metadata, some datetime values might be in a known format which isn't yet associated with the 
+        key in the metadata. If you set `discover` to `True`. Upon failure to parse a given datetime key, all 
+        known formats are attempted. If a new format is found, it is added to the secondary config of the Metadata 
+        Aggregator `new_dt_cfg`. You can get the new config from the Metadata Aggregator with `export_discovered`.
+        You can either export only the new formats or the union of the already known and newly discovered formats.
+
+        Eager Parsing
+        =============
+
+        To catch even more formatted values whose format might not be known in the config, you can also use
+        `dateutil.parse` as a fallback. Using this method will potentially find more datetime values than without.
+        However, when use_dateutil is set to `True` and `discover` is also set to `True`, `discover` will overrule the
+        `use_dateutil` parameter and set it to False. This is because, `dateutil.parse` doesn't allow you to recover
+        the parsed format.
+
+        Parsing Order
+        =============
+
+        Generally, the most trusted source of a given image creation datetime is the metadata of the image itself.
+        However, since especially screenshots do not contain any image metadata but only the file metadata, it's
+        possible that a screenshot has an incorrect creation datetime. To deal with this issue, the Metadata Aggregator
+        (MDA) oes the following by default:
+
+        1. The earliest timezone aware datetime object which isn't filesystem metadata is used.
+        2. If GPS is available, the timezone of the GPS position of the image in conjunction with the earliest naive
+            datetime object which isn't filesystem metadata is used.
+        3. If no GPS is available, the class attr default_tz is used instead in conjunction with the earliest naive
+            datetime object which isn't filesystem metadata is used.
+        4. If we found a Date or a Time object in the metadata, we use those values and supplement (if necessary) the
+            other from the file system metadata. E.G. if a file's metadata only contains date but no time, the date of
+            the metadata is used and the time of the earliest file system metadata datetime object. E.G. We use the
+            ile system metadata to date the file.
+            If both a date object and a time object are available, they will be joined and added to the aware or unaware
+            category.
+
+        If google photos metadata is available, the datetime values are used according to step 1-4. If the value
+        (if any) from the google photos metadata is earlier than the one from the metadata, the datetime values from
+        google photos is used.
+
+        Overrides:
+
+        - path
+        - ignore_keys
+        - search_keys
+        - default_tz
+        - tz_priority
+
+        Configuration:
+
+        - logger
+        - discover
+        - search
+        - verbose
+        - use_dateutil
+        - use_google_photos
+
+
+        :param path: Override the `exiftool` to use. Might be useful if it's not in the system path,
+            or you want a newer version.
+        :param ignore_keys: Override of the class attribute `ignore_keys`. Can also be set later on.
+        :param search_keys: Override of the class attribute `search_keys`. Can also be set later on.
+        :param default_tz: Override of the class attribute `default_tz`. Uses System Timezone otherwise.
+        :param tz_priority: Override of the class attribute `tz_priority`. This defines in which order to take the
+            different classes of datetime results found in the metadata
+
+        :param logger: Provide a logger to the class so it can output status messages
+        :param discover: Enable discover mode (refer to upper paragraph for functionality)
+        :param search: Enable search mode (refer to upper paragraph for functionality)
+        :param verbose: Switch logger from info level to debug level when True
+        :param use_dateutil: Use dateutil.parse as fallback if no format is found (doesn't work with discover mode)
+        :param use_google_photos_metadata: Also search google photos metadata for datetimes.
         """
         # loading the exiftool
         self.eth = exiftool.ExifToolHelper(executable=path)
