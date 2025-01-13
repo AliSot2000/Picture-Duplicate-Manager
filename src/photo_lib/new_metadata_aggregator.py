@@ -1121,7 +1121,7 @@ class NewMetadataAggregator:
         GPSParsingResult GPS Parsing Result used to localize the DateTimeParsingResult object
         """
 
-        aware, unaware, date, time, file = self.partition_datetime_results(candidate_results)
+        unaware, aware, date, time, file = self.partition_datetime_results(candidate_results)
 
         for prio in self.tz_priority:
             # ==================================
