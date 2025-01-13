@@ -545,12 +545,14 @@ class NewMetadataAggregator:
 
         # Handle google photos result
         if self.use_google_photos_metadata and gfmd is not None:
+            assert len(gfmd.keys()) > 0, "Google Photos Metadata contains nothing?!?"
+
             google_dtr = self.parse_google_photos_metadata(gfmd)
-            google_result = self.get_first_matching_dtr(candidate_results=google_dtr, gps_rst=gps_rst)
+            google_result = self.get_first_matching_dtr(candidate_results=google_dtr, gps_rst=gps_rst, has_file=False)
             assert google_result[0].dt.tzinfo is not None, "We ALWAYS want a timezone when using the new parser, GF"
 
             # Earlier Datetime Found in the Google Results.
-            if google_result[0].dt < exiftool_result[0].dt:
+            if md is None or google_result[0].dt < exiftool_result[0].dt:
                 assert isinstance(google_result[0].key, list), "Unexpected Format of Google Photos MDPS"
                 key = "GooglePhotosMetadata:" + ",".join(google_result[0].key)
 
