@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Union, Optional, List, Tuple
 import datetime
+from zoneinfo import ZoneInfo
+
 from photo_lib.custom_enum import *
 from photo_lib.config import DoubleKey, GPSMultiKey
 
@@ -136,7 +138,7 @@ class MetadataParsingResult:
     google_photos_metadata: Optional[dict] = None
     gps_lat: Optional[float] = None
     gps_long: Optional[float] = None
-    tz_name: Optional[str] = None
+    tz_name: Optional[Union[str, ZoneInfo]] = None
     source: Optional[str] = None
 
 
