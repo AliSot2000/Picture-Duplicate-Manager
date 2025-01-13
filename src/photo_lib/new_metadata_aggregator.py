@@ -1740,7 +1740,7 @@ class NewMetadataAggregator:
 
         :param path: file_path to load metadata from
         """
-        metadata_path = os.path.splitext(path)[0] + ".json"
+        metadata_path = path + ".json"
 
         if os.path.exists(metadata_path):
             try:
