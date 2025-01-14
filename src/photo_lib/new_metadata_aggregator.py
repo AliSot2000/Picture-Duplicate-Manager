@@ -1659,21 +1659,21 @@ class NewMetadataAggregator:
             if lat_ref is not None:
                 if lat_ref.lower().strip() not in ("n", "s"):
                     self.logger.warning(f"Failed to Parse Latitude Reference."
-                                        f" Key: {multikey.lat_val}, Value: {lat_ref}")
+                                        f" Key: {multikey.lat_ref}, Value: {lat_ref}")
 
                 if lat_ref.lower().strip() == "s" and lat > 0:
                     self.logger.warning(f"Positive Latitude Value for South Latitude. Inverting Latitude."
-                                        f" Key: {multikey.lat_val}, Value: {lat_ref}")
+                                        f" Key: {multikey.lat_ref}, Value: {lat_ref}")
                     lat = -lat
 
             if long_ref is not None:
                 if long_ref.lower().strip() not in ("e", "w"):
                     self.logger.warning(f"Failed to Parse Longitude Reference."
-                                        f" Key: {multikey.long_val}, Value: {long_ref}")
+                                        f" Key: {multikey.long_ref}, Value: {long_ref}")
 
                 if long_ref.lower().strip() == "w" and long > 0:
                     self.logger.warning(f"Positive Longitude Value for West Longitude. Inverting Longitude."
-                                        f" Key: {multikey.long_val}, Value: {long_ref}")
+                                        f" Key: {multikey.long_ref}, Value: {long_ref}")
                     long = -long
 
             alt = None
@@ -1689,7 +1689,7 @@ class NewMetadataAggregator:
                     if type(alt_ref) is str:
                         if alt_ref.lower().strip() not in ("0", "1"):
                             self.logger.warning(f"Unexpected Alt Ref Format: "
-                                                f" Key: {multikey.alt_val}, Value: {alt_ref}")
+                                                f" Key: {multikey.alt_ref}, Value: {alt_ref}")
                             palt_ref = None
                         else:
                             palt_ref = int(alt_ref)
@@ -1697,13 +1697,13 @@ class NewMetadataAggregator:
                     elif type(alt_ref) is float or type(alt_ref) is int:
                         if not (alt_ref == 0 or alt_ref == 1):
                             self.logger.warning(f"Unexpected Alt Ref Format: "
-                                                f" Key: {multikey.alt_val}, Value: {alt_ref}")
+                                                f" Key: {multikey.alt_ref}, Value: {alt_ref}")
                             palt_ref = None
                         else:
                             palt_ref = alt_ref
                     else:
                         self.logger.warning(f"Unexpected Alt Ref Type: "
-                                            f" Key: {multikey.alt_val}, Value: {alt_ref}")
+                                            f" Key: {multikey.alt_ref}, Value: {alt_ref}")
                         palt_ref = None
 
                     # PRECONDITION: Because of the previous try except block it holds that alt is a float if it is not None
