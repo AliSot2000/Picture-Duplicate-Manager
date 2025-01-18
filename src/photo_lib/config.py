@@ -211,14 +211,17 @@ class InternalDateTimeParser(DateTimeParser):
                           "each format. However, within a key, the timezone must be the same.")
 
 
+# https://pypi.org/project/platformdirs/
 class Config(BaseModel):
     allowed_extensions: List[str]
 
     exiftool: Union[str, None]
     db_version: Union[str, None]
 
+    db_file: str
     trash: Union[str, None]
     thumbnail: Union[str, None]
+    temp_path: Union[str, None]
 
     path_suffix: PathSuffix = PathSuffix.NONE
 
