@@ -543,9 +543,7 @@ class NewMetadataAggregator:
         assert exiftool_result[0].dt.tzinfo is not None, "We ALWAYS want a timezone when using the new parser, EXIFTOOL"
 
         # Handle google photos result
-        if self.use_google_photos_metadata and gfmd is not None:
-            assert len(gfmd.keys()) > 0, "Google Photos Metadata contains nothing?!?"
-
+        if self.use_google_photos_metadata and gfmd is not None and len(gfmd.keys()) > 0:
             google_dtr = self.parse_google_photos_metadata(gfmd)
             google_result = self.get_first_matching_dtr(candidate_results=google_dtr, gps_rst=gps_rst)
             assert google_result[0].dt.tzinfo is not None, "We ALWAYS want a timezone when using the new parser, GF"
