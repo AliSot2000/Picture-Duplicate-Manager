@@ -293,8 +293,7 @@ class NewMetadataAggregator:
             datetime object which isn't filesystem metadata is used.
         4. If we found a Date or a Time object in the metadata, we use those values and supplement (if necessary) the
             other from the file system metadata. E.G. if a file's metadata only contains date but no time, the date of
-            the metadata is used and the time of the earliest file system metadata datetime object. E.G. We use the
-            ile system metadata to date the file.
+            the metadata is used and the time of the earliest file system metadata datetime object.
             If both a date object and a time object are available, they will be joined and added to the aware or unaware
             category.
 
