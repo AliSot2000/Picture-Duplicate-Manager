@@ -149,7 +149,16 @@ class CheckNamedPictureBlock(QFrame):
         if title is None and mt is not None:
             title = f"Import: {mt.name.replace('_', ' ').title()}"
         self.import_checkbox = QCheckBox(title)
-        self.import_checkbox.setStyleSheet("padding: 10px; "
+
+        top = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin)
+        right = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutRightMargin)
+        bottom = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin)
+        left = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutLeftMargin)
+
+        # INFO:
+        #   Info BoxLengths are top, right, bottom, left
+        #   Content Margins are left, top, right, bottom
+        self.import_checkbox.setStyleSheet(f"padding: {top}px {right}px {bottom}px {left}px; "
                                            "border: 2px solid black;")
 
         self.v_layout = QVBoxLayout()
