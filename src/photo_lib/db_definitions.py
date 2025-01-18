@@ -301,4 +301,8 @@ current_version = DBVersion(
 
 with open(os.path.join(os.path.dirname(__file__), "previous_versions.json")) as defs:
     def_str = defs.read()
-    history = DBHistorySpec.model_validate_json(def_str)
+    _history = DBHistorySpec.model_validate_json(def_str)
+    srt_hst = sorted(_history.history,
+                     reverse=True,
+                     key= lambda v: (v.current_version.major, v.current_version.minor, v.current_version.patch))
+    history = DBHistorySpec(history=srt_hst)
