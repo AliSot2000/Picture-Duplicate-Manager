@@ -297,6 +297,7 @@ key_lookup_dir = {
     "QuickTime:DateTimeOriginal": func_wrapper("QuickTime:DateTimeOriginal", ":: ::Z")
 }
 
+# https://pypi.org/project/platformdirs/
 wrapper_collection = [
     func_wrapper("File:FileModifyDate", ":: ::z"),
     func_wrapper("File:FileAccessDate", ":: ::z"),
@@ -315,7 +316,7 @@ wrapper_collection = [
     func_wrapper("XMP:DateTimeOriginal", ":: :z"),
     func_wrapper("XMP:DateTimeDigitized", ":: :z"),
     func_wrapper("PNG:CreationTime", ":: ::z"),
-    func_wrapper("QuickTime:CreateDate", ":: ::z"),
+    func_wrapper("QuickTime:CreateDate",    ":: ::z"),
     func_wrapper("QuickTime:ModifyDate", ":: ::z"),
     func_wrapper("QuickTime:TrackCreateDate", ":: ::z"),
     func_wrapper("QuickTime:TrackModifyDate", ":: ::z"),
