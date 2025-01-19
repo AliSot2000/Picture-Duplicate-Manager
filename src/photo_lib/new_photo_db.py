@@ -54,6 +54,69 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
+    def build_definition_lookup(self):
+        """
+        Get all defined versions and build lookup of the versions.
+
+        Use a sorted list of the previous declarations of the versions and walk backwards until all declarations names
+        have an associated value.
+
+        Populates the attr(static_decls) and attr(generic_decls)
+        """
+        temp_static: Dict[str, StaticDeclaration | None] = {key: None
+                                                            for key in current_version.all_definitions}
+        temp_generic: Dict[str, GenericDeclaration | None] = {key: None
+                                                              for key in current_version.all_generic_definitions}
+
+        # Build the table lookups from the current version.
+        for key, value in current_version.definitions.items():
+            temp_static[key] = value
+
+        for key, value in current_version.generic_definitions.items():
+            temp_generic[key] = value
+
+        history_index = 0
+
+        # check all values have been populated.
+        while not all(list(temp_static.values()) + list(temp_generic.values())):
+            db_declaration = history.history[history_index]
+
+            empty_static = []
+            empty_generic = []
+
+            # Get the list of keys of empty keys in the temp variables
+            for key, value in temp_static.items():
+                if value is None:
+                    empty_static.append(key)
+
+            for key, value in temp_generic.items():
+                if value is None:
+                    empty_generic.append(key)
+
+            # Try to populate from the currently selected historical version
+            for key in empty_static:
+                temp_static[key] = db_declaration.definitions.get(key)
+
+            for key in empty_generic:
+                temp_generic[key] = db_declaration.generic_definitions.get(key)
+
+            # Update the Index after the current iteration.
+            history_index += 1
+
+        assert all(list(temp_static.values()) + list(temp_generic.values())), "All Declarations were filled."
+
+        # Check that all generic decls have a table containing the list of the generic tables
+        parent_tables = {key: False for key in current_version.all_generic_definitions}
+        for key, value in temp_static.items():
+            if value.name in parent_tables.keys():
+                parent_tables[value.name] = True
+
+        if not all(list(parent_tables.values())):
+            raise ImplementationError("Not all generic tables have a parent table. Error in Table Definitions.")
+
+        self.static_decls = temp_static
+        self.generic_decls = temp_generic
+
     # ==================================================================================================================
     # File Integrity checks
     # ==================================================================================================================
