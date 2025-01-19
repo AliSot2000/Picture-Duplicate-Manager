@@ -236,7 +236,7 @@ current_version = DBVersion(
             declaration_string="CREATE TABLE `%name%` ("
                                "key INTEGER PRIMARY KEY AUTOINCREMENT, "
                                "root_path TEXT NOT NULL, "
-                               "import_table_name TEXT UNIQUE NOT NULL, "
+                               "table_name TEXT UNIQUE NOT NULL, "
                                "import_table_description TEXT)"
         ),
 
