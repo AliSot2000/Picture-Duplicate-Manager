@@ -241,10 +241,17 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
+        # Last operation, clear lookup caches
+        self.filename_to_key.clear_cache()
+        self.resolve_key_to_path.clear_cache()
+
     def change_filename(self, key: int, new_filename: str):
         """
         Change the filename
         """
+        # Last operation, clear lookup caches
+        self.filename_to_key.clear_cache()
+        self.resolve_key_to_path.clear_cache()
 
     def build_import_table_lookup(self, target_table: str):
         """
