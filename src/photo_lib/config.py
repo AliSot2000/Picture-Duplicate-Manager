@@ -4,6 +4,7 @@ from typing import Union, List, Dict, Annotated, Optional
 from pydantic import BaseModel, Field, ConfigDict, AfterValidator
 
 from photo_lib.custom_enum import PathSuffix, DateTimeCategory
+from photo_lib.db_definitions import Version
 
 
 def validate_zone_str(arg: str) -> str:
@@ -214,6 +215,8 @@ class InternalDateTimeParser(DateTimeParser):
 # https://pypi.org/project/platformdirs/
 class Config(BaseModel):
     allowed_extensions: List[str]
+
+    version: Version
 
     exiftool: Union[str, None]
     db_version: Union[str, None]
