@@ -306,11 +306,13 @@ class PhotoDB(BaseSQliteDB):
     # File Integrity checks
     # ==================================================================================================================
 
-    def list_changed_hashes(self):
+    def list_changed_hashes(self, from_select: bool = False):
         """
         Create an import table full of files who's hash has changed.
 
         Goes through all images in the database and checks the hash of their counterpart.
+
+        :param from_select: Use selection marker of images to check changed hashes only for those images.
         """
 
     def update_hash_from_filename(self, fname: Dict[str, str]):
@@ -318,10 +320,12 @@ class PhotoDB(BaseSQliteDB):
         Updates the hash of the image file with the given file name.
         """
 
-    def list_changed_filenames(self):
+    def list_changed_filenames(self, from_select: bool = False):
         """
         Match hash and filesize of files against the db. If the two match and the filename is different, these files
         will be added to the new import table.
+
+        :param from_select: Use selection marker of images to check changed hashes only for those images.
         """
 
     def update_filenames(self, new_names: Dict[int, str]):
@@ -336,9 +340,14 @@ class PhotoDB(BaseSQliteDB):
         """
 
     def check_thumbnails(self):
+    def check_thumbnails(self, from_select: bool = False):
         """
         Go through db and check the mark for thumbnail and a thumbnail existing are correct.
+
+        :param from_select: Use selection marker of images to check changed hashes for those images.
         """
+        ...
+
     # ==================================================================================================================
     # Importing
     # ==================================================================================================================
