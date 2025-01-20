@@ -568,3 +568,14 @@ class PhotoDB(BaseSQliteDB):
         Resolve a filename to key
         """
         ...
+
+    # ==================================================================================================================
+    # Util
+    # ==================================================================================================================
+
+    @staticmethod
+    def dt_to_dir(dt: datetime.datetime) -> str:
+        """
+        Get path suffix for
+        """
+        return os.path.join(dt.strftime("%Y"), dt.strftime("%m"), dt.strftime("%d"))
