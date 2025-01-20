@@ -12,6 +12,7 @@ class MainFlags:
     org_google_metadata: bool
     sel_a: bool
     sel_b: bool
+    has_thumbnail: bool
 
     @classmethod
     def from_int(cls, group: int):
@@ -19,8 +20,9 @@ class MainFlags:
         _verify = bool(group & 0b10)
         _trashed = bool(group & 0b100)
         _org_google_metadata = bool(group & 0b1000)
-        _sel_a = bool(group & 0b10000)
-        _sel_b = bool(group & 0b100000)
+        _sel_a = bool(group & 0b1_0000)
+        _sel_b = bool(group & 0b10_0000)
+        _has_thumb = bool(group & 0b100_0000)
 
         return cls(
             present=_present,
@@ -29,6 +31,7 @@ class MainFlags:
             org_google_metadata=_org_google_metadata,
             sel_a=_sel_a,
             sel_b=_sel_b,
+            has_thumbnail=_has_thumb,
         )
 
     def to_int(self):
@@ -37,7 +40,8 @@ class MainFlags:
                 + int(self.trashed) << 2
                 + int(self.org_google_metadata) << 3
                 + int(self.sel_a) << 4
-                + int(self.sel_b) << 5)
+                + int(self.sel_b) << 5
+                + int(self.has_thumbnail) << 6)
 
 
 @dataclass
