@@ -17,6 +17,70 @@ from photo_lib.sqlite_wrapper import BaseSQliteDB
 class PhotoDB(BaseSQliteDB):
     def __init__(self, db_file: str, thumb_dir: str, trash_dir: str):
         super().__init__(db_file)
+    __verified: bool = False
+    config: Config
+
+    root_path: str
+
+    static_decls: Dict[str, StaticDeclaration]
+    generic_decls: Dict[str, GenericDeclaration]
+
+    # Redefining logger as mandatory
+    logger: logging.Logger
+
+    @property
+    def current_version(self):
+        return current_version.current_version
+
+    def __init__(self,
+                 root_path: str,
+                 logger: logging.Logger,
+                 init: bool = False,
+                 config: Config = None,):
+        """
+        Construct a Database Object from a preexisting database file.
+        """
+        self.logger = logger
+        self.build_definition_lookup()
+        self.root_path = os.path.abspath(root_path)
+        cfg_path = defaults.default_config_path(self.root_path)
+
+        # Prepping Config
+        if not init:
+            if not os.path.exists(os.path.abspath(cfg_path)):
+                raise FileNotFoundError("Config File Not Found")
+
+            # Set the config
+            with open(os.path.abspath(cfg_path), "r") as f:
+                self.config = Config.model_validate_json(f.read())
+
+            if self.config.version != self.current_version:
+                raise ValueError(f"Incompatible Version. "
+                                 f"Expected: {self.current_version.major}.{self.current_version.minor}."
+                                 f"{self.current_version.patch},"
+                                 f"Got: {self.config.version.major}.{self.config.version.minor}.{self.config.version.patch}")
+
+        else:
+            # Create default config if not provided
+            if config is None:
+                config = self.build_default_config(self.root_path)
+
+            with open(os.path.abspath(cfg_path), "w") as f:
+                f.write(config.model_dump_json())
+
+            self.config = config
+
+        assert hasattr(self, "config") and self.config is not None, "Config must be populated by now"
+
+        # PRECONDITION: Config defined
+        super().__init__(self.config.db_file)
+
+
+        if init:
+            self.init_db()
+        else:
+            self.verify_version()
+
 
     def compress(self):
         """
