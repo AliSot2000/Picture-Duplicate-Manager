@@ -377,7 +377,8 @@ class PhotoDB(BaseSQliteDB):
         :param tbl_name: Name of temporary table created for import. Defaults to hash(datetime.now())
         :param recursive: Recursively index all subdirectories.
 
-        :param append: Files were added in the import directory. Add the new files to the table
+        :param append: Files were added in the import directory. Add the new files to the table. Don't modify the data
+            in the import table for the files already indexed.
         :param purge: Clear the import table and perform indexing again, retaining the table name.
         """
 
