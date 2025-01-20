@@ -1,15 +1,17 @@
 import datetime
+import datetime
 import functools
 import logging
 import multiprocessing.connection as connection
 import os.path
 from typing import Set, Dict, List, Union
 
+import photo_lib.defaults as defaults
 from custom_enum import GroupingCriterion
-from photo_lib.sqlite_wrapper import BaseSQliteDB
-from photo_lib.db_definitions import current_version, history, StaticDeclaration, GenericDeclaration
 from photo_lib.config import Config
+from photo_lib.db_definitions import current_version, history, StaticDeclaration, GenericDeclaration
 from photo_lib.errors_and_warnings import ImplementationError
+from photo_lib.sqlite_wrapper import BaseSQliteDB
 
 
 class PhotoDB(BaseSQliteDB):
