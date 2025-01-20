@@ -393,7 +393,7 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
-    def perform_import(self, tbl: str, dest_dir: str = None) -> int:
+    def perform_import(self, tbl: str, dest_dir: str = None, add_safety_exif_tags: bool = None) -> int:
         """
         Imports all files from the given import table into the main database.
         - Files which are imported already will be ignored and
@@ -401,7 +401,8 @@ class PhotoDB(BaseSQliteDB):
 
         :param tbl: Name of the table to import from
         :param dest_dir: Destination directory to create in within the database. Defaults to db/yyyy/mm/dd/
-
+        :param add_safety_exif_tags: Add the datetime to exiftag if only filesystem datetime is available.
+            (Override, default taken from config)
 
         :return: Number of imported files
         """
