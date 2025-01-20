@@ -334,10 +334,14 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
-    def list_missing_files(self):
+    def check_presence(self, from_select: bool = False):
         """
-        Go through db and
+        Go through db and check that all files in the db are present in the file system.
+
+        :param from_select: Use selection marker of images to check changed hashes for those images.
         """
+        ...
+
 
     def check_thumbnails(self):
     def check_thumbnails(self, from_select: bool = False):
