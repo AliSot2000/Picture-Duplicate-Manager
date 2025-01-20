@@ -465,10 +465,19 @@ class PhotoDB(BaseSQliteDB):
     # UI
     # ==================================================================================================================
 
-    def change_datetime(self, key: int, new_dt: datetime.datetime):
+    def change_datetime(self,
+                        key: int,
+                        new_dt: datetime.datetime = None,
+                        tag: datetime.datetime = None,
+                        rename: bool = True):
         """
         Change the datetime associated with the given image. Each image should have a filename string and a given
-        datetime
+        datetime. The file name will also be adapted.
+
+        :param key: key of image to update
+        :param new_dt: new datetime object. (should have an utc offset)
+        :param tag: tag of image to use for update.
+        :param rename: Rename image if True.
         """
         ...
 
