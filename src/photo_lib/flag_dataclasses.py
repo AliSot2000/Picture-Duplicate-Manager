@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 
+# TODO Darktable?
 @dataclass
 class MainFlags:
     """
