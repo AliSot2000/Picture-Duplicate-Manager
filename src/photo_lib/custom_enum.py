@@ -60,11 +60,6 @@ class GroupingCriterion(Enum):
     YEAR_MONTH = 2
     YEAR_MONTH_DAY = 3
 
-class PathSuffix(Enum):
-    NONE = 0
-    ORG_NAME = 1
-    KEY = 2
-
 class DateTimeCategory(str, Enum):
     NONE = "none"
     AWARE = "aware"
