@@ -408,6 +408,11 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
+    def import_other_db(self):
+        """
+        Functionality needed because some images are only on older dbs including their metadata.
+        """
+
     # ==================================================================================================================
     # Deduplication
     # ==================================================================================================================
