@@ -42,17 +42,78 @@ class PhotoDB(BaseSQliteDB):
         # Check the tables
         ...
 
-    def _verify_tables(self):
+        if cfg.trash is None:
+            cfg.trash = os.path.join(self.root_path, ".trash")
+
+        if cfg.allowed_extensions is None:
+            cfg.allowed_extensions = default_config.allowed_extensions
+
+        itc = InternalConfig.model_validate(cfg.model_dump())
+
+        self.__internal_config = itc
+
+    def _export_internal_config(self):
+        """
+        Create the config object to be stored from the internal config
+        """
+        cfg = Config.model_validate(self.internal_config.model_dump())
+
+        # Unset the defaults
+        if cfg.allowed_extensions == default_config.allowed_extensions:
+            cfg.allowed_extensions = None
+
+        if cfg.temp_path == os.path.join(self.root_path, ".temp"):
+            cfg.temp_path = None
+
+        if cfg.thumbnail == os.path.join(self.root_path, ".thumbnails"):
+            cfg.thumbnail = None
+
+        if cfg.trash == os.path.join(self.root_path, ".trash"):
+            cfg.trash = None
+
+        return cfg
+
+    def _verify_tables(self) -> bool:
         """
         Go through all tables and check their definitions
-        """
-        ...
 
-    def update_database_vxxx_vyyy(self):
+        INFO: Function will remove orphaned rows in the generic lookups table.
+
+        :return: True if all tables were verified and have the correct definitions
         """
-        Placeholder for updating database from one version to another.
-        """
-        ...
+        for name, decl in self.static_decls.items():
+            self.debug_execute("SELECT sql FROM sqlite_master WHERE name = ?", (decl.name,))
+            result = self.sq_cur.fetchone()
+
+            # No result found, return, do not update verified.
+            if result is None:
+                return False
+
+            if not result[0] == decl.declaration_string.replace(decl.name_placeholder, decl.name):
+                return False
+
+        # INFO Poor convention: the key of the generic decls is also the name of a table which contains a list of all
+        #  tables which follow the generic definition. The table who's name is the key, must have a column
+        #  table_name and key
+        for name, decl in self.generic_decls.items():
+            self.debug_execute(f"SELECT key, table_name FROM `{name}`")
+            results = self.sq_cur.fetchall()
+
+            for key, table in results:
+                self.debug_execute(f"SELECT sql FROM sqlite_master WHERE name = ?", (table,))
+                result = self.sq_cur.fetchone()
+
+                if result is None:
+                    self.logger.warning(f"Found orphaned entry: {table} in the parent table: {name}. "
+                                        f"Deleting orphaned entry")
+
+                    self.debug_execute(f"DELETE FROM `{name}` WHERE key = ?", (key,))
+
+                if not result[0] == decl.declaration_string.replace(decl.name_placeholder, table):
+                    return False
+
+        self.__verified = True
+        return True
 
     def build_definition_lookup(self):
         """
