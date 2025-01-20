@@ -218,13 +218,12 @@ class Config(BaseModel):
 
     version: Version
 
-    exiftool: Union[str, None]
-    db_version: Union[str, None]
+    exiftool: Union[str, None] = None
 
     db_file: str
-    trash: Union[str, None]
-    thumbnail: Union[str, None]
-    temp_path: Union[str, None]
+    trash: str
+    thumbnail: str
+    temp_path: str
 
     path_suffix: PathSuffix = PathSuffix.NONE
 
@@ -232,3 +231,8 @@ class Config(BaseModel):
 
     datetime_fmt: Union[DateTimeParser, None] = None
     fallback_tz: Union[str, None] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
