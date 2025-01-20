@@ -15,8 +15,6 @@ from photo_lib.sqlite_wrapper import BaseSQliteDB
 
 
 class PhotoDB(BaseSQliteDB):
-    def __init__(self, db_file: str, thumb_dir: str, trash_dir: str):
-        super().__init__(db_file)
     __verified: bool = False
     config: Config
 
@@ -81,6 +79,88 @@ class PhotoDB(BaseSQliteDB):
         else:
             self.verify_version()
 
+    # ==================================================================================================================
+    # Table Creation & Deletion & Modify Functions
+    # ==================================================================================================================
+
+    def init_db(self):
+        """
+        Create all tables from
+        """
+        self.logger.info("Initializing Database")
+
+        for short_name, decl in self.static_decls.items():
+            self.logger.info(f"Creating {short_name}")
+
+            self.debug_execute(decl.declaration_string.replace(decl.name_placeholder, decl.name))
+
+        self.logger.info("Initialization Complete")
+
+    @staticmethod
+    def build_default_config(root_path: str) -> Config:
+        """
+        Create a new config with only defaults.
+        """
+        return Config(
+            version=current_version.current_version,
+            image_extensions=defaults.default_image_extensions,
+            video_extensions=defaults.default_video_extensions,
+            allowed_extensions=defaults.default_extensions,
+            temp_path=defaults.default_temp_path(root_path),
+            thumbnail=defaults.default_thumbnails_path(root_path),
+            trash=defaults.default_trash_path(root_path),
+            db_file=defaults.default_db_file,
+        )
+
+    def add_import_table(self, root_path: str, name: str = None, description: str = None):
+        """
+        Add a new import table to the database.
+
+        :param root_path: dir_root from which to import
+        :param name: The name of the table. Override, defaults to dirname(root_path) + hash(current_datetime)
+        :param description: The description of the table. Override, defaults to None
+
+        :raises sqlite.IntegrityError: if that import table already exists.
+        """
+        # Default Name
+        if name is None:
+            tbl_name = (os.path.dirname(os.path.abspath(root_path))
+                        + str(hash(datetime.datetime.now(datetime.timezone.utc))))
+        else:
+            tbl_name = name
+
+        # Check name Length
+        if len(tbl_name) > 120:
+            tbl_name = tbl_name[:120]
+            self.logger.warning(f"Table Name longer than 120 characters. Truncating to: {tbl_name}")
+
+        # Add the table to the generic lookup table
+        self.debug_execute("INSERT INTO import_tables (root_path, table_name, table_description) VALUES (?, ?, ?)",
+                           (root_path, tbl_name, description))
+
+        # Actually creating table
+        decl = self.generic_decls["import_table"]
+        self.debug_execute(decl.declaration_string.replace(decl.name_placeholder, tbl_name))
+        self.commit()
+
+    def remove_import_table(self, name: str = None) -> Tuple[bool, bool]:
+        """
+        Remove a specific import table from the database.
+
+        :returns: True -> Successfully deleted table, successfully removed entry from generic lookup table
+        """
+        # Check if the table existed.
+        self.debug_execute("SELECT sql FROM sqlite_master WHERE name IS ?", (name,))
+        del_table = self.sq_cur.fetchone() is not None
+
+        # Drop the table with "if exists" just to be sure
+        self.debug_execute(f"DROP TABLE IF EXISTS `{name}`")
+
+        self.debug_execute("SELECT key FROM import_tables WHERE table_name IS ?", (name,))
+        del_row = self.sq_cur.fetchone() is not None
+
+        self.debug_execute("DELETE FROM import_tables WHERE table_name IS ?", (name,))
+        return del_table, del_row
 
     def compress(self):
         """
