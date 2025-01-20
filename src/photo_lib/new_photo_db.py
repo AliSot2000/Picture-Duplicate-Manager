@@ -38,40 +38,18 @@ class PhotoDB(BaseSQliteDB):
         Check the version of the photo database. Raise Error, if it doesn't match and allow for conversion.
         """
         # Check the config
+        self._check_config()
 
         # Check the tables
-        ...
+        self._verify_tables()
 
-        if cfg.trash is None:
-            cfg.trash = os.path.join(self.root_path, ".trash")
-
-        if cfg.allowed_extensions is None:
-            cfg.allowed_extensions = default_config.allowed_extensions
-
-        itc = InternalConfig.model_validate(cfg.model_dump())
-
-        self.__internal_config = itc
-
-    def _export_internal_config(self):
+    def _check_config(self):
         """
-        Create the config object to be stored from the internal config
+        Check the config is valid and contains everything needed. Future proofing. Not needed at the moment.
         """
-        cfg = Config.model_validate(self.internal_config.model_dump())
-
-        # Unset the defaults
-        if cfg.allowed_extensions == default_config.allowed_extensions:
-            cfg.allowed_extensions = None
-
-        if cfg.temp_path == os.path.join(self.root_path, ".temp"):
-            cfg.temp_path = None
-
-        if cfg.thumbnail == os.path.join(self.root_path, ".thumbnails"):
-            cfg.thumbnail = None
-
-        if cfg.trash == os.path.join(self.root_path, ".trash"):
-            cfg.trash = None
-
-        return cfg
+        # INFO: This function is a placeholder needed in case bigger changes to the config come and need to be
+        #  accounted for. Cases like the config is updated and the db is not, or the other way around, ...
+        pass
 
     def _verify_tables(self) -> bool:
         """

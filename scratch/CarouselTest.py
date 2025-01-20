@@ -310,12 +310,12 @@ class RecyclingCarousel(QFrame):
 
         for i in range(0, self.center_widget):
             k = self.center_widget - i - 1
-            x_l = center - w / 2 - self.spacing * k - w * (k + 1) - w * self.center_spacing
+            x_l = int(center - w / 2 - self.spacing * k - w * (k + 1) - w * self.center_spacing)
             self.widgets[i].move(QPoint(x_l, 0))
 
         for i in range(self.center_widget + 1, len(self.widgets)):
             k = i - self.center_widget - 1
-            x_r = center + w / 2 + self.spacing * k + w * k + w * self.center_spacing
+            x_r = int(center + w / 2 + self.spacing * k + w * k + w * self.center_spacing)
             self.widgets[i].move(QPoint(x_r, 0))
 
     def update_widget_count(self):
