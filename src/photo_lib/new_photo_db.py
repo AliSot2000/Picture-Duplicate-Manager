@@ -342,8 +342,14 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
+    def update_trash_from_presence(self, from_select: bool = False):
+        """
+        Update the files which have aren't present to have been moved to the trash.
 
-    def check_thumbnails(self):
+        :param from_select: Use the selection marker to only affect those files.
+        """
+        ...
+
     def check_thumbnails(self, from_select: bool = False):
         """
         Go through db and check the mark for thumbnail and a thumbnail existing are correct.
