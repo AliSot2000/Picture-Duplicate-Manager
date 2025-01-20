@@ -128,7 +128,7 @@ current_version = DBVersion(
             name="db_dir",
             declaration_string="CREATE TABLE `%name%` ("
                        "key INTEGER PRIMARY KEY AUTOINCREMENT, "
-                       "db_dir TEXT NOT NULL)"
+                       "db_local_dir TEXT NOT NULL)"
         ),
         "db_dir_key_index": StaticDeclaration(
             name="db_dir_key_index",
