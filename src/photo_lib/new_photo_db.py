@@ -487,7 +487,10 @@ class PhotoDB(BaseSQliteDB):
 
     def change_filename(self, key: int, new_filename: str):
         """
-        Change the filename
+        Change the filename. Set a custom filename.
+
+        :param key: Key in main database to update with the new filename
+        :param new_filename: The new file name to use. Sets the db_name column.
         """
         # Last operation, clear lookup caches
         self.filename_to_key.clear_cache()
