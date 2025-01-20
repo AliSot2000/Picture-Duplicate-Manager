@@ -215,6 +215,8 @@ class InternalDateTimeParser(DateTimeParser):
 # https://pypi.org/project/platformdirs/
 class Config(BaseModel):
     allowed_extensions: List[str]
+    image_extensions: List[str]
+    video_extensions: List[str]
 
     version: Version
 
