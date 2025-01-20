@@ -6,13 +6,13 @@ class MainFlags:
     """
     Dataclass for flags in the main table
     """
-    present: bool
-    verify: bool
-    trashed: bool
-    org_google_metadata: bool
-    sel_a: bool
-    sel_b: bool
-    has_thumbnail: bool
+    present: bool               # 1
+    verify: bool                # 2
+    trashed: bool               # 4
+    org_google_metadata: bool   # 8
+    sel_a: bool                 # 16
+    sel_b: bool                 # 32
+    has_thumbnail: bool         # 64
 
     @classmethod
     def from_int(cls, group: int):
