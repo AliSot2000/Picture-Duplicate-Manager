@@ -41,7 +41,7 @@ class PhotoDB(BaseSQliteDB):
         self.logger = logger
         self.build_definition_lookup()
         self.root_path = os.path.abspath(root_path)
-        cfg_path = defaults.default_config_path(self.root_path)
+        cfg_path = defaults.config_path(self.root_path)
 
         # Prepping Config
         if not init:
@@ -103,13 +103,14 @@ class PhotoDB(BaseSQliteDB):
         """
         return Config(
             version=current_version.current_version,
-            image_extensions=defaults.default_image_extensions,
-            video_extensions=defaults.default_video_extensions,
-            allowed_extensions=defaults.default_extensions,
-            temp_path=defaults.default_temp_path(root_path),
-            thumbnail=defaults.default_thumbnails_path(root_path),
-            trash=defaults.default_trash_path(root_path),
-            db_file=defaults.default_db_file,
+            image_extensions=defaults.image_extensions,
+            video_extensions=defaults.video_extensions,
+            allowed_extensions=defaults.extensions,
+            temp_path=defaults.temp_path(root_path),
+            thumbnail=defaults.thumbnails_path(root_path),
+            trash=defaults.trash_path(root_path),
+            db_file=defaults.db_file,
+
         )
 
     def add_import_table(self, root_path: str, name: str = None, description: str = None):
