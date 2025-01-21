@@ -536,16 +536,124 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
-    def _create_img_thumbnails(self):
+
+                # Mark the file as not present in the database.
+                flags.present = False
+                self.debug_execute("UPDATE main SET flags = ? WHERE key = ?",
+                                   (flags.to_int(), key),
+                                   "update_thumbnails")
+
+                missing += 1
+                continue
+
+        # TODO Call create_img_thuimb video_thumb
+
+    def _create_img_thumbnails(self, in_path: str, out_path: str, major_size: int) -> bool:
         """
         Create thumbnails for images in the database.
-        """
-        ...
 
-    def _create_vid_thumbnails(self):
+        PRECONDITION: in_path exists
+        PRECONDITION: in_path extension is correct.
+
+        :param in_path: Path to the input file
+        :param out_path: Path to the output file
+        """
+        assert os.path.exists(in_path), "Input Path doesnt' exist"
+
+        try:
+            # load image from disk, 1 means cv::IMREAD_COLOR
+            img = cv2.imread(in_path, cv2.IMREAD_COLOR)
+
+            # determine which axis is larger
+            max_pix = max(img.shape[0], img.shape[1])
+
+            # calculate new size
+            if max_pix == img.shape[0]:
+                py = major_size
+                px = max(1, int(major_size / max_pix * img.shape[1]))
+            else:
+                px = major_size
+                py = max(1, int(major_size / max_pix * img.shape[0]))
+
+            img_reduced = cv2.resize(img, (py, px), interpolation=cv2.INTER_AREA)
+
+            cv2.imwrite(out_path, img_reduced)
+
+            return True
+
+        except cv2.error as e:
+            self.logger.exception(f"OpenCV encounteered an error while generating the thumbnail for {in_path}",
+                                  exc_info=e)
+        except Exception as e:
+            self.logger.exception(f"Unexpected Exception: {e}", exc_info=e)
+
+        return False
+
+    def _create_vid_thumbnails(self, in_path: str, out_path: str, target_time: int = 5):
         """
         Create thumbnails for the videos in the database.
+
+        PRECONDITION: in_path exists
+        PRECONDITION: in_path extension is correct.
+
+        :param in_path: Path to the input file
+        :param out_path: Path to the output file
+        :param target_time: Target time when to take the thumbnail
+
+        :returns: True -> if image was created successfully.
         """
+        assert os.path.exists(in_path), "Input Path doesn't exist"
+        width = None
+
+        # Probe the file
+        try:
+            probe_res = ffmpeg.probe(in_path)
+        except ffmpeg.Error as e:
+            self.logger.exception(f"Error Probing File with FFMPEG: {in_path}, "
+                                  f"stderr: {e.stderr.decode('utf-8')}, "
+                                  f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
+            return False
+
+        # Get target time for the image.
+        try:
+            if probe_res["streams"][0]["duration"] < target_time:
+                self.logger.warning("Video to short for default time point where to take thumbnail")
+                target_time = probe_res["streams"][0]["duration"] // 2
+
+            # Try to get the width of the stream
+            for stream in probe_res["streams"]:
+                width = stream.get("width")
+
+                if width is not None:
+                    break
+
+        except KeyError:
+            self.logger.error(f"Failed to get time data from probe result of ffmpeg: {in_path}")
+        except IndexError:
+            self.logger.error("Failed to get time data from probe result of ffmpeg")
+        except Exception as e:
+            self.logger.exception(f"Unexpected error {type(e).__name__}", exc_info=e)
+
+        if width is None:
+            self.logger.info(f"Failed to retrieve width of the input file: {in_path}, aborting")
+            return False
+
+        try:
+            (
+                ffmpeg
+                .input(in_path, ss=target_time)
+                .filter('scale', width, -1)
+                .output(out_path, vframes=1)
+                .overwrite_output()
+                .run(capture_stdout=True, capture_stderr=True)
+            )
+        except ffmpeg.Error as e:
+            self.logger.exception(f"Error Exporting Thumbnail from video: {in_path}, "
+                                  f"stderr: {e.stderr.decode('utf-8')}, "
+                                  f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
+            return False
+
+        return True
 
     def move_to_replaced(self, child_key: int, parent_key: int):
         """
