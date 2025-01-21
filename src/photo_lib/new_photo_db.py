@@ -5,6 +5,9 @@ import multiprocessing.connection as connection
 import os.path
 from typing import Set, Dict, List, Union, Tuple
 
+import cv2
+import ffmpeg
+
 import photo_lib.defaults as defaults
 from custom_enum import GroupingCriterion
 from photo_lib.config import Config
