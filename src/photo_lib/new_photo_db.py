@@ -533,11 +533,38 @@ class PhotoDB(BaseSQliteDB):
     # Utility
     # ==================================================================================================================
 
-    def create_thumbnails(self):
+    def create_display_files(self, miniature: bool = True, thumbnail: bool = True, overwrite: bool = False):
         """
         Create thumbnails for all elements in the database.
+
+        :param miniature: If true, create miniature images
+        :param thumbnail: If true, create thumbnails images
         """
-        ...
+        self.add_extra_cursor("update_thumbnails")
+
+        # TODO check not trash and present.
+        self.debug_execute("SELECT m.key, m.datetime, m.db_name, d.db_local_dir, m.flags "
+                           "FROM main AS m JOIN db_dir AS d ON main.db_dir = db_dir.key")
+
+        missing = 0
+        created = 0
+        row = self.sq_cur.fetchone()
+        for row in self.sq_cur:
+            key, _dt, dbn, _db_dir, _flags = row
+
+            flags = MainFlags.from_int(_flags)
+            dt = datetime.datetime.fromisoformat(_dt)
+            par_dir = os.path.join(self.db_path, _db_dir) if _db_dir else os.path.join(self.root_path,
+                                                                                       self.dt_to_dir(dt))
+
+            # skip missing images or images in trash
+            if not flags.present or flags.trashed:
+                continue
+
+            # Update the database if file doesn't exist
+            if not os.path.exists(os.path.join(par_dir, dbn)):
+
+                self.logger.warning(f"File from DB is missing: {dbn}, in {par_dir}")
 
 
                 # Mark the file as not present in the database.
