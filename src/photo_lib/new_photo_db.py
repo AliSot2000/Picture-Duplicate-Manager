@@ -533,7 +533,8 @@ class PhotoDB(BaseSQliteDB):
     # Utility
     # ==================================================================================================================
 
-    def create_display_files(self, miniature: bool = True, thumbnail: bool = True, overwrite: bool = False):
+    def create_display_files(self, miniature: bool = True, thumbnail: bool = True, overwrite: bool = False) \
+            -> Tuple[int, int]:
         """
         Create thumbnails for all elements in the database.
 
