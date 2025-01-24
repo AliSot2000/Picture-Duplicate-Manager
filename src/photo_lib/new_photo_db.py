@@ -566,18 +566,11 @@ class PhotoDB(BaseSQliteDB):
                 assert False, "Error in SQL Statement, should not find trash or not present files."
                 continue
 
-            # Update the database if file doesn't exist
+            # keeping track of missing files
             if not os.path.exists(os.path.join(par_dir, dbn)):
 
+                # INFO we're not updating the presence in the db because it doens't fit the scope of this function.
                 self.logger.warning(f"File from DB is missing: {dbn}, in {par_dir}")
-
-
-                # Mark the file as not present in the database.
-                flags.present = False
-                self.debug_execute("UPDATE main SET flags = ? WHERE key = ?",
-                                   (flags.to_int(), key),
-                                   "update_thumbnails")
-
                 missing += 1
                 continue
 
