@@ -560,6 +560,7 @@ class PhotoDB(BaseSQliteDB):
 
             # skip missing images or images in trash
             if not flags.present or flags.trashed:
+                assert False, "Error in SQL Statement, should not find trash or not present files."
                 continue
 
             # Update the database if file doesn't exist
