@@ -10,7 +10,7 @@ class TestTemp(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.l = QGridLayout()
-        self.use_frame = True
+        self.use_frame = kwargs.get('use_frame', True)
         self.dummy_widget = QWidget()
         self.setCentralWidget(self.dummy_widget)
         self.dummy_widget.setLayout(self.l)
