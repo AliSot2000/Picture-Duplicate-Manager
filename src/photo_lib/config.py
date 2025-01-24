@@ -3,7 +3,7 @@ from typing import Union, List, Dict, Annotated, Optional
 
 from pydantic import BaseModel, Field, ConfigDict, AfterValidator
 
-from photo_lib.custom_enum import PathSuffix, DateTimeCategory
+from photo_lib.custom_enum import DateTimeCategory
 from photo_lib.db_definitions import Version
 
 
