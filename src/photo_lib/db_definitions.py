@@ -272,8 +272,8 @@ current_version = DBVersion(
     },
     generic_definitions={
         "import_table": GenericDeclaration(
-            declaration_string="CREATE TABLE `%name%` ("
-                               "key INTEGER PRIMARY KEY AUTOINCREMENT,"
+            declaration_string=f"CREATE TABLE `%name%` ("
+                               f"key INTEGER PRIMARY KEY AUTOINCREMENT,"
                                f"original_filename TEXT NOT NULL,"
                                f"original_dirname TEXT NOT NULL,"
                                f"metadata TEXT,"
