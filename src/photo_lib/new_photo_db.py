@@ -744,3 +744,17 @@ class PhotoDB(BaseSQliteDB):
         Get path suffix for
         """
         return os.path.join(dt.strftime("%Y"), dt.strftime("%m"), dt.strftime("%d"))
+
+    @staticmethod
+    def thumbnail_name(key: int) -> str:
+        """
+        Given a key, get the thumbnail name
+        """
+        return f"thumb_{key:10000}.jpeg"
+
+    @staticmethod
+    def miniature_name(key: int) -> str:
+        """
+        Given a key, get the miniature name
+        """
+        return f"miniature_{key:10000}.jpeg"
