@@ -214,10 +214,10 @@ current_version = DBVersion(
                                "google_metadata TEXT, "
                                "datetime TEXT NOT NULL, "
                                "former_name TEXT NOT NULL, "
-                               "successor INTEGER NOT NULL, "
+                               "parent INTEGER NOT NULL, "
                                "timezone TEXT, " # is dependent on system defaults so retained here.
                                "flags INTEGER NOT NULL,"
-                               "FOREIGN KEY (successor) REFERENCES main(key))"
+                               "FOREIGN KEY (parent) REFERENCES main(key))"
             # We're dropping:
             # - original_dirname (contained in metadata if available)
             # - naming_tag (can be recomputed from metadata)
