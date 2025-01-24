@@ -550,7 +550,6 @@ class PhotoDB(BaseSQliteDB):
 
         missing = 0
         created = 0
-        row = self.sq_cur.fetchone()
         for row in self.sq_cur:
             key, _dt, dbn, _db_dir, _flags = row
 
