@@ -612,7 +612,7 @@ class PhotoDB(BaseSQliteDB):
             return True
 
         except cv2.error as e:
-            self.logger.exception(f"OpenCV encounteered an error while generating the thumbnail for {in_path}",
+            self.logger.exception(f"OpenCV encountered an error while generating the thumbnail for {in_path}",
                                   exc_info=e)
         except Exception as e:
             self.logger.exception(f"Unexpected Exception: {e}", exc_info=e)
