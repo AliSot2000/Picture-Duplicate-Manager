@@ -644,6 +644,10 @@ class PhotoDB(BaseSQliteDB):
                                   f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
             return False
 
+        except Exception as e:
+            self.logger.exception(f"Unexpected Exception while Probing File: {in_path}", exc_info=e)
+            return False
+
         # Get target time for the image.
         try:
             if probe_res["streams"][0]["duration"] < target_time:
@@ -681,6 +685,9 @@ class PhotoDB(BaseSQliteDB):
             self.logger.exception(f"Error Exporting Thumbnail from video: {in_path}, "
                                   f"stderr: {e.stderr.decode('utf-8')}, "
                                   f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
+            return False
+        except Exception as e:
+            self.logger.exception(f"Unexpected Exception while writing thumbnail: {type(e).__name__}", exc_info=e)
             return False
 
         return True
