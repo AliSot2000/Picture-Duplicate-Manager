@@ -540,6 +540,9 @@ class PhotoDB(BaseSQliteDB):
 
         :param miniature: If true, create miniature images
         :param thumbnail: If true, create thumbnails images
+        :param overwrite: If true, overwrite existing files.
+
+        returns: <number of new files created> and <number of undetected missing files>
         """
         self.add_extra_cursor("update_thumbnails")
 
