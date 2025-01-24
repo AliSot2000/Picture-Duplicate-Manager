@@ -227,7 +227,9 @@ class Config(BaseModel):
     thumbnail: str
     temp_path: str
 
-    path_suffix: PathSuffix = PathSuffix.NONE
+    org_filename_append: bool = False
+    thumbnail_target: int
+    miniature_target: int
 
     add_safety_exif_tags: bool = True
 
