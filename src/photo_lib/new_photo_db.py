@@ -637,7 +637,10 @@ class PhotoDB(BaseSQliteDB):
                 return False
 
             # No need for larger logging info, handled within the internal functions
-            return self._create_img_thumbnails(in_path=self.temp_video_path(), out_path=out_path, major_size=major_size)
+            suc = self._create_img_thumbnails(in_path=self.temp_video_path(), out_path=out_path, major_size=major_size)
+            assert os.path.exists(self.temp_video_path()), "Video file missing despite successfully creating it?"
+            os.remove(self.temp_video_path())
+            return suc
 
         # Handle Images
         elif os.path.splitext(in_path)[1] in self.config.image_extensions:
@@ -652,7 +655,13 @@ class PhotoDB(BaseSQliteDB):
             new_in_path = self.temp_video_path() if extract_success else in_path
 
             # No need for larger logging info, handled within the internal functions
-            return self._create_img_thumbnails(in_path=new_in_path, out_path=out_path, major_size=major_size)
+            suc = self._create_img_thumbnails(in_path=new_in_path, out_path=out_path, major_size=major_size)
+
+            if extract_success:
+                assert os.path.exists(self.temp_video_path()), "Video file missing despite successfully creating it?"
+                os.remove(self.temp_video_path())
+
+            return suc
 
     def _create_img_thumbnails(self, in_path: str, out_path: str, major_size: int) -> bool:
         """
