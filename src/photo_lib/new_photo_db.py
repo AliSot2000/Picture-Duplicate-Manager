@@ -576,7 +576,85 @@ class PhotoDB(BaseSQliteDB):
                 missing += 1
                 continue
 
-        # TODO Call create_img_thuimb video_thumb
+            # Thumbnail: write if not exists or exists + overwrite
+            if thumbnail:
+                if (not os.path.exists(os.path.join(self.config.thumbnail, self.thumbnail_name(key)))
+                        or (os.path.exists(os.path.join(self.config.thumbnail, self.thumbnail_name(key)))
+                            and overwrite)):
+
+                    flags.has_thumbnail = self._create_display_file(
+                        in_path=os.path.join(par_dir, dbn),
+                        out_path=os.path.join(self.config.thumbnail, self.thumbnail_name(key)),
+                        major_size=self.config.thumbnail_target)
+                    created += 1
+
+                else:
+                    self.logger.debug(f"Thumbnail already exists for key: {key}")
+                    flags.has_thumbnail = True
+
+            # Miniature: write if not exists or exists + overwrite
+            if miniature:
+                if (not os.path.exists(os.path.join(self.config.thumbnail, self.miniature_name(key)))
+                        or (os.path.exists(os.path.join(self.config.thumbnail, self.miniature_name(key)))
+                            and overwrite)):
+
+                    flags.has_miniature = self._create_display_file(
+                        in_path=os.path.join(par_dir, dbn),
+                        out_path=os.path.join(self.config.thumbnail, self.miniature_name(key)),
+                        major_size=self.config.thumbnail_target)
+                    created += 1
+
+                else:
+                    self.logger.debug(f"Miniature already exists for key: {key}")
+                    flags.has_miniature = True
+
+            # Update the flags of the given key.
+            self.debug_execute(stmt="UPDATE main SET flags = ? WHERE key = ?",
+                               args=(flags.to_int(), key),
+                               cur="update_thumbnails")
+
+        self.remove_extra_cursor("update_thumbnails")
+        self.logger.info(f"Created: {created} Display Files, found {missing} newely missing")
+        return created, missing
+
+    def _create_display_file(self, in_path: str, out_path: str, major_size: int) -> bool:
+        """
+        Create the display file for a given file.
+
+        INFO: File Extensions are treated as final. We do not attempt to cors-parse. We do attempt to generate
+            thumbnails for unknown files tho
+
+        :param in_path: Path to input file
+        :param out_path: Path to output file
+        :major_size: size in px of the larger side of the image.
+
+        :return True if file was successfully created
+        """
+        # Handle Videos
+        if os.path.splitext(in_path)[1] in self.config.video_extensions:
+            extract_success = self._create_vid_thumbnails(in_path=in_path, out_path=self.temp_video_path())
+
+            # No need for larger logging info, handled within the internal functions
+            if not extract_success:
+                return False
+
+            # No need for larger logging info, handled within the internal functions
+            return self._create_img_thumbnails(in_path=self.temp_video_path(), out_path=out_path, major_size=major_size)
+
+        # Handle Images
+        elif os.path.splitext(in_path)[1] in self.config.image_extensions:
+            return self._create_img_thumbnails(in_path=in_path, out_path=out_path, major_size=major_size)
+
+        # Haily Marry Handler
+        else:
+            self.logger.warning(f"Unknown extension: {in_path}. Attempting to to create display file anyway")
+
+            extract_success = self._create_vid_thumbnails(in_path=in_path, out_path=self.temp_video_path())
+
+            new_in_path = self.temp_video_path() if extract_success else in_path
+
+            # No need for larger logging info, handled within the internal functions
+            return self._create_img_thumbnails(in_path=new_in_path, out_path=out_path, major_size=major_size)
 
     def _create_img_thumbnails(self, in_path: str, out_path: str, major_size: int) -> bool:
         """
