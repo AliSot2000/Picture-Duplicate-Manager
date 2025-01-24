@@ -834,3 +834,9 @@ class PhotoDB(BaseSQliteDB):
         Given a key, get the miniature name
         """
         return f"miniature_{key:10000}.jpeg"
+
+    def temp_video_path(self) -> str:
+        """
+        For a video, give a temporary path, where the thumbnail for the video is extracted to.
+        """
+        return os.path.join(self.config.thumbnail, "video_temp.jeg")
