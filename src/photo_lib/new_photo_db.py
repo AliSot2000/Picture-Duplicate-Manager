@@ -441,6 +441,18 @@ class PhotoDB(BaseSQliteDB):
         ...
 
     def add_known_duplicate(self, key_a: int, key_b: int):
+    def add_default_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
+        """
+        Moves a pair of duplicates into the known_duplicates table.
+        """
+        self._internal_add_duplicate(key_a=key_a, key_b=key_b, known=False)
+
+    def remove_default_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
+        """
+        Removes a pair of duplicates from the known_duplicates table.
+        """
+        self._internal_remove_duplicate(key_a=key_a, key_b=key_b, known=False)
+
         """
         Moves a pair of duplicates into the known_duplicates table.
         """
