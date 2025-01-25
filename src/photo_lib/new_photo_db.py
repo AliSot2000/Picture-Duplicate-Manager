@@ -683,7 +683,7 @@ class PhotoDB(BaseSQliteDB):
                                cur="update_thumbnails")
 
         self.remove_extra_cursor("update_thumbnails")
-        self.logger.info(f"Created: {created} Display Files, found {missing} newely missing")
+        self.logger.info(f"Created: {created} Display Files, found {missing} newly missing")
         return created, missing
 
     def _create_display_file(self, in_path: str, out_path: str, major_size: int) -> bool:
