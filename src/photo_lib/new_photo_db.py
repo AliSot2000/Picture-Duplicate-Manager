@@ -851,8 +851,105 @@ class PhotoDB(BaseSQliteDB):
     def move_to_replaced(self, child_key: int, parent_key: int):
         """
         Move a duplicate into the replaced table.
+
+        - Ensure no duplicate chaining
+        - Original, Thumbnail, Miniature Deleted, can be taken from parent
+        - Attributes are transferred into the replaced table.
+        - Need to remove mentions in duplicates and known_duplicates table.
         """
-        ...
+        self.debug_execute("SELECT key, flags FROM main WHERE key = ?", (parent_key,))
+        raw_parent = self.sq_cur.fetchall()
+
+        if len(raw_parent) == 0:
+            raise ValueError("Parent Key doesn't exist in main table.")
+
+        assert len(raw_parent) == 1, "SQL Error, Shouldn't be able to hae more than one with same key"
+        photo_libflags = MainFlags.from_int(raw_parent[0][1])
+
+        # INFO: Warning USer, shouldn't really be occurring, since trashed shouldn't be able to be deduplicated
+        if photo_libflags.trashed:
+            self.logger.warning(f"Moving File to Replaced Table with Parent in Trash.")
+
+        if not photo_libflags.present:
+            self.logger.warning("Moving File to Replaced Table without Parent file being present.")
+
+        # Execute Statement here, because we want to be sure that this key exists.
+        self.debug_execute(stmt="SELECT m.key, m.db_name, m.original_filename, m.metadata, m.google_metadata, "
+                                "m.datetime, m.timezone, m.flags, d.db_local_dir "
+                                "FROM main AS m JOIN db_dir AS d ON main.db_dir = db_dir.key WHERE m.key = ?",
+                           args=(child_key,))
+
+        result = self.sq_cur.fetchone()
+        if result is None:
+            raise ValueError("Child Key not found in replaced table")
+
+        # Unpack result for ease of use
+        key, db_name, original_filename, metadata, google_metadata, _dt, timezone, _flags, db_dir = result
+
+        # Parse the datetime for folder
+        dt = datetime.datetime.fromisoformat(_dt)
+        main_flags = MainFlags.from_int(_flags)
+
+        # Check children in replaced table
+        self.debug_execute("SELECT COUNT(*) FROM replaced WHERE parent == ?", args=(child_key,))
+        count = self.sq_cur.fetchone()[0]
+
+        if count > 0:
+            self.logger.info(f"Updating {count} children of this entry in the replaced table")
+
+            self.debug_execute("UPDATE replaced SET parent = ? WHERE parent = ?", (child_key, parent_key))
+
+        # Check Entries in duplicates table
+        self._migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=False)
+
+        # Check Entries in known_duplicates table
+        self._migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=True)
+
+        # Inserting first the key into the replaced table
+        self.debug_execute(stmt="INSERT INTO replaced (key, original_filename, metadata, google_metadata, datetime, "
+                                "former_name, parent, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)",
+                           args=(key, original_filename, metadata.replace("'", "''"),
+                                 google_metadata.replace("'", "''"), dt.isoformat(), db_name, parent_key, timezone))
+
+        # Update file system
+        if db_dir is None:
+            tgt_path = os.path.join(self.root_path, self.dt_to_dir(dt))
+        else:
+            tgt_path = os.path.join(self.root_path, db_dir)
+
+        # Checking consistency between FS and DB
+        if (not os.path.exists(os.path.join(tgt_path, db_name)) and main_flags.present)\
+                or (os.path.exists(os.path.join(tgt_path, db_name)) and not main_flags.present):
+            self.logger.warning(f"Attempting to move file to replaced, "
+                                f"Inconsistency between presence noted in DB and presence on file system:"
+                                f"db: {main_flags.present}, "
+                                f"file_system: {os.path.exists(os.path.join(tgt_path, db_name))}")
+
+        # Take care of three kinds of files.
+        if os.path.exists(os.path.join(tgt_path, db_name)):
+            self.logger.debug("Moving Original File to Trash")
+            main_flags.present = True
+            os.rename(os.path.join(tgt_path, db_name), os.path.join(self.config.trash, db_name))
+        else:
+            main_flags.present = False
+
+        # Updating the flags again
+        self.debug_execute("UPDATE replaced SET flags = ? WHERE key = ?",
+                           args=(child_key, ReplacedFlags.from_main_flags(main_flags).to_int()))
+
+        # Remove Thumbnail
+        if os.path.exists(os.path.join(self.config.thumbnail, self.thumbnail_name(key))):
+            self.logger.debug("Deleting Thumbnail")
+            os.remove(os.path.join(self.config.thumbnail, self.thumbnail_name(key)))
+
+        # Remove Miniature
+        if os.path.exists(os.path.join(self.config.thumbnail, self.miniature_name(key))):
+            self.logger.debug("Deleting Miniature")
+            os.remove(os.path.join(self.config.thumbnail, self.miniature_name(key)))
+
+        # TODO Darktable???
+        self.debug_execute("DELETE FROM main WHERE key = ?", (child_key,))
+
     def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
         """
         Update the duplicates tables. All tuples with child_key, some_key are replaced by tuples of parent_key, some_key
