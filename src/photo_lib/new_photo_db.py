@@ -853,6 +853,43 @@ class PhotoDB(BaseSQliteDB):
         Move a duplicate into the replaced table.
         """
         ...
+    def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
+        """
+        Update the duplicates tables. All tuples with child_key, some_key are replaced by tuples of parent_key, some_key
+
+        :param child_key: Key to replace
+        :param parent_key: Key to use for replacement
+        :param known: True -> update known_duplicates table else duplicates
+        """
+        tbl = "known_duplicates" if known else "duplicates"
+
+        # Check Entries in duplicates table
+        self.debug_execute(f"SELECT key_a, key_b FROM {tbl} WHERE key_a = ? OR key_b = ?",
+                           (child_key, child_key))
+
+        results = self.sq_cur.fetchall()
+
+        if len(results) > 0:
+            self.logger.info(f"Changing {len(results)} {tbl} entries to the replaced table")
+
+            args = []
+            for result in results:
+                if result[0] == child_key:
+                    args.append((parent_key, result[1]))
+                elif result[1] == child_key:
+                    args.append((result[0], parent_key))
+                else:
+                    raise ImplementationError("Couldn't find targeted key. Erroneous SQL Statement?")
+
+            # Remove tuple of kind (parent_key, parent_key)
+            filtered_args = list(filter(lambda a: a[0] != a[1], args))
+            self._internal_add_duplicate(key_a=[a[0] for a in filtered_args],
+                                         key_b=[a[1] for a in filtered_args],
+                                         known=known)
+
+            self._internal_remove_duplicate(key_a=[r[0] for r in results],
+                                            key_b=[r[1] for r in results],
+                                            known=known)
 
     def move_to_trash(self, key: int):
         """
