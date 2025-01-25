@@ -104,6 +104,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Create a new config with only defaults.
         """
+        # TODO paths should be relative
         return Config(
             version=current_version.current_version,
             image_extensions=defaults.image_extensions,
