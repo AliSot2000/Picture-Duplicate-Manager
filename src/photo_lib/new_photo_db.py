@@ -928,9 +928,9 @@ class PhotoDB(BaseSQliteDB):
         if os.path.exists(os.path.join(tgt_path, db_name)):
             self.logger.debug("Moving Original File to Trash")
             main_flags.present = True
-            os.rename(os.path.join(tgt_path, db_name), os.path.join(self.config.trash, db_name))
+            os.rename(os.path.join(tgt_path, db_name), os.path.join(self.get_trash_dir(), db_name))
         else:
-            main_flags.present = os.path.exists(os.path.join(self.config.trash, db_name))
+            main_flags.present = os.path.exists(os.path.join(self.get_trash_dir(), db_name))
 
         # Updating the flags again
         self.debug_execute("UPDATE replaced SET flags = ? WHERE key = ?",
