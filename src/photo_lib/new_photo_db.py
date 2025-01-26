@@ -992,8 +992,60 @@ class PhotoDB(BaseSQliteDB):
     def move_to_trash(self, key: int):
         """
         Move a given image to trash.
+
+        - Checks the file exists
+        - Creates Thumbnail and Miniature
+        - Moves the original file to the trash
+        - Updates the flags of the file.
         """
-        ...
+        self.debug_execute(stmt="SELECT m.key, m.db_name, m.datetime, m.flags, d.db_local_dir "
+                                "FROM main AS m JOIN db_dir AS d ON main.db_dir = db_dir.key WHERE m.key = ?",
+                           args=(key,))
+        _raw_res = self.sq_cur.fetchone()
+
+        if _raw_res is None:
+            raise ValueError(f"Key {key} not found in main table.")
+
+        # Parse the row
+        k, dbn, _dt, _flags, db_dir = _raw_res
+        dt = datetime.datetime.fromisoformat(_dt)
+        main_flags = MainFlags.from_int(_flags)
+
+        # Get the paths
+        cur_path = os.path.join(self.root_path, self.dt_to_dir(dt)) if db_dir is None \
+            else os.path.join(self.root_path, db_dir)
+        sfp = os.path.join(cur_path, dbn)
+        tfp = os.path.join(self.get_trash_dir(), dbn)
+
+        # Store existence in flags
+        main_flags.present = os.path.exists(sfp)
+
+        if main_flags.present:
+            assert os.path.exists(sfp), "Upper Condition wrong"
+
+            # Create thumbnail
+            self.logger.debug("Creating Thumbnail for image going into Trash")
+            thumb_path = os.path.join(self.get_thumb_dir(), self.thumbnail_name(key))
+            main_flags.has_thumbnail = self._create_display_file(in_path=sfp,
+                                                                 out_path=thumb_path,
+                                                                 major_size=self.config.thumbnail_target)
+            # Creating miniature
+            self.logger.debug("Creating Miniature for image going into Trash")
+            min_path = os.path.join(self.get_thumb_dir(), self.miniature_name(key))
+            main_flags.has_miniature = self._create_display_file(in_path=sfp,
+                                                                 out_path=min_path,
+                                                                 major_size=self.config.miniature_target)
+            # Attempt the move the file
+            self.logger.debug(f"Moving {sfp} to {tfp}")
+            os.rename(sfp, tfp)
+
+        # Set the presence flag and trash flag.
+        main_flags.present = os.path.exists(tfp)
+        main_flags.trashed = True
+
+        # All things done, update the flags and write the db
+        self.debug_execute("UPDATE main SET flags = ? WHERE key = ?", (main_flags.to_int(), key))
+        self.commit()
 
     def delete_trash_thumb(self, key: Union[List[int], int, None]):
         """
