@@ -865,7 +865,7 @@ class PhotoDB(BaseSQliteDB):
         assert len(raw_parent) == 1, "SQL Error, Shouldn't be able to hae more than one with same key"
         photo_libflags = MainFlags.from_int(raw_parent[0][1])
 
-        # INFO: Warning USer, shouldn't really be occurring, since trashed shouldn't be able to be deduplicated
+        # INFO: Warning User, shouldn't really be occurring, since trashed shouldn't be able to be deduplicated
         if photo_libflags.trashed:
             self.logger.warning(f"Moving File to Replaced Table with Parent in Trash.")
 
