@@ -639,7 +639,7 @@ class PhotoDB(BaseSQliteDB):
             # keeping track of missing files
             if not os.path.exists(os.path.join(par_dir, dbn)):
 
-                # INFO we're not updating the presence in the db because it doens't fit the scope of this function.
+                # INFO we're not updating the presence in the db because it doesn't fit the scope of this function.
                 self.logger.warning(f"File from DB is missing: {dbn}, in {par_dir}")
                 missing += 1
                 continue
