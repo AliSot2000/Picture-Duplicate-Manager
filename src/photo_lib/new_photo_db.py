@@ -109,9 +109,9 @@ class PhotoDB(BaseSQliteDB):
             image_extensions=defaults.image_extensions,
             video_extensions=defaults.video_extensions,
             allowed_extensions=defaults.extensions,
-            temp_path=defaults.temp_path(root_path),
-            thumbnail=defaults.thumbnails_path(root_path),
-            trash=defaults.trash_path(root_path),
+            temp_path=defaults.temp_path,
+            thumbnail=defaults.thumbnails_path,
+            trash=defaults.trash_path,
             db_file=defaults.db_file,
 
         )
