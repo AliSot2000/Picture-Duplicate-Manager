@@ -584,11 +584,10 @@ class PhotoDB(BaseSQliteDB):
         """
         self.add_extra_cursor("update_thumbnails")
 
-        # TODO switch to >> operator
         self.debug_execute("SELECT m.key, m.datetime, m.db_name, d.db_local_dir, m.flags "
                            "FROM main AS m JOIN db_dir AS d ON main.db_dir = db_dir.key "
                            # Check present                 check trash
-                           "WHERE mod(m.flags, 2) == 1 AND mod(m.flags / 4, 2) == 0")
+                           "WHERE mod(m.flags, 2) == 1 AND mod((m.flags >> 4), 2) == 0")
 
         missing = 0
         created = 0
