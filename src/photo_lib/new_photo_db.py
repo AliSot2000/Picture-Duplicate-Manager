@@ -905,8 +905,8 @@ class PhotoDB(BaseSQliteDB):
         self._migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=True)
 
         # Inserting first the key into the replaced table
-        self.debug_execute(stmt="INSERT INTO replaced (key, original_filename, metadata, google_metadata, datetime, "
-                                "former_name, parent, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)",
+        self.debug_execute(stmt="INSERT OR REPLACE INTO replaced (key, original_filename, metadata, google_metadata, "
+                                "datetime, former_name, parent, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)",
                            args=(key, original_filename, metadata.replace("'", "''"),
                                  google_metadata.replace("'", "''"), dt.isoformat(), db_name, parent_key, timezone))
 
