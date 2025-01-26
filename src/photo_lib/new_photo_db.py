@@ -682,6 +682,7 @@ class PhotoDB(BaseSQliteDB):
                                cur="update_thumbnails")
 
         self.remove_extra_cursor("update_thumbnails")
+        self.commit()
         self.logger.info(f"Created: {created} Display Files, found {missing} newly missing")
         return created, missing
 
@@ -948,6 +949,7 @@ class PhotoDB(BaseSQliteDB):
 
         # TODO Darktable???
         self.debug_execute("DELETE FROM main WHERE key = ?", (child_key,))
+        self.commit()
 
     def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
         """
