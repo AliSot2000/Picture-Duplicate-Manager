@@ -930,7 +930,7 @@ class PhotoDB(BaseSQliteDB):
             main_flags.present = True
             os.rename(os.path.join(tgt_path, db_name), os.path.join(self.config.trash, db_name))
         else:
-            main_flags.present = False
+            main_flags.present = os.path.exists(os.path.join(self.config.trash, db_name))
 
         # Updating the flags again
         self.debug_execute("UPDATE replaced SET flags = ? WHERE key = ?",
