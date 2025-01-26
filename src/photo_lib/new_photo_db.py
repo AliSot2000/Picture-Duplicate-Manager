@@ -968,7 +968,7 @@ class PhotoDB(BaseSQliteDB):
         results = self.sq_cur.fetchall()
 
         if len(results) > 0:
-            self.logger.info(f"Changing {len(results)} {tbl} entries to the replaced table")
+            self.logger.info(f"Changing {len(results)} {tbl} entries to the new parent")
 
             args = []
             for result in results:
