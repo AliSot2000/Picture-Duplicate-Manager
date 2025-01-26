@@ -76,7 +76,6 @@ class PhotoDB(BaseSQliteDB):
         # PRECONDITION: Config defined
         super().__init__(self.config.db_file)
 
-
         if init:
             self.init_db()
         else:
