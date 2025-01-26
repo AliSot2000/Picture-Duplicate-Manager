@@ -1058,3 +1058,28 @@ class PhotoDB(BaseSQliteDB):
             return self.config.thumbnail
         else:
             return os.path.join(self.root_path, self.config.thumbnail)
+
+    def get_trash_dir(self):
+        """
+        Get folder where to store trash.
+        """
+        if os.path.isabs(self.config.trash):
+            return self.config.trash
+        else:
+            return os.path.join(self.root_path, self.config.trash)
+
+    def db_name(self, original_filename: str, key: int, fdt: datetime.datetime):
+        """
+        Generate the filename of a given file within the database.
+        """
+        base_name = fdt.strftime(format="%Y-%m-%dT%H-%M-%S") + f"_{key:10000}"
+        ob, ext = os.path.splitext(original_filename)
+
+        if self.config.org_filename_append:
+            def_new_name = base_name + "_" + ob
+            trunc_new_name = def_new_name[:120] + ext
+        else:
+            # Should technically not be possible but we truncate just to be sure.
+            trunc_new_name = base_name[:120] + ext
+
+        return trunc_new_name
