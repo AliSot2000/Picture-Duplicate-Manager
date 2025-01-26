@@ -443,35 +443,41 @@ class PhotoDB(BaseSQliteDB):
         """
         Moves a pair of duplicates into the known_duplicates table.
         """
-        self._internal_add_duplicate(key_a=key_a, key_b=key_b, known=False)
+        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=True)
 
     def remove_default_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
         """
         Removes a pair of duplicates from the known_duplicates table.
         """
-        self._internal_remove_duplicate(key_a=key_a, key_b=key_b, known=False)
+        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=False)
 
     def add_known_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
         """
         Moves a pair of duplicates into the known_duplicates table.
         """
-        self._internal_add_duplicate(key_a=key_a, key_b=key_b, known=True)
+        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=True)
 
     def remove_known_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
         """
         Removes a pair of duplicates from the known_duplicates table.
         """
-        self._internal_remove_duplicate(key_a=key_a, key_b=key_b, known=True)
+        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=False)
 
-    def _internal_add_duplicate(self, key_a: int | List[int], key_b: int | List[int], known: bool):
+    def _internal_modify_duplicates(self, key_a: int | List[int], key_b: int | List[int], known: bool, add: bool):
         """
-        Internal Function to add a duplicate tuple, parametrizes the table to modify.
+        Internal Function to add or remove a duplicate tuple, parametrizes the table to modify and operation.
 
         :param key_a: First key of Tuple
         :param key_b: Second key of Tuple
-        :param known: If true, will remove the tuple from the  known_duplicates table else duplicates table.
+        :param known: If true, will remove the tuple from the known_duplicates table else duplicates table.
+        :param add: if true, will add the tuple to the table, else remove the tuple.
         """
         tbl = "known_duplicates" if known else "duplicates"
+
+        if add:
+            op = f"INSERT OR IGNORE INTO {tbl} (key_a, key_b) VALUES (?, ?)"
+        else:
+            op = f"DELETE FROM {tbl} WHERE key_a = ? AND key_b = ?"
 
         if isinstance(key_a, int) and isinstance(key_b, int):
             if key_b == key_a:
@@ -480,8 +486,7 @@ class PhotoDB(BaseSQliteDB):
             if key_a >= key_b:
                 key_a, key_b = key_b, key_a
 
-            self.debug_execute(f"INSERT OR IGNORE INTO {tbl} (key_a, key_b) VALUES (?, ?)",
-                               (key_a, key_b))
+            self.debug_execute(op, (key_a, key_b))
 
         elif isinstance(key_a, list) and isinstance(key_b, list):
             if not len(key_a) == len(key_b):
@@ -494,45 +499,10 @@ class PhotoDB(BaseSQliteDB):
 
                 args.append((kb, ka) if ka >= kb else (kb, ka))
 
-            self.debug_execute_many(f"INSERT OR IGNORE INTO {tbl} (key_a, key_b) VALUES (?, ?)",
-                                    args)
+            self.debug_execute_many(op, args)
         else:
             raise TypeError("key_a and key_b must be either both list or both int.")
 
-    def _internal_remove_duplicate(self, key_a: int | List[int], key_b: int | List[int], known: bool):
-        """
-        Internal Function to remove a duplicate tuple, parametrizes the table to modify.
-
-        :param key_a: First key of Tuple
-        :param key_b: Second key of Tuple
-        :param known: If true, will remove the tuple from the  known_duplicates table else duplicates table.
-        """
-        tbl = "known_duplicates" if known else "duplicates"
-
-        if isinstance(key_a, int) and isinstance(key_b, int):
-            if key_b == key_a:
-                raise ValueError("Identical Keys.")
-
-            if key_a >= key_b:
-                key_a, key_b = key_b, key_a
-
-            self.debug_execute(f"DELETE FROM {tbl} WHERE key_a = ? AND key_b = ?", (key_a, key_b))
-
-        elif isinstance(key_a, list) and isinstance(key_b, list):
-            if not len(key_a) == len(key_b):
-                raise ValueError("key_a and key_b must have same length")
-
-            args = []
-            for ka, kb in zip(key_a, key_b):
-                if ka == kb:
-                    raise ValueError("Identical Keys.")
-
-                args.append((kb, ka) if ka >= kb else (kb, ka))
-
-            self.debug_execute_many(f"DELETE FROM {tbl} WHERE key_a = ? AND key_b = ?",
-                                    args)
-        else:
-            raise TypeError("key_a and key_b must be either both list or both int.")
     # ==================================================================================================================
     # UI
     # ==================================================================================================================
