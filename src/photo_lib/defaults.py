@@ -17,10 +17,10 @@ dipy_union_photo_db = {'.sun', '.dds', '.mp4', '.dcx', '.jpf', '.dib', '.webp', 
                       '.xpm', '.bw', '.cur', '.jpg', '.jpeg', '.im', '.wal', '.ras', '.rgba', '.pgm', '.emf', '.ico',
                       '.rgb'}
 
-trash_path = lambda root: os.path.join(root, '.trash')
-thumbnails_path = lambda root: os.path.join(root, '.thumbnails')
-temp_path = lambda root: os.path.join(root, '.temp')
-config_path = lambda root: os.path.join(root, '.config.json')
+trash_path = '.trash'
+thumbnails_path = '.thumbnails'
+temp_path = '.temp'
+config_path = '.config.json'
 db_file = ".photos.db"
 miniature_size = 512
 thumbnail_size = 64
