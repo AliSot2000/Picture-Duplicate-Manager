@@ -949,13 +949,15 @@ class PhotoDB(BaseSQliteDB):
 
             # Remove tuple of kind (parent_key, parent_key)
             filtered_args = list(filter(lambda a: a[0] != a[1], args))
-            self._internal_add_duplicate(key_a=[a[0] for a in filtered_args],
-                                         key_b=[a[1] for a in filtered_args],
-                                         known=known)
+            self._internal_modify_duplicates(key_a=[a[0] for a in filtered_args],
+                                             key_b=[a[1] for a in filtered_args],
+                                             known=known,
+                                             add=True)
 
-            self._internal_remove_duplicate(key_a=[r[0] for r in results],
-                                            key_b=[r[1] for r in results],
-                                            known=known)
+            self._internal_modify_duplicates(key_a=[r[0] for r in results],
+                                             key_b=[r[1] for r in results],
+                                             known=known,
+                                             add=False)
 
     def move_to_trash(self, key: int):
         """
