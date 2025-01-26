@@ -937,14 +937,14 @@ class PhotoDB(BaseSQliteDB):
                            args=(child_key, ReplacedFlags.from_main_flags(main_flags).to_int()))
 
         # Remove Thumbnail
-        if os.path.exists(os.path.join(self.config.thumbnail, self.thumbnail_name(key))):
+        if os.path.exists(os.path.join(self.get_thumb_dir(), self.thumbnail_name(key))):
             self.logger.debug("Deleting Thumbnail")
-            os.remove(os.path.join(self.config.thumbnail, self.thumbnail_name(key)))
+            os.remove(os.path.join(self.get_thumb_dir(), self.thumbnail_name(key)))
 
         # Remove Miniature
-        if os.path.exists(os.path.join(self.config.thumbnail, self.miniature_name(key))):
+        if os.path.exists(os.path.join(self.get_thumb_dir(), self.miniature_name(key))):
             self.logger.debug("Deleting Miniature")
-            os.remove(os.path.join(self.config.thumbnail, self.miniature_name(key)))
+            os.remove(os.path.join(self.get_thumb_dir(), self.miniature_name(key)))
 
         # TODO Darktable???
         self.debug_execute("DELETE FROM main WHERE key = ?", (child_key,))
@@ -1049,3 +1049,12 @@ class PhotoDB(BaseSQliteDB):
         For a video, give a temporary path, where the thumbnail for the video is extracted to.
         """
         return os.path.join(self.config.thumbnail, "video_temp.jeg")
+
+    def get_thumb_dir(self):
+        """
+        Get folder where to store thumbnails.
+        """
+        if os.path.isabs(self.config.thumbnail):
+            return self.config.thumbnail
+        else:
+            return os.path.join(self.root_path, self.config.thumbnail)
