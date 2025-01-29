@@ -961,14 +961,14 @@ class PhotoDB(BaseSQliteDB):
                            args=(child_key, ReplacedFlags.from_main_flags(main_flags).to_int()))
 
         # Remove Thumbnail
-        if os.path.exists(os.path.join(self.get_thumb_dir(), self.thumbnail_name(key))):
+        if os.path.exists(self.full_thumbnail_path(key)):
             self.logger.debug("Deleting Thumbnail")
-            os.remove(os.path.join(self.get_thumb_dir(), self.thumbnail_name(key)))
+            os.remove(self.full_thumbnail_path(key))
 
         # Remove Miniature
-        if os.path.exists(os.path.join(self.get_thumb_dir(), self.miniature_name(key))):
+        if os.path.exists(self.full_miniature_path(key)):
             self.logger.debug("Deleting Miniature")
-            os.remove(os.path.join(self.get_thumb_dir(), self.miniature_name(key)))
+            os.remove(self.full_miniature_path(key))
 
         # TODO Darktable???
         self.debug_execute("DELETE FROM main WHERE key = ?", (child_key,))
