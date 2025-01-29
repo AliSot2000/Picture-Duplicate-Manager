@@ -666,13 +666,13 @@ class PhotoDB(BaseSQliteDB):
 
             # Thumbnail: write if not exists or exists + overwrite
             if thumbnail:
-                if (not os.path.exists(os.path.join(self.get_thumb_dir(), self.thumbnail_name(key)))
-                        or (os.path.exists(os.path.join(self.get_thumb_dir(), self.thumbnail_name(key)))
+                if (not os.path.exists(self.full_thumbnail_path(key))
+                        or (os.path.exists(self.full_thumbnail_path(key))
                             and overwrite)):
 
                     flags.has_thumbnail = self._create_display_file(
                         in_path=os.path.join(par_dir, dbn),
-                        out_path=os.path.join(self.get_thumb_dir(), self.thumbnail_name(key)),
+                        out_path=self.full_thumbnail_path(key),
                         major_size=self.config.thumbnail_target)
                     created += 1
 
@@ -682,13 +682,13 @@ class PhotoDB(BaseSQliteDB):
 
             # Miniature: write if not exists or exists + overwrite
             if miniature:
-                if (not os.path.exists(os.path.join(self.get_thumb_dir(), self.miniature_name(key)))
-                        or (os.path.exists(os.path.join(self.get_thumb_dir(), self.miniature_name(key)))
+                if (not os.path.exists(self.full_miniature_path(key))
+                        or (os.path.exists(self.full_miniature_path(key))
                             and overwrite)):
 
                     flags.has_miniature = self._create_display_file(
                         in_path=os.path.join(par_dir, dbn),
-                        out_path=os.path.join(self.get_thumb_dir(), self.miniature_name(key)),
+                        out_path=self.full_miniature_path(key),
                         major_size=self.config.thumbnail_target)
                     created += 1
 
