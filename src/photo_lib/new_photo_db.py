@@ -3,6 +3,7 @@ import functools
 import logging
 import multiprocessing.connection as connection
 import os.path
+import shutil
 from typing import Set, Dict, List, Union, Tuple
 
 import cv2
