@@ -559,7 +559,10 @@ class PhotoDB(BaseSQliteDB):
     # Utility
     # ==================================================================================================================
 
-    def create_display_files(self, miniature: bool = True, thumbnail: bool = True, overwrite: bool = False) \
+    def create_display_files(self,
+                             miniature: bool = True,
+                             thumbnail: bool = True,
+                             overwrite: bool = False) \
             -> Tuple[int, int]:
         """
         Create thumbnails for all elements in the database.
@@ -603,8 +606,7 @@ class PhotoDB(BaseSQliteDB):
             # Thumbnail: write if not exists or exists + overwrite
             if thumbnail:
                 if (not os.path.exists(self.full_thumbnail_path(key))
-                        or (os.path.exists(self.full_thumbnail_path(key))
-                            and overwrite)):
+                        or (os.path.exists(self.full_thumbnail_path(key)) and overwrite)):
 
                     flags.has_thumbnail = self._create_display_file(
                         in_path=os.path.join(par_dir, dbn),
@@ -619,8 +621,7 @@ class PhotoDB(BaseSQliteDB):
             # Miniature: write if not exists or exists + overwrite
             if miniature:
                 if (not os.path.exists(self.full_miniature_path(key))
-                        or (os.path.exists(self.full_miniature_path(key))
-                            and overwrite)):
+                        or (os.path.exists(self.full_miniature_path(key)) and overwrite)):
 
                     flags.has_miniature = self._create_display_file(
                         in_path=os.path.join(par_dir, dbn),
@@ -1011,7 +1012,49 @@ class PhotoDB(BaseSQliteDB):
         Delete the remaining thumbnail of an image in the trash. For recognition purposes, the thumbnails of the
         trashed images are retained.
         """
-        ...
+        count: int = 0
+        stmt = "SELECT key, flags FROM main "
+
+        # Everything in the trash
+        if key is None:
+            stmt += " WHERE mod(flags >> 2, 2) == 1"
+            args = tuple()
+        elif isinstance(key, int):
+            stmt += f" WHERE key = ?"
+            args = (key, )
+        elif isinstance(key, list):
+            stmt += f" WHERE key IN ({', '.join(map(str, key))})"
+            args = tuple()
+        else:
+            raise TypeError(f"Unexpected Type for Key: {type(key).__name__}")
+
+        self.debug_execute(stmt, args)
+        self.add_extra_cursor("del_trash_thumb")
+
+        for row in self.sq_cur:
+            key, _flags = row
+            flags = MainFlags.from_int(_flags)
+
+            if os.path.exists(self.full_thumbnail_path(key)):
+                self.logger.debug(f"Deleting Thumbnail for image in trash: {key}")
+                os.remove(self.full_thumbnail_path(key))
+                flags.has_thumbnail = False
+                count += 1
+
+            if os.path.exists(self.full_miniature_path(key)):
+                self.logger.debug(f"Deleting Miniature for image in trash: {key}")
+                os.remove(self.full_thumbnail_path(key))
+                flags.has_miniature = False
+                count += 1
+
+            self.debug_execute("UPDATE main SET flags = ? WHERE key = ?",
+                               (flags.to_int(), key),
+                               "del_trash_thumb")
+
+        self.remove_extra_cursor("del_trash_thumb")
+        self.commit()
+        return count
+
     def compress(self) -> int:
         """
         Remove all files which can be recomputed to save space. Removes all Thumbnails and all temporary files
@@ -1072,6 +1115,51 @@ class PhotoDB(BaseSQliteDB):
         self.remove_extra_cursor("rm_disp_media")
         self.commit()
         self.logger.info(f"Finished Deleting {count} Display Media of existing images.")
+        return count
+
+    def empty_trash(self):
+        """
+        Removes all originals from the trash.
+        """
+        self.logger.info(f"Emptying all Trashed files...")
+        trash = self._empty_trash(replaced=False)
+        replaced = self._empty_trash(replaced=True)
+        self.logger.info(f"Deleted a total of {trash + replaced} files from trash.")
+        return trash + replaced
+
+    def _empty_trash(self, replaced: bool) -> int:
+        """
+        Remove originals from the trash directory. If replaced, remove the originals from the replaced files, otherwise
+        remove the originals from the images which were "moved to trash"
+        """
+
+        count: int = 0
+        if replaced:
+            self.debug_execute("SELECT key, former_name, flags FROM replaced")
+            update_stmt = "UPDATE replaced SET flags = ? WHERE key = ?"
+        else:
+            self.debug_execute("SELECT key, db_name, flags FROM main WHERE mod(flags >> 2, 2) == 1")
+            update_stmt = f"UPDATE main SET flags = ? WHERE key = ?"
+
+        self.logger.info(f"Deleting Originals from Files in {'Replaced' if replaced else 'Trash'}")
+        self.add_extra_cursor("del_trash")
+
+        # Remove originals from files marked as trash
+        for row in self.sq_cur:
+            key, db_name, _flags = row
+            flags = ReplacedFlags.from_int(_flags) if replaced else  MainFlags.from_int(_flags)
+
+            if os.path.exists(os.path.join(self.get_trash_dir(), db_name)):
+                self.logger.debug(f"Deleting {db_name} from trash")
+                os.remove(os.path.join(self.get_trash_dir(), db_name))
+                flags.present = False
+                count += 1
+
+            self.debug_execute(update_stmt, (flags.to_int(), key), "del_trash")
+
+        self.logger.info(f"Finished Deleting {count} Originals {'Replaced' if replaced else 'Trash'}")
+        self.remove_extra_cursor("del_trash")
+        self.commit()
         return count
 
     def forget_image(self, key: int):
