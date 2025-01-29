@@ -1007,10 +1007,12 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("UPDATE main SET flags = ? WHERE key = ?", (main_flags.to_int(), key))
         self.commit()
 
-    def delete_trash_thumb(self, key: Union[List[int], int, None]):
+    def delete_trash_thumb(self, key: Union[List[int], int, None]) -> int:
         """
         Delete the remaining thumbnail of an image in the trash. For recognition purposes, the thumbnails of the
-        trashed images are retained.
+        trashed images are retained by default. Use this function with care.
+
+        :param key: Key to delete, list of keys to delete, or delete all thumbnails of images in the trash with None
         """
         count: int = 0
         stmt = "SELECT key, flags FROM main "
