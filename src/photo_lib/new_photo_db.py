@@ -136,7 +136,7 @@ class PhotoDB(BaseSQliteDB):
         # Check name Length
         if len(tbl_name) > 120:
             tbl_name = tbl_name[:120]
-            self.logger.warning(f"Table Name longer than 120 characters. Truncating to: {tbl_name}")
+            self.logger.warning(f"Table Name longer than 120 characters. Truncating to: `{tbl_name}`")
 
         # Add the table to the generic lookup table
         self.debug_execute("INSERT INTO import_tables (root_path, table_name, table_description) VALUES (?, ?, ?)",
