@@ -641,8 +641,8 @@ class PhotoDB(BaseSQliteDB):
                            # Check present                 check trash
                            "WHERE mod(m.flags, 2) == 1 AND mod((m.flags >> 2), 2) == 0")
 
-        missing = 0
-        created = 0
+        missing: int = 0
+        created: int = 0
         for row in self.sq_cur:
             key, _dt, dbn, _db_dir, _flags = row
 
@@ -704,6 +704,9 @@ class PhotoDB(BaseSQliteDB):
         self.remove_extra_cursor("update_thumbnails")
         self.commit()
         self.logger.info(f"Created: {created} Display Files, found {missing} newly missing")
+
+        missing: int
+        created: int
         return created, missing
 
     def _create_display_file(self, in_path: str, out_path: str, major_size: int) -> bool:
