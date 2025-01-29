@@ -1050,15 +1050,13 @@ class PhotoDB(BaseSQliteDB):
 
             # Create thumbnail
             self.logger.debug("Creating Thumbnail for image going into Trash")
-            thumb_path = os.path.join(self.get_thumb_dir(), self.thumbnail_name(key))
             main_flags.has_thumbnail = self._create_display_file(in_path=sfp,
-                                                                 out_path=thumb_path,
+                                                                 out_path=self.full_thumbnail_path(key),
                                                                  major_size=self.config.thumbnail_target)
             # Creating miniature
             self.logger.debug("Creating Miniature for image going into Trash")
-            min_path = os.path.join(self.get_thumb_dir(), self.miniature_name(key))
             main_flags.has_miniature = self._create_display_file(in_path=sfp,
-                                                                 out_path=min_path,
+                                                                 out_path=self.full_miniature_path(key),
                                                                  major_size=self.config.miniature_target)
             # Attempt the move the file
             self.logger.debug(f"Moving {sfp} to {tfp}")
