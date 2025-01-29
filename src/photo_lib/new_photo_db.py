@@ -1139,7 +1139,7 @@ class PhotoDB(BaseSQliteDB):
         """
         For a video, give a temporary path, where the thumbnail for the video is extracted to.
         """
-        return os.path.join(self.config.thumbnail, "video_temp.jeg")
+        return os.path.join(self.get_thumb_dir(), "video_temp.jeg")
 
     def get_thumb_dir(self):
         """
