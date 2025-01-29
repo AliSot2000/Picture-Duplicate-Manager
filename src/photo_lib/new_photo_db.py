@@ -1123,6 +1123,18 @@ class PhotoDB(BaseSQliteDB):
         """
         return f"miniature_{key:10000}.jpeg"
 
+    def full_thumbnail_path(self, key: int) -> str:
+        """
+        Get the path to the thumbnail directory concat with the thumbnail name.
+        """
+        return os.path.join(self.get_thumb_dir(), self.thumbnail_name(key))
+
+    def full_miniature_path(self, key: int) -> str:
+        """
+        Get the path to the thumbnail directory concat with the miniature name.
+        """
+        return os.path.join(self.get_thumb_dir(), self.miniature_name(key))
+
     def temp_video_path(self) -> str:
         """
         For a video, give a temporary path, where the thumbnail for the video is extracted to.
