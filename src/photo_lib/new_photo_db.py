@@ -1185,7 +1185,7 @@ class PhotoDB(BaseSQliteDB):
         ...
 
     @functools.lru_cache(maxsize=1024)
-    def filename_to_key(self, fname: str):
+    def filename_to_key(self, fname: str) -> int | None:
         """
         Resolve a filename to key
         """
