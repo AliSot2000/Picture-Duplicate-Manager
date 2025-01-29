@@ -1159,6 +1159,15 @@ class PhotoDB(BaseSQliteDB):
         else:
             return os.path.join(self.root_path, self.config.trash)
 
+    def get_temp_dir(self):
+        """
+        Get folder where temporary files are located (dif results)
+        """
+        if os.path.isabs(self.config.temp_path):
+            return self.config.temp_path
+        else:
+            return os.path.join(self.root_path, self.config.temp_path)
+
     def db_name(self, original_filename: str, key: int, fdt: datetime.datetime):
         """
         Generate the filename of a given file within the database.
