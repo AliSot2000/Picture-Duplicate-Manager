@@ -656,7 +656,7 @@ class PhotoDB(BaseSQliteDB):
                 assert False, "Error in SQL Statement, should not find trash or not present files."
                 continue
 
-            # keeping track of missing files
+            # checking for missing file
             if not os.path.exists(os.path.join(par_dir, dbn)):
 
                 # INFO we're not updating the presence in the db because it doesn't fit the scope of this function.
