@@ -171,7 +171,58 @@ class PhotoDB(BaseSQliteDB):
         Remove all files which can be recomputed to save space. Removes all Thumbnails and all temporary files
         generated for deduplication.
         """
-        ...
+        self.logger.info("Compressing Database, deleting temp files.")
+        content = os.listdir(self.get_temp_dir())
+
+        for entry in content:
+            if os.path.isdir(os.path.join(self.get_temp_dir(), entry)):
+                self.logger.debug(f"Deleting {entry}")
+                shutil.rmtree(os.path.join(self.get_temp_dir(), entry))
+
+            else:
+                self.logger.debug(f"Deleting {entry}")
+                os.remove(os.path.join(self.get_temp_dir(), entry))
+
+        self.logger.info(f"Deleting Thumbnails of existing images.")
+        self.debug_execute("SELECT m.key, m.datetime, m.flags, m.db_name, d.db_local_dir "
+                           "FROM main AS m JOIN db_idr AS d ON (m.db_dir = d.key) "
+                           # Check present = 1,            Check trash = 0
+                           "WHERE mod(m.flags, 2) == 1 AND mod(m.flags >> 2, 2) == 0")
+
+        # Add extra cursor so we can update the flags
+        self.add_extra_cursor("rm_disp_media")
+        for row in self.sq_cur:
+            key, _dt, _flags, db_name, db_local_dir = row
+            dt = datetime.datetime.fromisoformat(_dt)
+            flags = MainFlags.from_int(_flags)
+
+            # Get the parent directory in the db where the file resides
+            par_dir = os.path.join(self.root_path, db_local_dir) if db_local_dir is not None \
+                else os.path.join(self.root_path, self.dt_to_dir(dt))
+
+            # Skip if the original is not present
+            if not os.path.exists(os.path.join(par_dir, db_name)):
+                self.logger.warning(f"File not present, despite marked as present: {os.path.join(par_dir, db_name)}")
+                continue
+
+            # PRECONDITION: The original file exists in the database.
+            if os.path.exists(self.full_thumbnail_path(key)):
+                self.logger.debug(f"Deleting '{self.thumbnail_name(key)}'")
+                os.remove(self.full_miniature_path(key))
+                flags.has_thumbnail = False
+
+            if os.path.exists(self.full_miniature_path(key)):
+                self.logger.debug(f"Deleting '{self.miniature_name(key)}'")
+                os.remove(self.full_miniature_path(key))
+                flags.has_miniature = False
+
+            self.debug_execute("UPDATE main SET flags = ? WHERE key = ?",
+                               (flags.to_int(), key),
+                               "rm_disp_media")
+
+        self.remove_extra_cursor("rm_disp_media")
+        self.commit()
+        self.logger.info("Finished Deleting Thumbnails of existing images.")
 
     def clear_trash(self):
         """
