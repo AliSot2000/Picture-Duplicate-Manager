@@ -1159,6 +1159,15 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
+    def check_and_update_thumbnails(self, from_select: bool = False):
+        """
+        Go through db and check the mark for thumbnail and a thumbnail existing are correct.
+
+        :param from_select: Use selection marker of images to check changed hashes for those images.
+        """
+        ...
+
+
     # ==================================================================================================================
     # Lookup Methods
     # ==================================================================================================================
