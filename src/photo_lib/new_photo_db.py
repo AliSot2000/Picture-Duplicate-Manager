@@ -31,7 +31,8 @@ class PhotoDB(BaseSQliteDB):
     generic_decls: Dict[str, GenericDeclaration]
 
     # Redefining logger as mandatory
-    logger: logging.Logger
+    main_logger: logging.Logger
+    integrity_logger: logging.Logger
 
     @property
     def current_version(self):
@@ -45,7 +46,11 @@ class PhotoDB(BaseSQliteDB):
         """
         Construct a Database Object from a preexisting database file.
         """
-        self.logger = logger
+        self.main_logger = logging.getLogger("PhotoDB")
+        self.integrity_logger = logging.getLogger("PhotoDB.integrity")
+        if init_loggers:
+            self.set_logging_defaults()
+
         self.build_definition_lookup()
         self.root_path = os.path.abspath(root_path)
         cfg_path = defaults.config_path(self.root_path)
@@ -93,14 +98,14 @@ class PhotoDB(BaseSQliteDB):
         """
         Create all tables from
         """
-        self.logger.info("Initializing Database")
+        self.main_logger.info("Initializing Database")
 
         for short_name, decl in self.static_decls.items():
-            self.logger.info(f"Creating {short_name}")
+            self.main_logger.info(f"Creating {short_name}")
 
             self.debug_execute(decl.declaration_string.replace(decl.name_placeholder, decl.name))
 
-        self.logger.info("Initialization Complete")
+        self.main_logger.info("Initialization Complete")
 
     @staticmethod
     def build_default_config(root_path: str) -> Config:
@@ -139,7 +144,7 @@ class PhotoDB(BaseSQliteDB):
         # Check name Length
         if len(tbl_name) > 120:
             tbl_name = tbl_name[:120]
-            self.logger.warning(f"Table Name longer than 120 characters. Truncating to: `{tbl_name}`")
+            self.main_logger.warning(f"Table Name longer than 120 characters. Truncating to: `{tbl_name}`")
 
         # Add the table to the generic lookup table
         self.debug_execute("INSERT INTO import_tables (root_path, table_name, table_description) VALUES (?, ?, ?)",
@@ -222,8 +227,8 @@ class PhotoDB(BaseSQliteDB):
                 result = self.sq_cur.fetchone()
 
                 if result is None:
-                    self.logger.warning(f"Found orphaned entry: {table} in the parent table: {name}. "
-                                        f"Deleting orphaned entry")
+                    self.integrity_logger.warning(f"Found orphaned entry: {table} in the parent table: {name}. "
+                                                  f"Deleting orphaned entry")
 
                     self.debug_execute(f"DELETE FROM `{name}` WHERE key = ?", (key,))
 
@@ -588,7 +593,7 @@ class PhotoDB(BaseSQliteDB):
             if not os.path.exists(os.path.join(par_dir, dbn)):
 
                 # INFO we're not updating the presence in the db because it doesn't fit the scope of this function.
-                self.logger.warning(f"File from DB is missing: {dbn}, in {par_dir}")
+                self.integrity_logger.warning(f"File from DB is missing: {dbn}, in {par_dir}")
                 missing += 1
                 continue
 
@@ -604,7 +609,7 @@ class PhotoDB(BaseSQliteDB):
                     created += 1
 
                 else:
-                    self.logger.debug(f"Thumbnail already exists for key: {key}")
+                    self.main_logger.debug(f"Thumbnail already exists for key: {key}")
                     flags.has_thumbnail = True
 
             # Miniature: write if not exists or exists + overwrite
@@ -619,7 +624,7 @@ class PhotoDB(BaseSQliteDB):
                     created += 1
 
                 else:
-                    self.logger.debug(f"Miniature already exists for key: {key}")
+                    self.main_logger.debug(f"Miniature already exists for key: {key}")
                     flags.has_miniature = True
 
             # Update the flags of the given key.
@@ -629,7 +634,7 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("update_thumbnails")
         self.commit()
-        self.logger.info(f"Created: {created} Display Files, found {missing} newly missing")
+        self.main_logger.info(f"Created: {created} Display Files, found {missing} newly missing")
 
         missing: int
         created: int
@@ -668,7 +673,7 @@ class PhotoDB(BaseSQliteDB):
 
         # Haily Marry Handler
         else:
-            self.logger.warning(f"Unknown extension: {in_path}. Attempting to to create display file anyway")
+            self.main_logger.warning(f"Unknown extension: {in_path}. Attempting to to create display file anyway")
 
             extract_success = self._create_vid_thumbnails(in_path=in_path, out_path=self.temp_video_path())
 
@@ -717,10 +722,10 @@ class PhotoDB(BaseSQliteDB):
             return True
 
         except cv2.error as e:
-            self.logger.exception(f"OpenCV encountered an error while generating the thumbnail for {in_path}",
-                                  exc_info=e)
+            self.main_logger.exception(f"OpenCV encountered an error while generating the thumbnail for {in_path}",
+                                       exc_info=e)
         except Exception as e:
-            self.logger.exception(f"Unexpected Exception while generating thumbnail: {e}", exc_info=e)
+            self.main_logger.exception(f"Unexpected Exception while generating thumbnail: {e}", exc_info=e)
 
         return False
 
@@ -744,19 +749,19 @@ class PhotoDB(BaseSQliteDB):
         try:
             probe_res = ffmpeg.probe(in_path)
         except ffmpeg.Error as e:
-            self.logger.exception(f"Error Probing File with FFMPEG: {in_path}, "
+            self.main_logger.exception(f"Error Probing File with FFMPEG: {in_path}, "
                                   f"stderr: {e.stderr.decode('utf-8')}, "
                                   f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
             return False
 
         except Exception as e:
-            self.logger.exception(f"Unexpected Exception while Probing File: {in_path}", exc_info=e)
+            self.main_logger.exception(f"Unexpected Exception while Probing File: {in_path}", exc_info=e)
             return False
 
         # Get target time for the image.
         try:
             if probe_res["streams"][0]["duration"] < target_time:
-                self.logger.warning("Video to short for default time point where to take thumbnail")
+                self.main_logger.warning("Video to short for default time point where to take thumbnail")
                 target_time = probe_res["streams"][0]["duration"] // 2
 
             # Try to get the width of the stream
@@ -767,14 +772,14 @@ class PhotoDB(BaseSQliteDB):
                     break
 
         except KeyError:
-            self.logger.error(f"Failed to get time data from probe result of ffmpeg: {in_path}")
+            self.main_logger.error(f"Failed to get time data from probe result of ffmpeg: {in_path}")
         except IndexError:
-            self.logger.error("Failed to get time data from probe result of ffmpeg")
+            self.main_logger.error("Failed to get time data from probe result of ffmpeg")
         except Exception as e:
-            self.logger.exception(f"Unexpected error {type(e).__name__}", exc_info=e)
+            self.main_logger.exception(f"Unexpected error {type(e).__name__}", exc_info=e)
 
         if width is None:
-            self.logger.info(f"Failed to retrieve width of the input file: {in_path}, aborting")
+            self.main_logger.info(f"Failed to retrieve width of the input file: {in_path}, aborting")
             return False
 
         try:
@@ -787,12 +792,12 @@ class PhotoDB(BaseSQliteDB):
                 .run(capture_stdout=True, capture_stderr=True)
             )
         except ffmpeg.Error as e:
-            self.logger.exception(f"Error Exporting Thumbnail from video: {in_path}, "
+            self.main_logger.exception(f"Error Exporting Thumbnail from video: {in_path}, "
                                   f"stderr: {e.stderr.decode('utf-8')}, "
                                   f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
             return False
         except Exception as e:
-            self.logger.exception(f"Unexpected Exception while writing thumbnail: {type(e).__name__}", exc_info=e)
+            self.main_logger.exception(f"Unexpected Exception while writing thumbnail: {type(e).__name__}", exc_info=e)
             return False
 
         return True
@@ -817,10 +822,10 @@ class PhotoDB(BaseSQliteDB):
 
         # INFO: Warning User, shouldn't really be occurring, since trashed shouldn't be able to be deduplicated
         if photo_libflags.trashed:
-            self.logger.warning(f"Moving File to Replaced Table with Parent in Trash.")
+            self.main_logger.warning(f"Moving File to Replaced Table with Parent in Trash.")
 
         if not photo_libflags.present:
-            self.logger.warning("Moving File to Replaced Table without Parent file being present.")
+            self.main_logger.warning("Moving File to Replaced Table without Parent file being present.")
 
         # Execute Statement here, because we want to be sure that this key exists.
         self.debug_execute(stmt="SELECT m.key, m.db_name, m.original_filename, m.metadata, m.google_metadata, "
@@ -844,7 +849,7 @@ class PhotoDB(BaseSQliteDB):
         count = self.sq_cur.fetchone()[0]
 
         if count > 0:
-            self.logger.info(f"Updating {count} children of this entry in the replaced table")
+            self.main_logger.info(f"Updating {count} children of this entry in the replaced table")
 
             self.debug_execute("UPDATE replaced SET parent = ? WHERE parent = ?", (child_key, parent_key))
 
@@ -876,7 +881,7 @@ class PhotoDB(BaseSQliteDB):
 
         # Take care of three kinds of files.
         if os.path.exists(os.path.join(tgt_path, db_name)):
-            self.logger.debug("Moving Original File to Trash")
+            self.main_logger.debug("Moving Original File to Trash")
             main_flags.present = True
             os.rename(os.path.join(tgt_path, db_name), os.path.join(self.get_trash_dir(), db_name))
         else:
@@ -888,12 +893,12 @@ class PhotoDB(BaseSQliteDB):
 
         # Remove Thumbnail
         if os.path.exists(self.full_thumbnail_path(key)):
-            self.logger.debug("Deleting Thumbnail")
+            self.main_logger.debug(f"Deleting Thumbnail {self.thumbnail_name(key)}")
             os.remove(self.full_thumbnail_path(key))
 
         # Remove Miniature
         if os.path.exists(self.full_miniature_path(key)):
-            self.logger.debug("Deleting Miniature")
+            self.main_logger.debug(f"Deleting Miniature {self.miniature_name(key)}")
             os.remove(self.full_miniature_path(key))
 
         # TODO Darktable???
@@ -917,7 +922,7 @@ class PhotoDB(BaseSQliteDB):
         results = self.sq_cur.fetchall()
 
         if len(results) > 0:
-            self.logger.info(f"Changing {len(results)} {tbl} entries to the new parent")
+            self.main_logger.debug(f"Changing {len(results)} {tbl} entries to the new parent")
 
             args = []
             for result in results:
@@ -975,17 +980,17 @@ class PhotoDB(BaseSQliteDB):
             assert os.path.exists(sfp), "Upper Condition wrong"
 
             # Create thumbnail
-            self.logger.debug("Creating Thumbnail for image going into Trash")
+            self.main_logger.debug("Creating Thumbnail for image going into Trash")
             main_flags.has_thumbnail = self._create_display_file(in_path=sfp,
                                                                  out_path=self.full_thumbnail_path(key),
                                                                  major_size=self.config.thumbnail_target)
             # Creating miniature
-            self.logger.debug("Creating Miniature for image going into Trash")
+            self.main_logger.debug("Creating Miniature for image going into Trash")
             main_flags.has_miniature = self._create_display_file(in_path=sfp,
                                                                  out_path=self.full_miniature_path(key),
                                                                  major_size=self.config.miniature_target)
             # Attempt the move the file
-            self.logger.debug(f"Moving {sfp} to {tfp}")
+            self.main_logger.debug(f"Moving {sfp} to {tfp}")
             os.rename(sfp, tfp)
 
         # Set the presence flag and trash flag.
@@ -1027,13 +1032,13 @@ class PhotoDB(BaseSQliteDB):
             flags = MainFlags.from_int(_flags)
 
             if os.path.exists(self.full_thumbnail_path(key)):
-                self.logger.debug(f"Deleting Thumbnail for image in trash: {key}")
+                self.main_logger.debug(f"Deleting Thumbnail for image in trash: {key}")
                 os.remove(self.full_thumbnail_path(key))
                 flags.has_thumbnail = False
                 count += 1
 
             if os.path.exists(self.full_miniature_path(key)):
-                self.logger.debug(f"Deleting Miniature for image in trash: {key}")
+                self.main_logger.debug(f"Deleting Miniature for image in trash: {key}")
                 os.remove(self.full_thumbnail_path(key))
                 flags.has_miniature = False
                 count += 1
@@ -1052,19 +1057,19 @@ class PhotoDB(BaseSQliteDB):
         generated for deduplication.
         """
         count: int = 0
-        self.logger.info("Compressing Database, deleting temp files.")
+        self.main_logger.info("Compressing Database, deleting temp files.")
         content = os.listdir(self.get_temp_dir())
 
         for entry in content:
             if os.path.isdir(os.path.join(self.get_temp_dir(), entry)):
-                self.logger.debug(f"Deleting {entry}")
+                self.main_logger.debug(f"Deleting {entry}")
                 shutil.rmtree(os.path.join(self.get_temp_dir(), entry))
 
             else:
-                self.logger.debug(f"Deleting {entry}")
+                self.main_logger.debug(f"Deleting {entry}")
                 os.remove(os.path.join(self.get_temp_dir(), entry))
 
-        self.logger.info(f"Deleting Thumbnails of existing images.")
+        self.main_logger.info(f"Deleting Thumbnails of existing images.")
         self.debug_execute("SELECT m.key, m.datetime, m.flags, m.db_name, d.db_local_dir "
                            "FROM main AS m JOIN db_idr AS d ON (m.db_dir = d.key) "
                            # Check present = 1,            Check trash = 0
@@ -1088,13 +1093,13 @@ class PhotoDB(BaseSQliteDB):
 
             # PRECONDITION: The original file exists in the database.
             if os.path.exists(self.full_thumbnail_path(key)):
-                self.logger.debug(f"Deleting '{self.thumbnail_name(key)}'")
+                self.main_logger.debug(f"Deleting '{self.thumbnail_name(key)}'")
                 os.remove(self.full_miniature_path(key))
                 flags.has_thumbnail = False
                 count += 1
 
             if os.path.exists(self.full_miniature_path(key)):
-                self.logger.debug(f"Deleting '{self.miniature_name(key)}'")
+                self.main_logger.debug(f"Deleting '{self.miniature_name(key)}'")
                 os.remove(self.full_miniature_path(key))
                 flags.has_miniature = False
                 count += 1
@@ -1105,17 +1110,17 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("rm_disp_media")
         self.commit()
-        self.logger.info(f"Finished Deleting {count} Display Media of existing images.")
+        self.main_logger.info(f"Finished Deleting {count} Display Media of existing images.")
         return count
 
     def empty_trash(self):
         """
         Removes all originals from the trash.
         """
-        self.logger.info(f"Emptying all Trashed files...")
+        self.main_logger.info(f"Emptying all Trashed files...")
         trash = self._empty_trash(replaced=False)
         replaced = self._empty_trash(replaced=True)
-        self.logger.info(f"Deleted a total of {trash + replaced} files from trash.")
+        self.main_logger.info(f"Deleted a total of {trash + replaced} files from trash.")
         return trash + replaced
 
     def _empty_trash(self, replaced: bool) -> int:
@@ -1132,7 +1137,7 @@ class PhotoDB(BaseSQliteDB):
             self.debug_execute("SELECT key, db_name, flags FROM main WHERE mod(flags >> 2, 2) == 1")
             update_stmt = f"UPDATE main SET flags = ? WHERE key = ?"
 
-        self.logger.info(f"Deleting Originals from Files in {'Replaced' if replaced else 'Trash'}")
+        self.main_logger.info(f"Deleting Originals from Files in {'Replaced' if replaced else 'Trash'}")
         self.add_extra_cursor("del_trash")
 
         # Remove originals from files marked as trash
@@ -1141,14 +1146,14 @@ class PhotoDB(BaseSQliteDB):
             flags = ReplacedFlags.from_int(_flags) if replaced else  MainFlags.from_int(_flags)
 
             if os.path.exists(os.path.join(self.get_trash_dir(), db_name)):
-                self.logger.debug(f"Deleting {db_name} from trash")
+                self.main_logger.debug(f"Deleting {db_name} from trash")
                 os.remove(os.path.join(self.get_trash_dir(), db_name))
                 flags.present = False
                 count += 1
 
             self.debug_execute(update_stmt, (flags.to_int(), key), "del_trash")
 
-        self.logger.info(f"Finished Deleting {count} Originals {'Replaced' if replaced else 'Trash'}")
+        self.main_logger.info(f"Finished Deleting {count} Originals {'Replaced' if replaced else 'Trash'}")
         self.remove_extra_cursor("del_trash")
         self.commit()
         return count
