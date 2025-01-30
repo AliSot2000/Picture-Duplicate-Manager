@@ -238,7 +238,8 @@ current_version = DBVersion(
                                "key INTEGER PRIMARY KEY AUTOINCREMENT, "
                                "root_path TEXT NOT NULL, "
                                "table_name TEXT UNIQUE NOT NULL, "
-                               "table_description TEXT)"
+                               "table_description TEXT,"
+                               "flags INTEGER DEFAULT 0)"
         ),
 
         # Duplicates and Known Duplicates Table
