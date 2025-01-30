@@ -20,6 +20,7 @@ from photo_lib.flag_dataclasses import MainFlags, ReplacedFlags
 from photo_lib.sqlite_wrapper import BaseSQliteDB
 
 
+# TODO make db_local_dir a json list. Handle issues when running on Windows an Unix becuase of different path separtors.
 class PhotoDB(BaseSQliteDB):
     __verified: bool = False
     config: Config
