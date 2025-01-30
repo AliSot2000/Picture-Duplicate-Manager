@@ -11,7 +11,7 @@ class BaseSQliteDB:
     sq_cur: Union[Cursor, None]
     __extra_cur: Dict[str, Cursor]
 
-    logger: Optional[logging.Logger] = None
+    main_logger: Optional[logging.Logger] = None
 
     def __init__(self, db_path: str):
         """
@@ -55,10 +55,10 @@ class BaseSQliteDB:
             else:
                 sq_cur.execute(stmt)
         except Exception as e:
-            if self.logger is None:
+            if self.main_logger is None:
                 print(f"Failed to execute:\n{stmt}\n{args}")
             else:
-                self.logger.exception(f"Failed to execute:\n{stmt}\n{args}", exc_info=e)
+                self.main_logger.exception(f"Failed to execute:\n{stmt}\n{args}", exc_info=e)
             raise e
 
     def debug_execute_many(self, stmt: str, args: List[Union[tuple, dict]], cur: str = None):
@@ -69,10 +69,10 @@ class BaseSQliteDB:
         try:
             sq_cur.executemany(stmt, args)
         except Exception as e:
-            if self.logger is None:
+            if self.main_logger is None:
                 print(f"Failed to execute:\n{stmt}\n{args}")
             else:
-                self.logger.exception(f"Failed to execute:\n{stmt}\n{args}", exc_info=e)
+                self.main_logger.exception(f"Failed to execute:\n{stmt}\n{args}", exc_info=e)
             raise e
 
     def add_extra_cursor(self, name: str ) -> Cursor:
