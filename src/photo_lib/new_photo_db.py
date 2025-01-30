@@ -809,7 +809,7 @@ class PhotoDB(BaseSQliteDB):
         if len(raw_parent) == 0:
             raise ValueError("Parent Key doesn't exist in main table.")
 
-        assert len(raw_parent) == 1, "SQL Error, Shouldn't be able to hae more than one with same key"
+        assert len(raw_parent) == 1, "SQL Error, Shouldn't be able to have more than one with same key"
         photo_libflags = MainFlags.from_int(raw_parent[0][1])
 
         # INFO: Warning User, shouldn't really be occurring, since trashed shouldn't be able to be deduplicated
