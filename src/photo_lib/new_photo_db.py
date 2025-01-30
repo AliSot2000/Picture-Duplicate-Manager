@@ -90,6 +90,25 @@ class PhotoDB(BaseSQliteDB):
         else:
             self.verify_version()
 
+    def set_logging_defaults(self):
+        """
+        Set Defaults of loggers.
+        """
+        # Level
+        self.main_logger.setLevel(logging.DEBUG)
+        self.integrity_logger.setLevel(logging.DEBUG)
+
+        # Propagate
+        self.integrity_logger.propagate = True
+        self.main_logger.propagate = False
+
+        # Define handler
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setLevel(logging.DEBUG)
+        handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+
+        self.main_logger.addHandler(handler)
+
     # ==================================================================================================================
     # Table Creation & Deletion & Modify Functions
     # ==================================================================================================================
