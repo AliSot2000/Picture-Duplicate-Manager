@@ -498,8 +498,8 @@ class PhotoDB(BaseSQliteDB):
         ...
 
         # Last operation, clear lookup caches
-        self.filename_to_key.clear_cache()
-        self.resolve_key_to_path.clear_cache()
+        self.filename_to_key.cache_clear()
+        self.resolve_key_to_path.cache_clear()
 
     def change_filename(self, key: int, new_filename: str):
         """
@@ -509,8 +509,8 @@ class PhotoDB(BaseSQliteDB):
         :param new_filename: The new file name to use. Sets the db_name column.
         """
         # Last operation, clear lookup caches
-        self.filename_to_key.clear_cache()
-        self.resolve_key_to_path.clear_cache()
+        self.filename_to_key.cache_clear()
+        self.resolve_key_to_path.cache_clear()
 
     def build_import_table_lookup(self, target_table: str):
         """
