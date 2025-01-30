@@ -40,9 +40,9 @@ class PhotoDB(BaseSQliteDB):
 
     def __init__(self,
                  root_path: str,
-                 logger: logging.Logger,
                  init: bool = False,
-                 config: Config = None,):
+                 config: Config = None,
+                 init_loggers: bool = True):
         """
         Construct a Database Object from a preexisting database file.
         """
@@ -1058,6 +1058,8 @@ class PhotoDB(BaseSQliteDB):
         """
         count: int = 0
         self.main_logger.info("Compressing Database, deleting temp files.")
+
+        # Remove temporary files, should they exist.
         content = os.listdir(self.get_temp_dir())
 
         for entry in content:
@@ -1069,6 +1071,7 @@ class PhotoDB(BaseSQliteDB):
                 self.main_logger.debug(f"Deleting {entry}")
                 os.remove(os.path.join(self.get_temp_dir(), entry))
 
+        # Remove display files:
         self.main_logger.info(f"Deleting Thumbnails of existing images.")
         self.debug_execute("SELECT m.key, m.datetime, m.flags, m.db_name, d.db_local_dir "
                            "FROM main AS m JOIN db_idr AS d ON (m.db_dir = d.key) "
