@@ -73,7 +73,7 @@ class PhotoDB(BaseSQliteDB):
         else:
             # Create default config if not provided
             if config is None:
-                config = self.build_default_config(self.root_path)
+                config = self.build_default_config()
 
             with open(os.path.abspath(cfg_path), "w") as f:
                 f.write(config.model_dump_json())
@@ -127,7 +127,7 @@ class PhotoDB(BaseSQliteDB):
         self.main_logger.info("Initialization Complete")
 
     @staticmethod
-    def build_default_config(root_path: str) -> Config:
+    def build_default_config() -> Config:
         """
         Create a new config with only defaults.
         """
@@ -140,7 +140,8 @@ class PhotoDB(BaseSQliteDB):
             thumbnail=defaults.thumbnails_path,
             trash=defaults.trash_path,
             db_file=defaults.db_file,
-
+            thumbnail_target=defaults.thumbnail_size,
+            miniature_target=defaults.miniature_size,
         )
 
     def add_import_table(self, root_path: str, name: str = None, description: str = None):
