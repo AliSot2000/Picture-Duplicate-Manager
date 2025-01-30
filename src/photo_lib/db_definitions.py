@@ -19,8 +19,9 @@ class Version(BaseModel):
 
 class GenericDeclaration(BaseModel):
     declaration_string: str = Field(..., description="The declaration string")
-    name_placeholder: str = Field("%name%", description="The placeholder in the declaration string to replace "
-                                                        "with the actual name of the definition.")
+    name_placeholder: str = Field(default="%name%",
+                                  description="The placeholder in the declaration string to replace "
+                                              "with the actual name of the definition.")
 
     model_config = ConfigDict(
         populate_by_name=True
