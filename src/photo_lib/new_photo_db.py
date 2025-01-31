@@ -1288,7 +1288,6 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count
 
-    def forget_image(self, key: int):
     def forget_image_from_replaced(self, key: int):
         """
         Forgets a image from the replaced table.
@@ -1302,13 +1301,137 @@ class PhotoDB(BaseSQliteDB):
         self.prune_hash()
         self.commit()
         self.main_logger.info(f"Forgot {key} from replaced table")
+
+    def forget_image_from_main(self, key: int):
         """
-        Forgets the image:
+        Forgets the image in the main table:
 
         Removes it from all tables and removes all children. Images which are forgotten, will be not be detected
         upon import and will be reimported if the given image shows up again.
+
+        Removes Hash association to children in replaced table
+        Removes Hash association in parent in main table
+        Removes GPS to main entry
+        Removes thumbnails to main or replaced
+        Removes miniatures to main or replaced
+        Removes original from main or replaced
+        Removes entries from duplicates and known duplicates table
+        Prunes empty hashes
+        Prunes empty gps_locs
+        Prunes empty db_dirs
         """
-        ...
+        self.debug_execute("SELECT m.datetime, m.db_name, m.gps_location, d.db_local_dir, m.db_dir, m.flags FROM "
+                           "main AS m JOIN db_dir AS d ON m.db_dir = d.key WHERE m.key = ?", (key, ))
+        row = self.sq_cur.fetchone()
+        if row is None:
+            raise ValueError("Key not found in main table")
+
+        # Removing all children in replaced
+        self.debug_execute("SELECT key FROM replaced WHERE parent = ?", (key,))
+        children = [r[0] for r in self.sq_cur.fetchall()]
+        self._forget_children_in_replaced(key=children)
+
+        # Parse the row
+        _dt, db_name, gps_location, db_local_dir, db_dir_key, _flags = row
+        dt = datetime.datetime.fromisoformat(_dt)
+        flags = MainFlags.from_int(_flags)
+
+        # TODO darktable
+        # Remove files
+        if flags.trashed:
+            org_p = os.path.join(self.get_trash_dir(), db_name)
+            self.check_flags(flags=flags, key=key, miniature=True, thumbnail=True, org_path=org_p)
+            if os.path.exists(org_p):
+                self.main_logger.debug(f"Deleting {db_name} from trash")
+                os.remove(os.path.join(self.get_trash_dir(), db_name))
+
+        else:
+            if db_local_dir is None:
+                fp = os.path.join(self.root_path, self.dt_to_dir(dt), db_name)
+            else:
+                fp = os.path.join(self.root_path, db_local_dir, db_name)
+
+            self.check_flags(flags=flags, key=key, miniature=True, thumbnail=True, org_path=fp)
+            if os.path.exists(fp):
+                self.main_logger.debug(f"Deleting {db_name} from DB")
+                os.remove(fp)
+
+        # PRECONDITION: The original has been deleted.
+        # Deleting thumbnail and miniature if they exist.
+        if os.path.exists(self.full_miniature_path(key)):
+            self.main_logger.debug(f"Deleting {self.miniature_name(key)} from thumbnails")
+            os.remove(self.full_miniature_path(key))
+
+        if os.path.exists(self.full_thumbnail_path(key)):
+            self.main_logger.debug(f"Deleting {self.thumbnail_name(key)} from thumbnails")
+            os.remove(self.full_thumbnail_path(key))
+
+        # Remove hashes of parent
+        self.debug_execute("DELETE FROM hash_assoz WHERE file_key = ?", (key,))
+        if gps_location is not None:
+            self.debug_execute("DELETE FROM gps_location WHERE key = ?", (gps_location,))
+        if db_dir_key is not None:
+            self.debug_execute("DELETE FROM db_dir WHERE key = ?", (db_dir_key,))
+
+        # Removing files from duplicates table
+        c_known = self.remove_all_tuples_with_key(key=key, known=True)
+        self.main_logger.debug(f"Deleted {c_known} tuples from known_duplicates table")
+        c_default = self.remove_all_tuples_with_key(key=key, known=False)
+        self.main_logger.debug(f"Deleted {c_default} tuples from default table")
+
+        # Finally deleting the main row
+        self.debug_execute("DELETE FROM main WHERE key = ?", (key,))
+        self.commit()
+
+        # Prune dir, hash, gps
+        self.mark_import_table_as_stale()
+        self.prune_hash()
+        self.prune_gps()
+        self.prune_dir()
+        self.commit()
+
+        self.main_logger.info(f"Forgot {key} in main table and children successfully")
+
+    def _forget_children_in_replaced(self, key: int | List[int]):
+        """
+        Forgets a duplicate from the replaced table.
+
+        PRECONDITION: Rows exist in the replaced table.
+        """
+        if isinstance(key, int):
+            key = [key]
+
+        assert isinstance(key, list), f"Unexpected Type of key: {type(key).__name__}"
+
+        key_tuples = [(k,) for k in key]
+
+        # Delete all hash associations of that file
+        # TODO test, does ? with in work
+        self.debug_execute_many("DELETE FROM hash_assoz WHERE file_key = ?", key_tuples)
+
+        self.debug_execute("SELECT key, former_name, flags FROM replaced WHERE key IN ?",
+                           (f"({', '.join(map(str, key))})",))
+
+        self.add_extra_cursor("forget_duplicate")
+        # Removing all duplicates
+        for row in self.sq_cur:
+            key, former_name, _flags = row
+            flags = ReplacedFlags.from_int(_flags)
+
+            if os.path.exists(os.path.join(self.get_trash_dir(), former_name)):
+                self.main_logger.debug(f"Deleting {former_name} from trash")
+                os.remove(os.path.join(self.get_trash_dir(), former_name))
+                flags.present = False
+
+                # Update the flags in the replaced table
+                self.debug_execute("UPDATE replaced SET flags = ? WHERE key = ?",
+                                   (flags.to_int(), key),
+                                   'forget_duplicate')
+
+        # Deleting the rows from the replaced table to finish forgetting.
+        # TODO update if in ? doesn't work!
+        self.debug_execute("DELETE FROM replaced WHERE key IN ?", (f"({', '.join(map(str, key))})",))
+        self.remove_extra_cursor("forget_duplicate")
 
     def check_and_update_thumbnails(self, from_select: bool = False):
         """
