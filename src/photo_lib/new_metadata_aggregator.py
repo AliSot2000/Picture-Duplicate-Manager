@@ -688,7 +688,6 @@ class NewMetadataAggregator:
 
         return union
 
-
     def _dt_parser(self, dt: Union[str, int, float], fmt: int, source: DateTimeCategory) \
             -> Tuple[Union[datetime.datetime, None], DateTimeCategory]:
         """
