@@ -997,12 +997,8 @@ class PhotoDB(BaseSQliteDB):
             tgt_path = os.path.join(self.root_path, db_dir)
 
         # Checking consistency between FS and DB
-        if (not os.path.exists(os.path.join(tgt_path, db_name)) and main_flags.present)\
-                or (os.path.exists(os.path.join(tgt_path, db_name)) and not main_flags.present):
-            self.logger.warning(f"Attempting to move file to replaced, "
-                                f"Inconsistency between presence noted in DB and presence on file system:"
-                                f"db: {main_flags.present}, "
-                                f"file_system: {os.path.exists(os.path.join(tgt_path, db_name))}")
+        self.check_flags(key=key, flags=main_flags, miniature=True, thumbnail=True,
+                         org_path=os.path.join(tgt_path, db_name))
 
         # Take care of three kinds of files.
         if os.path.exists(os.path.join(tgt_path, db_name)):
