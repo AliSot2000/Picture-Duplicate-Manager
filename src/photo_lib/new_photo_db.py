@@ -194,6 +194,26 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("DELETE FROM import_tables WHERE table_name IS ?", (name,))
         return del_table, del_row
 
+    def mark_import_table_as_stale(self, key: int = None):
+        """
+        Update either single import table or all import tables (if no key is provided) as stale.
+
+        Stale indicates that the references in the table to the main database are no longer guaranteed to hold, so a
+        reference might have been moved tables, or moved to trash or forgotten.
+        """
+        if key is None:
+            # The stale flags is bit 1,
+            # And we only update the flags by adding a +1 if that flag hasn't already been set mod(flags, 2) == 0
+            stmt = "UPDATE import_tables SET flags = flags + 1 WHERE key = ? AND mod(flags, 2) == 0"
+            args = (key,)
+        else:
+            # Update all tables to be stale if they aren't already.
+            stmt = "UPDATE import_tables SET flags = flags + 1 WHERE mod(flags, 2) == 0"
+            args = tuple()
+
+        self.debug_execute(stmt, args)
+        self.commit()
+
     # ==================================================================================================================
     # Tabular Integrity checks
     # ==================================================================================================================
