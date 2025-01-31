@@ -1099,6 +1099,7 @@ class PhotoDB(BaseSQliteDB):
         # Store existence in flags
         main_flags.present = os.path.exists(sfp)
 
+        # TODO darktable
         if main_flags.present:
             assert os.path.exists(sfp), "Upper Condition wrong"
 
