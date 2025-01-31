@@ -383,6 +383,73 @@ class PhotoDB(BaseSQliteDB):
         Check the file hashes based on the file names and add them to a list of table.s
         """
         ...
+
+    def prune_hash(self) -> int:
+        """
+        Remove all rows in the hash table which are no longer referenced
+
+        :return: Number of rows removed
+        """
+        self.debug_execute("SELECT COUNT(key) FROM hashes AS h WHERE h.key NOT IN (SELECT hash_key FROM hash_assoz)")
+        count = self.sq_cur.fetchone()[0]
+
+        self.debug_execute("DELETE FROM hashes WHERE key NOT IN (SELECT hash_key FROM hash_assoz)")
+        return count
+
+    def prune_gps(self) -> int:
+        """
+        Remove all rows in the gps table which are no longer referenced
+
+        :return: Number of rows removed
+        """
+        self.debug_execute("SELECT COUNT(key) FROM gps_location WHERE key NOT IN (SELECT gps_location FROM main)")
+        count = self.sq_cur.fetchone()[0]
+
+        self.debug_execute("DELETE FROM gps_location WHERE key NOT IN (SELECT gps_location FROM main)")
+        return count
+
+    def prune_dir(self) -> int:
+        """
+        Remove all entries and all directories form the database which are no longer referenced
+        """
+        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN (SELECT db_dir FROM main)")
+        # TODO Darktable
+
+        # INFO: A db_local_dir can share a partial path with other directories, for example
+        #   Assume you had an event spanning a weekend and it's in a given month, so what you want is to store it in
+        #   root_dir/YYYY/MM/event-name/. Deleting the db_local_dir i.e. ['YYYY', 'MM', 'event-name'] will attempt to
+        #   remove the lowest node tree and then go up and attempt to remove all upper nodes and remove those as well
+        #   if they are empty.
+        keys_to_delete = []
+        for raw in self.sq_cur:
+            ktd = raw[0]
+            db_local_dir = self.parse_db_local_dir(raw[1])
+
+            first = True
+            for i in range(len(db_local_dir)):
+                tgt_dir = os.path.join(self.root_path, *db_local_dir[:len(db_local_dir ) - i])
+                if not os.path.exists(tgt_dir):
+                    continue
+
+                # path exists
+                if os.listdir(tgt_dir):
+                    if first:
+                        self.integrity_logger.warning(f"Lowest Directory Not Empty: {tgt_dir}")
+                        # Lowest child not empty, we break and don't remove that directory from the table
+                        break
+
+                    keys_to_delete.append(ktd)
+                    break
+
+                self.main_logger.debug(f"deleting directory: {tgt_dir}")
+                shutil.rmtree(tgt_dir)
+                first = False
+
+        # TODO in ? does work?
+        self.debug_execute("DELETE FROM db_dir WHERE key IN ?",
+                           (f"({', '.join(map(str, keys_to_delete))})",))
+        return len(keys_to_delete)
+
     # ==================================================================================================================
     # Importing
     # ==================================================================================================================
