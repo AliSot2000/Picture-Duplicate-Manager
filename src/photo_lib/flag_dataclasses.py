@@ -48,6 +48,7 @@ class MainFlags:
                 + int(self.has_thumbnail) << 6
                 + int(self.has_miniature) << 7)
 
+
 @dataclass
 class ReplacedFlags:
     """
