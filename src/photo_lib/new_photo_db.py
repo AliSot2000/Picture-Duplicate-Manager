@@ -1024,6 +1024,8 @@ class PhotoDB(BaseSQliteDB):
 
         # TODO Darktable???
         self.debug_execute("DELETE FROM main WHERE key = ?", (child_key,))
+        self.prune_dir()
+        self.prune_gps()
         self.commit()
 
     def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
