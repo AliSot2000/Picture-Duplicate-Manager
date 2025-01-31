@@ -1289,6 +1289,19 @@ class PhotoDB(BaseSQliteDB):
         return count
 
     def forget_image(self, key: int):
+    def forget_image_from_replaced(self, key: int):
+        """
+        Forgets a image from the replaced table.
+        """
+        self.debug_execute("SELECT * FROM replaced WHERE key = ?", (key,))
+        if self.sq_cur.fetchone() is None:
+            raise ValueError(f"Key {key} not found in replaced table.")
+
+        self._forget_children_in_replaced(key=key)
+        self.mark_import_table_as_stale()
+        self.prune_hash()
+        self.commit()
+        self.main_logger.info(f"Forgot {key} from replaced table")
         """
         Forgets the image:
 
