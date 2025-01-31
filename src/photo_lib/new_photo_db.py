@@ -1259,7 +1259,6 @@ class PhotoDB(BaseSQliteDB):
 
         :param replaced: if true, delete files from replaced table else remove files marked as 'trashed'
         """
-
         count: int = 0
         if replaced:
             self.debug_execute("SELECT key, former_name, flags FROM replaced")
@@ -1276,13 +1275,13 @@ class PhotoDB(BaseSQliteDB):
             key, db_name, _flags = row
             flags = ReplacedFlags.from_int(_flags) if replaced else  MainFlags.from_int(_flags)
 
+            # TODO darktable
             if os.path.exists(os.path.join(self.get_trash_dir(), db_name)):
                 self.main_logger.debug(f"Deleting {db_name} from trash")
                 os.remove(os.path.join(self.get_trash_dir(), db_name))
                 flags.present = False
                 count += 1
-
-            self.debug_execute(update_stmt, (flags.to_int(), key), "del_trash")
+                self.debug_execute(update_stmt, (flags.to_int(), key), "del_trash")
 
         self.main_logger.info(f"Finished Deleting {count} Originals {'Replaced' if replaced else 'Trash'}")
         self.remove_extra_cursor("del_trash")
