@@ -75,3 +75,19 @@ class ReplacedFlags:
     def to_int(self):
         return (int(self.present) +
                 int(self.org_google_metadata) >> 1)
+
+
+@dataclass
+class GenericTableFlags:
+    """
+    Flags for generic tables.
+    """
+    stale: bool
+
+    @classmethod
+    def from_int(cls, group: int):
+        _present = bool(group & 0b1)
+
+    def to_int(self):
+        return (int(self.stale)
+                + 0)
