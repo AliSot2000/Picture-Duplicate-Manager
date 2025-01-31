@@ -592,6 +592,24 @@ class PhotoDB(BaseSQliteDB):
         else:
             raise TypeError("key_a and key_b must be either both list or both int.")
 
+    def remove_all_tuples_with_key(self, key: int, known: bool = False) -> int:
+        """
+        Removes all tuples either from the known_duplicates table or the duplicates table which contain the specified
+        key.
+
+        :param key: Key which needs to be contained for the tuple to be removed.
+        :param known: If true, will remove the tuples from the known_duplicates table else duplicates table.
+
+        :return: Number of removed tuples.
+        """
+        tbl = "known_duplicates" if known else "duplicates"
+
+        self.debug_execute(f"SELECT COUNT(*) FROM {tbl} WHERE key_a = ? AND key_b = ?", (key, key))
+        cnt = self.sq_cur.fetchone()[0]
+
+        self.debug_execute(f"DELETE FROM {tbl} WHERE key_a = ? OR key_b = ?", (key, key))
+        return cnt
+
     # ==================================================================================================================
     # UI
     # ==================================================================================================================
