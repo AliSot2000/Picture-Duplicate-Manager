@@ -1185,7 +1185,6 @@ class PhotoDB(BaseSQliteDB):
 
         # Remove temporary files, should they exist.
         content = os.listdir(self.get_temp_dir())
-
         for entry in content:
             if os.path.isdir(os.path.join(self.get_temp_dir(), entry)):
                 self.main_logger.debug(f"Deleting {entry}")
