@@ -1148,8 +1148,11 @@ class PhotoDB(BaseSQliteDB):
 
     def _empty_trash(self, replaced: bool) -> int:
         """
-        Remove originals from the trash directory. If replaced, remove the originals from the replaced files, otherwise
-        remove the originals from the images which were "moved to trash"
+        Internal function to remove originals from one of two categories of files in the trash:
+        - Files which are marked as 'trashed'
+        - Files which are duplicates and the originals were moved to trash
+
+        :param replaced: if true, delete files from replaced table else remove files marked as 'trashed'
         """
 
         count: int = 0
