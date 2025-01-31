@@ -1201,20 +1201,22 @@ class PhotoDB(BaseSQliteDB):
                            # Check present = 1,            Check trash = 0
                            "WHERE mod(m.flags, 2) == 1 AND mod(m.flags >> 2, 2) == 0")
 
-        # Add extra cursor so we can update the flags
         self.add_extra_cursor("rm_disp_media")
         for row in self.sq_cur:
             key, _dt, _flags, db_name, db_local_dir = row
             dt = datetime.datetime.fromisoformat(_dt)
             flags = MainFlags.from_int(_flags)
 
+            assert flags.trashed is False, "SQL Error, Trashed should be false."
+
             # Get the parent directory in the db where the file resides
             par_dir = os.path.join(self.root_path, db_local_dir) if db_local_dir is not None \
                 else os.path.join(self.root_path, self.dt_to_dir(dt))
 
             # Skip if the original is not present
+            self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True,
+                             org_path=os.path.join(par_dir, db_name))
             if not os.path.exists(os.path.join(par_dir, db_name)):
-                self.logger.warning(f"File not present, despite marked as present: {os.path.join(par_dir, db_name)}")
                 continue
 
             # PRECONDITION: The original file exists in the database.
