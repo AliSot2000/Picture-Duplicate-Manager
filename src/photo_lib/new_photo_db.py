@@ -1441,6 +1441,36 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
+    def check_flags(self, key: int,
+                    flags: MainFlags | ReplacedFlags,
+                    miniature: bool = False,
+                    thumbnail: bool = False,
+                    org_path: str = None):
+        """
+        Check the flags, of a given image. Report issues to integrity_logger.
+
+        **Doesn't update the DB and doesn't update the flags object**
+        """
+        # Check the miniatures.
+        if miniature:
+            assert isinstance(flags, MainFlags), f"Unexpected Type of flags: {type(flags).__name__}"
+            if os.path.exists(self.full_miniature_path(key)) and not flags.has_miniature:
+                self.integrity_logger.warning(f"Miniature present, flags record not present.")
+            elif not os.path.exists(self.full_miniature_path(key)) and flags.has_miniature:
+                self.integrity_logger.warning(f"Miniature not present, flags record present.")
+
+        if thumbnail:
+            assert isinstance(flags, MainFlags), f"Unexpected Type of flags: {type(flags).__name__}"
+            if os.path.exists(self.full_thumbnail_path(key)) and not flags.has_thumbnail:
+                self.integrity_logger.warning(f"Thumbnail present, flags record not present.")
+            elif not os.path.exists(self.full_thumbnail_path(key)) and flags.has_thumbnail:
+                self.integrity_logger.warning(f"Thumbnail not present, flags record present.")
+
+        if org_path is not None:
+            if os.path.exists(org_path) and not flags.present:
+                self.integrity_logger.warning(f"original present, flags record not present.")
+            elif not os.path.exists(org_path) and flags.present:
+                self.integrity_logger.warning(f"original present, flags record present.")
 
     # ==================================================================================================================
     # Lookup Methods
