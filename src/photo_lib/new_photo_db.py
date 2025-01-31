@@ -342,7 +342,7 @@ class PhotoDB(BaseSQliteDB):
         self.generic_decls = temp_generic
 
     # ==================================================================================================================
-    # File Integrity checks
+    # DB Integrity checks and utility
     # ==================================================================================================================
 
     def update_hash_from_filename(self, fname: Dict[str, str]):
