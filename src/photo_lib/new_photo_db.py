@@ -706,8 +706,8 @@ class PhotoDB(BaseSQliteDB):
 
             flags = MainFlags.from_int(_flags)
             dt = datetime.datetime.fromisoformat(_dt)
-            par_dir = os.path.join(self.db_path, _db_dir) if _db_dir else os.path.join(self.root_path,
-                                                                                       self.dt_to_dir(dt))
+            par_dir = os.path.join(self.db_path, *self.parse_db_local_dir(_db_dir)) if _db_dir \
+                else os.path.join(self.root_path, self.dt_to_dir(dt))
 
             # skip missing images or images in trash
             if not flags.present or flags.trashed:
@@ -994,7 +994,7 @@ class PhotoDB(BaseSQliteDB):
         if db_dir is None:
             tgt_path = os.path.join(self.root_path, self.dt_to_dir(dt))
         else:
-            tgt_path = os.path.join(self.root_path, db_dir)
+            tgt_path = os.path.join(self.root_path, *self.parse_db_local_dir(db_dir))
 
         # Checking consistency between FS and DB
         self.check_flags(key=key, flags=main_flags, miniature=True, thumbnail=True,
@@ -1349,7 +1349,7 @@ class PhotoDB(BaseSQliteDB):
             if db_local_dir is None:
                 fp = os.path.join(self.root_path, self.dt_to_dir(dt), db_name)
             else:
-                fp = os.path.join(self.root_path, db_local_dir, db_name)
+                fp = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), db_name)
 
             self.check_flags(flags=flags, key=key, miniature=True, thumbnail=True, org_path=fp)
             if os.path.exists(fp):
@@ -1571,3 +1571,19 @@ class PhotoDB(BaseSQliteDB):
             trunc_new_name = base_name[:120] + ext
 
         return trunc_new_name
+
+    @staticmethod
+    def parse_db_local_dir(db_local_dir: str) -> list:
+        """
+        Parse the json string from the database to aa list of strings.
+        """
+        res = json.loads(db_local_dir)
+        assert isinstance(res, list), f"Unexpected type in db_local_dir {type(res).__name__}"
+        return res
+
+    @staticmethod
+    def dump_db_local_dir(dir_names: List[str]) -> str:
+        """
+        Convert a list of dir names into a json list which can be inserted into the database.
+        """
+        return json.dumps(dir_names).replace("'", "''")
