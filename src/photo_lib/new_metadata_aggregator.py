@@ -1524,14 +1524,14 @@ class NewMetadataAggregator:
             if not (dt_a is not None and dt_b is not None):
                 continue
 
-            dt = dt_a + " " + dt_b
+            dt_str = dt_a + " " + dt_b
 
-            valid_res = self._parse_raw_value(dt=dt, formats_dt=formats)
+            valid_res = self._parse_raw_value(dt=dt_str, formats_dt=formats)
             if valid_res is None:
                 continue
 
             if len(valid_res) == 0 and self.discover:
-                dt, dts, idx = self._dt_test_all(dt=dt, key=self.serialize_key(keys))
+                dt, dts, idx = self._dt_test_all(dt=dt_str, key=self.serialize_key(keys))
 
                 if dt is not None:
                     zone = zoneinfo.ZoneInfo(formats[0].tz) if formats[0].tz is not None else datetime.timezone.utc
