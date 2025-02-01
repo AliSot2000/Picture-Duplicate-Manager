@@ -1123,7 +1123,7 @@ class PhotoDB(BaseSQliteDB):
 
         return True
 
-    def move_to_replaced(self, child_key: int, parent_key: int):
+    def move_to_replaced(self, child_key: int, parent_key: int, copy_google_metadata: bool = True):
         """
         Move a duplicate into the replaced table.
 
@@ -1131,6 +1131,11 @@ class PhotoDB(BaseSQliteDB):
         - Original, Thumbnail, Miniature Deleted, can be taken from parent
         - Attributes are transferred into the replaced table.
         - Need to remove mentions in duplicates and known_duplicates table.
+
+        :param child_key: The key of the entry in the main table which will become the child in the replaced table
+        :param parent_key: The key of the file which will be newly the parent.
+        :param copy_google_metadata: Copy the Google Metadata from the child to the parent if the parent doesn't have
+            Google Metadata
         """
         self.debug_execute("SELECT key, flags FROM main WHERE key = ?", (parent_key,))
         raw_parent = self.sq_cur.fetchall()
@@ -1218,10 +1223,16 @@ class PhotoDB(BaseSQliteDB):
             self.main_logger.debug(f"Deleting Miniature {self.miniature_name(key)}")
             os.remove(self.full_miniature_path(key))
 
+        if copy_google_metadata and parent_google_metadata is None and google_metadata is not None:
+            parent_flags.org_google_metadata = False
+            self.debug_execute("UPDATE main SET google_metadata = ?, flags = ? WHERE key = ?",
+                               (google_metadata.replace("'", "''"), parent_flags.to_int(), parent_key))
+
         # TODO Darktable???
         self.debug_execute("DELETE FROM main WHERE key = ?", (child_key,))
         self.prune_dir()
         self.prune_gps()
+        self.prune_fs_dir = True
         self.commit()
 
     def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
