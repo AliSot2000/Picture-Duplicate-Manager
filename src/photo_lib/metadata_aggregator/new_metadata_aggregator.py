@@ -780,6 +780,7 @@ class NewMetadataAggregator:
             # We're not parsing a time stamp so use the strptime method for strings
             if source != DateTimeCategory.TIMESTAMP:
                 res = datetime.datetime.strptime(dt, fmt_str)
+
                 if res.tzinfo is None and is_utc:
                     res = res.replace(tzinfo=datetime.timezone.utc)
                 return res, source
@@ -787,6 +788,8 @@ class NewMetadataAggregator:
                 return (datetime.datetime.fromtimestamp(float(dt)).replace(tzinfo=datetime.timezone.utc),
                         DateTimeCategory.AWARE)
         except ValueError:
+            return None, DateTimeCategory.NONE
+        except TypeError:
             return None, DateTimeCategory.NONE
 
     def _coercing_dt_parser(self, dt: Union[str, int, float], fmt: int, source: DateTimeCategory, tz: Union[str, None]) \
