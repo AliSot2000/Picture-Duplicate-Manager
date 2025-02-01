@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 
 # TODO Darktable?
+# TODO org_google_metadata = True
 @dataclass
 class MainFlags:
     """
