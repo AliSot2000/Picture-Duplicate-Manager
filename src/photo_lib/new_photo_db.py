@@ -781,6 +781,64 @@ class PhotoDB(BaseSQliteDB):
         self.filename_to_key.cache_clear()
         self.resolve_key_to_path.cache_clear()
 
+    def _get_rename_data(self, key: int) -> Tuple[int, datetime.datetime, MainFlags, str, str, str]:
+        """
+        Get the necessary data from the database to rename a file
+        """
+        # Get current row
+        self.debug_execute("SELECT m.key, m.datetime, m.flags, d.db_local_dir, m.db_name, m.original_filename "
+                           "FROM main AS m JOIN db_dir AS d ON m.db_dir = d.key "
+                           "WHERE m.key = ?", (key,))
+
+        row = self.sq_cur.fetchone()
+        if row is None:
+            raise ValueError(f"Key {key} does not exist in main table")
+
+        key, _dt, _flags, db_local_dir, db_name, original_name = row
+        dt = datetime.datetime.fromisoformat(_dt)
+        flags = MainFlags.from_int(_flags)
+
+        return key, dt, flags, db_local_dir, db_name, original_name
+
+    def _internal_rename(self, key: int, flags: MainFlags, db_name: str, new_name: str, dt: datetime.datetime,
+                         db_local_dir: str = None):
+        """
+        Shared part of the function that all functions that rename a file use.
+
+        Info: Sets the prune_fs_dir flag.
+
+        :param key: key of image to rename
+        :param db_name: current name of image to rename
+        :param new_name: new name of image to rename
+        :param dt: datetime object needed for path
+        :param db_local_dir: directory to use for path
+        """
+        if flags.trashed:
+            par_dir = self.get_trash_dir()
+            new_par_dir = self.get_trash_dir()
+        elif db_local_dir is not None:
+            par_dir = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir))
+            new_par_dir = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir))
+        else:
+            assert db_local_dir is None, "Unexpected state in parent directory resolution"
+            par_dir = os.path.join(self.root_path, self.dt_to_dir(dt))
+            new_par_dir = os.path.join(self.root_path, self.dt_to_dir(dt))
+
+            if not os.path.exists(new_par_dir):
+                self.main_logger.debug(f"Creating New Directory: {new_par_dir}")
+                os.makedirs(new_par_dir)
+
+        self.check_flags(key=key, flags=flags, org_path=os.path.join(par_dir, db_name))
+        if os.path.splitext(new_name)[1] != os.path.splitext(db_name)[1]:
+            self.main_logger.warning("New file extension does not match DB file extension")
+
+        if not os.path.exists(os.path.join(par_dir, db_name)):
+            raise ValueError("Original File doesn't exist, cannot rename.")
+
+        # PRECONDITION: File Exists, Filename not present
+        os.rename(os.path.join(par_dir, db_name), os.path.join(new_par_dir, new_name))
+        self.prune_fs_dir = True
+
     def build_import_table_lookup(self, target_table: str):
         """
         Build the row lookup table for a import table
