@@ -59,3 +59,14 @@ class GroupingCriterion(Enum):
     YEAR = 1
     YEAR_MONTH = 2
     YEAR_MONTH_DAY = 3
+
+class NewMatchTypes(Enum):
+    """
+    Enum to indicate the type of match found in the database.
+    """
+    NO_MATCH = 0
+    BINARY_MATCH_IMAGES = 1
+    BINARY_MATCH_TRASH = 2
+    HASH_MATCH_TRASH = 3
+    BINARY_MATCH_REPLACED = 4
+    HASH_MATCH_REPLACED = 5
