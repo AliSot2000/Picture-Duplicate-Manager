@@ -551,21 +551,15 @@ class NewMetadataAggregator:
             # Earlier Datetime Found in the Google Results.
             if md is None or google_result[0].dt < exiftool_result[0].dt:
                 assert isinstance(google_result[0].key, list), "Unexpected Format of Google Photos MDPS"
-                key = "GooglePhotosMetadata:" + ",".join(google_result[0].key)
 
                 return self.build_metadata_parsing_result(
-                    pr=google_result, path=p, metadata=md, google_photos_metadata=gfmd, naming_tag=key
+                    pr=google_result, path=p, metadata=md, google_photos_metadata=gfmd,
+                    naming_tag=self.serialize_key(google_result[0].key)
                 )
 
-        if isinstance(exiftool_result[0].key, str):
-            key = exiftool_result[0].key
-        elif isinstance(exiftool_result[0].key, DoubleKey):
-            key = exiftool_result[0].key.first_key + ", " + exiftool_result[0].key.second_key
-        else:
-            raise TypeError("Unexpected key type form metadata parser")
-
         return self.build_metadata_parsing_result(
-            pr=exiftool_result, path=p, metadata=md, naming_tag=key, google_photos_metadata=gfmd
+            pr=exiftool_result, path=p, metadata=md, naming_tag=self.serialize_key(exiftool_result[0].key),
+            google_photos_metadata=gfmd
         )
 
     # ==================================================================================================================
@@ -1316,7 +1310,7 @@ class NewMetadataAggregator:
 
             # Discover new formats for given double key
             if len(valid_res) == 0 and self.discover:
-                dt, dts, idx = self._dt_test_all(dt=dt_a, key=f"{keys.first_key} + {keys.second_key}")
+                dt, dts, idx = self._dt_test_all(dt=dt_a, key=self.serialize_key(keys))
                 if dt is not None:
                     results.append(DateTimeParsingResult(key=keys, dt=dt, src=dts))
 
@@ -1336,11 +1330,11 @@ class NewMetadataAggregator:
 
             elif len(valid_res) > 0:
                 assert len(valid_res) == 1, (f"Found multiple valid formats for keys "
-                                             f"{keys.first_key} + {keys.second_key}: {dt}")
+                                             f"{self.serialize_key(keys)}: {dt}")
                 results.append(DateTimeParsingResult(key=keys, dt=valid_res[0][0], src=valid_res[0][1]))
 
             else:
-                self.logger.debug(f"No valid format found for key {keys.first_key} + {keys.second_key}: {dt}")
+                self.logger.debug(f"No valid format found for key {self.serialize_key(keys)}: {dt}")
 
         return results
 
@@ -1497,7 +1491,7 @@ class NewMetadataAggregator:
                 continue
 
             if len(valid_res) == 0 and self.discover:
-                dt, dts, idx = self._dt_test_all(dt=dt, key=f"{keys.first_key} + {keys.second_key}")
+                dt, dts, idx = self._dt_test_all(dt=dt, key=self.serialize_key(keys))
 
                 if dt is not None:
                     zone = zoneinfo.ZoneInfo(formats[0].tz) if formats[0].tz is not None else datetime.timezone.utc
@@ -1524,10 +1518,10 @@ class NewMetadataAggregator:
                             ))
             elif len(valid_res) > 0:
                 assert len(valid_res) == 1, (f"Found multiple valid formats for keys "
-                                             f"{keys.first_key} + {keys.second_key}: {dt}")
+                                             f"{self.serialize_key(keys)}: {dt}")
                 results.append(DateTimeParsingResult(key=keys, dt=valid_res[0][0], src=valid_res[0][1]))
             else:
-                self.logger.debug(f"No valid format found for key {keys.first_key} + {keys.second_key}: {dt} (static")
+                self.logger.debug(f"No valid format found for key {self.serialize_key(keys)}: {dt} (static")
 
         return results
 
@@ -1815,7 +1809,7 @@ class NewMetadataAggregator:
                 continue
 
             if len(dtr) == 0 and self.discover:
-                dt, dts, idx = self._dt_test_all(dt=res, key=", ".join(src.path))
+                dt, dts, idx = self._dt_test_all(dt=res, key=self.serialize_key(src.path))
 
                 # Found a new format
                 if dt is not None:
@@ -1836,11 +1830,11 @@ class NewMetadataAggregator:
                         )
 
             elif len(dtr) > 0:
-                assert len(dtr) == 1, f"Found multiple valid formats for key {src.path}: {res}"
+                assert len(dtr) == 1, f"Found multiple valid formats for key {self.serialize_key(src.path)}: {res}"
                 results.append(DateTimeParsingResult(key=src.path, dt=dtr[0][0], src=dtr[0][1]))
 
             else:
-                self.logger.debug(f"No valid format found for key {src.path}: {res}")
+                self.logger.debug(f"No valid format found for key {self.serialize_key(src.path)}: {res}")
 
         return results
 
