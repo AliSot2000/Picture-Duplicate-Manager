@@ -1,18 +1,19 @@
 import datetime
 import multiprocessing
+import multiprocessing as mp
 import os.path
 import time
 import warnings
-from typing import List, Union, Tuple, Dict
-import multiprocessing as mp
-from multiprocessing.connection import Connection
 from dataclasses import dataclass
+from multiprocessing.connection import Connection
+from typing import List, Tuple, Union
 
-from photo_lib.metadataagregator import MetadataAggregator
-from photo_lib.PhotoDatabase import PhotoDb, DatabaseEntry, ImportTileInfo, MatchTypes, FullImportTableEntry
-from photo_lib.custom_enum import SourceTable, GUICommandTypes
-from photo_lib.data_objects import *
-from photo_lib.metadataagregator import key_lookup_dir
+from photo_lib.PhotoDatabase import PhotoDb
+from photo_lib.data_objects import (MatchTypes, ImportTileInfo, DatabaseEntry, FullImportTableEntry, FullDatabaseEntry,
+                                    FullReplacedEntry, SourceTable, GUICommandTypes, ImportTableEntry,
+                                    GroupingCriterion, BaseTileInfo, GroupCount)
+from photo_lib.metadata_aggregator.metadataagregator import MetadataAggregator
+from photo_lib.metadata_aggregator.metadataagregator import key_lookup_dir
 
 
 @dataclass
