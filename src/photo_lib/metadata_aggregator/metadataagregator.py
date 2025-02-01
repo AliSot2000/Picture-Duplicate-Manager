@@ -4,7 +4,7 @@ import datetime
 import os
 import hashlib
 from dataclasses import dataclass
-from .tagsnshit import known  # find
+from photo_lib.tagsnshit import known  # find
 from typing import Union
 
 
