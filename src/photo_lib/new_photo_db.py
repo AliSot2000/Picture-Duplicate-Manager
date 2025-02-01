@@ -1509,6 +1509,7 @@ class PhotoDB(BaseSQliteDB):
         self._forget_children_in_replaced(key=key)
         self.mark_import_table_as_stale()
         self.prune_hash()
+        self.prune_fs_dir = True
         self.commit()
         self.main_logger.info(f"Forgot {key} from replaced table")
 
@@ -1598,6 +1599,7 @@ class PhotoDB(BaseSQliteDB):
         self.prune_hash()
         self.prune_gps()
         self.prune_dir()
+        self.prune_fs_dir = True
         self.commit()
 
         self.main_logger.info(f"Forgot {key} in main table and children successfully")
