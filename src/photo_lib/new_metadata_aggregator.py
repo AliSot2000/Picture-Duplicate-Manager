@@ -1342,15 +1342,15 @@ class NewMetadataAggregator:
                 continue
 
             # Build datetime string
-            dt = dt_a + " " + dt_b
+            dt_str = dt_a + " " + dt_b
 
-            valid_res = self._parse_raw_value(dt=dt, formats=formats)
+            valid_res = self._parse_raw_value(dt=dt_str, formats=formats)
             if valid_res is None:
                 continue
 
             # Discover new formats for given double key
             if len(valid_res) == 0 and self.discover:
-                dt, dts, idx = self._dt_test_all(dt=dt_a, key=self.serialize_key(keys))
+                dt, dts, idx = self._dt_test_all(dt=dt_str, key=self.serialize_key(keys))
                 if dt is not None:
                     results.append(DateTimeParsingResult(key=keys, dt=dt, src=dts))
 
