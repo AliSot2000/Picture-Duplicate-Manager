@@ -654,6 +654,53 @@ class PhotoDB(BaseSQliteDB):
     # UI
     # ==================================================================================================================
 
+    def modify_timezone(self,
+                        key: int,
+                        _target_tz: ZoneInfo | str | datetime.timedelta,
+                        rename: bool = True,
+                        replace: bool = False):
+        """
+        Modify the timezone of a given file. File must be in the main table.
+
+        If rename is set, the file will be renamed in the fs
+        If replace is set, the timezone will be replaced (utc offset changes). Otherwise utc-offset and time change.
+
+        :param key: key in db of file which needs to be modified.
+        :param _target_tz: Target timezone of the file.
+        :param rename: If true, will rename the file in the main table.
+        :param replace: If true, will replace the file in the main table.
+        """
+        if isinstance(_target_tz, ZoneInfo):
+            target_tz = _target_tz
+        elif isinstance(_target_tz, str):
+            target_tz = ZoneInfo(_target_tz)
+        elif isinstance(_target_tz, datetime.timedelta):
+            target_tz = datetime.timezone(_target_tz)
+        else:
+            raise TypeError("target_tz must be str, a ZoneInfo or datetime.timedelta.")
+
+        # Get current row
+        _, dt, flags, db_local_dir, db_name, original_name = self._get_rename_data(key=key)
+
+        new_dt = dt.replace(tzinfo=target_tz) if replace else dt.astimezone(tz=target_tz)
+        new_name = self.db_name(original_filename=original_name, key=key, fdt=new_dt)
+
+        if rename:
+            self._internal_rename(key=key,
+                                  new_name=new_name,
+                                  db_local_dir=db_local_dir,
+                                  db_name=db_name,
+                                  flags=flags,
+                                  dt=dt)
+
+
+            self.debug_execute("UPDATE main SET datetime = ?, timezone = ?, db_name = ? WHERE key = ?",
+                               (new_dt.isoformat(), new_dt.tzname(), new_name, key))
+        else:
+            self.debug_execute("UPDATE main SET datetime = ?, timezone = ? WHERE key = ?",
+                               (new_dt.isoformat(), new_dt.tzname(), key))
+        self.commit()
+
     def change_datetime(self,
                         key: int,
                         new_dt: datetime.datetime = None,
