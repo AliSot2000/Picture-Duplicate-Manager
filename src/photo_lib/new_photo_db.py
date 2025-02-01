@@ -1137,7 +1137,10 @@ class PhotoDB(BaseSQliteDB):
         main_flags.trashed = True
 
         # All things done, update the flags and write the db
-        self.debug_execute("UPDATE main SET flags = ? WHERE key = ?", (main_flags.to_int(), key))
+        self.debug_execute("UPDATE main SET flags = ?, db_dir = NULL WHERE key = ?",
+                           (main_flags.to_int(), key))
+        self.prune_dir()
+        self.prune_fs_dir = True
         self.commit()
 
     def delete_trash_thumb(self, key: Union[List[int], int, None]) -> int:
