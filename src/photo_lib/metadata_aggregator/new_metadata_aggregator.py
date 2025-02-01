@@ -253,7 +253,8 @@ class NewMetadataAggregator:
                  ignore_keys: List[str] = None,
                  search_keys: List[str] = None,
                  default_tz: str = None,
-                 tz_priority: List[DateTimeSource] = None):
+                 tz_priority: List[DateTimeSource] = None,
+                 datetime_fmt: DateTimeParser = None):
         """
         Initialize the Metadata Aggregator. Logger is a parameter since this process might be in a subprocess and need
         special logging setup.
@@ -319,6 +320,7 @@ class NewMetadataAggregator:
         - search_keys
         - default_tz
         - tz_priority
+        - datetime_fmt
 
         Configuration:
 
@@ -337,7 +339,8 @@ class NewMetadataAggregator:
         :param search_keys: Override of the class attribute `search_keys`. Can also be set later on.
         :param default_tz: Override of the class attribute `default_tz`. Uses System Timezone otherwise.
         :param tz_priority: Override of the class attribute `tz_priority`. This defines in which order to take the
-            different classes of datetime results found in the metadata (do not need to privde CUSTOM)
+            different classes of datetime results found in the metadata (do not need to provide CUSTOM)
+        :param datetime_fmt: Override the default formats from an external source.
 
         :param logger: Provide a logger to the class so it can output status messages
         :param discover_logger: Logger used only to report parsing issues.
@@ -360,10 +363,13 @@ class NewMetadataAggregator:
             raise FileNotFoundError("Dependent config missing. Add the datetime_fmt.json again or create it from the "
                                     "human readable version.")
 
-        with open(cfg_p, "r") as f:
-            content = f.read()
-        parser_config = DateTimeParser.model_validate_json(content)
-        self.dt_cfg = self.build_internal_config(parser_config)
+        if datetime_fmt is None:
+            with open(cfg_p, "r") as f:
+                content = f.read()
+            parser_config = DateTimeParser.model_validate_json(content)
+            self.dt_cfg = self.build_internal_config(parser_config)
+        else:
+            self.dt_cfg = self.build_internal_config(datetime_fmt)
 
         if discover and use_dateutil:
             self.logger.warning("discover and use_dateutil set, discover overrides use_dateutil to False.")
