@@ -337,7 +337,7 @@ class NewMetadataAggregator:
         :param search_keys: Override of the class attribute `search_keys`. Can also be set later on.
         :param default_tz: Override of the class attribute `default_tz`. Uses System Timezone otherwise.
         :param tz_priority: Override of the class attribute `tz_priority`. This defines in which order to take the
-            different classes of datetime results found in the metadata
+            different classes of datetime results found in the metadata (do not need to privde CUSTOM)
 
         :param logger: Provide a logger to the class so it can output status messages
         :param discover_logger: Logger used only to report parsing issues.
@@ -385,7 +385,8 @@ class NewMetadataAggregator:
             if len(no_dup) != len(tz_priority):
                 raise ValueError("Duplicate Key in Time Zone Priority")
 
-            if len(no_dup) < len(DateTimeSource._member_names_):
+            # INFO: Parser doesn't need CUSTOM DateTimeSource => -1
+            if len(no_dup) < len(DateTimeSource._member_names_) - 1:
                 raise ValueError("Not Sources present, you must order all priorities first.")
 
             # INFO: Cannot use set, lose order.
@@ -396,7 +397,8 @@ class NewMetadataAggregator:
                                 DateTimeSource.UNAWARE_DEFAULT,
                                 DateTimeSource.DATE_OR_TIME,
                                 DateTimeSource.FILE_AWARE]
-            assert len(self.tz_priority) == len(DateTimeSource._member_names_), "Not all Sources covered. Fix CLass"
+            # INFO: Parser doesn't need CUSTOM DateTimeSource => -1
+            assert len(self.tz_priority) == len(DateTimeSource._member_names_) - 1, "Not all Sources covered. Fix CLass"
 
         if ignore_keys is not None:
             self.ignore_keys = ignore_keys
