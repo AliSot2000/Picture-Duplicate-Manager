@@ -3,10 +3,10 @@ import json
 
 
 human_file = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "src", "photo_lib", "datetime_human_fmt.json"))
+    os.path.join(os.path.dirname(__file__), "..", "src", "photo_lib", "metadata_aggregator", "datetime_human_fmt.json"))
 
 comp_file = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "src", "photo_lib", "datetime_fmt.json"))
+    os.path.join(os.path.dirname(__file__), "..", "src", "photo_lib", "metadata_aggregator", "datetime_fmt.json"))
 
 hstat = os.stat(human_file)
 cstat = os.stat(comp_file)
