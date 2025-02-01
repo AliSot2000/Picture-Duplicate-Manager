@@ -747,12 +747,37 @@ class PhotoDB(BaseSQliteDB):
 
     def change_filename(self, key: int, new_filename: str):
         """
-        Change the filename. Set a custom filename.
+        The function exists for the purpose of allowing the user to change file names however it is not recommended.
+
+        Change the filename. Set a custom filename. The filename must be unique within the database.
+        Also, the file must still be present.
 
         :param key: Key in main database to update with the new filename
         :param new_filename: The new file name to use. Sets the db_name column.
         """
+        self.debug_execute("SELECT key FROM main WHERE db_name = ?", (new_filename,))
+        if self.sq_cur.fetchone() is not None:
+            raise ValueError("Filename already exists in main table.")
+
+        self.debug_execute("SELECT key FROM replaced WHERE former_name = ?", (new_filename,))
+        if self.sq_cur.fetchone() is not None:
+            raise ValueError("Filename already exists in replaced table.")
+
+        # PRECONDITION: Filename not present
+        _, dt, flags, db_local_dir, db_name, _ = self._get_rename_data(key=key)
+        self._internal_rename(key=key,
+                              flags=flags,
+                              db_name=db_name,
+                              new_name=new_filename,
+                              dt=dt,
+                              db_local_dir=db_local_dir)
+
+        # Update the database after renaming
+        self.debug_execute("UPDATE main SET db_name = ?, naming_tag = ? WHERE key = ?",
+                           (new_filename, "CUSTOM", key))
+
         # Last operation, clear lookup caches
+        self.commit()
         self.filename_to_key.cache_clear()
         self.resolve_key_to_path.cache_clear()
 
