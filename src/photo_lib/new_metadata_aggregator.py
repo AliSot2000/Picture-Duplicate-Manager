@@ -572,6 +572,20 @@ class NewMetadataAggregator:
     # Base Functions Datetime Parsing and Utility
     # ==================================================================================================================
 
+    @staticmethod
+    def serialize_key(key: Union[List[Union[str, int]], str, DoubleKey]):
+        """
+        Convert any key in the ParsingResults to string for database.
+        """
+        if isinstance(key, str):
+            return key
+        elif isinstance(key, list):
+            return "GooglePhotosMetadata" + ":".join(map(str, key))
+        elif isinstance(key, DoubleKey):
+            return key.first_key + ", " + key.second_key
+        else:
+            raise TypeError("Unexpected key type form metadata parser")
+
     def build_metadata_parsing_result(self,
                                       pr: Tuple[DateTimeParsingResult, DateTimeSource, Union[None, GPSParsingResult]],
                                       path: str,
