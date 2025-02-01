@@ -75,3 +75,4 @@ class DateTimeSource(Enum):
     UNAWARE_GPS = 2
     UNAWARE_DEFAULT = 3
     DATE_OR_TIME = 4
+    CUSTOM = 5

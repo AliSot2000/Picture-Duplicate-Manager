@@ -165,7 +165,7 @@ current_version = DBVersion(
                                "timezone TEXT, "
                                "gps_location INTEGER, "
                                "db_dir INTEGER, "
-                               "datetime_source INTEGER CHECK (`%name%`.datetime_source IN (0, 1, 2, 3, 4)), "
+                               "datetime_source INTEGER CHECK (`%name%`.datetime_source IN (0, 1, 2, 3, 4, 5)), "
                                "flags INTEGER NOT NULL,"
                                "FOREIGN KEY (gps_location) REFERENCES gps_location(key),"
                                "FOREIGN KEY (db_dir) REFERENCES db_dir(key))"
