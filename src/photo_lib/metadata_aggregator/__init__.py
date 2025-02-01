@@ -3,4 +3,4 @@ from photo_lib.metadata_aggregator.config import (
     GoogleFotoDatetime, GPSMultiKey, InternalDoubleKeyStatic, DateTimeParser, InternalDateTimeParser)
 from photo_lib.metadata_aggregator.dataclasses import DateTimeParsingResult, GPSParsingResult, MetadataParsingResult
 from photo_lib.metadata_aggregator.enums import DateTimeCategory, DateTimeSource
-from new_metadata_aggregator import NewMetadataAggregator
+from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAggregator
