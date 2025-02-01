@@ -36,6 +36,9 @@ class PhotoDB(BaseSQliteDB):
     main_logger: logging.Logger
     integrity_logger: logging.Logger
 
+    # Flags
+    prune_fs_dir: bool = False
+
     @property
     def current_version(self):
         return current_version.current_version
