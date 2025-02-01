@@ -31,6 +31,7 @@ class MetadataParsingResult:
     creation_date: datetime.datetime
     naming_tag: str
     file_hash: str
+    file_size: int
 
     metadata: Optional[dict] = None
     google_photos_metadata: Optional[dict] = None
