@@ -843,7 +843,8 @@
         "%H.%M",
         "%H-%M",
         "%H-%M-%S",
-        "%H-%M-%S-%f"
+        "%H-%M-%S-%f",
+        "%H:%M:%S&z"
     ],
     "tz_unaware_formats": [
         "%Y:%m:%d %H:%M:%S",
