@@ -416,6 +416,10 @@ class PhotoDB(BaseSQliteDB):
         count = self.sq_cur.fetchone()[0]
 
         self.debug_execute("DELETE FROM hashes WHERE key NOT IN (SELECT hash_key FROM hash_assoz)")
+        if count > 0:
+            self.main_logger.info(f"Pruned {count} rows in hash table")
+        else:
+            self.main_logger.debug("Call to prune_hash, no hashes pruned")
         return count
 
     def prune_gps(self) -> int:
@@ -428,6 +432,10 @@ class PhotoDB(BaseSQliteDB):
         count = self.sq_cur.fetchone()[0]
 
         self.debug_execute("DELETE FROM gps_location WHERE key NOT IN (SELECT gps_location FROM main)")
+        if count > 0:
+            self.main_logger.info(f"Pruned {count} rows in gps table")
+        else:
+            self.main_logger.debug(f"Call to prune_gps, no rows pruned")
         return count
 
     def prune_dir(self) -> int:
@@ -470,6 +478,11 @@ class PhotoDB(BaseSQliteDB):
         # TODO in ? does work?
         self.debug_execute("DELETE FROM db_dir WHERE key IN ?",
                            (f"({', '.join(map(str, keys_to_delete))})",))
+        if len(keys_to_delete) > 0:
+            self.main_logger.info(f"Pruned {len(keys_to_delete)} rows in dir table")
+        else:
+            self.main_logger.debug(f"Call to prune_dir, no rows pruned")
+
         return len(keys_to_delete)
 
     # ==================================================================================================================
