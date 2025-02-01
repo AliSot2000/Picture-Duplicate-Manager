@@ -513,6 +513,28 @@ class NewMetadataAggregator:
 
         return dts, gps_rst
 
+    def test_parsing(self, exif_md: dict, google_md: dict):
+        """
+        Function is used to pass metadata in as an argument without file. Can bypass filesystem for faster testing.
+
+        :param exif_md: Metadata dict from exiftool.
+        :param google_md: Metadata dict from google drive.
+
+        return datetime results exiftool, gps results exiftool, dateitme result google
+        """
+        if exif_md is None and google_md is None:
+            return None, None, None
+
+        dtr = gps_rst = google_dtr = None
+
+        if exif_md is not None:
+            dtr, gps_rst = self.parse_exiftool_result(exif_md)
+
+        if google_md is not None and len(google_md.keys()) > 0 :
+            google_dtr = self.parse_google_photos_metadata(google_md)
+
+        return dtr, gps_rst, google_dtr
+
     def handle_file(self, file: str) -> MetadataParsingResult:
         """
         Handle generation of all metadata for a given file.
