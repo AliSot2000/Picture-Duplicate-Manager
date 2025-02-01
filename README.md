@@ -18,4 +18,7 @@ relative path which is within the database to the file.
 
 
 ##### File Naming Convention:
-Files are in nothing is selected named like `YYYY-MM-DDTHH-MM-SS_key`.
+Files are in nothing is selected named like `YYYY-MM-DDTHH-MM-SS_key:04[_org_file_name].ext`.
+
+Convention regarding the existence of Thumbnails and Miniatures. Files moved to the `replaced table` are don't need the 
+Display Files and rely on their parent for those files.
