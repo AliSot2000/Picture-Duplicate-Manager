@@ -1652,6 +1652,7 @@ class PhotoDB(BaseSQliteDB):
         :param from_select: Use selection marker of images to check changed hashes for those images.
         """
         ...
+        # TODO implement
 
     def check_flags(self, key: int,
                     flags: MainFlags | ReplacedFlags,
@@ -1693,6 +1694,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Get the original filename for image
         """
+        # TODO implement
         ...
 
     @functools.lru_cache(maxsize=1024)
@@ -1700,6 +1702,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Resolve a filename to key
         """
+        # TODO implement
         ...
 
     @staticmethod
