@@ -1297,7 +1297,7 @@ class NewMetadataAggregator:
 
             # Add valid result to the overall results.
             elif len(valid_res) > 0:
-                assert len(valid_res) == 1, f"Found multiple valid formats for key {key}: {md.get(key)}"
+                assert len(valid_res) == 1, f"Found multiple valid formats for key {key}: {md.get(key)}, {valid_res}"
                 results.append(DateTimeParsingResult(key=key, dt=valid_res[0][0], src=valid_res[0][1]))
 
             else:
@@ -1368,7 +1368,7 @@ class NewMetadataAggregator:
 
             elif len(valid_res) > 0:
                 assert len(valid_res) == 1, (f"Found multiple valid formats for keys "
-                                             f"{self.serialize_key(keys)}: {dt}")
+                                             f"{self.serialize_key(keys)}: {dt}, {valid_res}")
                 results.append(DateTimeParsingResult(key=keys, dt=valid_res[0][0], src=valid_res[0][1]))
 
             else:
@@ -1425,7 +1425,7 @@ class NewMetadataAggregator:
                         formats.append(LookupSource(index=idx, source=dts))
 
                 elif len(valid_res) > 0:
-                    assert len(valid_res) == 1, f"Found multiple valid formats for key {key}, {md.get(key)}"
+                    assert len(valid_res) == 1, f"Found multiple valid formats for key {key}, {md.get(key)}, {valid_res}"
                     results.append(DateTimeParsingResult(key=key, dt=valid_res[0][0], src=valid_res[0][1]))
 
                 else:
@@ -1479,7 +1479,7 @@ class NewMetadataAggregator:
                                                    tz=formats[0].tz)
                     )
             elif len(valid_res) > 0:
-                assert len(valid_res) == 1, f"Found multiple valid formats for key {key}, {md.get(key)}"
+                assert len(valid_res) == 1, f"Found multiple valid formats for key {key}, {md.get(key)}, {valid_res}"
                 results.append(DateTimeParsingResult(key=key, dt=valid_res[0][0], src=valid_res[0][1]))
 
             else:
@@ -1556,7 +1556,7 @@ class NewMetadataAggregator:
                             ))
             elif len(valid_res) > 0:
                 assert len(valid_res) == 1, (f"Found multiple valid formats for keys "
-                                             f"{self.serialize_key(keys)}: {dt}")
+                                             f"{self.serialize_key(keys)}: {dt}, {valid_res}")
                 results.append(DateTimeParsingResult(key=keys, dt=valid_res[0][0], src=valid_res[0][1]))
             else:
                 self.logger.debug(f"No valid format found for key {self.serialize_key(keys)}: {dt} (static")
@@ -1868,7 +1868,8 @@ class NewMetadataAggregator:
                         )
 
             elif len(dtr) > 0:
-                assert len(dtr) == 1, f"Found multiple valid formats for key {self.serialize_key(src.path)}: {res}"
+                assert len(dtr) == 1, (f"Found multiple valid formats for key {self.serialize_key(src.path)}: {res},"
+                                       f"{dtr}")
                 results.append(DateTimeParsingResult(key=src.path, dt=dtr[0][0], src=dtr[0][1]))
 
             else:
