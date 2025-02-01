@@ -515,8 +515,6 @@ class PhotoDB(BaseSQliteDB):
         :param purge: Clear the import table and perform indexing again, retaining the table name.
         """
 
-    # TODO should we return anything? New number of allowed files, new number of disallowed files, deltas? =>
-    #  Extra query
     def update_allowed(self, allowed_ext: Set[str], tbl: str):
         """
         Update the allowed extensions for a given
