@@ -370,6 +370,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Updates the hash of the image file with the given file name.
         """
+        ...
 
     def update_filename_from_hash(self, new_names: Dict[int, str]):
         """
