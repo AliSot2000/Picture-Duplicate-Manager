@@ -1,10 +1,8 @@
-from dataclasses import dataclass
-from typing import Union, Optional, List, Tuple
 import datetime
-from zoneinfo import ZoneInfo
+from dataclasses import dataclass
+from typing import Union
 
 from photo_lib.custom_enum import *
-from photo_lib.config import DoubleKey, GPSMultiKey
 
 """
 Dataclasses related to the backend of the phtoto library.
