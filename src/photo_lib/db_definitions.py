@@ -282,15 +282,15 @@ current_version = DBVersion(
                                f"google_metadata TEXT,"
                                f"file_hash TEXT, "
                                f"file_size_bytes INTEGER NOT NULL,"
-                               f"imported INTEGER DEFAULT 0 CHECK (imported in (0,1)),"
-                               f"allowed INTEGER DEFAULT 0 CHECK (allowed in (0,1)),"
-                               f"match_type INTEGER DEFAULT 0 CHECK (match_type in (0,1,2,3,4,5)),"
+                               f"imported INTEGER DEFAULT 0 CHECK (`%name%`.imported in (0,1)),"
+                               f"allowed INTEGER DEFAULT 0 CHECK (`%name%`.allowed in (0,1)),"
+                               f"match_type INTEGER DEFAULT 0 CHECK (`%name%`.match_type in (0,1,2,3,4,5)),"
                                f"datetime TEXT,"
                                f"timezone TEXT,"
                                f"naming_tag TEXT,"
                                f"gps_latitude REAL,"
                                f"gps_longitude REAL,"
-                               f"match INTEGER DEFAULT NULL,"  # the match found in the trash, images or replaced table
+                               f"matches TEXT DEFAULT NULL,"  # the match found in the trash, images or replaced table
                                f"import_key INTEGER DEFAULT NULL,"  # the key may not have foreign key constraint since we 
                                # want to be able to move the image to the replaced 
                                # table
