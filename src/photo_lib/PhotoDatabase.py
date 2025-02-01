@@ -8,7 +8,7 @@ import time
 from photo_lib.data_objects import *
 
 import cv2
-from photo_lib.metadataagregator import MetadataAggregator, FileMetaData
+from photo_lib.metadata_aggregator.metadataagregator import MetadataAggregator, FileMetaData
 import shutil
 import warnings
 # from difPy.dif import dif
@@ -19,7 +19,6 @@ from typing import Tuple, List, Set, Union, Dict
 import sys
 import ffmpeg
 from photo_lib.errors_and_warnings import *
-from fast_diff_py import fastDif
 from photo_lib.utils import rec_list_all, rec_walker, path_builder
 
 
