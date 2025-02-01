@@ -659,7 +659,7 @@ class NewMetadataAggregator:
             gps_lat=gps_lat,
             gps_long=gps_long,
             tz_name=pr[0].dt.tzname(),
-            source=pr[1].name
+            source=pr[1]
         )
 
     def fallback_filesystem(self, path: str) ->  Tuple[datetime.datetime, str]:
