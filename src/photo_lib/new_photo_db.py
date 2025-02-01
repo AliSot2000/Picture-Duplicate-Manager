@@ -1180,7 +1180,7 @@ class PhotoDB(BaseSQliteDB):
         # Check Entries in known_duplicates table
         self._migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=True)
 
-        # Inserting first the key into the replaced table
+        # First inserting the key into the replaced table
         self.debug_execute(stmt="INSERT OR REPLACE INTO replaced (key, original_filename, metadata, google_metadata, "
                                 "datetime, former_name, parent, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)",
                            args=(key, original_filename, metadata.replace("'", "''"),
