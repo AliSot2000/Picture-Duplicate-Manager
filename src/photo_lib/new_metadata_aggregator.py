@@ -827,6 +827,8 @@ class NewMetadataAggregator:
         if not isinstance(dt, str):
             raise TypeError(f"Unexpected Type for Datetime: {type(dt).__name__}")
 
+        dt = dt.strip()
+
         # Build list of all sources.
         task_list = [
             (self.dt_cfg.tz_aware_formats, DateTimeCategory.AWARE),
