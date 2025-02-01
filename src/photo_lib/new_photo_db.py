@@ -356,6 +356,12 @@ class PhotoDB(BaseSQliteDB):
         self.static_decls = temp_static
         self.generic_decls = temp_generic
 
+    def basic_integrity_check(self):
+        """
+        Basic sanity checks on the db to ensure we don't get corrupt data.
+        """
+        pass
+
     # ==================================================================================================================
     # DB Integrity checks and utility
     # ==================================================================================================================
