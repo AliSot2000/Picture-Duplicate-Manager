@@ -843,13 +843,13 @@ class PhotoDB(BaseSQliteDB):
         """
         Build the row lookup table for a import table
         """
-        ...
+        # TODO implement
 
     def build_images_table_lookup(self, grouping: GroupingCriterion, trash: bool = None):
         """
         Build the row lookup table for the images table
         """
-        ...
+        # TODO immplement
 
     # TODO give smarter name
     def lookup_row_to_xxx(self, row: int, images_table: bool = True):
@@ -859,6 +859,7 @@ class PhotoDB(BaseSQliteDB):
         :param row: Row to resolve
         :param images_table: If true, resolve images table else import table
         """
+        # TODO implement
 
     def lookup_key_to_row(self, key: int, images_table: bool = True):
         """
@@ -867,6 +868,7 @@ class PhotoDB(BaseSQliteDB):
         :param key: Row to resolve
         :param images_table: If true, resolve images table else import table
         """
+        # TODO implement
 
     # ==================================================================================================================
     # Utility
