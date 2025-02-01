@@ -843,13 +843,13 @@ class NewMetadataAggregator:
 
                     # Get index for result and write information
                     fmt_idx = fmt_list.index(fmt)
-                    self.logger.debug(f"Found: {dt} at in key: {key} with format index: {fmt_idx}, "
+                    self.get_parsing_logger().debug(f"Found: {dt} in key: {key} with format index: {fmt_idx}, "
                                       f"DateTimeSource: {source.value}")
                     return res, source, fmt_idx
                 except ValueError:
                     continue
 
-        self.logger.debug(f"Didn't find valid format for key: {key} and datetime {dt}")
+        self.get_parsing_logger().warning(f"Didn't find valid format for key: {key} and datetime {dt}")
         return None, DateTimeCategory.NONE, -1
 
     @staticmethod
