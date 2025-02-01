@@ -818,7 +818,7 @@ class NewMetadataAggregator:
         if isinstance(dt, int) or isinstance(dt, float):
             try:
                 r = datetime.datetime.fromtimestamp(float(dt))
-                self.logger.debug(f"Found {dt} at in key {key} as timestamp")
+                self.logger.debug(f"Found {dt} in key {key} as timestamp")
                 return r, DateTimeCategory.TIMESTAMP, 0
             except ValueError:
                 pass
