@@ -740,7 +740,6 @@ class PhotoDB(BaseSQliteDB):
                                              NewMetadataAggregator.serialize_key(tag), timezone, dts.value))
 
         self.commit()
-
         # Last operation, clear lookup caches
         self.filename_to_key.cache_clear()
         self.resolve_key_to_path.cache_clear()
