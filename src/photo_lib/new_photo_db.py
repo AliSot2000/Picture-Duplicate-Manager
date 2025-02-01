@@ -1137,20 +1137,20 @@ class PhotoDB(BaseSQliteDB):
         :param copy_google_metadata: Copy the Google Metadata from the child to the parent if the parent doesn't have
             Google Metadata
         """
-        self.debug_execute("SELECT key, flags FROM main WHERE key = ?", (parent_key,))
-        raw_parent = self.sq_cur.fetchall()
+        self.debug_execute("SELECT key, flags, google_metadata FROM main WHERE key = ?", (parent_key,))
+        raw_parent = self.sq_cur.fetchone()
 
-        if len(raw_parent) == 0:
+        if raw_parent is None:
             raise ValueError("Parent Key doesn't exist in main table.")
 
-        assert len(raw_parent) == 1, "SQL Error, Shouldn't be able to have more than one with same key"
-        photo_libflags = MainFlags.from_int(raw_parent[0][1])
+        parent_flags = MainFlags.from_int(raw_parent[1])
+        parent_google_metadata = raw_parent[2]
 
         # INFO: Warning User, shouldn't really be occurring, since trashed shouldn't be able to be deduplicated
-        if photo_libflags.trashed:
+        if parent_flags.trashed:
             self.main_logger.warning(f"Moving File to Replaced Table with Parent in Trash.")
 
-        if not photo_libflags.present:
+        if not parent_flags.present:
             self.main_logger.warning("Moving File to Replaced Table without Parent file being present.")
 
         # Execute Statement here, because we want to be sure that this key exists.
