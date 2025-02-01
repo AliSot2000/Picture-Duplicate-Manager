@@ -814,11 +814,9 @@ class PhotoDB(BaseSQliteDB):
         :param db_local_dir: directory to use for path
         """
         if flags.trashed:
-            par_dir = self.get_trash_dir()
-            new_par_dir = self.get_trash_dir()
+            new_par_dir = par_dir = self.get_trash_dir()
         elif db_local_dir is not None:
-            par_dir = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir))
-            new_par_dir = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir))
+            new_par_dir = par_dir = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir))
         else:
             assert db_local_dir is None, "Unexpected state in parent directory resolution"
             par_dir = os.path.join(self.root_path, self.dt_to_dir(dt))
