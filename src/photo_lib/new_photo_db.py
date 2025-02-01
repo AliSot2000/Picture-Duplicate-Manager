@@ -703,19 +703,43 @@ class PhotoDB(BaseSQliteDB):
 
     def change_datetime(self,
                         key: int,
+                        tag: str | List[Union[str, int]] | DoubleKey,
+                        dts: DateTimeSource,
                         new_dt: datetime.datetime = None,
-                        tag: datetime.datetime = None,
                         rename: bool = True):
         """
         Change the datetime associated with the given image. Each image should have a filename string and a given
-        datetime. The file name will also be adapted.
+        datetime. By default, the file name will also b e changed. This is only available for images in main table.
 
         :param key: key of image to update
         :param new_dt: new datetime object. (should have an utc offset)
         :param tag: tag of image to use for update.
+        :param dts: date time source (where the new datetime is coming from)
         :param rename: Rename image if True.
         """
-        ...
+        if new_dt.tzinfo is None:
+            raise ValueError("new_dt must have a timezone")
+
+        _, dt, flags, db_local_dir, db_name, original_name = self._get_rename_data(key=key)
+        new_name = self.db_name(original_filename=original_name, key=key, fdt=new_dt)
+        timezone = new_dt.tzname()
+        assert timezone is not None, "Unexpected timezone of None"
+
+        # Rename the file
+        if rename:
+            self._internal_rename(key=key,
+                                  dt=dt,
+                                  flags=flags,
+                                  db_local_dir=db_local_dir,
+                                  db_name=db_name,
+                                  new_name=new_name)
+
+        self.debug_execute("UPDATE main "
+                           "SET datetime = ?, db_name = ?, naming_tag = ?, timezone = ?, datetime_source = ? "
+                           "WHERE key = ?", (new_dt.isoformat(), new_name,
+                                             NewMetadataAggregator.serialize_key(tag), timezone, dts.value))
+
+        self.commit()
 
         # Last operation, clear lookup caches
         self.filename_to_key.cache_clear()
