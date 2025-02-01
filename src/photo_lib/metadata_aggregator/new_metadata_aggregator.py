@@ -567,12 +567,14 @@ class NewMetadataAggregator:
             self.logger.warning(f"Could not get metadata nor google fotos metadata for file {p}")
             dt, key = self.fallback_filesystem(p)
             file_hash = self.hash_file(file)
+            file_size = os.stat(p).st_size
             return MetadataParsingResult(filename=os.path.basename(p),
                                          dirname=os.path.dirname(p),
                                          creation_date=dt,
                                          naming_tag=key,
                                          file_hash=file_hash,
-                                         tz_name=dt.tzinfo)
+                                         tz_name=dt.tzinfo,
+                                         file_size=file_size)
 
         # Check the presence of md and parse teh stuff
         assert md is not None, "Need exiftool results to progress"
@@ -642,6 +644,7 @@ class NewMetadataAggregator:
         gps_lat = pr[2].lat if pr[2] is not None else None
         gps_long = pr[2].long if pr[2] is not None else None
         file_hash = self.hash_file(path)
+        file_size = os.stat(path).st_size
 
         return MetadataParsingResult(
             filename=os.path.basename(path),
@@ -649,6 +652,7 @@ class NewMetadataAggregator:
             creation_date=pr[0].dt,
             naming_tag=naming_tag,
             file_hash=file_hash,
+            file_size=file_size,
 
             metadata=metadata,
             google_photos_metadata=google_photos_metadata,
