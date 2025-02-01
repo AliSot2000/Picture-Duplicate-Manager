@@ -114,6 +114,16 @@ class PhotoDB(BaseSQliteDB):
 
         self.main_logger.addHandler(handler)
 
+    def cleanup(self):
+        """
+        Besides writing to file, perform some checks and pruning operations
+        """
+        if self.prune_fs_dir:
+            self.prune_filesystem_directories()
+
+        self.basic_integrity_check()
+        self.cleanup()
+
     # ==================================================================================================================
     # Table Creation & Deletion & Modify Functions
     # ==================================================================================================================
