@@ -466,9 +466,6 @@ class PhotoDB(BaseSQliteDB):
                     if first:
                         self.integrity_logger.warning(f"Lowest Directory Not Empty: {tgt_dir}")
                         # Lowest child not empty, we break and don't remove that directory from the table
-                        break
-
-                    keys_to_delete.append(ktd)
                     break
 
                 self.main_logger.debug(f"deleting directory: {tgt_dir}")
