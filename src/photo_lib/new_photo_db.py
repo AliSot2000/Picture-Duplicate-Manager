@@ -468,9 +468,12 @@ class PhotoDB(BaseSQliteDB):
                         # Lowest child not empty, we break and don't remove that directory from the table
                     break
 
+                # No guard triggered, we're deleting at least
                 self.main_logger.debug(f"deleting directory: {tgt_dir}")
                 shutil.rmtree(tgt_dir)
-                first = False
+                if first:
+                    keys_to_delete.append(ktd)
+                    first = False
 
         # TODO in ? does work?
         self.debug_execute("DELETE FROM db_dir WHERE key IN ?",
