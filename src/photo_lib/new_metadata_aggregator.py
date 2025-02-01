@@ -54,10 +54,17 @@ class NewMetadataAggregator:
 
     # Logger
     logger: logging.Logger = None
+    discover_logger: logging.Logger = None
 
     # ==================================================================================================================
     # Util
     # ==================================================================================================================
+
+    def get_parsing_logger(self):
+        if self.discover_logger is not None:
+            return self.discover_logger
+        else:
+            return self.logger
 
     @property
     def verbose(self):
@@ -236,6 +243,7 @@ class NewMetadataAggregator:
 
     def __init__(self,
                  logger: logging.Logger,
+                 discover_logger: logging.Logger = None,
                  path: str = None,
                  discover: bool = False,
                  search: bool = False,
@@ -268,6 +276,9 @@ class NewMetadataAggregator:
         known formats are attempted. If a new format is found, it is added to the secondary config of the Metadata 
         Aggregator `new_dt_cfg`. You can get the new config from the Metadata Aggregator with `export_discovered`.
         You can either export only the new formats or the union of the already known and newly discovered formats.
+        The discover_logger is used, to output issues that occurred directly while parsing. (Useful if you want a log
+        containing only parsing issues to expand parsing capabilities of the MetadataAggregator.) If not provided,
+        the default logger is used.
 
         Eager Parsing
         =============
@@ -312,6 +323,7 @@ class NewMetadataAggregator:
         Configuration:
 
         - logger
+        - discover_logger
         - discover
         - search
         - verbose
@@ -328,6 +340,7 @@ class NewMetadataAggregator:
             different classes of datetime results found in the metadata
 
         :param logger: Provide a logger to the class so it can output status messages
+        :param discover_logger: Logger used only to report parsing issues.
         :param discover: Enable discover mode (refer to upper paragraph for functionality)
         :param search: Enable search mode (refer to upper paragraph for functionality)
         :param verbose: Switch logger from info level to debug level when True
@@ -339,6 +352,7 @@ class NewMetadataAggregator:
 
         # Logging attrs
         self.logger = logger
+        self.discover_logger = discover_logger
 
         # Get the known formats from the config
         cfg_p = os.path.join(os.path.dirname(__file__), "datetime_fmt.json")
