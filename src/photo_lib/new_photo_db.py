@@ -485,6 +485,12 @@ class PhotoDB(BaseSQliteDB):
 
         return len(keys_to_delete)
 
+    def prune_filesystem_directories(self):
+        """
+        Walk through the file system and check for empty directories. Remove empty directories if they exist.
+        """
+        ...
+
     # ==================================================================================================================
     # Importing
     # ==================================================================================================================
