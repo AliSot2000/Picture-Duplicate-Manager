@@ -105,9 +105,9 @@ class PhotoDb:
 
     import_tables_table_command: str = \
         ("CREATE TABLE import_tables "
-         "(key INTEGER PRIMARY KEY AUTOINCREMENT,"
-         " root_path TEXT NOT NULL, "
-         " import_table_name TEXT UNIQUE NOT NULL,"
+         "(key INTEGER PRIMARY KEY AUTOINCREMENT, "
+         "root_path TEXT NOT NULL, "
+         "import_table_name TEXT UNIQUE NOT NULL, "
          "import_table_description TEXT)")
 
     def __init__(self, root_dir: str, db_path: str = None):
