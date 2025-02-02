@@ -2242,21 +2242,21 @@ class PhotoDB(BaseSQliteDB):
         """
         return os.path.join(self.get_thumb_dir(), "video_temp.jeg")
 
-    def get_thumb_dir(self):
+    def get_thumb_dir(self) -> str:
         """
-        Get folder where to store thumbnails.
+        Get folder where to store thumbnails. Is absolute path.
         """
         if os.path.isabs(self.config.thumbnail):
-            return self.config.thumbnail
+            return os.path.normpath(self.config.thumbnail)
         else:
             return os.path.join(self.root_path, self.config.thumbnail)
 
-    def get_trash_dir(self):
+    def get_trash_dir(self) -> str:
         """
-        Get folder where to store trash.
+        Get folder where to store trash. Is absolute path.
         """
         if os.path.isabs(self.config.trash):
-            return self.config.trash
+            return os.path.normpath(self.config.trash)
         else:
             return os.path.join(self.root_path, self.config.trash)
 
