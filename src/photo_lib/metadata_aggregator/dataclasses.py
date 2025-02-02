@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from zoneinfo import ZoneInfo
 
 from photo_lib.metadata_aggregator.config import DoubleKey, GPSMultiKey
-from photo_lib.metadata_aggregator.enums import DateTimeCategory
+from photo_lib.metadata_aggregator.enums import DateTimeCategory, DateTimeSource
 
 
 @dataclass
@@ -32,11 +32,11 @@ class MetadataParsingResult:
     naming_tag: str
     file_hash: str
     file_size: int
+    tz_name: Union[str, ZoneInfo]
 
     metadata: Optional[dict] = None
     google_photos_metadata: Optional[dict] = None
     gps_lat: Optional[float] = None
     gps_long: Optional[float] = None
-    tz_name: Optional[Union[str, ZoneInfo]] = None
-    source: Optional[str] = None
+    source: Optional[DateTimeSource] = None
 
