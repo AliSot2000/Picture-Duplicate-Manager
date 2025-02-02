@@ -35,6 +35,10 @@ class PhotoDB(BaseSQliteDB):
     generic_decls: Dict[str, GenericDeclaration]
 
     # Redefining logger as mandatory
+    main_logger_name: str = "PhotoDB"
+    integrity_logger_name: str = "PhotoDB.integrity"
+    metadata_aggregator_name: str = "PhotoDB.MetadataAggregator"
+    metadata_aggregator_parsing_name: str = "PhotoDB.MetadataAggregator.Parsing"
     main_logger: logging.Logger
     integrity_logger: logging.Logger
 
