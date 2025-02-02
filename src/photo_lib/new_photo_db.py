@@ -1,5 +1,4 @@
 import datetime
-import functools
 import json
 import logging
 import multiprocessing.connection as connection
@@ -14,12 +13,13 @@ import ffmpeg
 
 import photo_lib.defaults as defaults
 from custom_enum import GroupingCriterion
-from photo_lib.metadata_aggregator.config import DoubleKey
+from photo_lib.cache import Cache, nd
 from photo_lib.config import Config
-from photo_lib.metadata_aggregator.enums import DateTimeSource
 from photo_lib.db_definitions import current_version, history, StaticDeclaration, GenericDeclaration
-from photo_lib.errors_and_warnings import ImplementationError
+from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
 from photo_lib.flag_dataclasses import MainFlags, ReplacedFlags
+from photo_lib.metadata_aggregator.config import DoubleKey
+from photo_lib.metadata_aggregator.enums import DateTimeSource
 from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAggregator
 from photo_lib.sqlite_wrapper import BaseSQliteDB
 
