@@ -114,6 +114,7 @@ class PhotoDB(BaseSQliteDB):
     def reload_loggers(self):
         """
         Get the loggers from the class attributes
+
         attr: main_logger_name for main_logger
         attr: integrity_logger_name for integrity_logger
         """
