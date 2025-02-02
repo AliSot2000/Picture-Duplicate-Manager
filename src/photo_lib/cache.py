@@ -148,14 +148,14 @@ class Cache:
 
     def update(self, arg: Hashable, value: Any):
         """
-        Update a value in the cache, provided the argument is cached.
+        Update a result in the cache, provided the argument is cached.
         """
         res = self.__arg_res_lookup.get(arg, nd)
         if res is nd:
             return
 
         # Only update the arg
-        self.__arg_res_lookup[arg] = res
+        self.__arg_res_lookup[arg] = value
 
     def evict(self, arg: Hashable):
         """
