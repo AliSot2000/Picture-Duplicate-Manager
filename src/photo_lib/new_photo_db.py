@@ -796,11 +796,12 @@ class PhotoDB(BaseSQliteDB):
                                pres.source
                            ))
 
-    def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str, cur: str = None) -> List[int]:
+    def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
         """
         Given a hash, finds all file_keys which share this hash.
 
         mode (case-insensitive):
+
         - EARLIEST, given a file_key, only take into account the earliest hash of that file (importing)
         - LATEST, given a file_key, only take into account the latest hash of that file (detecting changed filenames)
         - ANY, given a file_key, take into account all hashes the file has had (detecting duplicates)
@@ -808,7 +809,6 @@ class PhotoDB(BaseSQliteDB):
         :param target_hash: Target hash to search for
         :param file_size: File size to search for
         :param mode: Mode to search for, can be EARLIEST, LATEST, ANY
-        :param cur: Cursor to use. Defaults to self.sq_cur
 
         :returns: List[int] - list of matching file_keys
         """
@@ -820,24 +820,24 @@ class PhotoDB(BaseSQliteDB):
                                "FROM hash AS h JOIN hash_assoz AS ha "
                                "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
                                "(SELECT MIN(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
-                               (target_hash, file_size), cur)
+                               (target_hash, file_size))
 
         elif mode.lower() == "latest":
             self.debug_execute("SELECT ha.file_key "
                                "FROM hash AS h JOIN hash_assoz AS ha "
                                "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
                                "(SELECT MAX(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
-                               (target_hash, file_size), cur)
+                               (target_hash, file_size))
         elif mode.lower() == "any":
             self.debug_execute("SELECT ha.file_key "
                                "FROM hash AS h JOIN hash_assoz AS ha "
                                "WHERE h.hash = ? AND ha.file_size_bytes = ?",
-                               (target_hash, file_size), cur)
+                               (target_hash, file_size))
         else:
             raise ImplementationError("Shouldn't be able to get here.")
 
-        c = self.get_cursor(cur) if cur is not None else self.sq_cur
-        return [r[0] for r in c.fetchall()]
+        return [r[0] for r in self.sq_cur.fetchall()]
+
 
     # ==================================================================================================================
     # Deduplication
