@@ -956,6 +956,7 @@ class PhotoDB(BaseSQliteDB):
         new_name = self.db_name(original_filename=original_name, key=key, fdt=new_dt)
 
         if rename:
+            # TODO update ExifMetadata with new datetime
             self._internal_rename(key=key,
                                   new_name=new_name,
                                   db_local_dir=db_local_dir,
@@ -970,6 +971,7 @@ class PhotoDB(BaseSQliteDB):
             self.debug_execute("UPDATE main SET datetime = ?, timezone = ? WHERE key = ?",
                                (new_dt.isoformat(), new_dt.tzname(), key))
         self.commit()
+        # TODO update caches.
 
     def change_datetime(self,
                         key: int,
@@ -997,6 +999,7 @@ class PhotoDB(BaseSQliteDB):
 
         # Rename the file
         if rename:
+            # TODO update ExifMetadata with new datetime
             self._internal_rename(key=key,
                                   dt=dt,
                                   flags=flags,
@@ -1010,9 +1013,7 @@ class PhotoDB(BaseSQliteDB):
                                              NewMetadataAggregator.serialize_key(tag), timezone, dts.value))
 
         self.commit()
-        # Last operation, clear lookup caches
-        self.filename_to_key.cache_clear()
-        self.resolve_key_to_path.cache_clear()
+        # TODO update caches.
 
     def change_filename(self, key: int, new_filename: str):
         """
@@ -1047,8 +1048,7 @@ class PhotoDB(BaseSQliteDB):
 
         # Last operation, clear lookup caches
         self.commit()
-        self.filename_to_key.cache_clear()
-        self.resolve_key_to_path.cache_clear()
+        # TODO update caches.
 
     def _get_rename_data(self, key: int) -> Tuple[int, datetime.datetime, MainFlags, str, str, str]:
         """
@@ -1500,6 +1500,7 @@ class PhotoDB(BaseSQliteDB):
         self.prune_dir()
         self.prune_gps()
         self.prune_fs_dir = True
+        # TODO update caches.
         self.commit()
 
     def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
@@ -1600,6 +1601,7 @@ class PhotoDB(BaseSQliteDB):
                            (main_flags.to_int(), key))
         self.prune_dir()
         self.prune_fs_dir = True
+        # TODO update caches.
         self.commit()
 
     def delete_trash_thumb(self, key: Union[List[int], int, None]) -> int:
@@ -1778,6 +1780,7 @@ class PhotoDB(BaseSQliteDB):
         self.prune_hash()
         self.prune_fs_dir = True
         self.commit()
+        # TODO update caches.
         self.main_logger.info(f"Forgot {key} from replaced table")
 
     def forget_image_from_main(self, key: int):
@@ -1869,6 +1872,7 @@ class PhotoDB(BaseSQliteDB):
         self.prune_fs_dir = True
         self.commit()
 
+        # TODO update caches.
         self.main_logger.info(f"Forgot {key} in main table and children successfully")
 
     def _forget_children_in_replaced(self, key: int | List[int]):
