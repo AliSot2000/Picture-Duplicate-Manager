@@ -110,6 +110,15 @@ class PhotoDB(BaseSQliteDB):
         else:
             self.verify_version()
 
+    def reload_loggers(self):
+        """
+        Get the loggers from the class attributes
+        attr: main_logger_name for main_logger
+        attr: integrity_logger_name for integrity_logger
+        """
+        self.main_logger = logging.getLogger(self.main_logger_name)
+        self.integrity_logger = logging.getLogger(self.integrity_logger_name)
+
     def set_logging_defaults(self):
         """
         Set Defaults of loggers.
