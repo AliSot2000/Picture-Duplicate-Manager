@@ -557,8 +557,67 @@ class PhotoDB(BaseSQliteDB):
             in the import table for the files already indexed.
         :param purge: Clear the import table and perform indexing again, retaining the table name.
         """
+        mda_set: bool = False
+        if self.mda is None:
+            self.mda = NewMetadataAggregator(
+                logger=logging.getLogger("MetadataAggregator"),
+                discover_logger=logging.getLogger("MetadataAggregator.Parsing"),
+                use_dateutil=True,
+                datetime_fmt=self.config.datetime_fmt
+            )
+            mda_set = True
+
+        # Defaulting allowed_extensions
+        if allowed_ext is None:
+            allowed_ext = set(defaults.video_extensions + defaults.image_extensions)
+
+        # INFO: Handling all cases between append and purge for ease of understanding of the logic
+        if append and purge:
+            raise ValueError("Cannot specify both append and purge at the same time")
+
+        elif append and not purge:
+            assert tbl_name is not None, "Table name needs to be specified for append"
+            if not self.import_table_exists(name=tbl_name):
+                raise ValueError("Table doesn't exist, cannot append")
+
+        elif not append and purge:
+            assert tbl_name is not None, "Table name needs to be specified for purge"
+
+            if self.import_table_exists(name=tbl_name):
+                self.main_logger.info(f"Purged {tbl_name}")
+                self.remove_import_table(name=tbl_name)
+
+            tbl_name = self.add_import_table(root_path=source_dir, name=tbl_name, description=desc)
 
     def update_allowed(self, allowed_ext: Set[str], tbl: str):
+        elif not append and not purge:
+            if not self.import_table_exists(name=tbl_name):
+                tbl_name = self.add_import_table(root_path=source_dir, name=tbl_name, description=desc)
+            else:
+                raise ValueError(f"Table with name {tbl_name} already exists")
+
+        else:
+            raise ImplementationError("Tertiem Non Datur")
+
+        # Actually search the provided directory
+        if recursive:
+            for root, dirs, files in os.walk(source_dir):
+                self._import_file(file_path=os.path.join(root, tbl_name),
+                                  tbl_name=tbl_name,
+                                  allowed_ext=allowed_ext,
+                                  append=append)
+        else:
+            for entry in os.listdir(source_dir):
+                if os.path.isfile(os.path.join(source_dir, entry)):
+                    self._import_file(file_path=os.path.join(source_dir, entry),
+                                      tbl_name=tbl_name,
+                                      allowed_ext=allowed_ext,
+                                      append=append)
+        if mda_set:
+            self.mda = None
+
+        return tbl_name
+
         """
         Update the allowed extensions for a given
 
