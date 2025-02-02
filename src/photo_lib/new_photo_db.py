@@ -1405,6 +1405,7 @@ class PhotoDB(BaseSQliteDB):
         :param copy_google_metadata: Copy the Google Metadata from the child to the parent if the parent doesn't have
             Google Metadata
         """
+        # Ensure both keys exist.
         self.debug_execute("SELECT key, flags, google_metadata FROM main WHERE key = ?", (parent_key,))
         raw_parent = self.sq_cur.fetchone()
 
@@ -1414,14 +1415,6 @@ class PhotoDB(BaseSQliteDB):
         parent_flags = MainFlags.from_int(raw_parent[1])
         parent_google_metadata = raw_parent[2]
 
-        # INFO: Warning User, shouldn't really be occurring, since trashed shouldn't be able to be deduplicated
-        if parent_flags.trashed:
-            self.main_logger.warning(f"Moving File to Replaced Table with Parent in Trash.")
-
-        if not parent_flags.present:
-            self.main_logger.warning("Moving File to Replaced Table without Parent file being present.")
-
-        # Execute Statement here, because we want to be sure that this key exists.
         self.debug_execute(stmt="SELECT m.key, m.db_name, m.original_filename, m.metadata, m.google_metadata, "
                                 "m.datetime, m.timezone, m.flags, d.db_local_dir "
                                 "FROM main AS m JOIN db_dir AS d ON main.db_dir = db_dir.key WHERE m.key = ?",
@@ -1429,7 +1422,14 @@ class PhotoDB(BaseSQliteDB):
 
         result = self.sq_cur.fetchone()
         if result is None:
-            raise ValueError("Child Key not found in replaced table")
+            raise ValueError("Child Key not found in main table")
+
+        # INFO: Warning User, shouldn't really be occurring, since trashed shouldn't be able to be deduplicated
+        if parent_flags.trashed:
+            self.main_logger.warning(f"Moving File to Replaced Table with Parent in Trash.")
+
+        if not parent_flags.present:
+            self.main_logger.warning("Moving File to Replaced Table without Parent file being present.")
 
         # Unpack result for ease of use
         key, db_name, original_filename, metadata, google_metadata, _dt, timezone, _flags, db_dir = result
