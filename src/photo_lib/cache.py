@@ -94,7 +94,7 @@ class Cache:
             # The cache hasn't reached full size, just add the new value
             if len(self.__arg_res_lookup) < self.size:
 
-                # Find the an entry in the index to arg lookup which currently doesn't have a value set.
+                # Find the entry in the index to arg lookup which currently doesn't have a value set.
                 for idx in range(self.size):
                     if self.__index_arg_lookup.get(idx, nd) is not nd:
                         continue
