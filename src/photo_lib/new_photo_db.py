@@ -546,7 +546,7 @@ class PhotoDB(BaseSQliteDB):
                                      recursive: bool = True,
 
                                      append: bool = False,
-                                     purge: bool = False):
+                                     purge: bool = False) -> str:
         """
         Go through all files in the directory, and prepare the index for import.
 
@@ -562,6 +562,8 @@ class PhotoDB(BaseSQliteDB):
         :param append: Files were added in the import directory. Add the new files to the table. Don't modify the data
             in the import table for the files already indexed.
         :param purge: Clear the import table and perform indexing again, retaining the table name.
+
+        :returns: import table name. Will be the tbl_name is you provide it, otherwise the generated table name
         """
         mda_set: bool = False
         if self.mda is None:
