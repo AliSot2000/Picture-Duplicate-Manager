@@ -610,10 +610,11 @@ class PhotoDB(BaseSQliteDB):
         # Actually search the provided directory
         if recursive:
             for root, dirs, files in os.walk(source_dir):
-                self._import_file(file_path=os.path.join(root, tbl_name),
-                                  tbl_name=tbl_name,
-                                  allowed_ext=allowed_ext,
-                                  append=append)
+                for f in files:
+                    self._import_file(file_path=os.path.join(root, f),
+                                      tbl_name=tbl_name,
+                                      allowed_ext=allowed_ext,
+                                      append=append)
         else:
             for entry in os.listdir(source_dir):
                 if os.path.isfile(os.path.join(source_dir, entry)):
