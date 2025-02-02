@@ -666,6 +666,34 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return now_allowed, now_disallowed, same
 
+    def find_match_for_import_table(self, tbl_name: str, recompute: bool = False):
+        """
+        Find matches for files in a given import table.
+        """
+        if not self.import_table_exists(name=tbl_name):
+            raise ValueError(f"Table {tbl_name} doesn't exist")
+
+        if recompute:
+            self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
+                               f"FROM {tbl_name} WHERE imported = 0 AND allowed = 1")
+        else:
+            self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
+                               f"FROM {tbl_name} WHERE imported = 0 AND allowed = 1 AND matches IS NULL")
+
+        self.add_extra_cursor("match_cursor")
+        keys: {}
+        for row in self.sq_cur:
+            key, org_fname, org_dname, fsize, fhash = row
+
+            match_keys = self._find_hash_match_keys(target_hash=fhash, file_size=fsize,
+                                                    mode="EARLIEST", cur="match_cursor")
+
+            for key in match_keys:
+                self.resolve_key_to_path(key=key)
+
+
+
+
     def perform_import(self, tbl_name: str, dest_dir: str = None, add_safety_exif_tags: bool = None) -> int:
         """
         Imports all files from the given import table into the main database.
@@ -685,6 +713,107 @@ class PhotoDB(BaseSQliteDB):
         """
         Functionality needed because some images are only on older dbs including their metadata.
         """
+
+    def _import_file(self, file_path: str, tbl_name: str, allowed_ext: Set[str], append: bool):
+        """
+        Handle Import for a singular file.
+
+        PRECONDITION:
+        - Filepath exists
+        - Table Exists
+        - File not in table
+
+        :raises ValueError: If not append and file in table.
+        """
+        dirname, filename = os.path.split(file_path)
+        self.debug_execute(f"SELECT key FROM {tbl_name} WHERE original_filename = ? AND original_dirname = ? ",
+                           (filename, dirname))
+
+        # Ensure file not in table yet.
+        if self.sq_cur.fetchone() is not None:
+            if append:
+                return
+            else:
+                raise ValueError(f"File {file_path} already exists in table {tbl_name}")
+
+        pres = self.mda.handle_file(file_path)
+        allowed = os.path.splitext(file_path)[1] in allowed_ext
+
+        self.debug_execute(f"INSERT INTO `{tbl_name}` ("
+                           f"original_filename, "
+                           f"original_dirname, "
+                           f"metadata, "
+                           f"google_metadata, "
+                           f"file_hash, "
+                           f"file_size_bytes, "
+                           f"allowed, "
+                           f"datetime, "
+                           f"timezone, "
+                           f"naming_tag, "
+                           f"gps_latitude, "
+                           f"gps_longitude,"
+                           f"datetime_source) "
+                           f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                           args=(
+                               pres.filename,
+                               pres.dirname,
+                               None if pres.metadata is None \
+                                   else json.dumps(pres.metadata).replace("'", "''"),
+                               None if pres.google_photos_metadata is None \
+                                   else json.dumps(pres.google_photos_metadata).replace("'", "''"),
+                               pres.file_hash,
+                               pres.file_size,
+                               1 if allowed else 0,
+                               pres.creation_date.isoformat(),
+                               pres.tz_name if isinstance(pres.tz_name, str) else pres.tz_name.key,
+                               pres.naming_tag,
+                               pres.gps_lat,
+                               pres.gps_long,
+                               pres.source
+                           ))
+
+    def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str, cur: str = None) -> List[int]:
+        """
+        Given a hash, finds all file_keys which share this hash.
+
+        mode (case-insensitive):
+        - EARLIEST, given a file_key, only take into account the earliest hash of that file (importing)
+        - LATEST, given a file_key, only take into account the latest hash of that file (detecting changed filenames)
+        - ANY, given a file_key, take into account all hashes the file has had (detecting duplicates)
+
+        :param target_hash: Target hash to search for
+        :param file_size: File size to search for
+        :param mode: Mode to search for, can be EARLIEST, LATEST, ANY
+        :param cur: Cursor to use. Defaults to self.sq_cur
+
+        :returns: List[int] - list of matching file_keys
+        """
+        if mode.lower() not in ("earliest", "latest", "any"):
+            raise ValueError(f"Unsupported mode: {mode.lower()}, allowed: [earliest, latest, any]")
+
+        if mode.lower() == "earliest":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hash AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
+                               "(SELECT MIN(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
+                               (target_hash, file_size), cur)
+
+        elif mode.lower() == "latest":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hash AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
+                               "(SELECT MAX(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
+                               (target_hash, file_size), cur)
+        elif mode.lower() == "any":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hash AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ?",
+                               (target_hash, file_size), cur)
+        else:
+            raise ImplementationError("Shouldn't be able to get here.")
+
+        c = self.get_cursor(cur) if cur is not None else self.sq_cur
+        return [r[0] for r in c.fetchall()]
 
     # ==================================================================================================================
     # Deduplication
