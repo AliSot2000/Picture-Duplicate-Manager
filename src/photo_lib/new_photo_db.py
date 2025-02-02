@@ -45,6 +45,12 @@ class PhotoDB(BaseSQliteDB):
     # Flags
     prune_fs_dir: bool = False
 
+    mda: Optional[NewMetadataAggregator] = None
+
+    # Caches
+    filename_to_key_cache: Cache
+    key_to_filepath_cache: Cache
+
     @property
     def current_version(self):
         return current_version.current_version
