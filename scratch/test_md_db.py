@@ -5,8 +5,7 @@ import multiprocessing as mp
 import os.path
 import sys
 
-from photo_lib.custom_enum import DateTimeSource
-from photo_lib.new_metadata_aggregator import NewMetadataAggregator
+from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAggregator
 from photo_lib.sqlite_wrapper import BaseSQliteDB
 
 logging_queue = mp.Queue()
@@ -21,19 +20,26 @@ dbo = BaseSQliteDB(db)
 gdb = "google_scratch.db"
 gdbo = BaseSQliteDB(gdb)
 
+# dbo.debug_execute("SELECT COUNT(*) "
+#                   "FROM scratch_md "
+#                   "WHERE path NOT LIKE '/mnt/Aljoscha-Storage/dedup-benchmark/IMDB-Benchmark/%'")
 dbo.debug_execute("SELECT COUNT(*) "
-                  "FROM scratch_md "
-                  "WHERE path NOT LIKE '/mnt/Aljoscha-Storage/dedup-benchmark/IMDB-Benchmark/%'")
+                  "FROM scratch_md ")
 todo = dbo.sq_cur.fetchone()[0]
 
 index = 0
+# index = 96200
 check_mda: bool = True
 build_attrs: bool = False
 
 
-dbo.debug_execute("SELECT metadata, path "
+# dbo.debug_execute("SELECT metadata, path "
+#                   "FROM scratch_md "
+#                   "WHERE key > ? AND path NOT LIKE '/mnt/Aljoscha-Storage/dedup-benchmark/IMDB-Benchmark/%'",
+#                   (index,))
+dbo.debug_execute("SELECT key, metadata, path "
                   "FROM scratch_md "
-                  "WHERE key > ? AND path NOT LIKE '/mnt/Aljoscha-Storage/dedup-benchmark/IMDB-Benchmark/%'",
+                  "WHERE key > ?",
                   (index,))
 
 logger = logging.getLogger("MetadataAggregator")
@@ -42,7 +48,16 @@ h = handlers.QueueHandler(logging_queue)
 h.setLevel(logging.DEBUG)
 logger.addHandler(h)
 
-mda = NewMetadataAggregator(use_dateutil=True, discover=False, logger=logger)
+fh = logging.FileHandler("parsing.log")
+fmt = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+fh.setFormatter(fmt)
+parsing_logger = logging.getLogger("MetadataAggregator.Parsing")
+parsing_logger.setLevel(logging.INFO)
+parsing_logger.propagate = True
+parsing_logger.addHandler(fh)
+
+
+mda = NewMetadataAggregator(use_dateutil=False, discover=True, logger=logger, discover_logger=parsing_logger)
 
 aware = 0
 unaware_gps = 0
@@ -56,52 +71,49 @@ from_dateutil = 0
 skipped_json = 0
 
 if check_mda:
-    res = dbo.sq_cur.fetchone()
+    for res in dbo.sq_cur:
+        k, md, p = res
 
-    while res is not None:
-        path = res[1] + ".json"
+        path = p + ".json"
         gdbo.debug_execute("SELECT google_metadata FROM scratch_google_md WHERE path = ?", (path,))
         gfres = gdbo.sq_cur.fetchone()
 
         if gfres is not None:
             # google fotos metadata
             gfmd = json.loads(gfres[0])
-
-            google_photos_results = mda.parse_google_photos_metadata(gfmd)
         else:
-            google_photos_results = None
+            gfmd = None
 
         # mda.search_possible_new_keys(json.loads(res[0]))
 
-        if os.path.splitext(res[1])[1] == ".json":
+        if os.path.splitext(p)[1] == ".json":
             skipped_json += 1
             res = dbo.sq_cur.fetchone()
             continue
 
-        dt_pr, source, _ = mda.metadata_to_datetime(md=json.loads(res[0]),
-                                                    google_photos_result=google_photos_results)
-        if source == DateTimeSource.ANY_AWARE:
-            aware += 1
-        elif source == DateTimeSource.UNAWARE_GPS:
-            unaware_gps += 1
-        elif source == DateTimeSource.UNAWARE_DEFAULT:
-            unaware_default += 1
-        elif source == DateTimeSource.FILE_AWARE:
-            file_aware += 1
-        elif source == DateTimeSource.DATE_OR_TIME:
-            date_or_time += 1
-        elif source == DateTimeSource.GOOGLE_PHOTOS_AWARE:
-            google_photos_aware += 1
-        elif source == DateTimeSource.GOOGLE_PHOTOS_UNAWARE:
-            google_photos_unaware += 1
-        else:
-            raise ValueError("Tertiem Non Datur")
+        try:
+            dt_pr, gps_res, _ = mda.test_parsing(exif_md=json.loads(md),
+                                            google_md=gfmd)
+        except Exception as e:
+            print(k)
+            raise e
+        # if source == DateTimeSource.ANY_AWARE:
+        #     aware += 1
+        # elif source == DateTimeSource.UNAWARE_GPS:
+        #     unaware_gps += 1
+        # elif source == DateTimeSource.UNAWARE_DEFAULT:
+        #     unaware_default += 1
+        # elif source == DateTimeSource.FILE_AWARE:
+        #     file_aware += 1
+        # elif source == DateTimeSource.DATE_OR_TIME:
+        #     date_or_time += 1
+        # else:
+        #     raise ValueError("Tertiem Non Datur")
 
 
         if index % 1000 == 0:
             print(f"index: {index:06} of {todo}")
         index += 1
-        res = dbo.sq_cur.fetchone()
 
     if mda.new_dt_cfg is not None:
         print(json.dumps(mda.new_dt_cfg.model_dump(), indent=4, sort_keys=True))
