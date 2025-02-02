@@ -185,7 +185,7 @@ class PhotoDB(BaseSQliteDB):
             miniature_target=defaults.miniature_size,
         )
 
-    def add_import_table(self, root_path: str, name: str = None, description: str = None):
+    def _add_import_table(self, root_path: str, name: str = None, description: str = None):
         """
         Add a new import table to the database.
 
@@ -596,11 +596,11 @@ class PhotoDB(BaseSQliteDB):
                 self.main_logger.info(f"Purged {tbl_name}")
                 self.remove_import_table(name=tbl_name)
 
-            tbl_name = self.add_import_table(root_path=source_dir, name=tbl_name, description=desc)
+            tbl_name = self._add_import_table(root_path=source_dir, name=tbl_name, description=desc)
 
         elif not append and not purge:
             if not self.import_table_exists(name=tbl_name):
-                tbl_name = self.add_import_table(root_path=source_dir, name=tbl_name, description=desc)
+                tbl_name = self._add_import_table(root_path=source_dir, name=tbl_name, description=desc)
             else:
                 raise ValueError(f"Table with name {tbl_name} already exists")
 
