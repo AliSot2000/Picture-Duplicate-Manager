@@ -395,6 +395,11 @@ class PhotoDB(BaseSQliteDB):
         """
         Basic sanity checks on the db to ensure we don't get corrupt data.
         """
+
+        # - Check that no key appears both in main and replaced
+        # - Check that file_keys in the hash_assoz table have a matching entry in replaced or main
+        # - Check that all entries in main and replaced have a hash
+        # - Check no filename appears twice in replaced and main table
         pass
 
     # ==================================================================================================================
