@@ -191,10 +191,12 @@ current_version = DBVersion(
         "hash_assoz": StaticDeclaration(
             name="hash_assoz",
             declaration_string="CREATE TABLE `%name%` ("
-                       "hash_key INTEGER NOT NULL, "
-                       "file_key INTEGER NOT NULL, "
-                       "file_size_bytes INTEGER NOT NULL, "
-                       "hash_date TEXT NOT NULL)"
+                               "hash_key INTEGER NOT NULL, "
+                               "file_key INTEGER NOT NULL, "
+                               "file_size_bytes INTEGER NOT NULL, "
+                               "hash_date TEXT NOT NULL,"
+                               "FOREIGN KEY (hash_key) REFERENCES hash(key),"
+                               "UNIQUE(hash_key, file_key, hash_date))"
         ),
         "hash_assoz_key_index": StaticDeclaration(
             name="hash_assoz_key_index",
