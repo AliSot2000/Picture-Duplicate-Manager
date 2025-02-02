@@ -1,0 +1,224 @@
+from collections.abc import Hashable
+from typing import Any
+
+import numpy as np
+
+
+class NotDefined(object):
+    """
+    NotDefined function to allow None results to be cached as well
+    """
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(NotDefined, cls).__new__(cls)
+        return cls.instance
+
+
+nd = NotDefined()
+
+
+class Cache:
+    __max_size: int
+
+    __arg_res_lookup: dict = {}
+    __arg_index_lookup: dict = {}
+    __index_arg_lookup: dict = {}
+
+    __lru: np.ndarray[bool]
+    __lru_index: int
+
+    __hits: int = 0
+    __misses: int = 0
+
+    @property
+    def size(self):
+        return self.__max_size
+
+    @property
+    def current_size(self):
+        return len(self.__arg_res_lookup.keys())
+
+    @property
+    def hits(self):
+        return self.__hits
+
+    @property
+    def misses(self):
+        return self.__misses
+
+    def get_stats(self):
+        """
+        Get cache statistics
+        """
+        return {"max_size": self.size, "hits": self.__hits, "misses": self.__misses, "current_size": self.current_size}
+
+    def __init__(self, size: int = 128):
+        self.__max_size = size
+        self.__lru_index = 0
+        self.__lru = np.array([False for _ in range(self.size)])
+
+    def get(self, arg: Hashable):
+        """
+        Query the Cache to see, if we have the value cached.
+        """
+        if arg is nd:
+            raise ValueError("nd may not be used as argument or value in the Cache.")
+
+        res = self.__arg_res_lookup.get(arg, nd)
+        if res is nd:
+            self.__misses += 1
+            return nd
+
+        else:
+            self.__hits += 1
+            # Set the hit flag
+            self.__lru[self.__arg_index_lookup[arg]] = True
+            return res
+
+    def set(self, arg: Hashable, value: Any):
+        """
+        Set the value of a given argument.
+        """
+        if arg is nd or value is nd:
+            raise ValueError("nd may not be used as argument or value in the Cache.")
+
+        res = self.__arg_res_lookup.get(arg, nd)
+
+        # Cache hit, update the flag
+        if res is not nd:
+            self.__lru[self.__arg_index_lookup[arg]] = True
+            self.__arg_res_lookup[arg] = res
+
+        # The argument isn't currently in the cache.
+        else:
+            # The cache hasn't reached full size, just add the new value
+            if len(self.__arg_res_lookup) < self.size:
+
+                # Find the an entry in the index to arg lookup which currently doesn't have a value set.
+                for idx in range(self.size):
+                    if self.__index_arg_lookup.get(idx, nd) is not nd:
+                        continue
+
+                    assert self.__lru[idx] == False, "Unexpected LRU state."
+
+                    # Store the argument in the argument to result lookup dict
+                    self.__arg_res_lookup[arg] = value
+
+                    # Store the index in the __lru array in the arg to index lookup dict
+                    self.__arg_index_lookup[arg] = idx
+
+                    # Store the index to argument lookup (needed for eviction)
+                    self.__index_arg_lookup[idx] = arg
+
+                    # Set the entry as accessed
+                    self.__lru[self.__arg_index_lookup[arg]] = True
+
+                    # Return, we don't want to update anything else
+                    return
+
+            else:
+                assert len(self.__arg_res_lookup) == self.size, (f"Unexpected size of cache: "
+                                                                  f"{len(self.__arg_res_lookup)}, "
+                                                                  f"max_size: {self.size}")
+                # Find the index to evict
+                while self.__lru[self.__lru_index]:
+                    # Update the flag
+                    self.__lru[self.__lru_index] = False
+
+                    # increment the pointer
+                    self.__lru_index = (self.__lru_index + 1) % self.size
+
+                assert self.__lru[self.__lru_index] == False, "Unexpected outcome of find evict"
+
+                # Get the argument to evict
+                old_arg = self.__index_arg_lookup[self.__lru_index]
+
+                del self.__arg_index_lookup[old_arg]
+                del self.__arg_res_lookup[old_arg]
+
+                # Set the new lookup target
+                self.__index_arg_lookup[self.__lru_index] = arg
+
+                # Set the accessed flag
+                self.__lru[self.__lru_index] = True
+
+                # Store arg to x lookups.
+                self.__arg_res_lookup[arg] = value
+                self.__arg_index_lookup[arg] = self.__lru_index
+
+    def update(self, arg: Hashable, value: Any):
+        """
+        Update a value in the cache, provided the argument is cached.
+        """
+        res = self.__arg_res_lookup.get(arg, nd)
+        if res is nd:
+            return
+
+        # Only update the arg
+        self.__arg_res_lookup[arg] = res
+
+    def evict(self, arg: Hashable):
+        """
+        Evict a value from the cache, provided it is there.
+        """
+        if arg is nd:
+            raise ValueError("nd may not be used as argument or value in the Cache.")
+
+        res = self.__arg_res_lookup.get(arg, nd)
+        if res is nd:
+            return
+
+        # PRECONDITION: Argument is in cache
+        # Set the cache to be populatable
+        self.__lru[self.__arg_index_lookup[arg]] = False
+
+        # Remove the lookup from index to argument
+        del self.__index_arg_lookup[self.__arg_index_lookup[arg]]
+
+        # Finally, clearing the arg to x lookups
+        del self.__arg_res_lookup[arg]
+        del self.__arg_index_lookup[arg]
+
+    def inspect(self):
+        """
+        Inspect the cache
+        """
+        print(self.__arg_res_lookup)
+        print(self.__arg_index_lookup)
+        print(self.__index_arg_lookup)
+        print(self.__lru)
+
+
+if __name__ == "__main__":
+    test_cache = Cache(size=4)
+
+    test_cache.set(1, "one")
+    test_cache.set(2, "two")
+    test_cache.set(3, "three")
+    test_cache.set(4, "four")
+
+    test_cache.inspect()
+
+    # Should unset 1
+    test_cache.set(5, "five")
+    test_cache.inspect()
+
+    test_cache.get(3)
+    test_cache.get(4)
+
+    # Should evict 2
+    test_cache.set(6, "six")
+    test_cache.inspect()
+
+    # Should evict 5
+    test_cache.set(7, "seven")
+    test_cache.inspect()
+
+    test_cache.evict(3)
+    test_cache.inspect()
+
+    test_cache.set(8, "eight")
+    test_cache.inspect()
+
+    print(test_cache.get_stats())
+
