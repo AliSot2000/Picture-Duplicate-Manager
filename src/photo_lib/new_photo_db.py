@@ -1934,6 +1934,8 @@ class PhotoDB(BaseSQliteDB):
         """
         Check the flags, of a given image. Report issues to integrity_logger.
 
+        INFO: miniature and thumbnail need to be none, if the key is from the replaced table.
+
         **Doesn't update the DB and doesn't update the flags object**
         """
         # Check the miniatures.
