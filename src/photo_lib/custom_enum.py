@@ -74,8 +74,17 @@ class NewMatchTypes(Enum):
     Enum to indicate the type of match found in the database.
     """
     NO_MATCH = 0
-    BINARY_MATCH_IMAGES = 1
-    BINARY_MATCH_TRASH = 2
-    HASH_MATCH_TRASH = 3
-    BINARY_MATCH_REPLACED = 4
-    HASH_MATCH_REPLACED = 5
+    BINARY_MATCH_MAIN = 1
+    HASH_MATCH_MAIN = 2
+    BINARY_MATCH_TRASH = 3
+    HASH_MATCH_TRASH = 4
+    BINARY_MATCH_REPLACED = 5
+    HASH_MATCH_REPLACED = 6
+
+
+class ImportTableGrouping(NewMatchTypes):
+    """
+    The Import table groups files based on their association.
+    """
+    IMPORTED = 7
+    NOW_ALLOWED = 8
