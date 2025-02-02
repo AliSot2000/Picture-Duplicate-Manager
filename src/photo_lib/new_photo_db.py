@@ -677,6 +677,10 @@ class PhotoDB(BaseSQliteDB):
     def find_match_for_import_table(self, tbl_name: str, recompute: bool = False):
         """
         Find matches for files in a given import table.
+
+        :param tbl_name: Name of temporary table created for import.
+        :param recompute: Recompute match for everything or only for files which have not matches are allowed and
+            not imported
         """
         if not self.import_table_exists(name=tbl_name):
             raise ValueError(f"Table {tbl_name} doesn't exist")
