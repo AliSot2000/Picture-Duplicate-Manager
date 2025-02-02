@@ -674,13 +674,15 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return now_allowed, now_disallowed, same
 
-    def find_match_for_import_table(self, tbl_name: str, recompute: bool = False):
+    def find_match_for_import_table(self, tbl_name: str, recompute: bool = False) -> int:
         """
         Find matches for files in a given import table.
 
         :param tbl_name: Name of temporary table created for import.
         :param recompute: Recompute match for everything or only for files which have not matches are allowed and
             not imported
+
+        :returns: int - number of files processed .
         """
         if not self.import_table_exists(name=tbl_name):
             raise ValueError(f"Table {tbl_name} doesn't exist")
