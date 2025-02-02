@@ -187,6 +187,8 @@ class PhotoDB(BaseSQliteDB):
         """
         Add a new import table to the database.
 
+        PRECONDITION: The table doesn't exist.
+
         :param root_path: dir_root from which to import
         :param name: The name of the table. Override, defaults to dirname(root_path) + hash(current_datetime)
         :param description: The description of the table. Override, defaults to None
