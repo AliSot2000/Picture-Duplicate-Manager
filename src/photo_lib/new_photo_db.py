@@ -215,6 +215,14 @@ class PhotoDB(BaseSQliteDB):
         decl = self.generic_decls["import_table"]
         self.debug_execute(decl.declaration_string.replace(decl.name_placeholder, tbl_name))
         self.commit()
+        return tbl_name
+
+    def import_table_exists(self, name: str = None) -> bool:
+        """
+        Check if a given name with root_path and name exists already.
+        """
+        self.debug_execute("SELECT key FROM import_tables WHERE  name = ?", ( name))
+        return self.sq_cur.fetchone() is not None
 
     def remove_import_table(self, name: str = None) -> Tuple[bool, bool]:
         """
