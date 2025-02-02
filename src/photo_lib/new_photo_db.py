@@ -838,6 +838,117 @@ class PhotoDB(BaseSQliteDB):
 
         return [r[0] for r in self.sq_cur.fetchall()]
 
+    def get_newest_hash(self, key: int) -> str | None:
+        """
+        Get the newest hash of a given file. If the newest hash doesn't match, we don't perform binary comparison.
+
+        :param key: File key to search for
+        :returns: None -> key not found, str, newest hash of the given file
+        """
+        self.debug_execute("SELECT h.hash FROM hash AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+                           "WHERE ha.file_key = ? AND ha.hash_date IN "
+                           "(SELECT MAX(hash_date) FROM hash_assoz WHERE file_key = ?)",
+                           (key, key))
+        res = self.sq_cur.fetchone()
+        if res is None:
+            return None
+
+        return res[0]
+
+    def _get_best_match_type(self, tgt_fp: str, file_hash: str, fsb: int) \
+            -> Tuple[List[int], int | None, NewMatchTypes]:
+        """
+        Given a file_hash and file_size returns the lowest
+
+        :param tgt_fp: Target file path of the image in the import table
+        :param file_hash: File hash of the image
+        :param fsb: File size of the image
+
+        :returns List of all hash_matches, key of highest match, highest match value
+        """
+        match_keys = self._find_hash_match_keys(target_hash=file_hash, file_size=fsb, mode="EARLIEST")
+
+        keys: Dict[int, NewMatchTypes] = {}
+        for m_key in match_keys:
+            # Resolve the matched key to the filepath
+            match_path = self.resolve_key_to_path(key=m_key)
+            binary_match = None
+
+            if match_path is None:
+                raise CorruptDatabase("Inconsistency between tables. File from hash_assoz not present in tables.")
+
+            # Check the binary difference of the files if they exist
+            if os.path.exists(match_path):
+                binary_match = filecmp.cmp(tgt_fp, match_path, shallow=False)
+
+            m_newest_hash = self.get_newest_hash(m_key)
+
+            # Rare occurrence
+            if m_newest_hash == file_hash and not binary_match:
+                self.main_logger.warning("Found files with matching hash and size but different binary.")
+            elif m_newest_hash != file_hash and binary_match:
+                self.main_logger.warning("Found files different hashes but match binary.")
+
+            source = self.get_db_location(key=m_key)
+            if source is None:
+                raise CorruptDatabase("Matched key should exist main or replaced")
+
+            # parse into NewMatchTypes
+            if source == DBLocation.MAIN:
+                if m_newest_hash != file_hash:
+                    keys[m_key] = NewMatchTypes.HASH_MATCH_MAIN
+                else:
+                    assert m_newest_hash == file_hash, "Unexpected outcome, hashes should match."
+                    if binary_match:
+                        keys[m_key] = NewMatchTypes.BINARY_MATCH_MAIN
+                    else:
+                        # INFO: relegating the case when the file was missing i.e. binary_match is None and not
+                        #  binary_match as HASH_MATCH. The assumption is, that the files were modified by some
+                        #  other software but the
+                        keys[m_key] = NewMatchTypes.HASH_MATCH_MAIN
+
+            elif source == DBLocation.TRASH:
+                if m_newest_hash != file_hash:
+                    keys[m_key] = NewMatchTypes.HASH_MATCH_TRASH
+                else:
+                    assert m_newest_hash == file_hash, "Unexpected outcome, hashes should match."
+                    if binary_match:
+                        keys[m_key] = NewMatchTypes.BINARY_MATCH_TRASH
+                    else:
+                        # INFO: Dito as for DBLocation.MAIN
+                        keys[m_key] = NewMatchTypes.HASH_MATCH_TRASH
+            elif source == DBLocation.REPLACED:
+                if m_newest_hash != file_hash:
+                    keys[m_key] = NewMatchTypes.HASH_MATCH_REPLACED
+                else:
+                    assert m_newest_hash == file_hash, "Unexpected outcome, hashes should match."
+                    if binary_match:
+                        keys[m_key] = NewMatchTypes.BINARY_MATCH_REPLACED
+                    else:
+                        # INFO: Dito as for DBLocation.MAIN
+                        keys[m_key] = NewMatchTypes.HASH_MATCH_REPLACED
+            else:
+                raise ImplementationError("DBLocation not covered")
+
+        highest_match = None
+        highest_match_key = None
+
+        # Get highest quality match from all matches.
+        for key, match in keys.items():
+            if highest_match is None:
+                highest_match = match
+                highest_match_key = key
+
+            else:
+                if match.value < highest_match.value:
+                    highest_match = match
+                    highest_match_key = key
+
+        if highest_match is None:
+            return [], None, NewMatchTypes.NO_MATCH
+
+        return list(keys.keys()), highest_match_key, highest_match
+
 
     # ==================================================================================================================
     # Deduplication
