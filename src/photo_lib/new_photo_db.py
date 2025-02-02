@@ -529,6 +529,7 @@ class PhotoDB(BaseSQliteDB):
     # Importing
     # ==================================================================================================================
 
+    # long-running action
     def prepare_directory_for_import(self,
                                      source_dir: str,
                                      allowed_ext: Set[str] = None,
