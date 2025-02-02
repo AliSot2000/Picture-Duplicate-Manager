@@ -532,18 +532,26 @@ class PhotoDB(BaseSQliteDB):
     # long-running action
     def prepare_directory_for_import(self,
                                      source_dir: str,
-                                     allowed_ext: Set[str] = None,
+
                                      tbl_name: str = None,
+                                     desc: str = None,
+
+                                     allowed_ext: Set[str] = None,
                                      recursive: bool = True,
+
                                      append: bool = False,
                                      purge: bool = False):
         """
         Go through all files in the directory, and prepare the index for import.
 
+        If no MetadataAggregator was set in the mda attribute, a new instance will be created.
+        Using dateutil, with loggers logger="MetadataAggregator" and "MetadataAggregator.Parsing"
+
         :param source_dir: Directory to import into the db
         :param allowed_ext: Allowed extensions to import from. Defaults to None (Uses from Config)
         :param tbl_name: Name of temporary table created for import. Defaults to hash(datetime.now())
         :param recursive: Recursively index all subdirectories.
+        :param desc: Description of the table. Defaults to None
 
         :param append: Files were added in the import directory. Add the new files to the table. Don't modify the data
             in the import table for the files already indexed.
