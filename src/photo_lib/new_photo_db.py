@@ -687,25 +687,35 @@ class PhotoDB(BaseSQliteDB):
         if not self.import_table_exists(name=tbl_name):
             raise ValueError(f"Table {tbl_name} doesn't exist")
 
+        self.add_extra_cursor("match_cursor")
         if recompute:
             self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
-                               f"FROM {tbl_name} WHERE imported = 0 AND allowed = 1")
+                               f"FROM {tbl_name} WHERE imported IN (0, 1) AND allowed = 1",
+                               cur="match_cursor")
         else:
             self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
-                               f"FROM {tbl_name} WHERE imported = 0 AND allowed = 1 AND matches IS NULL")
+                               f"FROM {tbl_name} WHERE imported = 0 AND allowed = 1 AND matches IS NULL",
+                               cur="match_cursor")
 
-        self.add_extra_cursor("match_cursor")
-        keys: {}
-        for row in self.sq_cur:
-            key, org_fname, org_dname, fsize, fhash = row
+        count = 0
+        for row in self.get_cursor("match_cursor"):
+            key, original_filename, original_dirname, file_size_bytes, file_hash = row
+            target_fp = str(os.path.join(original_dirname, original_filename))
+            assert os.path.exists(target_fp), "Import file needs to exist."
 
-            match_keys = self._find_hash_match_keys(target_hash=fhash, file_size=fsize,
-                                                    mode="EARLIEST", cur="match_cursor")
+            keys, highest_key, highest_match = self._get_best_match_type(tgt_fp=target_fp,
+                                                                         file_hash=file_hash,
+                                                                         fsb=file_size_bytes)
 
-            for key in match_keys:
-                self.resolve_key_to_path(key=key)
+            self.debug_execute(stmt=f"UPDATE {tbl_name} SET match_type = ?, highest_match = ?, matches = ? "
+                                    f"WHERE key = {key}",
+                               args=(highest_match.value, highest_match,
+                                     json.dumps(keys).replace("'", "''"), key))
+            count += 1
 
-
+        self.main_logger.info(f"Found {count} matches for {tbl_name}")
+        self.remove_extra_cursor("match_cursor")
+        return count
 
 
     def perform_import(self, tbl_name: str, dest_dir: str = None, add_safety_exif_tags: bool = None) -> int:
