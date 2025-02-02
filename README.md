@@ -22,3 +22,7 @@ Files are in nothing is selected named like `YYYY-MM-DDTHH-MM-SS_key:04[_org_fil
 
 Convention regarding the existence of Thumbnails and Miniatures. Files moved to the `replaced table` are don't need the 
 Display Files and rely on their parent for those files.
+
+#### Make main an extension of replaced
+Make the replaced and main table one and the same and make another table like aux which contains the rows unique 
+to non-replaced files
