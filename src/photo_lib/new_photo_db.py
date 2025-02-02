@@ -63,10 +63,13 @@ class PhotoDB(BaseSQliteDB):
         """
         Construct a Database Object from a preexisting database file.
         """
-        self.main_logger = logging.getLogger("PhotoDB")
-        self.integrity_logger = logging.getLogger("PhotoDB.integrity")
+        self.main_logger = logging.getLogger(self.main_logger_name)
+        self.integrity_logger = logging.getLogger(self.integrity_logger_name)
         if init_loggers:
             self.set_logging_defaults()
+
+        self.filename_to_key_cache = Cache(size=1024)
+        self.key_to_filepath_cache = Cache(size=1024)
 
         self.build_definition_lookup()
         self.root_path = os.path.abspath(root_path)
