@@ -589,7 +589,6 @@ class PhotoDB(BaseSQliteDB):
 
             tbl_name = self.add_import_table(root_path=source_dir, name=tbl_name, description=desc)
 
-    def update_allowed(self, allowed_ext: Set[str], tbl: str):
         elif not append and not purge:
             if not self.import_table_exists(name=tbl_name):
                 tbl_name = self.add_import_table(root_path=source_dir, name=tbl_name, description=desc)
@@ -618,13 +617,54 @@ class PhotoDB(BaseSQliteDB):
 
         return tbl_name
 
+    def update_allowed(self, allowed_ext: Set[str], tbl: str) -> Tuple[int, int, int]:
         """
         Update the allowed extensions for a given
 
         :param allowed_ext: Allowed extensions to import from.
         :param tbl: Name of temporary table created for import.
+
+        :returns: <number of files now allowed>, <number of files now excluded>, <number of files unaffected>
         """
-        ...
+        for ext in allowed_ext:
+            if ext[0] != ".":
+                raise ValueError(f"Allowed Extensions must start with a '.' {ext}")
+
+        self.main_logger.info(f"Updating allowed extensions in {tbl} with {allowed_ext}")
+
+        now_allowed = 0
+        now_disallowed = 0
+        same = 0
+
+        self.add_extra_cursor("update_allowed")
+        self.debug_execute(f"SELECT key, allowed, original_filename FROM {tbl} WHERE imported = 0")
+        for row in self.sq_cur:
+            key, _a, original_filename = row
+            allowed = bool(_a)
+
+            if allowed and os.path.splitext(original_filename)[1] not in allowed_ext:
+                now_disallowed += 1
+                self.main_logger.debug(f"{key} is now disallowed")
+                self.debug_execute(f"UPDATE {tbl} SET allowed = ? WHERE key = {key}",
+                                   (0, key),
+                                   "update_allowed")
+
+            elif not allowed and os.path.splitext(original_filename)[1] in allowed_ext:
+                now_allowed += 1
+                self.main_logger.debug(f"{key} is now allowed")
+                self.debug_execute(f"UPDATE {tbl} SET allowed = ? WHERE key = {key}",
+                                   (1, key),
+                                   "update_allowed")
+
+            else:
+                same += 1
+                self.main_logger.debug(f"{key} remains the same")
+
+        self.find_match_for_import_table(tbl)
+        self.main_logger.info(f"Updated Allowed {tbl}. {now_allowed} now allowed, {now_disallowed} now disallowed, "
+                              f"{same} stayed the same")
+        self.commit()
+        return now_allowed, now_disallowed, same
 
     def perform_import(self, tbl: str, dest_dir: str = None, add_safety_exif_tags: bool = None) -> int:
         """
