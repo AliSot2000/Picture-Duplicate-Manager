@@ -2157,6 +2157,27 @@ class PhotoDB(BaseSQliteDB):
         self.check_flags(flags=flags, key=key, miniature=False, thumbnail=False, org_path=path)
         return path
 
+    def get_db_location(self, key: int) -> DBLocation | None:
+        """
+        Check where a given key is from within the database.
+
+        :returns: DBLocation for a given key, or None if the key didn't exist
+        """
+        self.debug_execute("SELECT key FROM replaced WHERE key = ?", (key,))
+        if self.sq_cur.fetchone() is not None:
+            return DBLocation.REPLACED
+
+        self.debug_execute("SELECT key, flags FROM main WHERE key = ?", (key,))
+        res = self.sq_cur.fetchone()
+        if res is None:
+            return None
+
+        flags = MainFlags.from_int(res[1])
+        if flags.trashed:
+            return DBLocation.TRASH
+        else:
+            return DBLocation.MAIN
+
     def resolve_key_to_path(self, key: int) -> str | None:
         """
         Get the original filename for image
