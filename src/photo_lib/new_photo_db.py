@@ -647,6 +647,7 @@ class PhotoDB(BaseSQliteDB):
         if mda_set:
             self.mda = None
 
+        self.commit()
         return tbl_name
 
     def update_allowed(self, allowed_ext: Set[str], tbl: str) -> Tuple[int, int, int]:
