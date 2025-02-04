@@ -701,11 +701,11 @@ class PhotoDB(BaseSQliteDB):
         self.add_extra_cursor("match_cursor")
         if recompute:
             self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
-                               f"FROM {tbl_name} WHERE imported IN (0, 1) AND allowed = 1",
+                               f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1",
                                cur="match_cursor")
         else:
             self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
-                               f"FROM {tbl_name} WHERE imported = 0 AND allowed = 1 AND matches IS NULL",
+                               f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1 AND matches IS NULL",
                                cur="match_cursor")
 
         count = 0
@@ -718,7 +718,7 @@ class PhotoDB(BaseSQliteDB):
                                                                          file_hash=file_hash,
                                                                          fsb=file_size_bytes)
 
-            self.debug_execute(stmt=f"UPDATE {tbl_name} SET match_type = ?, highest_match = ?, matches = ? "
+            self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET match_type = ?, highest_match = ?, matches = ? "
                                     f"WHERE key = {key}",
                                args=(highest_match.value, highest_match,
                                      json.dumps(keys).replace("'", "''"), key))
