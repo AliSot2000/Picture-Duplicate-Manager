@@ -1294,6 +1294,46 @@ class PhotoDB(BaseSQliteDB):
         else:
             raise TypeError("key_a and key_b must be either both list or both int.")
 
+    def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
+        """
+        Update the duplicates tables. All tuples with child_key, some_key are replaced by tuples of parent_key, some_key
+
+        :param child_key: Key to replace
+        :param parent_key: Key to use for replacement
+        :param known: True -> update known_duplicates table else duplicates
+        """
+        tbl = "known_duplicates" if known else "duplicates"
+
+        # Check Entries in duplicates table
+        self.debug_execute(f"SELECT key_a, key_b FROM `{tbl}` WHERE key_a = ? OR key_b = ?",
+                           (child_key, child_key))
+
+        results = self.sq_cur.fetchall()
+
+        if len(results) > 0:
+            self.main_logger.debug(f"Changing {len(results)} `{tbl}` entries to the new parent")
+
+            args = []
+            for result in results:
+                if result[0] == child_key:
+                    args.append((parent_key, result[1]))
+                elif result[1] == child_key:
+                    args.append((result[0], parent_key))
+                else:
+                    raise ImplementationError("Couldn't find targeted key. Erroneous SQL Statement?")
+
+            # Remove tuple of kind (parent_key, parent_key)
+            filtered_args = list(filter(lambda a: a[0] != a[1], args))
+            self._internal_modify_duplicates(key_a=[a[0] for a in filtered_args],
+                                             key_b=[a[1] for a in filtered_args],
+                                             known=known,
+                                             add=True)
+
+            self._internal_modify_duplicates(key_a=[r[0] for r in results],
+                                             key_b=[r[1] for r in results],
+                                             known=known,
+                                             add=False)
+
     def remove_all_tuples_with_key(self, key: int, known: bool = False) -> int:
         """
         Removes all tuples either from the known_duplicates table or the duplicates table which contain the specified
@@ -1895,46 +1935,6 @@ class PhotoDB(BaseSQliteDB):
         self.prune_fs_dir = True
         # TODO update caches.
         self.commit()
-
-    def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
-        """
-        Update the duplicates tables. All tuples with child_key, some_key are replaced by tuples of parent_key, some_key
-
-        :param child_key: Key to replace
-        :param parent_key: Key to use for replacement
-        :param known: True -> update known_duplicates table else duplicates
-        """
-        tbl = "known_duplicates" if known else "duplicates"
-
-        # Check Entries in duplicates table
-        self.debug_execute(f"SELECT key_a, key_b FROM {tbl} WHERE key_a = ? OR key_b = ?",
-                           (child_key, child_key))
-
-        results = self.sq_cur.fetchall()
-
-        if len(results) > 0:
-            self.main_logger.debug(f"Changing {len(results)} {tbl} entries to the new parent")
-
-            args = []
-            for result in results:
-                if result[0] == child_key:
-                    args.append((parent_key, result[1]))
-                elif result[1] == child_key:
-                    args.append((result[0], parent_key))
-                else:
-                    raise ImplementationError("Couldn't find targeted key. Erroneous SQL Statement?")
-
-            # Remove tuple of kind (parent_key, parent_key)
-            filtered_args = list(filter(lambda a: a[0] != a[1], args))
-            self._internal_modify_duplicates(key_a=[a[0] for a in filtered_args],
-                                             key_b=[a[1] for a in filtered_args],
-                                             known=known,
-                                             add=True)
-
-            self._internal_modify_duplicates(key_a=[r[0] for r in results],
-                                             key_b=[r[1] for r in results],
-                                             known=known,
-                                             add=False)
 
     def move_to_trash(self, key: int):
         """
