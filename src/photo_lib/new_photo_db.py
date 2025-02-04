@@ -935,7 +935,7 @@ class PhotoDB(BaseSQliteDB):
                     else:
                         # INFO: relegating the case when the file was missing i.e. binary_match is None and not
                         #  binary_match as HASH_MATCH. The assumption is, that the files were modified by some
-                        #  other software but the
+                        #  other software but the hash and file size used to determine the match were correct.
                         keys[m_key] = NewMatchTypes.HASH_MATCH_MAIN
 
             elif source == DBLocation.TRASH:
