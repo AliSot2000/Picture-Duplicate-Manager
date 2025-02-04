@@ -414,6 +414,7 @@ class PhotoDB(BaseSQliteDB):
         # - Check that file_keys in the hash_assoz table have a matching entry in replaced or main
         # - Check that all entries in main and replaced have a hash
         # - Check no filename appears twice in replaced and main table
+        # - Check no entries in main table with reserved db_name
         pass
 
     # ==================================================================================================================
