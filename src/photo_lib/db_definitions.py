@@ -282,7 +282,7 @@ current_version = DBVersion(
                                f"original_dirname TEXT NOT NULL,"
                                f"metadata TEXT,"
                                f"google_metadata TEXT,"
-                               f"file_hash TEXT, "
+                               f"file_hash TEXT NOT NULL, "
                                f"file_size_bytes INTEGER NOT NULL,"
                                f"imported INTEGER DEFAULT 0 CHECK (`%name%`.imported in (0,1,2)),"
                                f"allowed INTEGER DEFAULT 0 CHECK (`%name%`.allowed in (0,1)),"
@@ -295,9 +295,9 @@ current_version = DBVersion(
                                f"highest_match INT DEFAULT NULL, " # Highest match, the one producing the 
                                f"matches TEXT DEFAULT NULL,"  # the match found in the trash, images or replaced table
                                f"import_key INTEGER DEFAULT NULL,"  # the key may not have foreign key constraint since we 
-                               # want to be able to move the image to the replaced 
-                               # table
-                               f"datetime_source INTEGER, "
+                               # want to be able to move the image to the replaced table
+                               # INFO: datetime_source in import table doesn't have CUSTOM.
+                               f"datetime_source INTEGER CHECK (`%name%`.datetime_source IN (0, 1, 2, 3, 4)), "
                                f"UNIQUE (original_filename, original_dirname));"
 
         )
