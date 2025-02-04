@@ -901,7 +901,7 @@ class PhotoDB(BaseSQliteDB):
                                pres.naming_tag,
                                pres.gps_lat,
                                pres.gps_long,
-                               pres.source
+                               pres.source.value
                            ))
 
     def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
