@@ -35,6 +35,8 @@ class PhotoDB(BaseSQliteDB):
     static_decls: Dict[str, StaticDeclaration]
     generic_decls: Dict[str, GenericDeclaration]
 
+    reserved_names: List[str] = ["<temp>"]
+
     # Redefining logger as mandatory
     main_logger_name: str = "PhotoDB"
     integrity_logger_name: str = "PhotoDB.integrity"
