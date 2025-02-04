@@ -39,6 +39,22 @@ class MainFlags:
             has_miniature=_has_miniature,
         )
 
+    @classmethod
+    def default(cls):
+        """
+        Create an instance with default values.
+        """
+        return cls(
+            present=True,
+            verify=False,
+            trashed=False,
+            org_google_metadata=True,  # INFO: No gm or gm present is equal to original
+            sel_a=False,
+            sel_b=False,
+            has_thumbnail=False,
+            has_miniature=False,
+        )
+
     def to_int(self):
         return (int(self.present)
                 + int(self.verify) << 1
