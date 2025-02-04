@@ -1266,9 +1266,9 @@ class PhotoDB(BaseSQliteDB):
         tbl = "known_duplicates" if known else "duplicates"
 
         if add:
-            op = f"INSERT OR IGNORE INTO {tbl} (key_a, key_b) VALUES (?, ?)"
+            op = f"INSERT OR IGNORE INTO `{tbl}` (key_a, key_b) VALUES (?, ?)"
         else:
-            op = f"DELETE FROM {tbl} WHERE key_a = ? AND key_b = ?"
+            op = f"DELETE FROM `{tbl}` WHERE key_a = ? AND key_b = ?"
 
         if isinstance(key_a, int) and isinstance(key_b, int):
             if key_b == key_a:
