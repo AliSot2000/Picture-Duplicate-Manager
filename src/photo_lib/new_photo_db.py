@@ -2551,3 +2551,12 @@ class PhotoDB(BaseSQliteDB):
         Convert a list of dir names into a json list which can be inserted into the database.
         """
         return json.dumps(dir_names).replace("'", "''")
+
+    @staticmethod
+    def exif_tag_creator(dt: datetime.datetime) -> dict[str, str]:
+        """
+        Create a dict of
+        """
+        assert dt.tzinfo is not None, "Need a timezone aware object inside database"
+        return {"EXIF:ModifyDate": dt.strftime("%Y:%m:%d %H:%M:%S"),
+                "EXIF:OffsetTime": dt.strftime("%z")}
