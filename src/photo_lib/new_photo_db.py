@@ -656,7 +656,7 @@ class PhotoDB(BaseSQliteDB):
         same = 0
 
         self.add_extra_cursor("update_allowed")
-        self.debug_execute(f"SELECT key, allowed, original_filename FROM {tbl} WHERE imported = 0")
+        self.debug_execute(f"SELECT key, allowed, original_filename FROM `{tbl}` WHERE imported IN (0, 1)")
         for row in self.sq_cur:
             key, _a, original_filename = row
             allowed = bool(_a)
@@ -664,14 +664,14 @@ class PhotoDB(BaseSQliteDB):
             if allowed and os.path.splitext(original_filename)[1] not in allowed_ext:
                 now_disallowed += 1
                 self.main_logger.debug(f"{key} is now disallowed")
-                self.debug_execute(f"UPDATE {tbl} SET allowed = ? WHERE key = {key}",
+                self.debug_execute(f"UPDATE `{tbl}` SET allowed = ? WHERE key = {key}",
                                    (0, key),
                                    "update_allowed")
 
             elif not allowed and os.path.splitext(original_filename)[1] in allowed_ext:
                 now_allowed += 1
                 self.main_logger.debug(f"{key} is now allowed")
-                self.debug_execute(f"UPDATE {tbl} SET allowed = ? WHERE key = {key}",
+                self.debug_execute(f"UPDATE `{tbl}` SET allowed = ? WHERE key = {key}",
                                    (1, key),
                                    "update_allowed")
 
@@ -748,6 +748,26 @@ class PhotoDB(BaseSQliteDB):
         """
         Functionality needed because some images are only on older dbs including their metadata.
         """
+
+        if not self.import_table_exists(name=tbl_name):
+            raise ValueError(f"Table {tbl_name} doesn't exist")
+
+        added_mda = False
+        if self.mda is None and add_safety_exif_tags:
+            self.add_default_metadata_aggregator()
+            added_mda = True
+
+        self.add_extra_cursor("import_table")
+        self.debug_execute(f"SELECT key, original_filename, original_dirname, metadata, google_metadata, file_hash, "
+                           f"file_size_bytes, datetime, timezone, naming_tag, gps_latitude, gps_longitude, "
+                           f"datetime_source, allowed FROM `{tbl_name}` WHERE imported = 1")
+        count = 0
+        for row in self.get_cursor("import_table"):
+            k, ofn, ofd, md, gfmd, fh, fsb, _dt, tz, nt, gps_lat, gps_long, dts, _allowed = row
+
+        if added_mda:
+            self.mda = None
+        self.remove_extra_cursor("import_table")
 
     def _prepare_file_import(self, file_path: str, tbl_name: str, allowed_ext: Set[str], append: bool):
         """
