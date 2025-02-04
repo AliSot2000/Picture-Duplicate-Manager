@@ -25,7 +25,6 @@ from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAgg
 from photo_lib.sqlite_wrapper import BaseSQliteDB
 
 
-# TODO make db_local_dir a json list. Handle issues when running on Windows an Unix becuase of different path separtors.
 class PhotoDB(BaseSQliteDB):
     __verified: bool = False
     config: Config
