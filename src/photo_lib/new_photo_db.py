@@ -1017,6 +1017,8 @@ class PhotoDB(BaseSQliteDB):
     def _get_best_match_type(self, tgt_fp: str, file_hash: str, fsb: int) \
             -> Tuple[List[int], int | None, NewMatchTypes]:
         """
+        PRECONDITION: tgt_fp exists.
+
         Given a file_hash and file_size returns the lowest
 
         :param tgt_fp: Target file path of the image in the import table
@@ -1043,6 +1045,7 @@ class PhotoDB(BaseSQliteDB):
             m_newest_hash = self.get_newest_hash(m_key)
 
             # Rare occurrence
+            # TODO different logger
             if m_newest_hash == file_hash and not binary_match:
                 self.main_logger.warning("Found files with matching hash and size but different binary.")
             elif m_newest_hash != file_hash and binary_match:
