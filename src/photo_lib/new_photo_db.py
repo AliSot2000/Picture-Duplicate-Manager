@@ -675,11 +675,13 @@ class PhotoDB(BaseSQliteDB):
             key, _a, original_filename = row
             allowed = bool(_a)
 
+            # INFO: Need to update mark_for_import to 0, to ensure we don't get any accidental imports of not allowed
+            #  files.
             if allowed and os.path.splitext(original_filename)[1] not in allowed_ext:
                 now_disallowed += 1
                 self.main_logger.debug(f"{key} is now disallowed")
-                self.debug_execute(f"UPDATE `{tbl}` SET allowed = ? WHERE key = {key}",
-                                   (0, key),
+                self.debug_execute(f"UPDATE `{tbl}` SET allowed = ?, imported = ? WHERE key = {key}",
+                                   (0, 0, key),
                                    "update_allowed")
 
             elif not allowed and os.path.splitext(original_filename)[1] in allowed_ext:
