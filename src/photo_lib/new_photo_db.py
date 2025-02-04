@@ -742,6 +742,7 @@ class PhotoDB(BaseSQliteDB):
 
         self.main_logger.info(f"Found {count} matches for {tbl_name}")
         self.remove_extra_cursor("match_cursor")
+        self.commit()
         return count
 
 
