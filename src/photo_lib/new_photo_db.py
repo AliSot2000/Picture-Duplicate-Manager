@@ -1346,10 +1346,10 @@ class PhotoDB(BaseSQliteDB):
         """
         tbl = "known_duplicates" if known else "duplicates"
 
-        self.debug_execute(f"SELECT COUNT(*) FROM {tbl} WHERE key_a = ? AND key_b = ?", (key, key))
+        self.debug_execute(f"SELECT COUNT(*) FROM `{tbl}` WHERE key_a = ? AND key_b = ?", (key, key))
         cnt = self.sq_cur.fetchone()[0]
 
-        self.debug_execute(f"DELETE FROM {tbl} WHERE key_a = ? OR key_b = ?", (key, key))
+        self.debug_execute(f"DELETE FROM `{tbl}` WHERE key_a = ? OR key_b = ?", (key, key))
         return cnt
 
     # ==================================================================================================================
