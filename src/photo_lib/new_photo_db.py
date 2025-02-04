@@ -620,17 +620,17 @@ class PhotoDB(BaseSQliteDB):
         if recursive:
             for root, dirs, files in os.walk(source_dir):
                 for f in files:
-                    self._import_file(file_path=os.path.join(root, f),
-                                      tbl_name=tbl_name,
-                                      allowed_ext=allowed_ext,
-                                      append=append)
+                    self._prepare_file_import(file_path=os.path.join(root, f),
+                                              tbl_name=tbl_name,
+                                              allowed_ext=allowed_ext,
+                                              append=append)
         else:
             for entry in os.listdir(source_dir):
                 if os.path.isfile(os.path.join(source_dir, entry)):
-                    self._import_file(file_path=os.path.join(source_dir, entry),
-                                      tbl_name=tbl_name,
-                                      allowed_ext=allowed_ext,
-                                      append=append)
+                    self._prepare_file_import(file_path=os.path.join(source_dir, entry),
+                                              tbl_name=tbl_name,
+                                              allowed_ext=allowed_ext,
+                                              append=append)
         if mda_set:
             self.mda = None
 
@@ -749,7 +749,7 @@ class PhotoDB(BaseSQliteDB):
         Functionality needed because some images are only on older dbs including their metadata.
         """
 
-    def _import_file(self, file_path: str, tbl_name: str, allowed_ext: Set[str], append: bool):
+    def _prepare_file_import(self, file_path: str, tbl_name: str, allowed_ext: Set[str], append: bool):
         """
         Handle Import for a singular file.
 
