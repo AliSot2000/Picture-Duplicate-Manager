@@ -1130,6 +1130,33 @@ class PhotoDB(BaseSQliteDB):
         key = self.insert_get_gps_loc(gps_lat, gps_long)
         return key
 
+    def _insert_get_dir(self, dir_name:  str) -> int:
+        """
+        PRECONDITION: dir_name is absolute
+        PRECONDITION: dir_name is child of root_path
+        PRECONDITION: dir_name separated by os.sep
+
+        Get the key of a given custom directory.
+
+        :param dir_name: The name of the directory to insert.
+        """
+        rel_path = dir_name.replace(self.root_path, "")
+        rel_path_list = rel_path.split(os.sep)
+
+        self.debug_execute("SELECT key FROM db_dir WHERE db_local_dir = ?",
+                           (self.dump_db_local_dir(rel_path_list),))
+
+        res = self.sq_cur.fetchone()
+        if res is not None:
+            assert os.path.exists(dir_name), "Directories in db_dir must exist."
+            return res[0]
+
+        # PRECONDITION: doesn't exist
+        os.makedirs(dir_name, exist_ok=True)
+        self.debug_execute("INSERT INTO db_dir (db_local_dir) VALUES (?)",
+                           (self.dump_db_local_dir(rel_path_list),))
+        self.main_logger.debug(f"Createad custom dir {rel_path}")
+        return self._insert_get_dir(dir_name)
 
     # ==================================================================================================================
     # Deduplication
