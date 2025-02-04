@@ -152,6 +152,17 @@ class PhotoDB(BaseSQliteDB):
         self.basic_integrity_check()
         self.cleanup()
 
+    def add_default_metadata_aggregator(self):
+        """
+        Add a default metadata aggregator (user could provide a custom MDA if he so chooses)
+        """
+        self.mda = NewMetadataAggregator(
+            logger=logging.getLogger("MetadataAggregator"),
+            discover_logger=logging.getLogger("MetadataAggregator.Parsing"),
+            use_dateutil=True,
+            datetime_fmt=self.config.datetime_fmt
+        )
+
     # ==================================================================================================================
     # Table Creation & Deletion & Modify Functions
     # ==================================================================================================================
