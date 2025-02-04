@@ -1130,6 +1130,34 @@ class PhotoDB(BaseSQliteDB):
         key = self.insert_get_gps_loc(gps_lat, gps_long)
         return key
 
+    def check_add_file_hash(self, file_key: int, file_size: int, file_hash: str) -> bool:
+        """
+        Checks if a given row in the hash_assoz table exists provided a file_hash, a file_size and file_key.
+
+        Adds the row if it doesn't exist.
+
+        :param file_hash: The hash of the file to check.
+        :param file_size: The size of the file to check.
+        :param file_key: The key of the file to check.
+
+        :return: True if the row exists, False if the rows were added.
+        """
+        self.debug_execute("SELECT ha.hash_key, ha.file_key "
+                           "FROM hash AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+                           "WHERE h.hash = ? AND ha.file_key = ? AND ha.file_size = ?",
+                           (file_hash, file_key, file_size))
+
+        # Result not None, the row exists, exit function.
+        if self.sq_cur.fetchone() is not None:
+            return True
+
+        now = datetime.datetime.now(datetime.timezone.utc)
+        hash_key = self.insert_get_file_hash_key(file_hash=file_hash)
+        self.debug_execute("INSERT INTO hash_assoz (hash_key, file_key, file_size_bytes, hash_date) "
+                           "VALUES (?, ?, ?, ?)",
+                           (hash_key, file_key, file_size, now.isoformat()))
+        return False
+
     def insert_get_file_hash_key(self, file_hash: str) -> int:
         """
         Get the Key of a given hash string in the hash table. If it doesn't exist, add it to the hash table.
