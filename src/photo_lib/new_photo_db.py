@@ -582,12 +582,7 @@ class PhotoDB(BaseSQliteDB):
         """
         mda_set: bool = False
         if self.mda is None:
-            self.mda = NewMetadataAggregator(
-                logger=logging.getLogger("MetadataAggregator"),
-                discover_logger=logging.getLogger("MetadataAggregator.Parsing"),
-                use_dateutil=True,
-                datetime_fmt=self.config.datetime_fmt
-            )
+            self.add_default_metadata_aggregator()
             mda_set = True
 
         # Defaulting allowed_extensions
