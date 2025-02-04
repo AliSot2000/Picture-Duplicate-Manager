@@ -904,6 +904,57 @@ class PhotoDB(BaseSQliteDB):
                                pres.source.value
                            ))
 
+    def _import_file(self,
+                     key: int,
+                     original_filename: str,
+                     original_dirname: str,
+                     fdt: datetime.datetime,
+                     tgt_dir: str = None,
+                     add_tag: bool = False):
+        """
+        Import a given file into the database.
+
+        PRECONDITION: the key exists in the database, and the file exists on disk.
+
+        :param key: key in main table
+        :param original_filename: original filename prior to import
+        :param original_dirname: original dirname prior to import
+        :param fdt: datetime of
+        :param tgt_dir: Target directory to import into if not default based on datetime
+        :param add_tag: Add exiftag to file. (no conditional checking in function, if True, tag will be set.)
+        """
+        assert os.path.exists(os.path.join(original_dirname, original_filename)), "Source File doesn't exist"
+
+        if tgt_dir is not None:
+            dir_key = self._insert_get_dir(tgt_dir)
+        else:
+            tgt_dir = os.path.join(self.root_path, self.dt_to_dir(fdt))
+            if not os.path.exists(tgt_dir):
+                os.makedirs(tgt_dir)
+                self.main_logger.debug(f"Creating Directory: {self.dt_to_dir(fdt)}")
+            dir_key = None
+
+        db_name = self.db_name(original_filename=original_filename, fdt=fdt, key=key)
+
+        # copy the file to the target location
+        shutil.copy2(os.path.join(original_dirname, original_filename), os.path.join(tgt_dir, db_name))
+        self.main_logger.debug(f"Imported File: {original_filename}")
+
+        assert self.mda is not None, "Metadata Aggregator is needed for import file"
+        if add_tag:
+            # Add the tag
+            self.mda.eth.set_tags(files=[os.path.join(tgt_dir, db_name)], tags=self.exif_tag_creator(fdt))
+
+            # Get Size of File and new File Hash
+            new_hash = self.mda.hash_file(os.path.join(tgt_dir, db_name))
+            new_size = os.stat(os.path.join(tgt_dir, db_name)).st_size
+            assert new_size is not None, "New Size needed for update."
+            self.check_add_file_hash(file_key=key, file_hash=new_hash, file_size=new_size)
+
+        self.debug_execute("UPDATE main SET db_dir = ?, db_name = ? WHERE key = ?",
+                           (dir_key, db_name, key))
+
+
     def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
         """
         Given a hash, finds all file_keys which share this hash.
