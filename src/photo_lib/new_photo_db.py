@@ -745,26 +745,32 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count
 
-
-    def perform_import(self, tbl_name: str, dest_dir: str = None, add_safety_exif_tags: bool = None) -> int:
+    def perform_import(self, tbl_name: str, _dest_dir: str = None, add_safety_exif_tags: bool = None) -> int:
         """
         Imports all files from the given import table into the main database.
         - Files which are imported already will be ignored and
         - All disallowed files will not be imported.
 
         :param tbl_name: Name of the table to import from
-        :param dest_dir: Destination directory to create in within the database. Defaults to db/yyyy/mm/dd/
+        :param _dest_dir: Destination directory to create in within the database. Defaults to db/yyyy/mm/dd/
         :param add_safety_exif_tags: Add the datetime to exiftag if only filesystem datetime is available.
             (Override, default taken from config)
 
         :return: Number of imported files
         """
-        ...
+        # PRECONDITION: Reserved name not taken.
+        if add_safety_exif_tags is None:
+            add_safety_exif_tags = self.config.add_safety_exif_tags
 
-    def import_other_db(self):
-        """
-        Functionality needed because some images are only on older dbs including their metadata.
-        """
+        # Handle dest dir
+        if _dest_dir is not None:
+            if not os.path.isabs(_dest_dir):
+                dest_dir = os.path.abspath(os.path.join(self.root_path, _dest_dir))
+            else:
+                dest_dir = os.path.abspath(_dest_dir)
+
+            if not dest_dir.startswith(self.root_path):
+                raise ValueError(f"Destination directory {_dest_dir} doesn't exist must be within the database root.")
 
         if not self.import_table_exists(name=tbl_name):
             raise ValueError(f"Table {tbl_name} doesn't exist")
@@ -777,14 +783,68 @@ class PhotoDB(BaseSQliteDB):
         self.add_extra_cursor("import_table")
         self.debug_execute(f"SELECT key, original_filename, original_dirname, metadata, google_metadata, file_hash, "
                            f"file_size_bytes, datetime, timezone, naming_tag, gps_latitude, gps_longitude, "
-                           f"datetime_source, allowed FROM `{tbl_name}` WHERE imported = 1")
+                           f"datetime_source, allowed, import_key FROM `{tbl_name}` WHERE imported = 1")
         count = 0
         for row in self.get_cursor("import_table"):
-            k, ofn, ofd, md, gfmd, fh, fsb, _dt, tz, nt, gps_lat, gps_long, dts, _allowed = row
+            # Handle the setting of all the rows needed into the main table.
+            k, ofn, ofd, md, gfmd, fh, fsb, _dt, tz, nt, gps_lat, gps_long, _dts, _allowed, impk = row
+            dt = datetime.datetime.fromisoformat(_dt)
+            allowed = bool(_allowed)
+            dts = DateTimeSource(_dts)
+            default_flags = MainFlags.default()
+
+            # Set verify on FILE_AWARE
+            if dts == DateTimeSource.FILE_AWARE:
+                default_flags.verify = True
+
+            if not allowed:
+                self.main_logger.warning(f"Found entry marked for import, that isn't allowed.")
+                assert False, "Invariant broken, found element marked for import with allowed = 0"
+                continue
+
+            # Sanity check
+            assert import_key is None, "File marked as not imported, shouldn't have a import_key set."
+
+            # Insert into main table and add
+            self.debug_execute(f"INSERT INTO main "
+                               f"(original_filename, original_dirname, metadata, google_metadata, naming_tag, db_name,"
+                               f" datetime, timezone, datetime_source, flags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                               (ofn, odn, md.replace("'", "''"), gfmd.replace("'", "''"), nt, self.temp_db_name,
+                                _dt, tz, _dts, default_flags.to_int()))
+            self.debug_execute("SELECT key FROM main WHERE db_name = ?", (self.temp_db_name,))
+            kr = self.sq_cur.fetchone()
+            assert kr is not None, "Key should exist after insert."
+            insert_key = kr[0]
+
+            # Handle GPS
+            assert (gps_lat is not None and gps_long is not None) or (gps_lat is None and gps_long is None), \
+                "gps_lat and gps_long unequally set."
+            if gps_lat is not None and gps_long is not None:
+                gps_key = self.insert_get_gps_loc(gps_lat=gps_lat, gps_long=gps_long)
+
+                self.debug_execute("UPDATE main SET gps_location = ? WHERE key = ?", (gps_key, insert_key))
+
+            # Handle hash
+            assert fh is not None, "File Hash needs to be defined"
+            self.check_add_file_hash(file_key=insert_key, file_hash=fh, file_size=fsb)
+
+            self._import_file(original_filename=ofn,
+                              original_dirname=ofd,
+                              fdt=dt,
+                              tgt_dir=dest_dir,
+                              key=import_key,
+                              add_tag=add_safety_exif_tags and default_flags.verify)
+
+            # Finally update the import table
+            self.debug_execute(f"UPDATE `{tbl_name}` SET import_key = ?, imported = 2 WHERE key = ?",
+                               (insert_key, k))
+            count += 1
 
         if added_mda:
             self.mda = None
         self.remove_extra_cursor("import_table")
+        self.commit()
+        return count
 
     def _prepare_file_import(self, file_path: str, tbl_name: str, allowed_ext: Set[str], append: bool):
         """
