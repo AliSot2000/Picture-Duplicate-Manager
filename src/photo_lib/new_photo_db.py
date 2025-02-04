@@ -781,7 +781,7 @@ class PhotoDB(BaseSQliteDB):
         :raises ValueError: If not append and file in table.
         """
         dirname, filename = os.path.split(file_path)
-        self.debug_execute(f"SELECT key FROM {tbl_name} WHERE original_filename = ? AND original_dirname = ? ",
+        self.debug_execute(f"SELECT key FROM `{tbl_name}` WHERE original_filename = ? AND original_dirname = ? ",
                            (filename, dirname))
 
         # Ensure file not in table yet.
