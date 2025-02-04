@@ -34,7 +34,7 @@ class PhotoDB(BaseSQliteDB):
     static_decls: Dict[str, StaticDeclaration]
     generic_decls: Dict[str, GenericDeclaration]
 
-    reserved_names: List[str] = ["<temp>"]
+    __reserved_names: List[str] = ["<temp>"]
 
     # Redefining logger as mandatory
     main_logger_name: str = "PhotoDB"
@@ -52,6 +52,14 @@ class PhotoDB(BaseSQliteDB):
     # Caches
     filename_to_key_cache: Cache
     key_to_filepath_cache: Cache
+
+    @property
+    def reserved_names(self):
+        return self.__reserved_names
+
+    @property
+    def temp_db_name(self):
+        return self.__reserved_names[0]
 
     @property
     def current_version(self):
