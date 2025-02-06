@@ -150,6 +150,9 @@ class Cache:
         """
         Update a result in the cache, provided the argument is cached.
         """
+        if arg is nd or value is nd:
+            raise ValueError("nd may not be used as argument or value in the Cache.")
+
         res = self.__arg_res_lookup.get(arg, nd)
         if res is nd:
             return
