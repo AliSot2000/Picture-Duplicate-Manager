@@ -2412,6 +2412,7 @@ class PhotoDB(BaseSQliteDB):
 
         :returns: DBLocation for a given key, or None if the key didn't exist
         """
+        # INFO: Don't need to check both, with changed table defs, duplicates won't be an issue.
         self.debug_execute("SELECT key FROM replaced WHERE key = ?", (key,))
         if self.sq_cur.fetchone() is not None:
             return DBLocation.REPLACED
