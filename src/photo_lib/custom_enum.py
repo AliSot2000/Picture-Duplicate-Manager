@@ -82,9 +82,16 @@ class NewMatchTypes(Enum):
     HASH_MATCH_REPLACED = 6
 
 
-class ImportTableGrouping(NewMatchTypes):
+class ImportTableGrouping(Enum):
     """
     The Import table groups files based on their association.
     """
+    NO_MATCH = 0
+    BINARY_MATCH_MAIN = 1
+    HASH_MATCH_MAIN = 2
+    BINARY_MATCH_TRASH = 3
+    HASH_MATCH_TRASH = 4
+    BINARY_MATCH_REPLACED = 5
+    HASH_MATCH_REPLACED = 6
     IMPORTED = 7
     NOW_ALLOWED = 8
