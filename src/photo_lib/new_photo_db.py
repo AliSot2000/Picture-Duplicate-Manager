@@ -1173,7 +1173,7 @@ class PhotoDB(BaseSQliteDB):
         key = self.insert_get_file_hash_key(file_hash)
         return key
 
-    def _insert_get_dir(self, dir_name:  str) -> int:
+    def _insert_get_dir(self, dir_name: str) -> int:
         """
         PRECONDITION: dir_name is absolute
         PRECONDITION: dir_name is child of root_path
@@ -1183,7 +1183,7 @@ class PhotoDB(BaseSQliteDB):
 
         :param dir_name: The name of the directory to insert.
         """
-        rel_path = dir_name.replace(self.root_path, "")
+        rel_path = dir_name.removeprefix(self.root_path)
         rel_path_list = rel_path.split(os.sep)
 
         self.debug_execute("SELECT key FROM db_dir WHERE db_local_dir = ?",
