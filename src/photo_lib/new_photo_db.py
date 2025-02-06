@@ -2446,12 +2446,36 @@ class PhotoDB(BaseSQliteDB):
 
         return res
 
+    def _db_resolve_filename_to_key(self, file_name: str) -> int | None:
+        """
+        Query the Database and get the key given a file name.
+        """
+        self.debug_execute("SELECT key FROM main WHERE db_name = ? "
+                           "UNION ALL "
+                           "SELECT key FROM replaced WHERE former_name = ?", (file_name, file_name))
+        res = self.sq_cur.fetchall()
+        if len(res) == 0:
+            return None
+
+        if len(res) > 1:
+            raise CorruptDatabase(f"file_name {file_name} appears in main and replaced table.")
+
+        # PRECONDITION: number of results = 1
+        return res[0]
+
     def filename_to_key(self, fname: str) -> int | None:
         """
         Resolve a filename to key
         """
-        # TODO implement
-        ...
+        res = self.filename_to_key_cache.get(fname)
+
+        # Key not in cache, resolve using db, store in cache and return value
+        if res is nd:
+            key = self._db_resolve_filename_to_key(fname)
+            self.filename_to_key_cache.set(fname, key)
+            return key
+
+        return res
 
     @staticmethod
     def dt_to_dir(dt: datetime.datetime) -> str:
