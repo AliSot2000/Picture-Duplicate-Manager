@@ -2005,18 +2005,16 @@ class PhotoDB(BaseSQliteDB):
         :param key: Key to delete, list of keys to delete, or delete all thumbnails of images in the trash with None
         """
         count: int = 0
-        stmt = "SELECT key, flags FROM main "
-
         # Everything in the trash
         if key is None:
-            stmt += " WHERE mod(flags >> 2, 2) == 1"
+            stmt = "SELECT key, flags FROM main WHERE mod(flags >> 2, 2) == 1"
             args = tuple()
         elif isinstance(key, int):
-            stmt += f" WHERE key = ?"
+            stmt = f"SELECT key, flags FROM main  WHERE key = ? AND mod(flags >> 2, 2) == 1"
             args = (key, )
         elif isinstance(key, list):
-            stmt += f" WHERE key IN ({', '.join(map(str, key))})"
-            args = tuple()
+            stmt = f"SELECT key, flags FROM main  WHERE key IN ? AND mod(flags >> 2, 2) == 1"
+            args = (f"({', '.join(map(str, key))})", )
         else:
             raise TypeError(f"Unexpected Type for Key: {type(key).__name__}")
 
