@@ -1793,9 +1793,9 @@ class PhotoDB(BaseSQliteDB):
                     break
 
         except KeyError:
-            self.main_logger.error(f"Failed to get time data from probe result of ffmpeg: {in_path}")
+            self.main_logger.error(f"KeyError: Failed to get time data from probe result of ffmpeg: {in_path}")
         except IndexError:
-            self.main_logger.error("Failed to get time data from probe result of ffmpeg")
+            self.main_logger.error(f"IndexError: Failed to get time data from probe result of ffmpeg: {in_path}")
         except Exception as e:
             self.main_logger.exception(f"Unexpected error {type(e).__name__}", exc_info=e)
 
