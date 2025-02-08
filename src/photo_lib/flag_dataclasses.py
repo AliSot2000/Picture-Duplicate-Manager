@@ -55,6 +55,7 @@ class MainFlags:
             sel_b=False,
             has_thumbnail=False,
             has_miniature=False,
+            duplicate=False,
         )
 
     def to_int(self):
@@ -65,35 +66,8 @@ class MainFlags:
                 + int(self.sel_a) << 4
                 + int(self.sel_b) << 5
                 + int(self.has_thumbnail) << 6
-                + int(self.has_miniature) << 7)
-
-
-@dataclass
-class ReplacedFlags:
-    """
-    Dataclass for flags in the replaced table.
-    """
-    present: bool
-    org_google_metadata: bool
-
-    @classmethod
-    def from_int(cls, group: int):
-        _present = bool(group & 0b1)
-        _org_google_metadata = bool(group & 0b10)
-
-        return cls(
-            present=_present,
-            org_google_metadata=_org_google_metadata,
-        )
-
-    @classmethod
-    def from_main_flags(cls, main_flags: MainFlags):
-        return cls(present=main_flags.present,
-                   org_google_metadata=main_flags.org_google_metadata)
-
-    def to_int(self):
-        return (int(self.present) +
-                int(self.org_google_metadata) >> 1)
+                + int(self.has_miniature) << 7
+                + int(self.duplicate) << 8)
 
 
 @dataclass
