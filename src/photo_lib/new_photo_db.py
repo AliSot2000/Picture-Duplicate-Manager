@@ -6,7 +6,7 @@ import multiprocessing.connection as connection
 import os.path
 import shutil
 import sys
-from typing import Set, Dict, List, Union, Tuple, Optional
+from typing import Set, Dict, List, Union, Tuple, Optional, Any
 from zoneinfo import ZoneInfo
 
 import cv2
@@ -18,13 +18,15 @@ from photo_lib.cache import Cache, nd
 from photo_lib.config import Config
 from photo_lib.db_definitions import current_version, history, StaticDeclaration, GenericDeclaration
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase, RareOccurrence
-from photo_lib.flag_dataclasses import MainFlags, ReplacedFlags
+from photo_lib.flag_dataclasses import MainFlags
 from photo_lib.metadata_aggregator.config import DoubleKey
 from photo_lib.metadata_aggregator.enums import DateTimeSource
 from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAggregator
 from photo_lib.sqlite_wrapper import BaseSQliteDB
 
 
+# TODO mda is property
+# TODO mda set during init
 class PhotoDB(BaseSQliteDB):
     __verified: bool = False
     config: Config
