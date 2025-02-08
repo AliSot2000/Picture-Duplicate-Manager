@@ -154,22 +154,17 @@ current_version = DBVersion(
         # Main Table Definitions
         "main": StaticDeclaration(
             name="main",
-            declaration_string="CREATE TABLE `%name%` ("
+            declaration_string="CREATE TABLE main ("
                                "key INTEGER PRIMARY KEY AUTOINCREMENT, "
-                               "original_filename TEXT NOT NULL, "
-                               "original_dirname TEXT NOT NULL, "
+                               "original_filename TEXT NOT NULL, "  
                                "metadata TEXT, "
                                "google_metadata TEXT, "
-                               "naming_tag TEXT NOT NULL, "
-                               "db_name TEXT UNIQUE NOT NULL, "
                                "datetime TEXT NOT NULL, "
-                               "timezone TEXT, "
-                               "gps_location INTEGER, "
-                               "db_dir INTEGER, "
-                               "datetime_source INTEGER CHECK (`%name%`.datetime_source IN (0, 1, 2, 3, 4, 5)), "
+                               "db_name TEXT NOT NULL, "
+                               "parent INTEGER, "
+                               "timezone TEXT, " # is dependent on system defaults so retained here.
                                "flags INTEGER NOT NULL,"
-                               "FOREIGN KEY (gps_location) REFERENCES gps_location(key),"
-                               "FOREIGN KEY (db_dir) REFERENCES db_dir(key))"
+                               "FOREIGN KEY (parent) REFERENCES main(key))"
         ),
         "main_key_index": StaticDeclaration(
             name="main_key_index",
@@ -208,30 +203,24 @@ current_version = DBVersion(
             declaration_string="CREATE INDEX `%name%` ON hash_assoz (datetime(datetime))"
         ),
 
-        # Replaced Table Definitions
-        "replaced": StaticDeclaration(
-            name="replaced",
+        # Metadata Table Definitions
+        # Contains the columns that make define files which aren't declared replaced.
+        "metadata": StaticDeclaration(
+            name="metadata",
             declaration_string="CREATE TABLE `%name%` ("
-                               "key INTEGER PRIMARY KEY AUTOINCREMENT, "
-                               "original_filename TEXT NOT NULL, "  
-                               "metadata TEXT, "
-                               "google_metadata TEXT, "
-                               "datetime TEXT NOT NULL, "
-                               "former_name TEXT NOT NULL, "
-                               "parent INTEGER NOT NULL, "
-                               "timezone TEXT, " # is dependent on system defaults so retained here.
-                               "flags INTEGER NOT NULL,"
-                               "FOREIGN KEY (parent) REFERENCES main(key))"
-            # We're dropping:
-            # - original_dirname (contained in metadata if available)
-            # - naming_tag (can be recomputed from metadata)
-            # - datetime_source (can be recomputed from metadata)
-            # - db_dir because not present anymore, not necessary
-            # - gps_loc (can be recomputed from metadata)
+                               "main_key INTEGER, "
+                               "original_dirname TEXT NOT NULL, "
+                               "naming_tag TEXT NOT NULL, "
+                               "gps_location INTEGER, "
+                               "db_dir INTEGER, "
+                               "datetime_source INTEGER CHECK (`%name%`.datetime_source IN (0, 1, 2, 3, 4, 5)), "
+                               "FOREIGN KEY (main_key) REFERENCES main(key), "
+                               "FOREIGN KEY (gps_location) REFERENCES gps_location(key), "
+                               "FOREIGN KEY (db_dir) REFERENCES db_dir(key)) "
         ),
-        "replaced_key_index": StaticDeclaration(
-            name="replaced_key_index",
-            declaration_string="CREATE INDEX `%name%` ON replaced (key)"
+        "metadata_key_index": StaticDeclaration(
+            name="metadata_key_index",
+            declaration_string="CREATE INDEX `%name%` ON metadata (key)"
         ),
 
         # List of import tables (so generic tables)
