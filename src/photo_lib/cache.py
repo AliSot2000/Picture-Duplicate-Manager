@@ -160,7 +160,7 @@ class Cache:
         # Only update the arg
         self.__arg_res_lookup[arg] = value
 
-    def evict(self, arg: Hashable):
+    def evict(self, arg: Hashable) -> bool:
         """
         Evict a value from the cache, provided it is there.
         """
@@ -169,7 +169,7 @@ class Cache:
 
         res = self.__arg_res_lookup.get(arg, nd)
         if res is nd:
-            return
+            return False
 
         # PRECONDITION: Argument is in cache
         # Set the cache to be populatable
@@ -181,6 +181,7 @@ class Cache:
         # Finally, clearing the arg to x lookups
         del self.__arg_res_lookup[arg]
         del self.__arg_index_lookup[arg]
+        return True
 
     def inspect(self):
         """
