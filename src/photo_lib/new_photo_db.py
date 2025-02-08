@@ -587,6 +587,8 @@ class PhotoDB(BaseSQliteDB):
         """
         Go through all files in the directory, and prepare the index for import.
 
+        Directory may not be subdirectory of database.
+
         If no MetadataAggregator was set in the mda attribute, a new instance will be created.
         Using dateutil, with loggers logger="MetadataAggregator" and "MetadataAggregator.Parsing"
 
@@ -602,6 +604,9 @@ class PhotoDB(BaseSQliteDB):
 
         :returns: import table name. Will be the tbl_name is you provide it, otherwise the generated table name
         """
+        if source_dir.startswith(self.root_path):
+            raise ValueError("Cannot import database into itself")
+
         mda_set: bool = False
         if self.mda is None:
             self.add_default_metadata_aggregator()
