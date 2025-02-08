@@ -917,10 +917,9 @@ class PhotoDB(BaseSQliteDB):
                            args=(
                                pres.filename,
                                pres.dirname,
-                               None if pres.metadata is None \
-                                   else json.dumps(pres.metadata).replace("'", "''"),
+                               None if pres.metadata is None else self.sanitize_json(pres.metadata),
                                None if pres.google_photos_metadata is None \
-                                   else json.dumps(pres.google_photos_metadata).replace("'", "''"),
+                                   else self.sanitize_json(pres.google_photos_metadata),
                                pres.file_hash,
                                pres.file_size,
                                1 if allowed else 0,
