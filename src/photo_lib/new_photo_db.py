@@ -978,9 +978,10 @@ class PhotoDB(BaseSQliteDB):
             assert new_size is not None, "New Size needed for update."
             self.check_add_file_hash(file_key=key, file_hash=new_hash, file_size=new_size)
 
-        self.debug_execute("UPDATE main SET db_dir = ?, db_name = ? WHERE key = ?",
-                           (dir_key, db_name, key))
-
+        self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
+                           (db_name, key))
+        self.debug_execute("UPDATE metadata SET db_name = ? WHERE main_key = ?",
+                           (dir_key, key))
 
     def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
         """
