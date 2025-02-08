@@ -645,6 +645,11 @@ class PhotoDB(BaseSQliteDB):
 
         # Actually search the provided directory
         if recursive:
+            file_count = 0
+            # Compute Number of files needed for progress bar
+            for root, dirs, files in os.walk(source_dir):
+                file_count += len(files)
+
             for root, dirs, files in os.walk(source_dir):
                 for f in files:
                     self._prepare_file_import(file_path=os.path.join(root, f),
@@ -652,6 +657,8 @@ class PhotoDB(BaseSQliteDB):
                                               allowed_ext=allowed_ext,
                                               append=append)
         else:
+            file_count = len(os.listdir(source_dir))
+
             for entry in os.listdir(source_dir):
                 if os.path.isfile(os.path.join(source_dir, entry)):
                     self._prepare_file_import(file_path=os.path.join(source_dir, entry),
