@@ -1002,26 +1002,28 @@ class PhotoDB(BaseSQliteDB):
         if mode.lower() not in ("earliest", "latest", "any"):
             raise ValueError(f"Unsupported mode: {mode.lower()}, allowed: [earliest, latest, any]")
 
+        # TODO the hash_date needs a more specific search!
+        # TODO need to add initial
         if mode.lower() == "earliest":
             self.debug_execute("SELECT ha.file_key "
-                               "FROM hash AS h JOIN hash_assoz AS ha "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
                                "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
                                "(SELECT MIN(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
                                (target_hash, file_size))
 
         elif mode.lower() == "latest":
             self.debug_execute("SELECT ha.file_key "
-                               "FROM hash AS h JOIN hash_assoz AS ha "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
                                "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
                                "(SELECT MAX(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
                                (target_hash, file_size))
         elif mode.lower() == "any":
             self.debug_execute("SELECT ha.file_key "
-                               "FROM hash AS h JOIN hash_assoz AS ha "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
                                "WHERE h.hash = ? AND ha.file_size_bytes = ?",
                                (target_hash, file_size))
         else:
-            raise ImplementationError("Shouldn't be able to get here.")
+            raise ImplementationError(f"Got unexpected mode {mode.lower()}")
 
         return [r[0] for r in self.sq_cur.fetchall()]
 
