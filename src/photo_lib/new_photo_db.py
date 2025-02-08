@@ -1316,7 +1316,11 @@ class PhotoDB(BaseSQliteDB):
         """
         self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=False)
 
-    def _internal_modify_duplicates(self, key_a: int | List[int], key_b: int | List[int], known: bool, add: bool):
+    def _internal_modify_duplicates(self, key_a: int | List[int],
+                                    key_b: int | List[int],
+                                    known: bool,
+                                    add: bool,
+                                    delta: float | List[float] = None):
         """
         Internal Function to add or remove a duplicate tuple, parametrizes the table to modify and operation.
 
@@ -1329,29 +1333,52 @@ class PhotoDB(BaseSQliteDB):
         tbl = "known_duplicates" if known else "duplicates"
 
         if add:
-            op = f"INSERT OR IGNORE INTO `{tbl}` (key_a, key_b) VALUES (?, ?)"
+            if delta is not None:
+                op = f"INSERT OR IGNORE INTO `{tbl}` (key_a, key_b) VALUES (?, ?)"
+            else:
+                op = f"INSERT OR IGNORE INTO `{tbl}` (key_a, key_b, delta) VALUES (?, ?, ?)"
         else:
             op = f"DELETE FROM `{tbl}` WHERE key_a = ? AND key_b = ?"
 
         if isinstance(key_a, int) and isinstance(key_b, int):
+            if delta is not None:
+                if not isinstance(delta, float):
+                    raise TypeError("float required if key_a and key_b are int")
+
             if key_b == key_a:
                 raise ValueError("Identical Keys.")
 
             if key_a >= key_b:
                 key_a, key_b = key_b, key_a
 
-            self.debug_execute(op, (key_a, key_b))
+            args = (key_a, key_b) if delta is None else (key_a, key_b, delta)
+
+            self.debug_execute(op, args)
 
         elif isinstance(key_a, list) and isinstance(key_b, list):
             if not len(key_a) == len(key_b):
                 raise ValueError("key_a and key_b must have same length")
 
-            args = []
-            for ka, kb in zip(key_a, key_b):
-                if ka == kb:
-                    raise ValueError("Identical Keys.")
+            if delta is not None:
+                if not isinstance(delta, list):
+                    raise TypeError("List[float] required if key_a and key_b are List[int]")
 
-                args.append((kb, ka) if ka >= kb else (kb, ka))
+                if not len(key_a) == len(delta):
+                    raise ValueError("delta and key_x must have the same length")
+
+            args = []
+            if delta is None:
+                for ka, kb in zip(key_a, key_b):
+                    if ka == kb:
+                        raise ValueError("Identical Keys.")
+
+                    args.append((kb, ka) if ka >= kb else (kb, ka))
+            else:
+                for ka, kb, dlt in zip(key_a, key_b, delta):
+                    if ka == kb:
+                        raise ValueError("Identical Keys.")
+
+                    args.append((kb, ka, dlt) if ka >= kb else (kb, ka, dlt))
 
             self.debug_execute_many(op, args)
         else:
