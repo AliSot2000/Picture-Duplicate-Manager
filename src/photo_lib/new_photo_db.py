@@ -2247,6 +2247,8 @@ class PhotoDB(BaseSQliteDB):
         :param key: Key to delete, list of keys to delete, or delete all thumbnails of images in the trash with None
         """
         count: int = 0
+
+        self.add_extra_cursor("del_trash_thumb")
         # Everything in the trash
         if key is None:
             stmt = "SELECT key, flags FROM main WHERE mod(flags >> 2, 2) == 1"
@@ -2260,10 +2262,9 @@ class PhotoDB(BaseSQliteDB):
         else:
             raise TypeError(f"Unexpected Type for Key: {type(key).__name__}")
 
-        self.debug_execute(stmt, args)
-        self.add_extra_cursor("del_trash_thumb")
+        self.debug_execute(stmt, args, "del_trash_thumb")
 
-        for row in self.sq_cur:
+        for row in self.get_cursor("del_trash_thumb"):
             key, _flags = row
             flags = MainFlags.from_int(_flags)
 
@@ -2280,8 +2281,7 @@ class PhotoDB(BaseSQliteDB):
                 count += 1
 
             self.debug_execute("UPDATE main SET flags = ? WHERE key = ?",
-                               (flags.to_int(), key),
-                               "del_trash_thumb")
+                               (flags.to_int(), key))
 
         self.remove_extra_cursor("del_trash_thumb")
         self.commit()
