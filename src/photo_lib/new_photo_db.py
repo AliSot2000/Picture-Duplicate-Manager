@@ -2221,6 +2221,24 @@ class PhotoDB(BaseSQliteDB):
         self.key_to_filepath_cache.update(arg=key, value=target_path)
         self.commit()
 
+    def undo_move_to_replace(self, key: int):
+        """
+        Moves file back to original location
+        Updates the metadata table.
+
+        Only works if delete_trash wasn't called already
+        """
+        ...
+
+    def undo_move_to_trash(self, key: int):
+        """
+        Move file back from trash to its original location
+        Updates Metadata Table
+
+        Only works if delete_trash wasn't called already
+        """
+        ...
+
     def delete_trash_thumb(self, key: Union[List[int], int, None]) -> int:
         """
         Delete the remaining thumbnail of an image in the trash. For recognition purposes, the thumbnails of the
