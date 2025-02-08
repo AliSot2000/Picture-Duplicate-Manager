@@ -1625,6 +1625,8 @@ class PhotoDB(BaseSQliteDB):
 
     def change_filename(self, key: int, new_filename: str):
         """
+        INFO: Function keeps the file in the same directory of the database.
+
         The function exists for the purpose of allowing the user to change file names however it is not recommended.
 
         Change the filename. Set a custom filename. The filename must be unique within the database.
@@ -1637,22 +1639,24 @@ class PhotoDB(BaseSQliteDB):
         if self.sq_cur.fetchone() is not None:
             raise ValueError("Filename already exists in main table.")
 
-        self.debug_execute("SELECT key FROM replaced WHERE former_name = ?", (new_filename,))
-        if self.sq_cur.fetchone() is not None:
-            raise ValueError("Filename already exists in replaced table.")
-
         # PRECONDITION: Filename not present
         _, dt, flags, db_local_dir, db_name, _ = self._get_rename_data(key=key)
+
+        if not flags.present or flags.trashed or flags.duplicate:
+            raise ValueError("Cannot change name from files in trash, not present and duplicates")
+
         self._internal_rename(key=key,
                               flags=flags,
-                              db_name=db_name,
+                              dbn=db_name,
                               new_name=new_filename,
                               dt=dt,
                               db_local_dir=db_local_dir)
 
         # Update the database after renaming
-        self.debug_execute("UPDATE main SET db_name = ?, naming_tag = ? WHERE key = ?",
-                           (new_filename, "CUSTOM", key))
+        self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
+                           (new_filename, key))
+        self.debug_execute("UPDATE metadata SET naming_tag = ? WHERE main_key = ?",
+                           ("CUSTOM", key))
 
         # Last operation, clear lookup caches
         self.commit()
