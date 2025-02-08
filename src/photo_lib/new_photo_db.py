@@ -38,7 +38,7 @@ class PhotoDB(BaseSQliteDB):
 
     # Redefining logger as mandatory
     main_logger_name: str = "PhotoDB"
-    integrity_logger_name: str = "PhotoDB.integrity"
+    integrity_logger_name: str = "PhotoDB.Integrity"
     metadata_aggregator_name: str = "PhotoDB.MetadataAggregator"
     metadata_aggregator_parsing_name: str = "PhotoDB.MetadataAggregator.Parsing"
     main_logger: logging.Logger
