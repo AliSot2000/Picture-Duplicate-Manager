@@ -573,7 +573,7 @@ class NewMetadataAggregator:
                                          creation_date=dt,
                                          naming_tag=key,
                                          file_hash=file_hash,
-                                         tz_name=dt.tzinfo,
+                                         tz_name=dt.tzname(),
                                          file_size=file_size)
 
         # Check the presence of md and parse teh stuff
