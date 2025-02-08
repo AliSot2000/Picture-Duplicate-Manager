@@ -2654,7 +2654,7 @@ class PhotoDB(BaseSQliteDB):
 
     def resolve_key_to_path(self, key: int) -> str | None:
         """
-        Get the original filename for image
+        Get the original filepath for media file. Path doesn't need to exist.
 
         :param key: The key to resolve.
 
