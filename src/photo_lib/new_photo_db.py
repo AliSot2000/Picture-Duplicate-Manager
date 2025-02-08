@@ -1297,7 +1297,7 @@ class PhotoDB(BaseSQliteDB):
         """
         self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=False)
 
-    def add_known_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
+    def add_known_duplicate(self, key_a: int | List[int], key_b: int | List[int], delta: float | List[float] = None):
         """
         Moves a pair of duplicates into the known_duplicates table.
 
@@ -1305,7 +1305,7 @@ class PhotoDB(BaseSQliteDB):
         :param key_b: The key of the second media file.
         :param delta: The delta metric between the images.
         """
-        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=True)
+        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=True, delta=delta)
 
     def remove_known_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
         """
