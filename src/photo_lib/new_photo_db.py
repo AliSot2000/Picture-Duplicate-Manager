@@ -753,6 +753,7 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return tbl_name
 
+    # INFO: long-running action
     def update_allowed(self, allowed_ext: Set[str], tbl: str) -> Tuple[int, int, int]:
         """
         Update the allowed extensions for a given
@@ -804,6 +805,7 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return now_allowed, now_disallowed, same
 
+    # INFO: long-running action
     def find_match_for_import_table(self, tbl_name: str, recompute: bool = False) -> int:
         """
         Find matches for files in a given import table.
