@@ -802,9 +802,11 @@ class PhotoDB(BaseSQliteDB):
             added_mda = True
 
         self.add_extra_cursor("import_table")
-        self.debug_execute(f"SELECT key, original_filename, original_dirname, metadata, google_metadata, file_hash, "
-                           f"file_size_bytes, datetime, timezone, naming_tag, gps_latitude, gps_longitude, "
-                           f"datetime_source, allowed, import_key FROM `{tbl_name}` WHERE imported = 1")
+        self.debug_execute(stmt=f"SELECT key, original_filename, original_dirname, metadata, google_metadata, "
+                                f"file_hash, file_size_bytes, datetime, timezone, naming_tag, gps_latitude, "
+                                f"gps_longitude, datetime_source, allowed, import_key "
+                                f"FROM `{tbl_name}` WHERE imported = 1",
+                           cur="import_cursor")
         count = 0
         for row in self.get_cursor("import_table"):
             # Handle the setting of all the rows needed into the main table.
@@ -828,14 +830,18 @@ class PhotoDB(BaseSQliteDB):
 
             # Insert into main table and add
             self.debug_execute(f"INSERT INTO main "
-                               f"(original_filename, original_dirname, metadata, google_metadata, naming_tag, db_name,"
-                               f" datetime, timezone, datetime_source, flags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                               (ofn, odn, md.replace("'", "''"), gfmd.replace("'", "''"), nt, self.temp_db_name,
-                                _dt, tz, _dts, default_flags.to_int()))
+                               f"(original_filename, metadata, google_metadata, db_name,"
+                               f" datetime, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                               (ofn, md.replace("'", "''"), gfmd.replace("'", "''"), self.temp_db_name,
+                                _dt, tz, default_flags.to_int()))
             self.debug_execute("SELECT key FROM main WHERE db_name = ?", (self.temp_db_name,))
             kr = self.sq_cur.fetchone()
             assert kr is not None, "Key should exist after insert."
             insert_key = kr[0]
+
+            # Handle metadata table
+            self.debug_execute("INSERT INTO metadata (main_key, original_dirname, naming_tag, datetime_source) "
+                               "VALUES (?, ?, ?, ?)", args=(insert_key, ofd, nt, _dts))
 
             # Handle GPS
             assert (gps_lat is not None and gps_long is not None) or (gps_lat is None and gps_long is None), \
@@ -843,11 +849,12 @@ class PhotoDB(BaseSQliteDB):
             if gps_lat is not None and gps_long is not None:
                 gps_key = self.insert_get_gps_loc(gps_lat=gps_lat, gps_long=gps_long)
 
-                self.debug_execute("UPDATE main SET gps_location = ? WHERE key = ?", (gps_key, insert_key))
+                self.debug_execute("UPDATE metadata SET gps_location = ? WHERE main_key = ?",
+                                   (gps_key, insert_key))
 
             # Handle hash
             assert fh is not None, "File Hash needs to be defined"
-            self.check_add_file_hash(file_key=insert_key, file_hash=fh, file_size=fsb)
+            self.check_add_file_hash(file_key=insert_key, file_hash=fh, file_size=fsb, initial=True)
 
             self._import_file(original_filename=ofn,
                               original_dirname=ofd,
