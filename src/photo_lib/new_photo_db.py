@@ -1665,9 +1665,8 @@ class PhotoDB(BaseSQliteDB):
             self.filename_to_key_cache.set(arg=db_name, value=key)
         # TODO reset flags of hash, presence and filename tables
 
-        return key, dt, flags, db_local_dir, db_name, original_name
-
-    def _internal_rename(self, key: int, flags: MainFlags, db_name: str, new_name: str, dt: datetime.datetime,
+    def _internal_rename(self, key: int, flags: MainFlags, dbn: str, new_name: str, dt: datetime.datetime,
+                         ndt: datetime.datetime = None,
                          db_local_dir: str = None):
         """
         Shared part of the function that all functions that rename a file use.
@@ -1675,29 +1674,44 @@ class PhotoDB(BaseSQliteDB):
         Info: Sets the prune_fs_dir flag.
 
         :param key: key of image to rename
-        :param db_name: current name of image to rename
+        :param dbn: current name of image to rename
         :param new_name: new name of image to rename
-        :param dt: datetime object needed for path
-        :param db_local_dir: directory to use for path
+        :param flags: Flags of the current file needed to determine path
+        :param dt: Datetime of current file
+        :param ndt: New datetime of current file
+        :param db_local_dir: Local path of current file if not standard.
         """
-        if flags.trashed:
-            new_par_dir = par_dir = self.get_trash_dir()
+        # Parse the paths.
+        if flags.trashed or flags.duplicate:
+            current_path = os.path.join(self.get_trash_dir(), dbn)
+            new_path = os.path.join(self.get_trash_dir(), new_name)
         elif db_local_dir is not None:
-            new_par_dir = par_dir = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir))
+            current_path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), dbn)
+            new_path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), new_name)
+        elif ndt is not None:
+            current_path = os.path.join(self.root_path, self.dt_to_dir(dt), dbn)
+            new_path = os.path.join(self.root_path, self.dt_to_dir(ndt), new_name)
         else:
-            assert db_local_dir is None, "Unexpected state in parent directory resolution"
-            par_dir = os.path.join(self.root_path, self.dt_to_dir(dt))
-            new_par_dir = os.path.join(self.root_path, self.dt_to_dir(dt))
+            assert db_local_dir is None and ndt is None, \
+                f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {ndt}"
+            current_path = os.path.join(self.root_path, self.dt_to_dir(dt), dbn)
+            new_path = os.path.join(self.root_path, self.dt_to_dir(dt), new_name)
 
-            if not os.path.exists(new_par_dir):
-                self.main_logger.debug(f"Creating New Directory: {new_par_dir}")
-                os.makedirs(new_par_dir)
+        self.check_flags(key=key, flags=flags, org_path=current_path)
 
-        self.check_flags(key=key, flags=flags, org_path=os.path.join(par_dir, db_name))
-        if os.path.splitext(new_name)[1] != os.path.splitext(db_name)[1]:
+        # Check the file extensions.
+        if os.path.splitext(new_name)[1] != os.path.splitext(dbn)[1]:
             self.main_logger.warning("New file extension does not match DB file extension")
 
-        if not os.path.exists(os.path.join(par_dir, db_name)):
+        # Ensure existence, raise error (cannot be fixed by good programming, so no assert)
+        if not os.path.exists(current_path):
+            raise ValueError("Original File doesn't exist, cannot rename.")
+
+        # PRECONDITION: File Exists, Filename not present
+        os.rename(current_path, new_path)
+
+        self.key_to_filepath_cache.update(arg=key, value=new_path)
+        self.prune_fs_dir = True
             raise ValueError("Original File doesn't exist, cannot rename.")
 
         # PRECONDITION: File Exists, Filename not present
