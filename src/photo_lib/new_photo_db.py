@@ -533,6 +533,40 @@ class PhotoDB(BaseSQliteDB):
     # ==================================================================================================================
     # DB functions (functions operating only on the DB - basically wrapper for multiple sql statements)
     # ==================================================================================================================
+
+    # Get Functions
+    # -------------
+    def _get_rename_data(self, key: int) -> Tuple[int, datetime.datetime, MainFlags, str, str, str]:
+        """
+        Get the necessary data from the database to rename a file
+
+        :param key: Key to query the db for
+
+        :returns: Tuple(key, datetime, flags, db_local_dir, db_name, original_name)
+        """
+        # Get current row
+        self.debug_execute("SELECT key, datetime, flags, db_name, original_filename FROM main WHERE m.key = ?",
+                           (key,))
+
+        row = self.sq_cur.fetchone()
+        if row is None:
+            raise ValueError(f"Key {key} does not exist in main table")
+
+        self.debug_execute("SELECT m.main_key, d.db_local_dir "
+                           "FROM metadata AS m LEFT OUTER JOIN db_dir AS d ON m.db_dir = d.key WHERE m.main_key = ?")
+
+        db_dir_row = self.sq_cur.fetchone()
+        if db_dir_row is None:
+            raise ValueError(f"Key {key} does not exist in metadata table")
+
+        metadata_key, db_local_dir = db_dir_row
+
+        main_key, _dt, _flags, db_name, original_name = row
+        dt = datetime.datetime.fromisoformat(_dt)
+        flags = MainFlags.from_int(_flags)
+
+        return key, dt, flags, db_local_dir, db_name, original_name
+
     def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
         """
         Given a hash, finds all file_keys which share this hash.
@@ -1576,24 +1610,10 @@ class PhotoDB(BaseSQliteDB):
 
         # Last operation, clear lookup caches
         self.commit()
-        # TODO update caches.
-
-    def _get_rename_data(self, key: int) -> Tuple[int, datetime.datetime, MainFlags, str, str, str]:
-        """
-        Get the necessary data from the database to rename a file
-        """
-        # Get current row
-        self.debug_execute("SELECT m.key, m.datetime, m.flags, d.db_local_dir, m.db_name, m.original_filename "
-                           "FROM main AS m JOIN db_dir AS d ON m.db_dir = d.key "
-                           "WHERE m.key = ?", (key,))
-
-        row = self.sq_cur.fetchone()
-        if row is None:
-            raise ValueError(f"Key {key} does not exist in main table")
-
-        key, _dt, _flags, db_local_dir, db_name, original_name = row
-        dt = datetime.datetime.fromisoformat(_dt)
-        flags = MainFlags.from_int(_flags)
+        # Evicting lookup of old name to key
+        if self.filename_to_key_cache.evict(arg=db_name):
+            self.filename_to_key_cache.set(arg=db_name, value=key)
+        # TODO reset flags of hash, presence and filename tables
 
         return key, dt, flags, db_local_dir, db_name, original_name
 
