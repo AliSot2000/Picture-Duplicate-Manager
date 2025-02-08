@@ -1160,7 +1160,7 @@ class PhotoDB(BaseSQliteDB):
         key = self.insert_get_gps_loc(gps_lat, gps_long)
         return key
 
-    def check_add_file_hash(self, file_key: int, file_size: int, file_hash: str) -> bool:
+    def check_add_file_hash(self, file_key: int, file_size: int, file_hash: str, initial: bool = False) -> bool:
         """
         Checks if a given row in the hash_assoz table exists provided a file_hash, a file_size and file_key.
 
@@ -1169,11 +1169,14 @@ class PhotoDB(BaseSQliteDB):
         :param file_hash: The hash of the file to check.
         :param file_size: The size of the file to check.
         :param file_key: The key of the file to check.
+        :param initial: If this the hash gotten when hasing in the source directory of the import.
 
         :return: True if the row exists, False if the rows were added.
         """
+        # TODO implement initial
+        # Consider the hashes a set of all hashes the file had at a given point. The hash to check during import is the one marked with initial
         self.debug_execute("SELECT ha.hash_key, ha.file_key "
-                           "FROM hash AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+                           "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
                            "WHERE h.hash = ? AND ha.file_key = ? AND ha.file_size = ?",
                            (file_hash, file_key, file_size))
 
