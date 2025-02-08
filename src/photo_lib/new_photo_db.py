@@ -2771,7 +2771,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Generate the filename of a given file within the database.
         """
-        base_name = fdt.strftime(format="%Y-%m-%dT%H-%M-%S") + f"_{key:10000}"
+        base_name = fdt.strftime(format="%Y-%m-%dT%H-%M-%S") + f"_{key:04}"
         ob, ext = os.path.splitext(original_filename)
 
         if self.config.org_filename_append:
