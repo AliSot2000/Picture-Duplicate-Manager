@@ -1699,6 +1699,9 @@ class PhotoDB(BaseSQliteDB):
 
         self.check_flags(key=key, flags=flags, org_path=current_path)
 
+        if new_path == current_path:
+            return
+
         # Check the file extensions.
         if os.path.splitext(new_name)[1] != os.path.splitext(dbn)[1]:
             self.main_logger.warning("New file extension does not match DB file extension")
@@ -1707,15 +1710,61 @@ class PhotoDB(BaseSQliteDB):
         if not os.path.exists(current_path):
             raise ValueError("Original File doesn't exist, cannot rename.")
 
+        if os.path.exists(new_path):
+            raise ValueError("New path exists already.")
+
         # PRECONDITION: File Exists, Filename not present
         os.rename(current_path, new_path)
 
         self.key_to_filepath_cache.update(arg=key, value=new_path)
         self.prune_fs_dir = True
+
+    def _internal_move_file(self, key: int, flags: MainFlags, dbn: str, dt: datetime.datetime,
+                            ndt: datetime.datetime = None,
+                            db_local_dir: str = None):
+        """
+        Internal function to move a file once its datetime has been updated. Movement needed because resolution of
+        path from datetime wouldn't work otherwise.
+
+        :param key: key of image to rename
+        :param dbn: current name of image to rename
+        :param flags: Flags of the current file needed to determine path
+        :param dt: Datetime of current file
+        :param ndt: New datetime of current file
+        :param db_local_dir: Local path of current file if not standard.
+        """
+        # Parse the paths.
+        if flags.trashed or flags.duplicate:
+            current_path = os.path.join(self.get_trash_dir(), dbn)
+            new_path = os.path.join(self.get_trash_dir(), dbn)
+        elif db_local_dir is not None:
+            current_path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), dbn)
+            new_path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), dbn)
+        elif ndt is not None:
+            current_path = os.path.join(self.root_path, self.dt_to_dir(dt), dbn)
+            new_path = os.path.join(self.root_path, self.dt_to_dir(ndt), dbn)
+        else:
+            assert db_local_dir is None and ndt is None, \
+                f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {ndt}"
+            current_path = os.path.join(self.root_path, self.dt_to_dir(dt), dbn)
+            new_path = os.path.join(self.root_path, self.dt_to_dir(dt), dbn)
+
+        if current_path == new_path:
+            return
+
+        self.check_flags(key=key, flags=flags, org_path=current_path)
+
+        # Ensure existence, raise error (cannot be fixed by good programming, so no assert)
+        if not os.path.exists(current_path):
             raise ValueError("Original File doesn't exist, cannot rename.")
 
+        if os.path.exists(new_path):
+            raise ValueError("New Path exists already.")
+
         # PRECONDITION: File Exists, Filename not present
-        os.rename(os.path.join(par_dir, db_name), os.path.join(new_par_dir, new_name))
+        os.rename(current_path, new_path)
+
+        self.key_to_filepath_cache.update(arg=key, value=new_path)
         self.prune_fs_dir = True
 
     def build_import_table_lookup(self, target_table: str):
