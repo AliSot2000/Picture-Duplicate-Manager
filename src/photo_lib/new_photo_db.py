@@ -176,7 +176,7 @@ class PhotoDB(BaseSQliteDB):
 
     def init_db(self):
         """
-        Create all tables from
+        Create all tables from db_definitions.py
         """
         self.main_logger.info("Initializing Database")
 
