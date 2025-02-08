@@ -980,7 +980,7 @@ class PhotoDB(BaseSQliteDB):
 
         self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
                            (db_name, key))
-        self.debug_execute("UPDATE metadata SET db_name = ? WHERE main_key = ?",
+        self.debug_execute("UPDATE metadata SET db_dir = ? WHERE main_key = ?",
                            (dir_key, key))
 
     def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
