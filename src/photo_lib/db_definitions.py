@@ -254,7 +254,8 @@ current_version = DBVersion(
             name="duplicates",
             declaration_string="CREATE TABLE `%name%` ("
                                "key_a INTEGER NOT NULL, "
-                               "key_b INTEGER NOT NULL,"
+                               "key_b INTEGER NOT NULL, "
+                               "delta REAL NOT NULL CHECK ( `%name%`.delta >= 0 ), "
                                "UNIQUE (key_a, key_b),"
                                "CHECK ( key_a < key_b ),"
                                "FOREIGN KEY (key_a) REFERENCES main (key),"
@@ -263,6 +264,10 @@ current_version = DBVersion(
         "duplicates_key_index": StaticDeclaration(
             name="duplicates_key_index",
             declaration_string="CREATE INDEX `%name%` ON duplicates (key_a, key_b)"
+        ),
+        "duplicates_delta_index": StaticDeclaration(
+            name="duplicates_delta_index",
+            declaration_string="CREATE INDEX `%name%` ON duplicates (delta)"
         )
     },
     generic_definitions={
