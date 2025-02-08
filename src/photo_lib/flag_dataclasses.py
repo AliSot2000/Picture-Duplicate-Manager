@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 
 # TODO Darktable?
-# TODO org_google_metadata = True
 @dataclass
 class MainFlags:
     """
@@ -16,6 +15,7 @@ class MainFlags:
     sel_b: bool                 # 32
     has_thumbnail: bool         # 64
     has_miniature: bool         # 128
+    duplicate: bool              # 256
 
     @classmethod
     def from_int(cls, group: int):
@@ -27,6 +27,7 @@ class MainFlags:
         _sel_b = bool(group & 0b10_0000)
         _has_thumb = bool(group & 0b100_0000)
         _has_miniature = bool(group & 0b1000_0000)
+        _duplicate = bool(group & 0b1_0000_0000)
 
         return cls(
             present=_present,
@@ -37,6 +38,7 @@ class MainFlags:
             sel_b=_sel_b,
             has_thumbnail=_has_thumb,
             has_miniature=_has_miniature,
+            duplicate=_duplicate,
         )
 
     @classmethod
