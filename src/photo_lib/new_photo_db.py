@@ -470,43 +470,17 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
-    def prune_hash(self) -> int:
+    def check_new_files(self):
         """
-        Remove all rows in the hash table which are no longer referenced
-
-        :return: Number of rows removed
+        Search the database folder itself for new files which were added by the user. Basically performs identical
+        operation to import.
         """
-        self.debug_execute("SELECT COUNT(key) FROM hashes AS h WHERE h.key NOT IN (SELECT hash_key FROM hash_assoz)")
-        count = self.sq_cur.fetchone()[0]
-
-        self.debug_execute("DELETE FROM hashes WHERE key NOT IN (SELECT hash_key FROM hash_assoz)")
-        if count > 0:
-            self.main_logger.info(f"Pruned {count} rows in hash table")
-        else:
-            self.main_logger.debug("Call to prune_hash, no hashes pruned")
-        return count
-
-    def prune_gps(self) -> int:
-        """
-        Remove all rows in the gps table which are no longer referenced
-
-        :return: Number of rows removed
-        """
-        self.debug_execute("SELECT COUNT(key) FROM gps_location WHERE key NOT IN (SELECT gps_location FROM main)")
-        count = self.sq_cur.fetchone()[0]
-
-        self.debug_execute("DELETE FROM gps_location WHERE key NOT IN (SELECT gps_location FROM main)")
-        if count > 0:
-            self.main_logger.info(f"Pruned {count} rows in gps table")
-        else:
-            self.main_logger.debug(f"Call to prune_gps, no rows pruned")
-        return count
 
     def prune_dir(self) -> int:
         """
         Remove all entries and all directories form the database which are no longer referenced
         """
-        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN (SELECT db_dir FROM main)")
+        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN (SELECT db_dir FROM metadata)")
         # TODO Darktable
 
         # INFO: A db_local_dir can share a partial path with other directories, for example
@@ -559,7 +533,40 @@ class PhotoDB(BaseSQliteDB):
     # DB functions (functions operating only on the DB - basically wrapper for multiple sql statements)
     # ==================================================================================================================
 
-    # TODO move functions...
+    # Pruning functions
+    # -----------------
+
+    def prune_hash(self) -> int:
+        """
+        Remove all rows in the hash table which are no longer referenced
+
+        :return: Number of rows removed
+        """
+        self.debug_execute("SELECT COUNT(key) FROM hashes AS h WHERE h.key NOT IN (SELECT hash_key FROM hash_assoz)")
+        count = self.sq_cur.fetchone()[0]
+
+        self.debug_execute("DELETE FROM hashes WHERE key NOT IN (SELECT hash_key FROM hash_assoz)")
+        if count > 0:
+            self.main_logger.info(f"Pruned {count} rows in hash table")
+        else:
+            self.main_logger.debug("Call to prune_hash, no hashes pruned")
+        return count
+
+    def prune_gps(self) -> int:
+        """
+        Remove all rows in the gps table which are no longer referenced
+
+        :return: Number of rows removed
+        """
+        self.debug_execute("SELECT COUNT(key) FROM gps_location WHERE key NOT IN (SELECT gps_location FROM metadata)")
+        count = self.sq_cur.fetchone()[0]
+
+        self.debug_execute("DELETE FROM gps_location WHERE key NOT IN (SELECT gps_location FROM metadata)")
+        if count > 0:
+            self.main_logger.info(f"Pruned {count} rows in gps table")
+        else:
+            self.main_logger.debug(f"Call to prune_gps, no rows pruned")
+        return count
 
     # ==================================================================================================================
     # Importing
