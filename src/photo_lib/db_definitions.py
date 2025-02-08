@@ -192,6 +192,7 @@ current_version = DBVersion(
                                "file_size_bytes INTEGER NOT NULL, "
                                "hash_date TEXT NOT NULL,"
                                "FOREIGN KEY (hash_key) REFERENCES hash(key),"
+                               "FOREIGN KEY (file_key) REFERENCES main(key),"
                                "UNIQUE(hash_key, file_key, hash_date))"
         ),
         "hash_assoz_key_index": StaticDeclaration(
