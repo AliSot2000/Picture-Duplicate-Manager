@@ -1669,6 +1669,12 @@ class PhotoDB(BaseSQliteDB):
             self.filename_to_key_cache.set(arg=db_name, value=key)
         # TODO reset flags of hash, presence and filename tables
 
+    def move_file(self, key: int, new_dir: str):
+        """
+        Move a file within the database. Option to set the db_dir later on
+        """
+        ...
+
     def _internal_rename(self, key: int, flags: MainFlags, dbn: str, new_name: str, dt: datetime.datetime,
                          ndt: datetime.datetime = None,
                          db_local_dir: str = None):
