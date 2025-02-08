@@ -572,7 +572,7 @@ class PhotoDB(BaseSQliteDB):
     # Importing
     # ==================================================================================================================
 
-    # long-running action
+    # INFO: long-running action
     def prepare_directory_for_import(self,
                                      source_dir: str,
 
