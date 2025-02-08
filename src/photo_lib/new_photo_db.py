@@ -1395,7 +1395,7 @@ class PhotoDB(BaseSQliteDB):
         tbl = "known_duplicates" if known else "duplicates"
 
         # Check Entries in duplicates table
-        self.debug_execute(f"SELECT key_a, key_b FROM `{tbl}` WHERE key_a = ? OR key_b = ?",
+        self.debug_execute(f"SELECT key_a, key_b, delta FROM `{tbl}` WHERE key_a = ? OR key_b = ?",
                            (child_key, child_key))
 
         results = self.sq_cur.fetchall()
@@ -1406,23 +1406,25 @@ class PhotoDB(BaseSQliteDB):
             args = []
             for result in results:
                 if result[0] == child_key:
-                    args.append((parent_key, result[1]))
+                    args.append({"key_a": parent_key, "key_b": result[1], "delta": result[2]})
                 elif result[1] == child_key:
-                    args.append((result[0], parent_key))
+                    args.append({"key_a": result[0], "key_b": parent_key, "delta": result[2]})
                 else:
                     raise ImplementationError("Couldn't find targeted key. Erroneous SQL Statement?")
 
             # Remove tuple of kind (parent_key, parent_key)
-            filtered_args = list(filter(lambda a: a[0] != a[1], args))
-            self._internal_modify_duplicates(key_a=[a[0] for a in filtered_args],
-                                             key_b=[a[1] for a in filtered_args],
+            filtered_args = list(filter(lambda a: a["key_a"] != a["key_b"], args))
+            self._internal_modify_duplicates(key_a=[a["key_a"] for a in filtered_args],
+                                             key_b=[a["key_b"] for a in filtered_args],
                                              known=known,
-                                             add=True)
+                                             add=True,
+                                             delta=[a["delta"] for a in filtered_args])
 
-            self._internal_modify_duplicates(key_a=[r[0] for r in results],
-                                             key_b=[r[1] for r in results],
+            self._internal_modify_duplicates(key_a=[r["key_a"] for r in results],
+                                             key_b=[r["key_b"] for r in results],
                                              known=known,
-                                             add=False)
+                                             add=False,
+                                             delta=[a["delta"] for a in results])
 
     def remove_all_tuples_with_key(self, key: int, known: bool = False) -> int:
         """
