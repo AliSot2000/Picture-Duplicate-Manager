@@ -1561,13 +1561,17 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         # TODO reset flags of hash, presence and filename tables
 
+    # TODO params if selected from exif_parsing_results
     def change_datetime(self,
                         key: int,
                         tag: str | List[Union[str, int]] | DoubleKey,
                         dts: DateTimeSource,
                         new_dt: datetime.datetime = None,
-                        rename: bool = True):
+                        rename: bool = True,
+                        add_exif_tag: bool = None):
         """
+        If a custom directory is set, the file isn't moved, if the file is in the default directory, the file is moved.
+
         Change the datetime associated with the given image. Each image should have a filename string and a given
         datetime. By default, the file name will also b e changed. This is only available for images in main table.
 
@@ -1576,6 +1580,7 @@ class PhotoDB(BaseSQliteDB):
         :param tag: tag of image to use for update.
         :param dts: date time source (where the new datetime is coming from)
         :param rename: Rename image if True.
+        :param add_exif_tag: If true, will add exif_tag to the file. If None, default taken from config.
         """
         if new_dt.tzinfo is None:
             raise ValueError("new_dt must have a timezone")
@@ -1585,23 +1590,38 @@ class PhotoDB(BaseSQliteDB):
         timezone = new_dt.tzname()
         assert timezone is not None, "Unexpected timezone of None"
 
+        if not flags.present or flags.trashed or flags.duplicate:
+            raise ValueError("Cannot change datetime from files in trash, not present and duplicates")
+
+        # INFO: no exit with dt == new_dt because we could be switching keys.
         # Rename the file
         if rename:
-            # TODO update ExifMetadata with new datetime
             self._internal_rename(key=key,
-                                  dt=dt,
                                   flags=flags,
+                                  dbn=db_name,
+                                  new_name=new_name,
+                                  dt=dt,
                                   db_local_dir=db_local_dir,
-                                  db_name=db_name,
-                                  new_name=new_name)
+                                  ndt=new_dt)
 
-        self.debug_execute("UPDATE main "
-                           "SET datetime = ?, db_name = ?, naming_tag = ?, timezone = ?, datetime_source = ? "
-                           "WHERE key = ?", (new_dt.isoformat(), new_name,
-                                             NewMetadataAggregator.serialize_key(tag), timezone, dts.value))
+        else:
+            # Only move the file.
+            self._internal_move_file(ndt=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
+
+        self.debug_execute("UPDATE main SET datetime = ?, db_name = ?, timezone = ?WHERE key = ?",
+                           (new_dt.isoformat(), new_name, timezone, key))
+        self.debug_execute("UPDATE metadata SET naming_tag = ?, datetime_source = ? WHERE main_key = ?",
+                           (NewMetadataAggregator.serialize_key(tag), dts.value, key))
 
         self.commit()
-        # TODO update caches.
+        if add_exif_tag or (add_exif_tag is None and self.config.add_safety_exif_tags):
+            if dt != new_dt:
+                self._add_update_exif_tag(key=key, target_datetime=new_dt, file_path=self.resolve_key_to_path(key))
+
+        # Evicting lookup of old name to key
+        if self.filename_to_key_cache.evict(arg=db_name):
+            self.filename_to_key_cache.set(arg=db_name, value=key)
+        # TODO reset flags of hash, presence and filename tables
 
     def change_filename(self, key: int, new_filename: str):
         """
