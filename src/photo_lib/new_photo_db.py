@@ -1091,7 +1091,7 @@ class PhotoDB(BaseSQliteDB):
 
         :returns List of all hash_matches, key of highest match, highest match value
         """
-        match_keys = self._find_hash_match_keys(target_hash=file_hash, file_size=fsb, mode="EARLIEST")
+        match_keys = self._find_hash_match_keys(target_hash=file_hash, file_size=fsb, mode="INITIAL")
 
         keys: Dict[int, NewMatchTypes] = {}
         for m_key in match_keys:
