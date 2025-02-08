@@ -2166,8 +2166,7 @@ class PhotoDB(BaseSQliteDB):
         - Moves the original file to the trash
         - Updates the flags of the file.
         """
-        self.debug_execute(stmt="SELECT m.key, m.db_name, m.datetime, m.flags, d.db_local_dir "
-                                "FROM main AS m JOIN db_dir AS d ON main.db_dir = db_dir.key WHERE m.key = ?",
+        self.debug_execute(stmt="SELECT key, db_name, flags  FROM main WHERE key = ?",
                            args=(key,))
         _raw_res = self.sq_cur.fetchone()
 
@@ -2175,47 +2174,51 @@ class PhotoDB(BaseSQliteDB):
             raise ValueError(f"Key {key} not found in main table.")
 
         # Parse the row
-        k, dbn, _dt, _flags, db_dir = _raw_res
-        dt = datetime.datetime.fromisoformat(_dt)
+        k, dbn, _flags = _raw_res
         main_flags = MainFlags.from_int(_flags)
 
+        if main_flags.trashed:
+            raise ValueError("File is already in Trash")
+
+        if main_flags.duplicate:
+            raise ValueError("File is Duplicate")
+
         # Get the paths
-        cur_path = os.path.join(self.root_path, self.dt_to_dir(dt)) if db_dir is None \
-            else os.path.join(self.root_path, db_dir)
-        sfp = os.path.join(cur_path, dbn)
-        tfp = os.path.join(self.get_trash_dir(), dbn)
+        current_path = self.resolve_key_to_path(key)
+        target_path = os.path.join(self.get_trash_dir(), dbn)
 
         # Store existence in flags
-        main_flags.present = os.path.exists(sfp)
+        main_flags.present = os.path.exists(current_path)
 
         # TODO darktable
         if main_flags.present:
-            assert os.path.exists(sfp), "Upper Condition wrong"
+            assert os.path.exists(current_path), "Upper Condition wrong"
 
             # Create thumbnail
             self.main_logger.debug("Creating Thumbnail for image going into Trash")
-            main_flags.has_thumbnail = self._create_display_file(in_path=sfp,
+            main_flags.has_thumbnail = self._create_display_file(in_path=current_path,
                                                                  out_path=self.full_thumbnail_path(key),
                                                                  major_size=self.config.thumbnail_target)
             # Creating miniature
             self.main_logger.debug("Creating Miniature for image going into Trash")
-            main_flags.has_miniature = self._create_display_file(in_path=sfp,
+            main_flags.has_miniature = self._create_display_file(in_path=current_path,
                                                                  out_path=self.full_miniature_path(key),
                                                                  major_size=self.config.miniature_target)
             # Attempt the move the file
-            self.main_logger.debug(f"Moving {sfp} to {tfp}")
-            os.rename(sfp, tfp)
+            self.main_logger.debug(f"Moving {current_path} to {target_path}")
+            os.rename(current_path, target_path)
 
         # Set the presence flag and trash flag.
-        main_flags.present = os.path.exists(tfp)
+        main_flags.present = os.path.exists(target_path)
         main_flags.trashed = True
 
-        # All things done, update the flags and write the db
-        self.debug_execute("UPDATE main SET flags = ?, db_dir = NULL WHERE key = ?",
-                           (main_flags.to_int(), key))
+        # All things done, update the flags and write the db, update the metadata table.
+        self.debug_execute("UPDATE main SET flags = ? WHERE key = ?", (main_flags.to_int(), key))
+        self.debug_execute("UPDATE metadata SET replaced = 1, db_dir = NULL WHERE key = ?", (key,))
+
         self.prune_dir()
         self.prune_fs_dir = True
-        # TODO update caches.
+        self.key_to_filepath_cache.update(arg=key, value=target_path)
         self.commit()
 
     def delete_trash_thumb(self, key: Union[List[int], int, None]) -> int:
