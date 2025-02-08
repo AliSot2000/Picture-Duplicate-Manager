@@ -1278,9 +1278,13 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
-    def add_default_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
+    def add_default_duplicate(self, key_a: int | List[int], key_b: int | List[int], delta: float | List[float] = None):
         """
-        Moves a pair of duplicates into the known_duplicates table.
+        Add a pair into the duplicate table. If no delta is provided, a default of 0 is added.
+
+        :param key_a: The key of the first media file.
+        :param key_b: The key of the second media file.
+        :param delta: The delta metric between the images.
         """
         self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=True)
 
