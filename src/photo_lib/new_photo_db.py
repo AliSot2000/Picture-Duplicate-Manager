@@ -1291,18 +1291,28 @@ class PhotoDB(BaseSQliteDB):
     def remove_default_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
         """
         Removes a pair of duplicates from the known_duplicates table.
+
+        :param key_a: The key of the first media file.
+        :param key_b: The key of the second media file.
         """
         self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=False)
 
     def add_known_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
         """
         Moves a pair of duplicates into the known_duplicates table.
+
+        :param key_a: The key of the first media file.
+        :param key_b: The key of the second media file.
+        :param delta: The delta metric between the images.
         """
         self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=True)
 
     def remove_known_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
         """
         Removes a pair of duplicates from the known_duplicates table.
+
+        :param key_a: The key of the first media file.
+        :param key_b: The key of the second media file.
         """
         self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=False)
 
@@ -1314,6 +1324,7 @@ class PhotoDB(BaseSQliteDB):
         :param key_b: Second key of Tuple
         :param known: If true, will remove the tuple from the known_duplicates table else duplicates table.
         :param add: if true, will add the tuple to the table, else remove the tuple.
+        :param delta: Delta metric to add for the duplicates. (Only affects add calls)
         """
         tbl = "known_duplicates" if known else "duplicates"
 
