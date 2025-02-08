@@ -2074,99 +2074,88 @@ class PhotoDB(BaseSQliteDB):
         raw_parent = self.sq_cur.fetchone()
 
         if raw_parent is None:
-            raise ValueError("Parent Key doesn't exist in main table.")
+            raise ValueError("Parent Key doesn't exist")
 
         parent_flags = MainFlags.from_int(raw_parent[1])
         parent_google_metadata = raw_parent[2]
 
-        self.debug_execute(stmt="SELECT m.key, m.db_name, m.original_filename, m.metadata, m.google_metadata, "
-                                "m.datetime, m.timezone, m.flags, d.db_local_dir "
-                                "FROM main AS m JOIN db_dir AS d ON main.db_dir = db_dir.key WHERE m.key = ?",
+        self.debug_execute(stmt="SELECT key, m.google_metadata, m.flags, m.db_name FROM main AS m WHERE m.key = ?",
                            args=(child_key,))
 
         result = self.sq_cur.fetchone()
         if result is None:
-            raise ValueError("Child Key not found in main table")
+            raise ValueError("Child Key doesn't exist")
 
         # INFO: Warning User, shouldn't really be occurring, since trashed shouldn't be able to be deduplicated
         if parent_flags.trashed:
-            self.main_logger.warning(f"Moving File to Replaced Table with Parent in Trash.")
+            self.main_logger.warning(f"Marking File as Duplicate with Parent in Trash")
 
         if not parent_flags.present:
-            self.main_logger.warning("Moving File to Replaced Table without Parent file being present.")
+            self.main_logger.warning("Marking File as Duplicate without Parent file being present")
 
         # Unpack result for ease of use
-        key, db_name, original_filename, metadata, google_metadata, _dt, timezone, _flags, db_dir = result
-
-        # Parse the datetime for folder
-        dt = datetime.datetime.fromisoformat(_dt)
+        _, _flags, google_metadata, db_name = result
         main_flags = MainFlags.from_int(_flags)
 
+        # Cannot update if the file is already duplicate
+        if main_flags.duplicate:
+            raise ValueError("File is already duplicate")
+        main_flags.duplicate = True
+
         # Check children in replaced table
-        self.debug_execute("SELECT COUNT(*) FROM replaced WHERE parent == ?", args=(child_key,))
+        self.debug_execute("SELECT COUNT(*) FROM main WHERE parent = ?", args=(child_key,))
         count = self.sq_cur.fetchone()[0]
 
         if count > 0:
-            self.main_logger.info(f"Updating {count} children of this entry in the replaced table")
+            self.main_logger.info(f"Updating {count} children of this entry")
 
-            self.debug_execute("UPDATE replaced SET parent = ? WHERE parent = ?", (child_key, parent_key))
+            self.debug_execute("UPDATE main SET parent = ? WHERE parent = ?", (parent_key, child_key))
 
-        # Check Entries in duplicates table
+        # Check Entries in duplicates table and known_duplicates table
         self._migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=False)
-
-        # Check Entries in known_duplicates table
         self._migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=True)
 
-        # First inserting the key into the replaced table
-        self.debug_execute(stmt="INSERT OR REPLACE INTO replaced (key, original_filename, metadata, google_metadata, "
-                                "datetime, former_name, parent, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)",
-                           args=(key, original_filename, metadata.replace("'", "''"),
-                                 google_metadata.replace("'", "''"), dt.isoformat(), db_name, parent_key, timezone))
+        # Marking row as duplicate in metadata table
+        self.debug_execute("UPDATE metadata SET replaced = 2 WHERE key = ?", (child_key,))
 
         # Update file system
-        if db_dir is None:
-            tgt_path = os.path.join(self.root_path, self.dt_to_dir(dt))
-        else:
-            tgt_path = os.path.join(self.root_path, *self.parse_db_local_dir(db_dir))
+        fp = self.resolve_key_to_path(child_key)
 
         # Checking consistency between FS and DB
-        self.check_flags(key=key, flags=main_flags, miniature=True, thumbnail=True,
-                         org_path=os.path.join(tgt_path, db_name))
+        self.check_flags(key=child_key, flags=main_flags, miniature=True, thumbnail=True, org_path=fp)
 
         # Take care of three kinds of files.
-        if os.path.exists(os.path.join(tgt_path, db_name)):
+        if os.path.exists(fp):
             self.main_logger.debug("Moving Original File to Trash")
-            main_flags.present = True
-            os.rename(os.path.join(tgt_path, db_name), os.path.join(self.get_trash_dir(), db_name))
-        else:
-            main_flags.present = os.path.exists(os.path.join(self.get_trash_dir(), db_name))
+            os.rename(fp, os.path.join(self.get_trash_dir(), db_name))
 
-        # Updating the flags again
-        self.debug_execute("UPDATE replaced SET flags = ? WHERE key = ?",
-                           args=(child_key, ReplacedFlags.from_main_flags(main_flags).to_int()))
+        # Setting present flag based on path in trash
+        main_flags.present = os.path.exists(os.path.join(self.get_trash_dir(), db_name))
 
         # Remove Thumbnail
-        if os.path.exists(self.full_thumbnail_path(key)):
-            self.main_logger.debug(f"Deleting Thumbnail {self.thumbnail_name(key)}")
-            os.remove(self.full_thumbnail_path(key))
+        if os.path.exists(self.full_thumbnail_path(child_key)):
+            self.main_logger.debug(f"Deleting Thumbnail {self.thumbnail_name(child_key)}")
+            os.remove(self.full_thumbnail_path(child_key))
 
         # Remove Miniature
-        if os.path.exists(self.full_miniature_path(key)):
-            self.main_logger.debug(f"Deleting Miniature {self.miniature_name(key)}")
-            os.remove(self.full_miniature_path(key))
+        if os.path.exists(self.full_miniature_path(child_key)):
+            self.main_logger.debug(f"Deleting Miniature {self.miniature_name(child_key)}")
+            os.remove(self.full_miniature_path(child_key))
 
+        # Copy the Google photos metadata to the parent.
         if copy_google_metadata and parent_google_metadata is None and google_metadata is not None:
             parent_flags.org_google_metadata = False
             self.debug_execute("UPDATE main SET google_metadata = ?, flags = ? WHERE key = ?",
-                               (google_metadata.replace("'", "''"), parent_flags.to_int(), parent_key))
+                               (self.esc_str(google_metadata), parent_flags.to_int(), parent_key))
+
+        self.debug_execute("UPDATE main SET parent = ? WHERE key = ?", (parent_key, child_key))
 
         # TODO Darktable???
-        self.debug_execute("DELETE FROM main WHERE key = ?", (child_key,))
         self.prune_dir()
         self.prune_gps()
         self.prune_fs_dir = True
-        # TODO update caches.
         self.commit()
+        self.key_to_filepath_cache.update(arg=child_key, value=os.path.join(self.get_trash_dir(), db_name))
 
     def move_to_trash(self, key: int):
         """
