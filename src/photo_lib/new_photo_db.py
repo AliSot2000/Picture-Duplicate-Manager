@@ -424,6 +424,7 @@ class PhotoDB(BaseSQliteDB):
         # - Check that all entries in main and replaced have a hash
         # - Check no filename appears twice in replaced and main table
         # - Check no entries in main table with reserved db_name
+        # - Exactly one entry per file_key with initial flags.
         pass
 
     # ==================================================================================================================
