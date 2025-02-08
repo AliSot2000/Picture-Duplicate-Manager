@@ -532,6 +532,53 @@ class PhotoDB(BaseSQliteDB):
     # ==================================================================================================================
     # DB functions (functions operating only on the DB - basically wrapper for multiple sql statements)
     # ==================================================================================================================
+    def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
+        """
+        Given a hash, finds all file_keys which share this hash.
+
+        mode (case-insensitive):
+
+        - EARLIEST, given a file_key, only take into account the earliest hash of that file
+        - LATEST, given a file_key, only take into account the latest hash of that file (detecting changed filenames)
+        - ANY, given a file_key, take into account all hashes the file has had (detecting duplicates)
+        - INITIAL, given a file_key, only look at initial hashes (importing)
+
+        :param target_hash: Target hash to search for
+        :param file_size: File size to search for
+        :param mode: Mode to search for, can be EARLIEST, LATEST, ANY
+
+        :returns: List[int] - list of matching file_keys
+        """
+        if mode.lower() not in ("earliest", "latest", "any", "initial"):
+            raise ValueError(f"Unsupported mode: {mode.lower()}, allowed: [earliest, latest, any]")
+
+        # TODO the hash_date needs a more specific search!
+        if mode.lower() == "earliest":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
+                               "(SELECT MIN(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
+                               (target_hash, file_size))
+
+        elif mode.lower() == "latest":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
+                               "(SELECT MAX(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
+                               (target_hash, file_size))
+        elif mode.lower() == "any":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ?",
+                               (target_hash, file_size))
+        elif mode.lower() == "initial":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.initial = 1")
+        else:
+            raise ImplementationError(f"Got unexpected mode {mode.lower()}")
+
+        return [r[0] for r in self.sq_cur.fetchall()]
 
     # Pruning functions
     # -----------------
@@ -975,50 +1022,6 @@ class PhotoDB(BaseSQliteDB):
                            (db_name, key))
         self.debug_execute("UPDATE metadata SET db_dir = ? WHERE main_key = ?",
                            (dir_key, key))
-
-    def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
-        """
-        Given a hash, finds all file_keys which share this hash.
-
-        mode (case-insensitive):
-
-        - EARLIEST, given a file_key, only take into account the earliest hash of that file (importing)
-        - LATEST, given a file_key, only take into account the latest hash of that file (detecting changed filenames)
-        - ANY, given a file_key, take into account all hashes the file has had (detecting duplicates)
-
-        :param target_hash: Target hash to search for
-        :param file_size: File size to search for
-        :param mode: Mode to search for, can be EARLIEST, LATEST, ANY
-
-        :returns: List[int] - list of matching file_keys
-        """
-        if mode.lower() not in ("earliest", "latest", "any"):
-            raise ValueError(f"Unsupported mode: {mode.lower()}, allowed: [earliest, latest, any]")
-
-        # TODO the hash_date needs a more specific search!
-        # TODO need to add initial
-        if mode.lower() == "earliest":
-            self.debug_execute("SELECT ha.file_key "
-                               "FROM hashes AS h JOIN hash_assoz AS ha "
-                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
-                               "(SELECT MIN(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
-                               (target_hash, file_size))
-
-        elif mode.lower() == "latest":
-            self.debug_execute("SELECT ha.file_key "
-                               "FROM hashes AS h JOIN hash_assoz AS ha "
-                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
-                               "(SELECT MAX(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
-                               (target_hash, file_size))
-        elif mode.lower() == "any":
-            self.debug_execute("SELECT ha.file_key "
-                               "FROM hashes AS h JOIN hash_assoz AS ha "
-                               "WHERE h.hash = ? AND ha.file_size_bytes = ?",
-                               (target_hash, file_size))
-        else:
-            raise ImplementationError(f"Got unexpected mode {mode.lower()}")
-
-        return [r[0] for r in self.sq_cur.fetchall()]
 
     def get_newest_hash(self, key: int) -> str | None:
         """
