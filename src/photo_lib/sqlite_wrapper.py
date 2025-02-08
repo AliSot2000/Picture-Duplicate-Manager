@@ -49,16 +49,17 @@ class BaseSQliteDB:
         :return:
         """
         sq_cur = self.sq_cur if cur is None else self.__extra_cur[cur]
+        san_args = self.sanitize_string(args)
         try:
             if args is not None:
-                sq_cur.execute(stmt, args)
+                sq_cur.execute(stmt, san_args)
             else:
                 sq_cur.execute(stmt)
         except Exception as e:
             if self.main_logger is None:
-                print(f"Failed to execute:\n{stmt}\n{args}")
+                print(f"Failed to execute:\n{stmt}\n{san_args}")
             else:
-                self.main_logger.exception(f"Failed to execute:\n{stmt}\n{args}", exc_info=e)
+                self.main_logger.exception(f"Failed to execute:\n{stmt}\n{san_args}", exc_info=e)
             raise e
 
     def debug_execute_many(self, stmt: str, args: List[Union[tuple, dict]], cur: str = None):
@@ -66,13 +67,14 @@ class BaseSQliteDB:
         Function executes statement in database and in case of an exception prints the offending statement.
         """
         sq_cur = self.sq_cur if cur is None else self.__extra_cur[cur]
+        san_args = [self.sanitize_string(arg) for arg in args]
         try:
-            sq_cur.executemany(stmt, args)
+            sq_cur.executemany(stmt, san_args)
         except Exception as e:
             if self.main_logger is None:
-                print(f"Failed to execute:\n{stmt}\n{args}")
+                print(f"Failed to execute:\n{stmt}\n{san_args}")
             else:
-                self.main_logger.exception(f"Failed to execute:\n{stmt}\n{args}", exc_info=e)
+                self.main_logger.exception(f"Failed to execute:\n{stmt}\n{san_args}", exc_info=e)
             raise e
 
     def add_extra_cursor(self, name: str ) -> Cursor:
@@ -178,3 +180,39 @@ class BaseSQliteDB:
 
     def vacuum(self):
         self.sq_cur.execute("VACUUM")
+
+    @staticmethod
+    def sanitize_string(args: Union[tuple, dict, None]) -> Union[tuple, dict, None]:
+        """
+        Sanitize strings by replacing all ' with ''
+
+        :param args: arguments to sanitize
+
+        :return: arguments with sanitized strings
+        """
+        if isinstance(args, tuple):
+            san_args = []
+
+            # Sanitize args
+            for a in args:
+                if isinstance(a, str):
+                    san_args.append(a.replace("'", "''"))
+                else:
+                    san_args.append(a)
+
+            return tuple(san_args)
+
+        elif isinstance(args, dict):
+            san_args = {}
+
+            for key, value in args.items():
+                if isinstance(value, str):
+                    san_args[key] = value.replace("'", "''")
+                else:
+                    san_args[key] = value
+
+            return san_args
+
+        else:
+            assert args is None, "Unexpected arguments"
+            return None
