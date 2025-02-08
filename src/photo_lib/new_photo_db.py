@@ -1207,12 +1207,11 @@ class PhotoDB(BaseSQliteDB):
 
         :return: True if the row exists, False if the rows were added.
         """
-        # TODO implement initial
         # Consider the hashes a set of all hashes the file had at a given point. The hash to check during import is the one marked with initial
         self.debug_execute("SELECT ha.hash_key, ha.file_key "
                            "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
-                           "WHERE h.hash = ? AND ha.file_key = ? AND ha.file_size = ?",
-                           (file_hash, file_key, file_size))
+                           "WHERE h.hash = ? AND ha.file_key = ? AND ha.file_size = ? AND initial = ?",
+                           (file_hash, file_key, file_size, int(initial)))
 
         # Result not None, the row exists, exit function.
         if self.sq_cur.fetchone() is not None:
@@ -1220,9 +1219,9 @@ class PhotoDB(BaseSQliteDB):
 
         now = datetime.datetime.now(datetime.timezone.utc)
         hash_key = self.insert_get_file_hash_key(file_hash=file_hash)
-        self.debug_execute("INSERT INTO hash_assoz (hash_key, file_key, file_size_bytes, hash_date) "
-                           "VALUES (?, ?, ?, ?)",
-                           (hash_key, file_key, file_size, now.isoformat()))
+        self.debug_execute("INSERT INTO hash_assoz (hash_key, file_key, file_size_bytes, hash_date, initial) "
+                           "VALUES (?, ?, ?, ?, ?)",
+                           (hash_key, file_key, file_size, now.isoformat(), int(initial)))
         return False
 
     def insert_get_file_hash_key(self, file_hash: str) -> int:
