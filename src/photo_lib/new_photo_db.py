@@ -1034,7 +1034,7 @@ class PhotoDB(BaseSQliteDB):
         :param key: File key to search for
         :returns: None -> key not found, str, newest hash of the given file
         """
-        self.debug_execute("SELECT h.hash FROM hash AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+        self.debug_execute("SELECT h.hash FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
                            "WHERE ha.file_key = ? AND ha.hash_date IN "
                            "(SELECT MAX(hash_date) FROM hash_assoz WHERE file_key = ?)",
                            (key, key))
