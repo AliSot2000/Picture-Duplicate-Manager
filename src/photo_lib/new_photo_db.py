@@ -969,14 +969,7 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.mda is not None, "Metadata Aggregator is needed for import file"
         if add_tag:
-            # Add the tag
-            self.mda.eth.set_tags(files=[os.path.join(tgt_dir, db_name)], tags=self.exif_tag_creator(fdt))
-
-            # Get Size of File and new File Hash
-            new_hash = self.mda.hash_file(os.path.join(tgt_dir, db_name))
-            new_size = os.stat(os.path.join(tgt_dir, db_name)).st_size
-            assert new_size is not None, "New Size needed for update."
-            self.check_add_file_hash(file_key=key, file_hash=new_hash, file_size=new_size)
+            self._add_update_exif_tag(key=key, file_path=os.path.join(tgt_dir, db_name), target_datetime=fdt)
 
         self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
                            (db_name, key))
@@ -1233,6 +1226,28 @@ class PhotoDB(BaseSQliteDB):
                            (self.dump_db_local_dir(rel_path_list),))
         self.main_logger.debug(f"Created custom dir {rel_path}")
         return self._insert_get_dir(dir_name)
+
+    def _add_update_exif_tag(self, key: int, target_datetime: datetime.datetime, file_path: str):
+        """
+        Add the exif tag that the database uses to the file.
+
+        PRECONDITION:
+
+        - file_path exists
+        - target_datetime different from current datetime
+        - target_datetime is timezone aware.
+
+        :param key: Key in main table of file to update exiftag for
+        :param target_datetime: New datetime to set
+        """
+        # Add the tag
+        self.mda.eth.set_tags(files=[file_path], tags=self.exif_tag_creator(target_datetime))
+
+        # Get Size of File and new File Hash
+        new_hash = self.mda.hash_file(file_path)
+        new_size = os.stat(file_path).st_size
+        assert new_size is not None, "New Size needed for update."
+        self.check_add_file_hash(file_key=key, file_hash=new_hash, file_size=new_size)
 
     # ==================================================================================================================
     # Deduplication
