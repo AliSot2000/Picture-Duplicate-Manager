@@ -39,7 +39,8 @@ class DBVersion(BaseModel):
 
     new_elements: Optional[List[str]] = Field(None,
                                               description="List of declarations which are new to this version and "
-                                                          "didn't exist in the previous version.")
+                                                          "didn't exist in the previous version or which existed in a "
+                                                          "previous version but were changed in this one.")
     removed_elements: Optional[List[str]] = Field(None,
                                                   description="List of declarations which are removed in this version"
                                                               " compared to the old version. (So used to exist in the "
