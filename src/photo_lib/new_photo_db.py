@@ -2308,27 +2308,24 @@ class PhotoDB(BaseSQliteDB):
 
         # Remove display files:
         self.main_logger.info(f"Deleting Thumbnails of existing images.")
-        self.debug_execute("SELECT m.key, m.datetime, m.flags, m.db_name, d.db_local_dir "
-                           "FROM main AS m JOIN db_idr AS d ON (m.db_dir = d.key) "
-                           # Check present = 1,            Check trash = 0
-                           "WHERE mod(m.flags, 2) == 1 AND mod(m.flags >> 2, 2) == 0")
-
         self.add_extra_cursor("rm_disp_media")
-        for row in self.sq_cur:
-            key, _dt, _flags, db_name, db_local_dir = row
-            dt = datetime.datetime.fromisoformat(_dt)
+        self.debug_execute("SELECT key, flags, db_name FROM main "
+                           # Check present = 1,            Check trash = 0           check duplicate = 0
+                           "WHERE mod(flags, 2) = 1 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 8, 2) = 0",
+                           cur="rm_disp_media")
+
+        for row in self.get_cursor("rm_disp_media"):
+            key, _flags, db_name = row
             flags = MainFlags.from_int(_flags)
 
-            assert flags.trashed is False, "SQL Error, Trashed should be false."
-
-            # Get the parent directory in the db where the file resides
-            par_dir = os.path.join(self.root_path, db_local_dir) if db_local_dir is not None \
-                else os.path.join(self.root_path, self.dt_to_dir(dt))
+            assert flags.trashed is False and flags.duplicate, "SQL Error, Trashed should be false."
+            file_path = self.resolve_key_to_path(key)
 
             # Skip if the original is not present
             self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True,
-                             org_path=os.path.join(par_dir, db_name))
-            if not os.path.exists(os.path.join(par_dir, db_name)):
+                             org_path=file_path)
+
+            if not os.path.exists(file_path):
                 continue
 
             # PRECONDITION: The original file exists in the database.
@@ -2345,8 +2342,7 @@ class PhotoDB(BaseSQliteDB):
                 count += 1
 
             self.debug_execute("UPDATE main SET flags = ? WHERE key = ?",
-                               (flags.to_int(), key),
-                               "rm_disp_media")
+                               (flags.to_int(), key))
 
         self.remove_extra_cursor("rm_disp_media")
         self.commit()
