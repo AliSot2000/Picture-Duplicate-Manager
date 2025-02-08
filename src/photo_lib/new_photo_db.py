@@ -1231,7 +1231,7 @@ class PhotoDB(BaseSQliteDB):
         os.makedirs(dir_name, exist_ok=True)
         self.debug_execute("INSERT INTO db_dir (db_local_dir) VALUES (?)",
                            (self.dump_db_local_dir(rel_path_list),))
-        self.main_logger.debug(f"Createad custom dir {rel_path}")
+        self.main_logger.debug(f"Created custom dir {rel_path}")
         return self._insert_get_dir(dir_name)
 
     # ==================================================================================================================
