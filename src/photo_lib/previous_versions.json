@@ -1,233 +1,317 @@
 {
-  "history": [
-    {
-      "current_version": {
-        "major": 0,
-        "minor": 9,
-        "patch": 0
-      },
-      "previous_version": null,
-      "new_elements": [
-          "hashes",
-          "hashes_str_index",
-          "hash_key_index",
-          "main",
-          "main_key_index",
-          "main_datetime_index",
-          "main_db_name_index",
-          "main_flag_index",
-          "hash_assoz",
-          "hash_assoz_key_index",
-          "hash_assoz_datetime_index",
-          "db_dir",
-          "db_dir_key_index",
-          "gps_location",
-          "gps_location_key_index",
-          "replaced",
-          "replaced_key_index",
-          "import_tables"
-      ],
-      "removed_elements": null,
-      "new_generics": [
-          "import_table"
-      ],
-      "removed_generics": null,
-      "all_definitions": [
-          "hashes",
-          "hashes_str_index",
-          "hash_key_index",
-          "db_dir",
-          "db_dir_key_index",
-          "gps_location",
-          "gps_location_key_index",
-          "main",
-          "main_key_index",
-          "main_datetime_index",
-          "main_db_name_index",
-          "main_flag_index",
-          "hash_assoz",
-          "hash_assoz_key_index",
-          "hash_assoz_datetime_index",
-          "replaced",
-          "replaced_key_index",
-          "import_tables"
-      ],
-      "definitions": {
-          "hashes": {
-              "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT UNIQUE NOT NULL)",
-              "name_placeholder": "%name%",
-              "name": "hashes"
-          },
-          "hashes_str_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON hashes (hash)",
-              "name_placeholder": "%name%",
-              "name": "hashes_str_index"
-          },
-          "hash_key_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON hashes (key)",
-              "name_placeholder": "%name%",
-              "name": "hash_key_index"
-          },
-          "db_dir": {
-              "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, db_dir TEXT NOT NULL)",
-              "name_placeholder": "%name%",
-              "name": "db_dir"
-          },
-          "db_dir_key_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON db_dir (key)",
-              "name_placeholder": "%name%",
-              "name": "db_dir_key_index"
-          },
-          "gps_location": {
-              "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, gps_latitude REAL NOT NULL, gps_longitude REAL NOT NULL, UNIQUE (gps_latitude, gps_longitude))",
-              "name_placeholder": "%name%",
-              "name": "gps_location"
-          },
-          "gps_location_key_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON gps_location (key)",
-              "name_placeholder": "%name%",
-              "name": "gps_location_key_index"
-          },
-          "main": {
-              "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, original_filename TEXT NOT NULL, original_dirname TEXT NOT NULL, metadata TEXT, google_metadata TEXT, naming_tag TEXT NOT NULL, db_name TEXT UNIQUE NOT NULL, datetime TEXT NOT NULL, timezone TEXT, gps_location INTEGER, db_dir INTEGER, datetime_source INTEGER CHECK (`%name%`.datetime_source IN (0, 1, 2, 3, 4)), flags INTEGER NOT NULL,FOREIGN KEY (gps_location) REFERENCES gps_location(key),FOREIGN KEY (db_dir) REFERENCES db_dir(key))",
-              "name_placeholder": "%name%",
-              "name": "main"
-          },
-          "main_key_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON main (key)",
-              "name_placeholder": "%name%",
-              "name": "main_key_index"
-          },
-          "main_datetime_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON main (datetime(datetime))",
-              "name_placeholder": "%name%",
-              "name": "main_datetime_index"
-          },
-          "main_db_name_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON main (db_name)",
-              "name_placeholder": "%name%",
-              "name": "main_db_name_index"
-          },
-          "main_flag_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON main (flags)",
-              "name_placeholder": "%name%",
-              "name": "main_flag_index"
-          },
-          "hash_assoz": {
-              "declaration_string": "CREATE TABLE `%name%` (hash_key INTEGER NOT NULL, file_key INTEGER NOT NULL, file_size_bytes INTEGER NOT NULL, hash_date TEXT NOT NULL)",
-              "name_placeholder": "%name%",
-              "name": "hash_assoz"
-          },
-          "hash_assoz_key_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON hash_assoz (hash_key, file_key)",
-              "name_placeholder": "%name%",
-              "name": "hash_assoz_key_index"
-          },
-          "hash_assoz_datetime_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON hash_assoz (datetime(datetime))",
-              "name_placeholder": "%name%",
-              "name": "hash_assoz_datetime_index"
-          },
-          "replaced": {
-              "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, original_filename TEXT NOT NULL, metadata TEXT, google_metadata TEXT, datetime TEXT NOT NULL, former_name TEXT NOT NULL, successor INTEGER NOT NULL, timezone TEXT, flags INTEGER NOT NULL,FOREIGN KEY (successor) REFERENCES main(key))",
-              "name_placeholder": "%name%",
-              "name": "replaced"
-          },
-          "replaced_key_index": {
-              "declaration_string": "CREATE INDEX `%name%` ON replaced (key)",
-              "name_placeholder": "%name%",
-              "name": "replaced_key_index"
-          },
-          "import_tables": {
-              "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, root_path TEXT NOT NULL, table_name TEXT UNIQUE NOT NULL, import_table_description TEXT)",
-              "name_placeholder": "%name%",
-              "name": "import_tables"
-          }
-      },
-      "all_generic_definitions": [
-          "import_table"
-      ],
-      "generic_definitions": {
-          "import_table": {
-              "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT,original_filename TEXT NOT NULL,original_dirname TEXT NOT NULL,metadata TEXT,google_metadata TEXT,file_hash TEXT, file_size_bytes INTEGER NOT NULL,imported INTEGER DEFAULT 0 CHECK (imported in (0,1)),allowed INTEGER DEFAULT 0 CHECK (allowed in (0,1)),match_type INTEGER DEFAULT 0 CHECK (match_type in (0,1,2,3,4,5)),datetime TEXT,timezone TEXT,naming_tag TEXT,gps_latitude REAL,gps_longitude REAL,match INTEGER DEFAULT NULL,import_key INTEGER DEFAULT NULL,datetime_source INTEGER, UNIQUE (original_filename, original_dirname));",
-              "name_placeholder": "%name%"
-          }
-      }
-  },
-    {
-    "current_version": {
-        "major": 1,
-        "minor": 0,
-        "patch": 0
-    },
-    "previous_version": {
-        "major": 0,
-        "minor": 9,
-        "patch": 0
-    },
-    "new_elements": [
-        "known_duplicates",
-        "known_duplicates_key_index",
-        "duplicates",
-        "duplicates_key_index"
-    ],
-    "removed_elements": null,
-    "new_generics": [
-        "import_table"
-    ],
-    "removed_generics": null,
-    "all_definitions": [
-        "hashes",
-        "hashes_str_index",
-        "hash_key_index",
-        "db_dir",
-        "db_dir_key_index",
-        "gps_location",
-        "gps_location_key_index",
-        "main",
-        "main_key_index",
-        "main_datetime_index",
-        "main_db_name_index",
-        "main_flag_index",
-        "hash_assoz",
-        "hash_assoz_key_index",
-        "hash_assoz_datetime_index",
-        "replaced",
-        "replaced_key_index",
-        "import_tables",
-        "known_duplicates",
-        "known_duplicates_key_index",
-        "duplicates",
-        "duplicates_key_index"
-    ],
-    "definitions": {
-        "known_duplicates": {
-            "declaration_string": "CREATE TABLE `%name%` (key_a INTEGER NOT NULL, key_b INTEGER NOT NULL,UNIQUE (key_a, key_b),CHECK ( key_a < key_b ),FOREIGN KEY (key_a) REFERENCES main (key),FOREIGN KEY (key_b) REFERENCES main (key))",
-            "name_placeholder": "%name%",
-            "name": "known_duplicates"
+    "history": [
+        {
+            "current_version": {
+                "major": 0,
+                "minor": 9,
+                "patch": 0
+            },
+            "previous_version": null,
+            "new_elements": [
+                "hashes",
+                "hashes_str_index",
+                "hash_key_index",
+                "main",
+                "main_key_index",
+                "main_datetime_index",
+                "main_db_name_index",
+                "main_flag_index",
+                "hash_assoz",
+                "hash_assoz_key_index",
+                "hash_assoz_datetime_index",
+                "db_dir",
+                "db_dir_key_index",
+                "gps_location",
+                "gps_location_key_index",
+                "replaced",
+                "replaced_key_index",
+                "import_tables"
+            ],
+            "removed_elements": null,
+            "new_generics": [
+                "import_table"
+            ],
+            "removed_generics": null,
+            "all_definitions": [
+                "hashes",
+                "hashes_str_index",
+                "hash_key_index",
+                "db_dir",
+                "db_dir_key_index",
+                "gps_location",
+                "gps_location_key_index",
+                "main",
+                "main_key_index",
+                "main_datetime_index",
+                "main_db_name_index",
+                "main_flag_index",
+                "hash_assoz",
+                "hash_assoz_key_index",
+                "hash_assoz_datetime_index",
+                "replaced",
+                "replaced_key_index",
+                "import_tables"
+            ],
+            "definitions": {
+                "hashes": {
+                    "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT UNIQUE NOT NULL)",
+                    "name_placeholder": "%name%",
+                    "name": "hashes"
+                },
+                "hashes_str_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON hashes (hash)",
+                    "name_placeholder": "%name%",
+                    "name": "hashes_str_index"
+                },
+                "hash_key_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON hashes (key)",
+                    "name_placeholder": "%name%",
+                    "name": "hash_key_index"
+                },
+                "db_dir": {
+                    "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, db_dir TEXT NOT NULL)",
+                    "name_placeholder": "%name%",
+                    "name": "db_dir"
+                },
+                "db_dir_key_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON db_dir (key)",
+                    "name_placeholder": "%name%",
+                    "name": "db_dir_key_index"
+                },
+                "gps_location": {
+                    "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, gps_latitude REAL NOT NULL, gps_longitude REAL NOT NULL, UNIQUE (gps_latitude, gps_longitude))",
+                    "name_placeholder": "%name%",
+                    "name": "gps_location"
+                },
+                "gps_location_key_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON gps_location (key)",
+                    "name_placeholder": "%name%",
+                    "name": "gps_location_key_index"
+                },
+                "main": {
+                    "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, original_filename TEXT NOT NULL, original_dirname TEXT NOT NULL, metadata TEXT, google_metadata TEXT, naming_tag TEXT NOT NULL, db_name TEXT UNIQUE NOT NULL, datetime TEXT NOT NULL, timezone TEXT, gps_location INTEGER, db_dir INTEGER, datetime_source INTEGER CHECK (`%name%`.datetime_source IN (0, 1, 2, 3, 4)), flags INTEGER NOT NULL,FOREIGN KEY (gps_location) REFERENCES gps_location(key),FOREIGN KEY (db_dir) REFERENCES db_dir(key))",
+                    "name_placeholder": "%name%",
+                    "name": "main"
+                },
+                "main_key_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON main (key)",
+                    "name_placeholder": "%name%",
+                    "name": "main_key_index"
+                },
+                "main_datetime_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON main (datetime(datetime))",
+                    "name_placeholder": "%name%",
+                    "name": "main_datetime_index"
+                },
+                "main_db_name_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON main (db_name)",
+                    "name_placeholder": "%name%",
+                    "name": "main_db_name_index"
+                },
+                "main_flag_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON main (flags)",
+                    "name_placeholder": "%name%",
+                    "name": "main_flag_index"
+                },
+                "hash_assoz": {
+                    "declaration_string": "CREATE TABLE `%name%` (hash_key INTEGER NOT NULL, file_key INTEGER NOT NULL, file_size_bytes INTEGER NOT NULL, hash_date TEXT NOT NULL)",
+                    "name_placeholder": "%name%",
+                    "name": "hash_assoz"
+                },
+                "hash_assoz_key_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON hash_assoz (hash_key, file_key)",
+                    "name_placeholder": "%name%",
+                    "name": "hash_assoz_key_index"
+                },
+                "hash_assoz_datetime_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON hash_assoz (datetime(datetime))",
+                    "name_placeholder": "%name%",
+                    "name": "hash_assoz_datetime_index"
+                },
+                "replaced": {
+                    "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, original_filename TEXT NOT NULL, metadata TEXT, google_metadata TEXT, datetime TEXT NOT NULL, former_name TEXT NOT NULL, successor INTEGER NOT NULL, timezone TEXT, flags INTEGER NOT NULL,FOREIGN KEY (successor) REFERENCES main(key))",
+                    "name_placeholder": "%name%",
+                    "name": "replaced"
+                },
+                "replaced_key_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON replaced (key)",
+                    "name_placeholder": "%name%",
+                    "name": "replaced_key_index"
+                },
+                "import_tables": {
+                    "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT, root_path TEXT NOT NULL, table_name TEXT UNIQUE NOT NULL, import_table_description TEXT)",
+                    "name_placeholder": "%name%",
+                    "name": "import_tables"
+                }
+            },
+            "all_generic_definitions": [
+                "import_table"
+            ],
+            "generic_definitions": {
+                "import_table": {
+                    "declaration_string": "CREATE TABLE `%name%` (key INTEGER PRIMARY KEY AUTOINCREMENT,original_filename TEXT NOT NULL,original_dirname TEXT NOT NULL,metadata TEXT,google_metadata TEXT,file_hash TEXT, file_size_bytes INTEGER NOT NULL,imported INTEGER DEFAULT 0 CHECK (imported in (0,1)),allowed INTEGER DEFAULT 0 CHECK (allowed in (0,1)),match_type INTEGER DEFAULT 0 CHECK (match_type in (0,1,2,3,4,5)),datetime TEXT,timezone TEXT,naming_tag TEXT,gps_latitude REAL,gps_longitude REAL,match INTEGER DEFAULT NULL,import_key INTEGER DEFAULT NULL,datetime_source INTEGER, UNIQUE (original_filename, original_dirname));",
+                    "name_placeholder": "%name%"
+                }
+            }
         },
-        "known_duplicates_key_index": {
-            "declaration_string": "CREATE INDEX `%name%` ON known_duplicates (key_a, key_b)",
-            "name_placeholder": "%name%",
-            "name": "known_duplicates_key_index"
+        {
+            "current_version": {
+                "major": 1,
+                "minor": 0,
+                "patch": 0
+            },
+            "previous_version": {
+                "major": 0,
+                "minor": 9,
+                "patch": 0
+            },
+            "new_elements": [
+                "known_duplicates",
+                "known_duplicates_key_index",
+                "duplicates",
+                "duplicates_key_index"
+            ],
+            "removed_elements": null,
+            "new_generics": [
+                "import_table"
+            ],
+            "removed_generics": null,
+            "all_definitions": [
+                "hashes",
+                "hashes_str_index",
+                "hash_key_index",
+                "db_dir",
+                "db_dir_key_index",
+                "gps_location",
+                "gps_location_key_index",
+                "main",
+                "main_key_index",
+                "main_datetime_index",
+                "main_db_name_index",
+                "main_flag_index",
+                "hash_assoz",
+                "hash_assoz_key_index",
+                "hash_assoz_datetime_index",
+                "replaced",
+                "replaced_key_index",
+                "import_tables",
+                "known_duplicates",
+                "known_duplicates_key_index",
+                "duplicates",
+                "duplicates_key_index"
+            ],
+            "definitions": {
+                "known_duplicates": {
+                    "declaration_string": "CREATE TABLE `%name%` (key_a INTEGER NOT NULL, key_b INTEGER NOT NULL,UNIQUE (key_a, key_b),CHECK ( key_a < key_b ),FOREIGN KEY (key_a) REFERENCES main (key),FOREIGN KEY (key_b) REFERENCES main (key))",
+                    "name_placeholder": "%name%",
+                    "name": "known_duplicates"
+                },
+                "known_duplicates_key_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON known_duplicates (key_a, key_b)",
+                    "name_placeholder": "%name%",
+                    "name": "known_duplicates_key_index"
+                },
+                "duplicates": {
+                    "declaration_string": "CREATE TABLE `%name%` (key_a INTEGER NOT NULL, key_b INTEGER NOT NULL,UNIQUE (key_a, key_b),CHECK ( key_a < key_b ),FOREIGN KEY (key_a) REFERENCES main (key),FOREIGN KEY (key_b) REFERENCES main (key))",
+                    "name_placeholder": "%name%",
+                    "name": "duplicates"
+                },
+                "duplicates_key_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON duplicates (key_a, key_b)",
+                    "name_placeholder": "%name%",
+                    "name": "duplicates_key_index"
+                }
+            },
+            "all_generic_definitions": [
+                "import_table"
+            ],
+            "generic_definitions": {}
         },
-        "duplicates": {
-            "declaration_string": "CREATE TABLE `%name%` (key_a INTEGER NOT NULL, key_b INTEGER NOT NULL,UNIQUE (key_a, key_b),CHECK ( key_a < key_b ),FOREIGN KEY (key_a) REFERENCES main (key),FOREIGN KEY (key_b) REFERENCES main (key))",
-            "name_placeholder": "%name%",
-            "name": "duplicates"
-        },
-        "duplicates_key_index": {
-            "declaration_string": "CREATE INDEX `%name%` ON duplicates (key_a, key_b)",
-            "name_placeholder": "%name%",
-            "name": "duplicates_key_index"
+        {
+            "current_version": {
+                "major": 1,
+                "minor": 0,
+                "patch": 1
+            },
+            "previous_version": {
+                "major": 1,
+                "minor": 0,
+                "patch": 0
+            },
+            "new_elements": [
+                "main",
+                "hash_assoz",
+                "metadata",
+                "metadata_key_index",
+                "duplicates",
+                "duplicates_delta_index"
+            ],
+            "removed_elements": [
+                "replaced",
+                "replaced_key_index"
+            ],
+            "new_generics": null,
+            "removed_generics": null,
+            "all_definitions": [
+                "hashes",
+                "hashes_str_index",
+                "hash_key_index",
+                "db_dir",
+                "db_dir_key_index",
+                "gps_location",
+                "gps_location_key_index",
+                "main",
+                "main_key_index",
+                "main_datetime_index",
+                "main_db_name_index",
+                "main_flag_index",
+                "hash_assoz",
+                "hash_assoz_key_index",
+                "hash_assoz_datetime_index",
+                "replaced",
+                "replaced_key_index",
+                "import_tables",
+                "known_duplicates",
+                "known_duplicates_key_index",
+                "duplicates",
+                "duplicates_key_index"
+            ],
+            "definitions": {
+                "main": {
+                    "declaration_string": "CREATE TABLE main (key INTEGER PRIMARY KEY AUTOINCREMENT, original_filename TEXT NOT NULL, metadata TEXT, google_metadata TEXT, datetime TEXT NOT NULL, db_name TEXT NOT NULL, parent INTEGER, timezone TEXT, flags INTEGER NOT NULL, FOREIGN KEY (parent) REFERENCES main(key))",
+                    "name_placeholder": "%name%",
+                    "name": "main"
+                },
+                "hash_assoz": {
+                    "declaration_string": "CREATE TABLE `%name%` (hash_key INTEGER NOT NULL, file_key INTEGER NOT NULL, file_size_bytes INTEGER NOT NULL, hash_date TEXT NOT NULL, FOREIGN KEY (hash_key) REFERENCES hash(key), FOREIGN KEY (file_key) REFERENCES main(key), UNIQUE(hash_key, file_key, hash_date))",
+                    "name_placeholder": "%name%",
+                    "name": "hash_assoz"
+                },
+                "metadata": {
+                    "declaration_string": "CREATE TABLE `%name%` (main_key INTEGER, original_dirname TEXT NOT NULL, naming_tag TEXT NOT NULL, gps_location INTEGER, db_dir INTEGER, datetime_source INTEGER CHECK (`%name%`.datetime_source IN (0, 1, 2, 3, 4, 5)), FOREIGN KEY (main_key) REFERENCES main(key), FOREIGN KEY (gps_location) REFERENCES gps_location(key), FOREIGN KEY (db_dir) REFERENCES db_dir(key)) ",
+                    "name_placeholder": "%name%",
+                    "name": "metadata"
+                }        ,
+                "metadata_key_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON metadata (key)",
+                    "name_placeholder": "%name%",
+                    "name": "metadata_key_index"
+                },
+                "duplicates": {
+                    "declaration_string": "CREATE TABLE `%name%` (key_a INTEGER NOT NULL, key_b INTEGER NOT NULL, delta REAL NOT NULL CHECK ( `%name%`.delta >= 0 ), UNIQUE (key_a, key_b),CHECK ( key_a < key_b ),FOREIGN KEY (key_a) REFERENCES main (key),FOREIGN KEY (key_b) REFERENCES main (key))",
+                    "name_placeholder": "%name%",
+                    "name": "duplicates"
+                },
+                "duplicates_delta_index": {
+                    "declaration_string": "CREATE INDEX `%name%` ON duplicates (delta)",
+                    "name_placeholder": "%name%",
+                    "name": "duplicates_delta_index"
+                }
+            },
+            "all_generic_definitions": [
+                "import_table"
+            ],
+            "generic_definitions": {}
         }
-    },
-    "all_generic_definitions": [
-        "import_table"
-    ],
-    "generic_definitions": {}
-}
-
-
-  ]
+    ]
 }
