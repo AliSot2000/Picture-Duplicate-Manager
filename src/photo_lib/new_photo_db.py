@@ -850,6 +850,7 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count
 
+    # INFO: long-running action
     def perform_import(self, tbl_name: str, _dest_dir: str = None, add_safety_exif_tags: bool = None) -> int:
         """
         Imports all files from the given import table into the main database.
