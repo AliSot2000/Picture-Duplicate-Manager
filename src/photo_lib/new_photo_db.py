@@ -2146,7 +2146,7 @@ class PhotoDB(BaseSQliteDB):
         if copy_google_metadata and parent_google_metadata is None and google_metadata is not None:
             parent_flags.org_google_metadata = False
             self.debug_execute("UPDATE main SET google_metadata = ?, flags = ? WHERE key = ?",
-                               (self.esc_str(google_metadata), parent_flags.to_int(), parent_key))
+                               (google_metadata, parent_flags.to_int(), parent_key))
 
         self.debug_execute("UPDATE main SET parent = ? WHERE key = ?", (parent_key, child_key))
 
@@ -2808,18 +2808,13 @@ class PhotoDB(BaseSQliteDB):
         return {"EXIF:ModifyDate": dt.strftime("%Y:%m:%d %H:%M:%S"),
                 "EXIF:OffsetTime": dt.strftime("%z")}
 
-    def sanitize_json(self, obj: Any):
+    @staticmethod
+    def sanitize_json(obj: Any):
         """
         Util function to reduce code length.
         """
-        return self.esc_str(json.dumps(obj))
+        return json.dumps(obj).replace("'", "''")
 
-    @staticmethod
-    def esc_str(s: str) -> str:
-        """
-        Escape string for database argument
-        """
-        return s.replace("'", "''")
 
 class RemedyPhotoDB(PhotoDB):
     """
