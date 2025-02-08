@@ -1823,31 +1823,29 @@ class PhotoDB(BaseSQliteDB):
         """
         self.add_extra_cursor("update_thumbnails")
 
-        self.debug_execute("SELECT m.key, m.datetime, m.db_name, d.db_local_dir, m.flags "
-                           "FROM main AS m JOIN db_dir AS d ON main.db_dir = db_dir.key "
-                           # Check present                 check trash
-                           "WHERE mod(m.flags, 2) == 1 AND mod((m.flags >> 2), 2) == 0")
+        self.debug_execute(stmt="SELECT m.key, m.db_name, m.flags FROM main AS m "
+                           # Check present                 check trash                     check duplicate
+                           "WHERE mod(m.flags, 2) == 1 AND mod((m.flags >> 2), 2) == 0 AND mod((m.flags >> 8), 2) == 0",
+                           cur="update_thumbnails")
 
         missing: int = 0
         created: int = 0
-        for row in self.sq_cur:
-            key, _dt, dbn, _db_dir, _flags = row
+        for row in self.get_cursor("update_thumbnails"):
+            key, dbn, _flags = row
 
             flags = MainFlags.from_int(_flags)
-            dt = datetime.datetime.fromisoformat(_dt)
-            par_dir = os.path.join(self.db_path, *self.parse_db_local_dir(_db_dir)) if _db_dir \
-                else os.path.join(self.root_path, self.dt_to_dir(dt))
 
             # skip missing images or images in trash
-            if not flags.present or flags.trashed:
+            if not flags.present or flags.trashed or flags.duplicate:
                 assert False, "Error in SQL Statement, should not find trash or not present files."
                 continue
 
-            # checking for missing file
-            if not os.path.exists(os.path.join(par_dir, dbn)):
+            fp = self.resolve_key_to_path(key)
 
+            # checking for missing file
+            if not os.path.exists(fp):
                 # INFO we're not updating the presence in the db because it doesn't fit the scope of this function.
-                self.integrity_logger.warning(f"File from DB is missing: {dbn}, in {par_dir}")
+                self.integrity_logger.warning(f"File from DB is missing: {dbn}, in {os.path.dirname(par_dir)}")
                 missing += 1
                 continue
 
@@ -1857,9 +1855,7 @@ class PhotoDB(BaseSQliteDB):
                         or (os.path.exists(self.full_thumbnail_path(key)) and overwrite)):
 
                     flags.has_thumbnail = self._create_display_file(
-                        in_path=os.path.join(par_dir, dbn),
-                        out_path=self.full_thumbnail_path(key),
-                        major_size=self.config.thumbnail_target)
+                        in_path=fp, out_path=self.full_thumbnail_path(key), major_size=self.config.thumbnail_target)
                     created += 1
 
                 else:
@@ -1872,9 +1868,7 @@ class PhotoDB(BaseSQliteDB):
                         or (os.path.exists(self.full_miniature_path(key)) and overwrite)):
 
                     flags.has_miniature = self._create_display_file(
-                        in_path=os.path.join(par_dir, dbn),
-                        out_path=self.full_miniature_path(key),
-                        major_size=self.config.thumbnail_target)
+                        in_path=fp, out_path=self.full_miniature_path(key), major_size=self.config.thumbnail_target)
                     created += 1
 
                 else:
@@ -1883,8 +1877,7 @@ class PhotoDB(BaseSQliteDB):
 
             # Update the flags of the given key.
             self.debug_execute(stmt="UPDATE main SET flags = ? WHERE key = ?",
-                               args=(flags.to_int(), key),
-                               cur="update_thumbnails")
+                               args=(flags.to_int(), key))
 
         self.remove_extra_cursor("update_thumbnails")
         self.commit()
