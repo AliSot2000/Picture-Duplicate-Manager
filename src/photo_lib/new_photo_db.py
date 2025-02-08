@@ -1195,14 +1195,14 @@ class PhotoDB(BaseSQliteDB):
         """
         Get the Key of a given hash string in the hash table. If it doesn't exist, add it to the hash table.
         """
-        self.debug_execute("SELECT key FROM hash WHERE hash = ?", (file_hash,))
+        self.debug_execute("SELECT key FROM hashes WHERE hash = ?", (file_hash,))
         res = self.sq_cur.fetchone()
 
         if res is not None:
             return res[0]
 
         # PRECONDITION: Hash string doesn't exist
-        self.debug_execute("INSERT INTO hash (hash) VALUES (?)", (file_hash,))
+        self.debug_execute("INSERT INTO hashes (hash) VALUES (?)", (file_hash,))
         key = self.insert_get_file_hash_key(file_hash)
         return key
 
