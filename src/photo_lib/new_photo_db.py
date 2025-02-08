@@ -1286,7 +1286,7 @@ class PhotoDB(BaseSQliteDB):
         :param key_b: The key of the second media file.
         :param delta: The delta metric between the images.
         """
-        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=True)
+        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=True, delta=delta)
 
     def remove_default_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
         """
