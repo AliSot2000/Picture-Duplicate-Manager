@@ -2808,6 +2808,19 @@ class PhotoDB(BaseSQliteDB):
         return {"EXIF:ModifyDate": dt.strftime("%Y:%m:%d %H:%M:%S"),
                 "EXIF:OffsetTime": dt.strftime("%z")}
 
+    def sanitize_json(self, obj: Any):
+        """
+        Util function to reduce code length.
+        """
+        return self.esc_str(json.dumps(obj))
+
+    @staticmethod
+    def esc_str(s: str) -> str:
+        """
+        Escape string for database argument
+        """
+        return s.replace("'", "''")
+
 class RemedyPhotoDB(PhotoDB):
     """
     A specific instance I need to migrate some remaining images, which are only available in older databases into this
