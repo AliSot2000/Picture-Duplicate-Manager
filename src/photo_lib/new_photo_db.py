@@ -1346,7 +1346,7 @@ class PhotoDB(BaseSQliteDB):
         new_hash = self.mda.hash_file(file_path)
         new_size = os.stat(file_path).st_size
         assert new_size is not None, "New Size needed for update."
-        self.check_add_file_hash(file_key=key, file_hash=new_hash, file_size=new_size)
+        self.check_add_file_hash(file_key=key, file_hash=new_hash, file_size=new_size, initial=False)
 
     # ==================================================================================================================
     # Deduplication
