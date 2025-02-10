@@ -2427,32 +2427,46 @@ class PhotoDB(BaseSQliteDB):
         :param duplicates: if true, delete files from replaced table else remove files marked as 'trashed'
         """
         count: int = 0
-        if replaced:
-            self.debug_execute("SELECT key, former_name, flags FROM replaced")
-            update_stmt = "UPDATE replaced SET flags = ? WHERE key = ?"
+
+        self.add_extra_cursor("del_trash")
+        if duplicates:
+            self.debug_execute(stmt="SELECT key, db_name, flags FROM main WHERE mod(flags >> 8, 2) = 1",
+                               cur="del_trash")
+            update_stmt = "UPDATE replaced SET flags = ? WHERE key = ? "
         else:
-            self.debug_execute("SELECT key, db_name, flags FROM main WHERE mod(flags >> 2, 2) == 1")
+            self.debug_execute(stmt="SELECT key, db_name, flags FROM main WHERE mod(flags >> 2, 2) = 1",
+                               cur="del_trash")
             update_stmt = f"UPDATE main SET flags = ? WHERE key = ?"
 
-        self.main_logger.info(f"Deleting Originals from Files in {'Replaced' if replaced else 'Trash'}")
-        self.add_extra_cursor("del_trash")
+        self.main_logger.info(f"Deleting Originals from Files in {'Duplicates' if duplicates else 'Trash'}")
 
         # Remove originals from files marked as trash
-        for row in self.sq_cur:
+        for row in self.get_cursor("del_trash"):
             key, db_name, _flags = row
-            flags = ReplacedFlags.from_int(_flags) if replaced else  MainFlags.from_int(_flags)
+            flags = MainFlags.from_int(_flags)
+
+            # Check for consistency
+            if duplicates and flags.duplicate is False:
+                raise ImplementationError("Didn't receive duplicate file despite call for it")
+            if not duplicates and flags.trashed is False:
+                raise ImplementationError("Didn't receive trashed file despite call for it")
 
             # TODO darktable
-            if os.path.exists(os.path.join(self.get_trash_dir(), db_name)):
+            file_path = self.resolve_key_to_path(key)
+            if os.path.exists(file_path):
                 self.main_logger.debug(f"Deleting {db_name} from trash")
-                os.remove(os.path.join(self.get_trash_dir(), db_name))
+                os.remove(file_path)
                 flags.present = False
                 count += 1
-                self.debug_execute(update_stmt, (flags.to_int(), key), "del_trash")
+                self.debug_execute(update_stmt, (flags.to_int(), key))
 
-        self.main_logger.info(f"Finished Deleting {count} Originals {'Replaced' if replaced else 'Trash'}")
+            # Removing row in metadata table.
+            self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (key,))
+
+        self.main_logger.info(f"Finished Deleting {count} Originals {'Duplicates' if duplicates else 'Trash'}")
         self.remove_extra_cursor("del_trash")
         self.commit()
+        # INFO: Don't need to update the caches, the path isn't modified.
         return count
 
     def forget_image_from_replaced(self, key: int):
