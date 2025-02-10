@@ -1298,9 +1298,11 @@ class PhotoDB(BaseSQliteDB):
 
     def _insert_get_dir(self, dir_name: str) -> int:
         """
-        PRECONDITION: dir_name is absolute
-        PRECONDITION: dir_name is child of root_path
-        PRECONDITION: dir_name separated by os.sep
+        PRECONDITION:
+
+        - dir_name is absolute
+        - dir_name is child of root_path
+        - dir_name separated by os.sep
 
         Get the key of a given custom directory.
 
