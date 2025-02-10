@@ -48,6 +48,7 @@ class PhotoDB(BaseSQliteDB):
 
     # Flags
     prune_fs_dir: bool = False
+    opt_integrity_check: bool
 
     mda: Optional[NewMetadataAggregator] = None
 
@@ -71,9 +72,22 @@ class PhotoDB(BaseSQliteDB):
                  root_path: str,
                  init: bool = False,
                  config: Config = None,
-                 init_loggers: bool = True):
+                 init_loggers: bool = True,
+                 opt_integrity_check: bool = False):
         """
         Construct a Database Object from a preexisting database file.
+
+        Database Initialization:
+
+        - For initialization, you can provide the db with a custom config
+        - Both the config and the db_file mustn't exist.
+
+        :param root_path: Root path of the database
+        :param init: If true, initialize the database.
+        :param config: Override the default config during initialization. Ignored otherwise
+        :param init_loggers: If true, initialize the loggers. Otherwise, Loggers must be defined externally.
+        :param opt_integrity_check: Every time full file paths are computed and flags are present. Flags consistency
+            with file system are checked.
         """
         self.main_logger = logging.getLogger(self.main_logger_name)
         self.integrity_logger = logging.getLogger(self.integrity_logger_name)
@@ -85,6 +99,7 @@ class PhotoDB(BaseSQliteDB):
 
         self.build_definition_lookup()
         self.root_path = os.path.abspath(root_path)
+        self.opt_integrity_check = opt_integrity_check
         cfg_path = defaults.config_path(self.root_path)
 
         # Prepping Config
