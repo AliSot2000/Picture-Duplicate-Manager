@@ -528,12 +528,14 @@ class PhotoDB(BaseSQliteDB):
                 if os.listdir(tgt_dir):
                     if first:
                         self.integrity_logger.warning(f"Lowest Directory Not Empty: {tgt_dir}")
-                        # Lowest child not empty, we break and don't remove that directory from the table
+
+                    # directory not empty, abort delete.
                     break
 
-                # No guard triggered, we're deleting at least
+                # No guard triggered, we're deleting at last
                 self.main_logger.debug(f"deleting directory: {tgt_dir}")
                 shutil.rmtree(tgt_dir)
+
                 if first:
                     keys_to_delete.append(ktd)
                     first = False
@@ -541,6 +543,7 @@ class PhotoDB(BaseSQliteDB):
         # TODO in ? does work?
         self.debug_execute("DELETE FROM db_dir WHERE key IN ?",
                            (f"({', '.join(map(str, keys_to_delete))})",))
+
         if len(keys_to_delete) > 0:
             self.main_logger.info(f"Pruned {len(keys_to_delete)} rows in dir table")
         else:
