@@ -138,7 +138,7 @@ class PhotoDB(BaseSQliteDB):
         assert hasattr(self, "config") and self.config is not None, "Config must be populated by now"
 
         # PRECONDITION: Config defined
-        super().__init__(self.config.db_file)
+        super().__init__(self.get_db_file_path())
 
         if init:
             self.init_db()
