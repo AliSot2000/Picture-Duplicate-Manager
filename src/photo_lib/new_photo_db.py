@@ -2641,52 +2641,37 @@ class PhotoDB(BaseSQliteDB):
 
     def _db_resolve_key_to_original_path(self, key: int) -> str | None:
         """
-        Resolves a given key to an absolute filepath. The filepath can not exist.
+        Resolves a given key to an absolute filepath. The file doesn't have to exist.
 
         :param key: The key to resolve.
         """
-        self.debug_execute("SELECT m.key, m.db_name, d.db_local_dir, m.datetime, m.flags, 0 AS from_replaced "
-                           "FROM main AS m JOIN db_dir AS d ON m.db_dir = d.key "
-                           "WHERE m.key = ? "
-                           "UNION ALL "
-                           "SELECT key, former_name AS db_name, NULL AS db_local_dir, NULL AS datetime, flags, "
-                           "1 AS from_replaced "
-                           "FROM replaced "
-                           "WHERE key = ?", (key, key))
+        # TODO test.
+        self.debug_execute("SELECT m.key, m.db_name, d.db_local_dir, m.datetime, m.flags "
+                           "FROM main AS m "
+                           "JOIN metadata AS md ON m.key = md.main_key "
+                           "LEFT OUTER JOIN db_dir AS d ON md.db_dir = d.key "
+                           "WHERE m.key = ? ", (key,))
         res = self.sq_cur.fetchall()
         if len(res) == 0:
             return None
 
         # Result is not None
         if len(res) > 1:
-            raise CorruptDatabase(f"key {key} appears in main and replaced table. ")
+            raise CorruptDatabase(f"Key duplicated.")
 
         # PRECONDITION, len(res) == 1
-        key, db_name, db_local_dir, _dt, _flags, _fr = res[0]
-        from_replaced = bool(_fr)
-
-        # in replaced => file is in trash
-        if from_replaced:
-            self.check_flags(key=key, flags=ReplacedFlags.from_int(_flags), miniature=False, thumbnail=False,
-                             org_path=os.path.join(self.get_trash_dir(), db_name))
-            return os.path.join(self.get_trash_dir(), db_name)
-
-        # Ensure we're in the main table
-        assert from_replaced is False, "Now in Main Table results"
+        _, db_name, db_local_dir, _dt, _flags = res[0]
         dt = datetime.datetime.fromisoformat(_dt)
         flags = MainFlags.from_int(_flags)
 
-        # Main table but in the trash
-        if flags.trashed:
+        # Parse the paths.
+        if flags.trashed or flags.duplicate:
             path = os.path.join(self.get_trash_dir(), db_name)
-
-        # Main table, specific directory
         elif db_local_dir is not None:
             path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), db_name)
-
-        # Path from datetime
         else:
-            assert _dt is not None, "Need datetime to resolve path from datetime"
+            assert db_local_dir is None and dt is not None, \
+                f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {dt}"
             path = os.path.join(self.root_path, self.dt_to_dir(dt), db_name)
 
         self.check_flags(flags=flags, key=key, miniature=False, thumbnail=False, org_path=path)
