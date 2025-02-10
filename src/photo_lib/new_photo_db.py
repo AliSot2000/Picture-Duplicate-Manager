@@ -122,6 +122,14 @@ class PhotoDB(BaseSQliteDB):
             if config is None:
                 config = self.build_default_config()
 
+            # Checking existence of config path
+            if os.path.exists(os.path.abspath(cfg_path)):
+                raise FileExistsError("Config File Exists")
+
+            # Checking existence of db file
+            if os.path.exists(self.get_db_file_path(config)):
+                raise FileExistsError("Database File Exists")
+
             with open(os.path.abspath(cfg_path), "w") as f:
                 f.write(config.model_dump_json())
 
