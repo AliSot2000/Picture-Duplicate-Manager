@@ -2469,9 +2469,23 @@ class PhotoDB(BaseSQliteDB):
         # INFO: Don't need to update the caches, the path isn't modified.
         return count
 
-    def forget_image_from_replaced(self, key: int):
+    def forget_file(self, key: int):
         """
-        Forgets a image from the replaced table.
+        Forgets a given file.
+
+        Removes it from all tables and removes all children. Images which are forgotten, will be not be detected
+        upon import and will be reimported if the given image shows up again.
+
+        Removes Hash association to duplicate children.
+        Removes Hash association in parent in main table
+        Removes GPS to main entry
+        Removes thumbnails of main entry and children
+        Removes miniatures of main entry and children
+        Removes original of the main entry
+        Removes entries from duplicates and known duplicates table
+        Prunes empty hashes
+        Prunes empty gps_locs
+        Prunes empty db_dirs
         """
         self.debug_execute("SELECT * FROM replaced WHERE key = ?", (key,))
         if self.sq_cur.fetchone() is None:
@@ -2577,46 +2591,7 @@ class PhotoDB(BaseSQliteDB):
         # TODO update caches.
         self.main_logger.info(f"Forgot {key} in main table and children successfully")
 
-    def _forget_children_in_replaced(self, key: int | List[int]):
-        """
-        Forgets a duplicate from the replaced table.
 
-        PRECONDITION: Rows exist in the replaced table.
-        """
-        if isinstance(key, int):
-            key = [key]
-
-        assert isinstance(key, list), f"Unexpected Type of key: {type(key).__name__}"
-
-        key_tuples = [(k,) for k in key]
-
-        # Delete all hash associations of that file
-        # TODO test, does ? with in work
-        self.debug_execute_many("DELETE FROM hash_assoz WHERE file_key = ?", key_tuples)
-
-        self.debug_execute("SELECT key, former_name, flags FROM replaced WHERE key IN ?",
-                           (f"({', '.join(map(str, key))})",))
-
-        self.add_extra_cursor("forget_duplicate")
-        # Removing all duplicates
-        for row in self.sq_cur:
-            key, former_name, _flags = row
-            flags = ReplacedFlags.from_int(_flags)
-
-            if os.path.exists(os.path.join(self.get_trash_dir(), former_name)):
-                self.main_logger.debug(f"Deleting {former_name} from trash")
-                os.remove(os.path.join(self.get_trash_dir(), former_name))
-                flags.present = False
-
-                # Update the flags in the replaced table
-                self.debug_execute("UPDATE replaced SET flags = ? WHERE key = ?",
-                                   (flags.to_int(), key),
-                                   'forget_duplicate')
-
-        # Deleting the rows from the replaced table to finish forgetting.
-        # TODO update if in ? doesn't work!
-        self.debug_execute("DELETE FROM replaced WHERE key IN ?", (f"({', '.join(map(str, key))})",))
-        self.remove_extra_cursor("forget_duplicate")
 
     def check_and_update_thumbnails(self, from_select: bool = False):
         """
