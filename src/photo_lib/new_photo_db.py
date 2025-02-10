@@ -2413,18 +2413,18 @@ class PhotoDB(BaseSQliteDB):
         Removes all originals from the trash.
         """
         self.main_logger.info(f"Emptying all Trashed files...")
-        trash = self._empty_trash(replaced=False)
-        replaced = self._empty_trash(replaced=True)
+        trash = self._empty_trash(duplicates=False)
+        replaced = self._empty_trash(duplicates=True)
         self.main_logger.info(f"Deleted a total of {trash + replaced} files from trash.")
         return trash + replaced
 
-    def _empty_trash(self, replaced: bool) -> int:
+    def _empty_trash(self, duplicates: bool) -> int:
         """
         Internal function to remove originals from one of two categories of files in the trash:
         - Files which are marked as 'trashed'
         - Files which are duplicates and the originals were moved to trash
 
-        :param replaced: if true, delete files from replaced table else remove files marked as 'trashed'
+        :param duplicates: if true, delete files from replaced table else remove files marked as 'trashed'
         """
         count: int = 0
         if replaced:
