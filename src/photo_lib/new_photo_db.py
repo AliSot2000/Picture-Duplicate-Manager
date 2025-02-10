@@ -1902,7 +1902,7 @@ class PhotoDB(BaseSQliteDB):
 
             # skip missing images or images in trash
             if not flags.present or flags.trashed or flags.duplicate:
-                assert False, "Error in SQL Statement, should not find trash or not present files."
+                raise ImplementationError("Error in SQL Statement, should not find trash or not present files")
                 continue
 
             fp = self.resolve_key_to_path(key)
@@ -1910,7 +1910,7 @@ class PhotoDB(BaseSQliteDB):
             # checking for missing file
             if not os.path.exists(fp):
                 # INFO we're not updating the presence in the db because it doesn't fit the scope of this function.
-                self.integrity_logger.warning(f"File from DB is missing: {dbn}, in {os.path.dirname(par_dir)}")
+                self.integrity_logger.warning(f"File from DB is missing: {dbn}, in {os.path.dirname(fp)}")
                 missing += 1
                 continue
 
