@@ -448,6 +448,7 @@ class PhotoDB(BaseSQliteDB):
         # - Check no filename appears twice in replaced and main table
         # - Check no entries in main table with reserved db_name
         # - Exactly one entry per file_key with initial flags.
+        # - Check constraint on flags: either trashed OR duplicate but both.
         pass
 
     # ==================================================================================================================
