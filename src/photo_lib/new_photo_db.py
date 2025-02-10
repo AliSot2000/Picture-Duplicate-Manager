@@ -15,7 +15,7 @@ import ffmpeg
 import photo_lib.defaults as defaults
 from photo_lib.cache import Cache, nd
 from photo_lib.config import Config
-from photo_lib.custom_enum import GroupingCriterion, DBLocation, NewMatchTypes
+from photo_lib.custom_enum import GroupingCriterion, NewMatchTypes
 from photo_lib.db_definitions import current_version, history, StaticDeclaration, GenericDeclaration
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
 from photo_lib.flag_dataclasses import MainFlags
