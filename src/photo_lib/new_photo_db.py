@@ -2487,9 +2487,7 @@ class PhotoDB(BaseSQliteDB):
         Prunes empty gps_locs
         Prunes empty db_dirs
         """
-        self.debug_execute("SELECT * FROM replaced WHERE key = ?", (key,))
-        if self.sq_cur.fetchone() is None:
-            raise ValueError(f"Key {key} not found in replaced table.")
+        self._internal_forget(key=key)
 
         self._forget_children_in_replaced(key=key)
         self.mark_import_table_as_stale()
@@ -2588,10 +2586,15 @@ class PhotoDB(BaseSQliteDB):
         self.prune_fs_dir = True
         self.commit()
 
-        # TODO update caches.
-        self.main_logger.info(f"Forgot {key} in main table and children successfully")
+        # Clearing Cache
+        self.key_to_filepath_cache.evict(key)
+        self.filename_to_key_cache.evict(db_name)
 
-
+        # Print info
+        if not rec:
+            self.main_logger.info(f"Forgot {key} and children successfully")
+        else:
+            self.main_logger.info(f"Forgot duplicate {key} successfully")
 
     def check_and_update_thumbnails(self, from_select: bool = False):
         """
