@@ -986,6 +986,7 @@ class PhotoDB(BaseSQliteDB):
 
         if added_mda:
             self.mda = None
+
         self.remove_extra_cursor("import_table")
         self.commit()
         return count
