@@ -2736,14 +2736,14 @@ class PhotoDB(BaseSQliteDB):
         """
         Given a key, get the thumbnail name
         """
-        return f"thumb_{key:10000}.jpeg"
+        return f"thumb_{key:04}.jpeg"
 
     @staticmethod
     def miniature_name(key: int) -> str:
         """
         Given a key, get the miniature name
         """
-        return f"miniature_{key:10000}.jpeg"
+        return f"miniature_{key:04}.jpeg"
 
     def full_thumbnail_path(self, key: int) -> str:
         """
