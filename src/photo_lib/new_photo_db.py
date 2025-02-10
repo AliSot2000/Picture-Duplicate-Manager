@@ -1266,7 +1266,6 @@ class PhotoDB(BaseSQliteDB):
                                (hash_key, file_key, file_size, now.isoformat(), int(initial)))
             return False
 
-    def insert_get_file_hash_key(self, file_hash: str) -> int:
         # Parse the row and get the newest hash
         hash_str, hash_key, file_key = res
         newest_hash = self.get_newest_hash(res[1])
@@ -1282,6 +1281,7 @@ class PhotoDB(BaseSQliteDB):
 
         return True
 
+    def insert_get_hash_key(self, file_hash: str) -> int:
         """
         Get the Key of a given hash string in the hash table. If it doesn't exist, add it to the hash table.
         """
@@ -1293,7 +1293,7 @@ class PhotoDB(BaseSQliteDB):
 
         # PRECONDITION: Hash string doesn't exist
         self.debug_execute("INSERT INTO hashes (hash) VALUES (?)", (file_hash,))
-        key = self.insert_get_file_hash_key(file_hash)
+        key = self.insert_get_hash_key(file_hash)
         return key
 
     def _insert_get_dir(self, dir_name: str) -> int:
