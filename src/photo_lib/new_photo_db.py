@@ -2489,17 +2489,9 @@ class PhotoDB(BaseSQliteDB):
         """
         self._internal_forget(key=key)
 
-        self._forget_children_in_replaced(key=key)
-        self.mark_import_table_as_stale()
-        self.prune_hash()
-        self.prune_fs_dir = True
-        self.commit()
-        # TODO update caches.
-        self.main_logger.info(f"Forgot {key} from replaced table")
-
-    def forget_image_from_main(self, key: int):
+    def _internal_forget(self, key: int, rec: bool = False):
         """
-        Forgets the image in the main table:
+                Forgets the image in  main table:
 
         Removes it from all tables and removes all children. Images which are forgotten, will be not be detected
         upon import and will be reimported if the given image shows up again.
@@ -2515,41 +2507,43 @@ class PhotoDB(BaseSQliteDB):
         Prunes empty gps_locs
         Prunes empty db_dirs
         """
-        self.debug_execute("SELECT m.datetime, m.db_name, m.gps_location, d.db_local_dir, m.db_dir, m.flags FROM "
-                           "main AS m JOIN db_dir AS d ON m.db_dir = d.key WHERE m.key = ?", (key, ))
+        self.debug_execute("SELECT m.db_name, m.flags FROM main AS m WHERE m.key = ?", (key, ))
         row = self.sq_cur.fetchone()
         if row is None:
             raise ValueError("Key not found in main table")
 
         # Removing all children in replaced
-        self.debug_execute("SELECT key FROM replaced WHERE parent = ?", (key,))
+        self.debug_execute("SELECT key FROM main WHERE parent = ?", (key,))
         children = [r[0] for r in self.sq_cur.fetchall()]
-        self._forget_children_in_replaced(key=children)
+
+        if rec and len(children) > 0:
+            raise CorruptDatabase("Got Entry where the children have children.")
+
+        # Remove children
+        for k in children:
+            self._internal_forget(key=k, rec=True)
 
         # Parse the row
-        _dt, db_name, gps_location, db_local_dir, db_dir_key, _flags = row
-        dt = datetime.datetime.fromisoformat(_dt)
+        db_name, _flags = row
         flags = MainFlags.from_int(_flags)
 
         # TODO darktable
         # Remove files
-        if flags.trashed:
-            org_p = os.path.join(self.get_trash_dir(), db_name)
-            self.check_flags(flags=flags, key=key, miniature=True, thumbnail=True, org_path=org_p)
-            if os.path.exists(org_p):
-                self.main_logger.debug(f"Deleting {db_name} from trash")
-                os.remove(os.path.join(self.get_trash_dir(), db_name))
+        fp = self.resolve_key_to_path(key)
+        self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True, org_path=fp)
 
-        else:
-            if db_local_dir is None:
-                fp = os.path.join(self.root_path, self.dt_to_dir(dt), db_name)
+        if rec and not flags.duplicate:
+            self.main_logger.warning("Child found who's duplicate flag wasn't set.")
+
+        if os.path.exists(fp):
+            # Logging message
+            if flags.trashed or flags.duplicate:
+                self.main_logger.debug(f"Deleting {db_name} from trash directory")
             else:
-                fp = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), db_name)
+                self.main_logger.debug(f"Deleting {db_name} from main database")
 
-            self.check_flags(flags=flags, key=key, miniature=True, thumbnail=True, org_path=fp)
-            if os.path.exists(fp):
-                self.main_logger.debug(f"Deleting {db_name} from DB")
-                os.remove(fp)
+            # Actually removing the file
+            os.remove(fp)
 
         # PRECONDITION: The original has been deleted.
         # Deleting thumbnail and miniature if they exist.
@@ -2563,12 +2557,11 @@ class PhotoDB(BaseSQliteDB):
 
         # Remove hashes of parent
         self.debug_execute("DELETE FROM hash_assoz WHERE file_key = ?", (key,))
-        if gps_location is not None:
-            self.debug_execute("DELETE FROM gps_location WHERE key = ?", (gps_location,))
-        if db_dir_key is not None:
-            self.debug_execute("DELETE FROM db_dir WHERE key = ?", (db_dir_key,))
 
-        # Removing files from duplicates table
+        # Remove row from metadata
+        self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (key,))
+
+        # Removing files from the duplicates table
         c_known = self.remove_all_tuples_with_key(key=key, known=True)
         self.main_logger.debug(f"Deleted {c_known} tuples from known_duplicates table")
         c_default = self.remove_all_tuples_with_key(key=key, known=False)
@@ -2578,13 +2571,15 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("DELETE FROM main WHERE key = ?", (key,))
         self.commit()
 
-        # Prune dir, hash, gps
-        self.mark_import_table_as_stale()
-        self.prune_hash()
-        self.prune_gps()
-        self.prune_dir()
-        self.prune_fs_dir = True
-        self.commit()
+        # Doesn't make sense to call the same clean-up after every child.
+        if not rec:
+            # Prune dir, hash, gps
+            self.mark_import_table_as_stale()
+            self.prune_hash()
+            self.prune_gps()
+            self.prune_dir()
+            self.prune_fs_dir = True
+            self.commit()
 
         # Clearing Cache
         self.key_to_filepath_cache.evict(key)
