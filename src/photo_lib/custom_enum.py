@@ -13,15 +13,6 @@ class ProcessComType(Enum):
     EXIT = 4
 
 
-class DBLocation(Enum):
-    """
-    Describe the location of a file, considering the file is fully imported.
-    """
-    MAIN = 0
-    TRASH = 1
-    REPLACED = 2
-
-
 class MatchTypes(Enum):
     """
     Enum to indicate the type of match found in the database.
