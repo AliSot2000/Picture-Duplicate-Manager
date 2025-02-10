@@ -1147,12 +1147,14 @@ class PhotoDB(BaseSQliteDB):
             elif m_newest_hash != file_hash and binary_match:
                 self.main_logger.warning("Found files different hashes but match binary.")
 
-            source = self.get_db_location(key=m_key)
-            if source is None:
-                raise CorruptDatabase("Matched key should exist main or replaced")
+            self.debug_execute("SELECT flags FROM main WHERE key = ?", (m_key,))
+            res = self.sq_cur.fetchone()
+            if res is None:
+                raise CorruptDatabase("Inconsistency between tables. File from hash_assoz not present in main tables.")
 
+            flags = MainFlags.from_int(res[0])
             # parse into NewMatchTypes
-            if source == DBLocation.MAIN:
+            if not (flags.trashed and not flags.duplicate):
                 if m_newest_hash != file_hash:
                     keys[m_key] = NewMatchTypes.HASH_MATCH_MAIN
                 else:
@@ -1167,7 +1169,7 @@ class PhotoDB(BaseSQliteDB):
                         #  the mount isn't currently done.
                         keys[m_key] = NewMatchTypes.HASH_MATCH_MAIN
 
-            elif source == DBLocation.TRASH:
+            elif flags.trashed and not flags.duplicate:
                 if m_newest_hash != file_hash:
                     keys[m_key] = NewMatchTypes.HASH_MATCH_TRASH
                 else:
@@ -1177,7 +1179,8 @@ class PhotoDB(BaseSQliteDB):
                     else:
                         # INFO: Dito as for DBLocation.MAIN
                         keys[m_key] = NewMatchTypes.HASH_MATCH_TRASH
-            elif source == DBLocation.REPLACED:
+
+            elif not flags.trashed and flags.duplicate:
                 if m_newest_hash != file_hash:
                     keys[m_key] = NewMatchTypes.HASH_MATCH_REPLACED
                 else:
@@ -1187,6 +1190,10 @@ class PhotoDB(BaseSQliteDB):
                     else:
                         # INFO: Dito as for DBLocation.MAIN
                         keys[m_key] = NewMatchTypes.HASH_MATCH_REPLACED
+
+            elif flags.trashed and flags.duplicate:
+                raise CorruptDatabase("Trashed and Duplicate are True")
+
             else:
                 raise ImplementationError("DBLocation not covered")
 
