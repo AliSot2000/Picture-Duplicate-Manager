@@ -614,20 +614,23 @@ class PhotoDB(BaseSQliteDB):
         if mode.lower() not in ("earliest", "latest", "any", "initial"):
             raise ValueError(f"Unsupported mode: {mode.lower()}, allowed: [earliest, latest, any]")
 
-        # TODO the hash_date needs a more specific search!
         if mode.lower() == "earliest":
             self.debug_execute("SELECT ha.file_key "
                                "FROM hashes AS h JOIN hash_assoz AS ha "
                                "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
-                               "(SELECT MIN(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
-                               (target_hash, file_size))
+                               "(SELECT MIN(datetime(ha.hash_date)) "
+                               "FROM hash_assoz AS ha JOIN hash ON hash.key = ha.hash_key "
+                               "WHERE hash.hash = ? AND ha.file_size_bytes = ? GROUP BY hash_key, file_key)",
+                               (target_hash, file_size, target_hash, file_size))
 
         elif mode.lower() == "latest":
             self.debug_execute("SELECT ha.file_key "
                                "FROM hashes AS h JOIN hash_assoz AS ha "
                                "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
-                               "(SELECT MAX(datetime(hash_date)) FROM hash_assoz GROUP BY hash_key, file_key)",
-                               (target_hash, file_size))
+                               "(SELECT MAX(datetime(ha.hash_date)) "
+                               "FROM hash_assoz AS ha JOIN hash ON hash.key = ha.hash_key "
+                               "WHERE hash.hash = ? AND ha.file_size_bytes = ? GROUP BY hash_key, file_key)",
+                               (target_hash, file_size, target_hash, file_size))
         elif mode.lower() == "any":
             self.debug_execute("SELECT ha.file_key "
                                "FROM hashes AS h JOIN hash_assoz AS ha "
