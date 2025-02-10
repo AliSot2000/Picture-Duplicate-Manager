@@ -2801,7 +2801,7 @@ class PhotoDB(BaseSQliteDB):
             def_new_name = base_name + "_" + ob
             trunc_new_name = def_new_name[:120] + ext
         else:
-            # Should technically not be possible but we truncate just to be sure.
+            # Should technically not be possible, but we truncate just to be sure.
             trunc_new_name = base_name[:120] + ext
 
         return trunc_new_name
