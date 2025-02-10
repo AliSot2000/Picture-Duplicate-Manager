@@ -24,10 +24,12 @@ class MatchTypes(Enum):
     Binary_Match_Replaced = 4
     Hash_Match_Replaced = 5
 
+
 class GoogleFotosMetadataStatus(Enum):
     No_Metadata = -1
     Copied_Metadata = 0
     Original_Metadata = 1
+
 
 class SourceTable(Enum):
     Images = 0
@@ -36,6 +38,7 @@ class SourceTable(Enum):
     Last_Import = 3
     Any_Import_Tabel = 4
     Thumbnails = 5
+
 
 class Views(Enum):
     Deduplicate_Compare = 0
@@ -46,6 +49,7 @@ class Views(Enum):
     Database_Big_Screen_View = 5
     Database_Tile_View = 6
     Import_Tables_View = 7
+
 
 class LongRunningActions(Enum):
     PrepareImport = 1
@@ -59,6 +63,7 @@ class GroupingCriterion(Enum):
     YEAR = 1
     YEAR_MONTH = 2
     YEAR_MONTH_DAY = 3
+
 
 class NewMatchTypes(Enum):
     """
