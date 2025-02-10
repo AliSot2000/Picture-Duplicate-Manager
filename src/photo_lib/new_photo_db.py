@@ -2601,27 +2601,29 @@ class PhotoDB(BaseSQliteDB):
         # TODO implement
 
     def check_flags(self, key: int,
-                    flags: MainFlags | ReplacedFlags,
+                    flags: MainFlags,
                     miniature: bool = False,
                     thumbnail: bool = False,
                     org_path: str = None):
         """
         Check the flags, of a given image. Report issues to integrity_logger.
 
-        INFO: miniature and thumbnail need to be none, if the key is from the replaced table.
+        INFO:
+        - Doesn't update the DB and doesn't update the flags object
+        - Only is executed when self.opt_integrity_check si True.
 
-        **Doesn't update the DB and doesn't update the flags object**
         """
+        if not self.opt_integrity_check:
+            return
+
         # Check the miniatures.
         if miniature:
-            assert isinstance(flags, MainFlags), f"Unexpected Type of flags: {type(flags).__name__}"
             if os.path.exists(self.full_miniature_path(key)) and not flags.has_miniature:
                 self.integrity_logger.warning(f"Miniature present, flags record not present.")
             elif not os.path.exists(self.full_miniature_path(key)) and flags.has_miniature:
                 self.integrity_logger.warning(f"Miniature not present, flags record present.")
 
         if thumbnail:
-            assert isinstance(flags, MainFlags), f"Unexpected Type of flags: {type(flags).__name__}"
             if os.path.exists(self.full_thumbnail_path(key)) and not flags.has_thumbnail:
                 self.integrity_logger.warning(f"Thumbnail present, flags record not present.")
             elif not os.path.exists(self.full_thumbnail_path(key)) and flags.has_thumbnail:
