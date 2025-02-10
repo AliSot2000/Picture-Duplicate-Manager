@@ -2699,9 +2699,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Query the Database and get the key given a file name.
         """
-        self.debug_execute("SELECT key FROM main WHERE db_name = ? "
-                           "UNION ALL "
-                           "SELECT key FROM replaced WHERE former_name = ?", (file_name, file_name))
+        self.debug_execute("SELECT key FROM main WHERE db_name = ? ", (file_name,))
         res = self.sq_cur.fetchall()
         if len(res) == 0:
             return None
@@ -2710,7 +2708,7 @@ class PhotoDB(BaseSQliteDB):
             raise CorruptDatabase(f"file_name {file_name} appears in main and replaced table.")
 
         # PRECONDITION: number of results = 1
-        return res[0]
+        return res[0][0]
 
     def filename_to_key(self, fname: str) -> int | None:
         """
