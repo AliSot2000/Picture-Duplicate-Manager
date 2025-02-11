@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Optional
 
 from photo_lib.custom_enum import *
 
