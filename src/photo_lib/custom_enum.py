@@ -91,3 +91,10 @@ class ImportTableGrouping(Enum):
     HASH_MATCH_REPLACED = 6
     IMPORTED = 7
     NOW_ALLOWED = 8
+
+
+class SelectionType(Enum):
+    SELECTION_A = 0
+    SELECTION_B = 1
+    TIME_RANGE = 2
+    TABLE = 4
