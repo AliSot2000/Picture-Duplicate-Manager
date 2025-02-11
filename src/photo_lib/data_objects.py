@@ -105,3 +105,43 @@ class GroupCount:
     count: int
     group_crit: GroupingCriterion
     start_date: Union[None, datetime.datetime]
+
+
+class Selection:
+    selection_type: SelectionType
+    start: Optional[datetime.datetime] = None
+    end: Optional[datetime.datetime] = None
+    table_name: Optional[str] = None
+
+    def __init__(self, selection_type: SelectionType,
+                 start: Optional[datetime.datetime] = None,
+                 end: Optional[datetime.datetime] = None,
+                 duration: Optional[datetime.timedelta] = None,
+                 table_name: Optional[str] = None):
+        """
+        Creates a selection object.
+        """
+        if selection_type == SelectionType.SELECTION_A or selection_type == SelectionType.SELECTION_B:
+            if start is not None or end is not None or duration is not None or table_name is not None:
+                raise ValueError("SELECTION_A and SELECTION_B don't need any other arguments.")
+
+        elif selection_type == SelectionType.TIME_RANGE:
+            if start is None:
+                raise ValueError("TIME_RANGE selection requires a start datetime")
+
+            if end is None and duration is None:
+                raise ValueError("TIME_RANGE selection requires end or duration")
+            elif end is not None and duration is not None:
+                raise ValueError("TIME_RANGE selection requires end or duration not both")
+            else:
+                assert end is None or duration is None, "Unexpected state"
+                self.end = start + duration if duration is not None else end
+                self.start = start
+
+        elif selection_type == SelectionType.TABLE:
+            if start is not None or end is not None or duration is not None:
+                raise ValueError("TABLE selection requires only table_name, nothing else")
+            if table_name is None:
+                raise ValueError("TABLE selection requires table_name")
+
+            self.table_name = table_name
