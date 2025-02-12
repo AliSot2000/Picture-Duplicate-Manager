@@ -1920,10 +1920,10 @@ class PhotoDB(BaseSQliteDB):
 
         # Ensure existence, raise error (cannot be fixed by good programming, so no assert)
         if not os.path.exists(current_path):
-            raise ValueError("Original File doesn't exist, cannot rename.")
+            raise FileNotFoundError("Original File doesn't exist, cannot rename.")
 
         if os.path.exists(new_path):
-            raise ValueError("New path exists already.")
+            raise FileExistsError("New path exists already.")
 
         # PRECONDITION: File Exists, Filename not present
         os.rename(current_path, new_path)
@@ -1968,10 +1968,10 @@ class PhotoDB(BaseSQliteDB):
 
         # Ensure existence, raise error (cannot be fixed by good programming, so no assert)
         if not os.path.exists(current_path):
-            raise ValueError("Original File doesn't exist, cannot rename.")
+            raise FileNotFoundError("Original File doesn't exist, cannot rename.")
 
         if os.path.exists(new_path):
-            raise ValueError("New Path exists already.")
+            raise FileExistsError("New Path exists already.")
 
         # PRECONDITION: File Exists, Filename not present
         os.rename(current_path, new_path)
