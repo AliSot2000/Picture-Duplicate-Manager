@@ -520,11 +520,72 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
-    def check_new_files(self):
+    # INFO: long-running action
+    def check_new_files(self, allowed_ext: Set[str] = None) -> None | Tuple[str, int]:
         """
         Search the database folder itself for new files which were added by the user. Basically performs identical
         operation to import.
+
+        Files are determined to be new, if the filename doesn't exist in the database. That means, if you remove a file
+        with name n and add a different file with name n, this function will not detect the file as new and ignore it.
+
+        :param allowed_ext: Allowed file extensions.
+
+        :returns: None if no new files were detected. Tuple[import_table_name, new_file_count]
         """
+        # Create import table
+        tbl_name = self._add_import_table(root_path=self.root_path,
+                                          internal=True,
+                                          description="Internal Import, detect new files in db")
+
+        if allowed_ext is None:
+            allowed_ext = set(defaults.video_extensions + defaults.image_extensions)
+
+        new_files = 0
+
+        # Walk the directory
+        for root, dirs, files in os.walk(self.root_path):
+
+            # We're not importing from temp
+            if root == self.get_temp_dir():
+                continue
+
+            # We're not importing from thumbnails
+            if root == self.get_thumb_dir():
+                continue
+
+            # We're not importing from trash
+            if root == self.get_trash_dir():
+                continue
+
+            for file in files:
+                self.debug_execute("SELECT key FROM main WHERE db_name = ?", (file, ))
+
+                # Name not in db, importing file
+                res = self.sq_cur.fetchone()
+                if res is None:
+                    self._prepare_file_import(file_path=os.path.join(root, file),
+                                              tbl_name=tbl_name,
+                                              allowed_ext=allowed_ext,
+                                              append=False)
+                    new_files += 1
+
+                # File exists
+                else:
+                    # Check that the file is in the correct directory.
+                    key = res[0]
+                    path = self.resolve_key_to_path(key)
+
+                    if not path == os.path.join(root, file):
+                        self.integrity_logger.warning(f"File {file} found in db but path mismatch:"
+                                                      f"DB-Path: {path}, Discover Path: {os.path.join(root, file)}")
+
+        if new_files == 0:
+            self.main_logger.info("No new files in db were detected. Removing empty import table.")
+            self.remove_import_table(tbl_name)
+            return None
+
+        return tbl_name, new_files
 
     def prune_dir(self) -> int:
         """
