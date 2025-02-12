@@ -2032,7 +2032,7 @@ class PhotoDB(BaseSQliteDB):
     # Utility
     # ==================================================================================================================
 
-    # Long-running action
+    # INFO: long-running action
     def create_display_files(self,
                              miniature: bool = True,
                              thumbnail: bool = True,
