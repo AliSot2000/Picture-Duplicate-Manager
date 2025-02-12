@@ -25,7 +25,7 @@ from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAgg
 from photo_lib.sqlite_wrapper import BaseSQliteDB
 
 
-# TODO mda is property
+# TODO mda is property what needed again?
 # TODO mda set during init
 class PhotoDB(BaseSQliteDB):
     __verified: bool = False
