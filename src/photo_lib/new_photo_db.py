@@ -201,6 +201,23 @@ class PhotoDB(BaseSQliteDB):
             datetime_fmt=self.config.datetime_fmt
         )
 
+    def check_create_default_dirs(self):
+        """
+        Create default directories needed for the db.
+        """
+        if not os.path.exists(self.get_trash_dir()):
+            self.main_logger.info(f"Created Trash Directory")
+            os.makedirs(self.get_trash_dir())
+
+        if not os.path.exists(self.get_thumb_dir()):
+            self.main_logger.info(f"Created Thumbnail Directory")
+            os.makedirs(self.get_thumb_dir())
+
+        if not os.path.exists(self.get_temp_dir()):
+            self.main_logger.info(f"Created Temp Directory")
+            os.makedirs(self.get_temp_dir())
+
+
     # ==================================================================================================================
     # Table Creation & Deletion & Modify Functions
     # ==================================================================================================================
