@@ -637,11 +637,65 @@ class PhotoDB(BaseSQliteDB):
 
         return len(keys_to_delete)
 
-    def prune_filesystem_directories(self):
+    def prune_filesystem_directories(self) -> int:
         """
         Walk through the file system and check for empty directories. Remove empty directories if they exist.
         """
-        ...
+        count = 0
+        current_count = self._internal_prune_fs_dir()
+
+        # Call recursively
+        while current_count > 0:
+            count += current_count
+            current_count = self._internal_prune_fs_dir()
+
+        return count
+
+    def _internal_prune_fs_dir(self) -> int:
+        """
+        Internal function to prune file system directories. Needs to be called recursively to check
+        """
+        dir_to_prune = []
+        for root, dirs, files in os.walk(self.root_path, topdown=False):
+
+            # Skip if we're in the thumbnail directory
+            if root == self.get_thumb_dir():
+                continue
+
+            # Skip if we're in the trash directory
+            if root == self.get_trash_dir():
+                continue
+
+            # Skip if we're in the temp directory
+            if root == self.get_temp_dir():
+                continue
+
+            if len(files) + len(dirs) == 0:
+                dir_to_prune.append(root)
+
+        # Early exit
+        if len(dir_to_prune) == 0:
+            return 0
+
+        count = 0
+        for d in dir_to_prune:
+            local_path = d.removeprefix(self.root_path).removeprefix(os.sep)
+            local_path_list = local_path.split(os.sep)
+
+            # Check if it's in the db_dir
+            self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE db_local_dir = ?",
+                               (self.dump_db_local_dir(local_path_list),))
+
+            # Got something from the db_dir table, continue.
+            if self.sq_cur.fetchone() is not None:
+                continue
+
+            # PRECONDITION: Directory is empty and not listed in the db_dir table, deleting
+            self.main_logger.debug(f"Pruned {count} rows in dir table")
+            shutil.rmtree(d)
+            count += 1
+
+        return count
 
     # ==================================================================================================================
     # DB functions (functions operating only on the DB - basically wrapper for multiple sql statements)
