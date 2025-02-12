@@ -1981,7 +1981,7 @@ class PhotoDB(BaseSQliteDB):
 
     def build_import_table_lookup(self, target_table: str):
         """
-        Build the row lookup table for a import table
+        Build the row lookup table for an import table
         """
         # TODO implement
 
