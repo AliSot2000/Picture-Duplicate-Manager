@@ -93,8 +93,9 @@ class ImportTableGrouping(Enum):
     NOW_ALLOWED = 8
 
 
+# INFO, no table, add method selection from table in gui. Makes backend handling a lot easier. (Don't have to
+#  duplicate the selection code every time we need a selection)
 class SelectionType(Enum):
     SELECTION_A = 0
     SELECTION_B = 1
     TIME_RANGE = 2
-    TABLE = 4
