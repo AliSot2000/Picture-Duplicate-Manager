@@ -1702,7 +1702,7 @@ class PhotoDB(BaseSQliteDB):
         Modify the timezone of a given file. File must be in the main table.
 
         If rename is set, the file will be renamed in the fs
-        If replace is set, the timezone will be replaced (utc offset changes). Otherwise utc-offset and time change.
+        If replace is set, the timezone will be replaced (utc offset changes). Otherwise, utc-offset and time change.
 
         :param key: key in db of file which needs to be modified.
         :param _target_tz: Target timezone of the file.
