@@ -122,6 +122,10 @@ class PhotoDB(BaseSQliteDB):
             if config is None:
                 config = self.build_default_config()
 
+            if not os.path.exists(self.root_path):
+                self.main_logger.info("Create Root Path")
+                os.makedirs(self.root_path)
+
             # Checking existence of config path
             if os.path.exists(os.path.abspath(cfg_path)):
                 raise FileExistsError("Config File Exists")
