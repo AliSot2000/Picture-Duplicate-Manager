@@ -149,6 +149,8 @@ class PhotoDB(BaseSQliteDB):
         else:
             self.verify_version()
 
+        self.check_create_default_dirs()
+
     def reload_loggers(self):
         """
         Get the loggers from the class attributes
