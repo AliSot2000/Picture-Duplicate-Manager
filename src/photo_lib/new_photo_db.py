@@ -2520,6 +2520,7 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count
 
+    # INFO: long-running action
     def compress(self) -> int:
         """
         Remove all files which can be recomputed to save space. Removes all Thumbnails and all temporary files
