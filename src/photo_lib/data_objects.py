@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Union, Optional
 
 from photo_lib.custom_enum import *
+from photo_lib.errors_and_warnings import ImplementationError
 
 """
 Dataclasses related to the backend of the phtoto library.
@@ -111,18 +112,16 @@ class Selection:
     selection_type: SelectionType
     start: Optional[datetime.datetime] = None
     end: Optional[datetime.datetime] = None
-    table_name: Optional[str] = None
 
     def __init__(self, selection_type: SelectionType,
                  start: Optional[datetime.datetime] = None,
                  end: Optional[datetime.datetime] = None,
-                 duration: Optional[datetime.timedelta] = None,
-                 table_name: Optional[str] = None):
+                 duration: Optional[datetime.timedelta] = None):
         """
         Creates a selection object.
         """
         if selection_type == SelectionType.SELECTION_A or selection_type == SelectionType.SELECTION_B:
-            if start is not None or end is not None or duration is not None or table_name is not None:
+            if start is not None or end is not None or duration is not None:
                 raise ValueError("SELECTION_A and SELECTION_B don't need any other arguments.")
 
         elif selection_type == SelectionType.TIME_RANGE:
@@ -135,13 +134,16 @@ class Selection:
                 raise ValueError("TIME_RANGE selection requires end or duration not both")
             else:
                 assert end is None or duration is None, "Unexpected state"
-                self.end = start + duration if duration is not None else end
+
+                if start.tzinfo is None:
+                    raise ValueError("timezone aware start required")
+
+                _end = start + duration if duration is not None else end
+                if _end.tzinfo is None:
+                    raise ValueError("timezone aware end required")
+
                 self.start = start
+                self.end = _end
 
-        elif selection_type == SelectionType.TABLE:
-            if start is not None or end is not None or duration is not None:
-                raise ValueError("TABLE selection requires only table_name, nothing else")
-            if table_name is None:
-                raise ValueError("TABLE selection requires table_name")
-
-            self.table_name = table_name
+        else:
+            raise ImplementationError("Unhandled Enum Case of SelectionType")
