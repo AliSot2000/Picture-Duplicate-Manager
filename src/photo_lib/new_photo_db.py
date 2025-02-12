@@ -1492,13 +1492,15 @@ class PhotoDB(BaseSQliteDB):
     # Deduplication
     # ==================================================================================================================
 
+    # INFO: long-running action
     def find_hash_based_duplicates(self):
         """
         Find any grouping of hashes which have the same file size, and hash.
         """
         ...
 
-    def deduplicate_internal(self, scope: GroupingCriterion, com: connection.Connection = None):
+    # INFO: long-running action
+    def deduplicate_internal(self, scope: GroupingCriterion):
         """
         Performs the action of deduplication within given scopes (Given by grouping criterion)
 
@@ -1507,7 +1509,8 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
-    def deduplicate_partitions(self, a: str, b: str):
+    # INFO: long-running action
+    def deduplicate_partitions(self, a: Selection, b: Selection):
         """
         Perform a more specific deduplication.
 
