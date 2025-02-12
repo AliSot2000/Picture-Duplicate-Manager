@@ -620,7 +620,7 @@ class NewMetadataAggregator:
         if isinstance(key, str):
             return key
         elif isinstance(key, list):
-            return "GooglePhotosMetadata" + ":".join(map(str, key))
+            return "GooglePhotosMetadata:" + ":".join(map(str, key))
         elif isinstance(key, DoubleKey):
             return key.first_key + ", " + key.second_key
         else:
