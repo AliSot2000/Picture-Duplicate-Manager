@@ -1448,7 +1448,7 @@ class PhotoDB(BaseSQliteDB):
 
         :param dir_name: The name of the directory to insert.
         """
-        rel_path = dir_name.removeprefix(self.root_path)
+        rel_path = dir_name.removeprefix(self.root_path).removeprefix(os.sep)
         rel_path_list = rel_path.split(os.sep)
 
         self.debug_execute("SELECT key FROM db_dir WHERE db_local_dir = ?",
