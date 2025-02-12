@@ -253,7 +253,7 @@ class PhotoDB(BaseSQliteDB):
             miniature_target=defaults.miniature_size,
         )
 
-    def _add_import_table(self, root_path: str, name: str = None, description: str = None):
+    def _add_import_table(self, root_path: str, name: str = None, description: str = None, internal: bool = False):
         """
         Add a new import table to the database.
 
@@ -262,6 +262,7 @@ class PhotoDB(BaseSQliteDB):
         :param root_path: dir_root from which to import
         :param name: The name of the table. Override, defaults to dirname(root_path) + hash(current_datetime)
         :param description: The description of the table. Override, defaults to None
+        :param internal: If we're checking if there are new files in the db we don't know yet.
 
         :raises sqlite.IntegrityError: if that import table already exists.
         """
@@ -278,8 +279,10 @@ class PhotoDB(BaseSQliteDB):
             self.main_logger.warning(f"Table Name longer than 120 characters. Truncating to: `{tbl_name}`")
 
         # Add the table to the generic lookup table
-        self.debug_execute("INSERT INTO import_tables (root_path, table_name, table_description) VALUES (?, ?, ?)",
-                           (root_path, tbl_name, description))
+        flags = GenericTableFlags(stale=False, internal=internal)
+        self.debug_execute(stmt="INSERT INTO import_tables (root_path, table_name, table_description, flags) "
+                           "VALUES (?, ?, ?, ?)",
+                           args=(root_path, tbl_name, description, flags.to_int()))
 
         # Actually creating table
         decl = self.generic_decls["import_table"]
