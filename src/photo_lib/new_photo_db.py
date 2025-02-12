@@ -2565,7 +2565,7 @@ class PhotoDB(BaseSQliteDB):
             # PRECONDITION: The original file exists in the database.
             if os.path.exists(self.full_thumbnail_path(key)):
                 self.main_logger.debug(f"Deleting '{self.thumbnail_name(key)}'")
-                os.remove(self.full_miniature_path(key))
+                os.remove(self.full_thumbnail_path(key))
                 flags.has_thumbnail = False
                 count += 1
 
