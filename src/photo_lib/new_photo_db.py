@@ -2441,23 +2441,23 @@ class PhotoDB(BaseSQliteDB):
         self.key_to_filepath_cache.update(arg=key, value=target_path)
         self.commit()
 
-    def undo_move_to_replace(self, key: int):
+    def restore_replaced(self, key: int, create_disp_filey: bool = True):
         """
         Moves file back to original location
         Updates the metadata table.
 
         Only works if delete_trash wasn't called already
         """
-        ...
+        # TODO implement
 
-    def undo_move_to_trash(self, key: int):
+    def restore_trash(self, key: int, create_disp_filey: bool = True):
         """
         Move file back from trash to its original location
         Updates Metadata Table
 
         Only works if delete_trash wasn't called already
         """
-        ...
+        # TODO implement
 
     def delete_trash_thumb(self, key: Union[List[int], int, None]) -> int:
         """
