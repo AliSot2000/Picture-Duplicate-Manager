@@ -3095,6 +3095,7 @@ class PhotoDB(BaseSQliteDB):
         else:
             return os.path.abspath(os.path.join(self.root_path, config.db_file))
 
+
 class RemedyPhotoDB(PhotoDB):
     """
     A specific instance I need to migrate some remaining images, which are only available in older databases into this
