@@ -52,16 +52,42 @@ class PhotoDB(BaseSQliteDB):
     # ==================================================================================================================
 
     @property
-    def reserved_names(self):
+    def reserved_named(self) -> List[str]:
+        """
+        Get all special names used in the db.
+        """
         return self.__reserved_names
 
     @property
-    def temp_db_name(self):
+    def reserved_temp_file_name(self) -> str:
+        """
+                Temporary File Name used for import.
+                """
         return self.__reserved_names[0]
 
     @property
-    def current_version(self):
-        return current_version.current_version
+    def verified(self) -> bool:
+        """
+        Whether the database was verified.
+        """
+        return self.__verified
+
+    @classmethod
+    def detach(cls, inst: "PhotoDB") -> "PhotoDB":
+        """
+        Create a new instance from another instance. (needed for long_running_actions)
+        """
+        # Copy the verify state from the inst over to this instance
+        inst.cleanup(fast=True)
+
+        new_inst = cls(db_path=inst.db_path,
+                       init=False,
+                       init_loggers=False,
+                       verify=False,
+                       opt_integrity_check=False),
+
+        new_inst.__verified = inst.verified
+        return new_inst
 
     def __init__(self,
                  root_path: str,
