@@ -783,6 +783,23 @@ class PhotoDB(BaseSQliteDB):
     # GPS Table
     # ==================================================================================================================
 
+    def insert_get_gps_loc(self, gps_lat: float, gps_long: float):
+        """
+        Get the Key of a given pair of GPS coordinates. If it doesn't exist, add it to the GPS Table.
+        """
+        self.debug_execute("SELECT key FROM gps_location WHERE gps_latitude = ? AND gps_longitude = ?",
+                           (gps_lat, gps_long))
+
+        res = self.sq_cur.fetchone()
+        if res is not None:
+            return res[0]
+
+        # PRECONDITION: GPS Location doesn't exist
+        self.debug_execute("INSERT INTO gps_location (gps_latitude, gps_longitude) VALUES (?, ?)",
+                           (gps_lat, gps_long))
+        key = self.insert_get_gps_loc(gps_lat, gps_long)
+        return key
+
     def prune_gps(self) -> int:
         """
         Remove all rows in the gps table which are no longer referenced
@@ -2169,23 +2186,6 @@ class PhotoDB(BaseSQliteDB):
             return {}, None, NewMatchTypes.NO_MATCH
 
         return keys, highest_match_key, highest_match
-
-    def insert_get_gps_loc(self, gps_lat: float, gps_long: float):
-        """
-        Get the Key of a given pair of GPS coordinates. If it doesn't exist, add it to the GPS Table.
-        """
-        self.debug_execute("SELECT key FROM gps_location WHERE gps_latitude = ? AND gps_longitude = ?",
-                           (gps_lat, gps_long))
-
-        res = self.sq_cur.fetchone()
-        if res is not None:
-            return res[0]
-
-        # PRECONDITION: GPS Location doesn't exist
-        self.debug_execute("INSERT INTO gps_location (gps_latitude, gps_longitude) VALUES (?, ?)",
-                           (gps_lat, gps_long))
-        key = self.insert_get_gps_loc(gps_lat, gps_long)
-        return key
 
     def check_add_file_hash(self, file_key: int,
                             file_size: int,
