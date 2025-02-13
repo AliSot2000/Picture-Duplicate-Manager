@@ -150,6 +150,7 @@ class PhotoDB(BaseSQliteDB):
             self.verify_version()
 
         self.check_create_default_dirs()
+        # TODO empty presence, hash and name table.
 
     def reload_loggers(self):
         """
