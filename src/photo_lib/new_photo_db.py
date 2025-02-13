@@ -778,7 +778,7 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
-    def check_file_hashes(self, from_select: bool = False):
+    def check_file_hashes(self, selection: Selection = None):
         """
         Check the file hashes based on the file names and add them to a list of table.s
         """
