@@ -1114,6 +1114,54 @@ class PhotoDB(BaseSQliteDB):
 
         return [r[0] for r in self.sq_cur.fetchall()]
 
+    def check_add_file_hash(self, file_key: int,
+                            file_size: int,
+                            file_hash: str,
+                            initial: bool = False) -> bool:
+        """
+        Checks if a given row in the hash_assoz table exists provided a file_hash, a file_size and file_key.
+
+        Adds the row if it doesn't exist.
+
+        :param file_hash: The hash of the file to check.
+        :param file_size: The size of the file to check.
+        :param file_key: The key of the file to check.
+        :param initial: If this the hash gotten when hashing in the source directory of the import.
+
+        :return: True if the row exists, False if the rows were added.
+        """
+        # Consider the hashes a set of all hashes the file had at a given point. The hash to check during import is the one marked with initial
+        self.debug_execute("SELECT h.hash, ha.hash_key, ha.file_key "
+                           "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+                           "WHERE h.hash = ? AND ha.file_key = ? AND ha.file_size_bytes = ? AND ha.initial = ?",
+                           (file_hash, file_key, file_size, int(initial)))
+
+        res = self.sq_cur.fetchone()
+
+        # Row not found, need to add a new one.
+        if res is None:
+            now = datetime.datetime.now(datetime.timezone.utc)
+            hash_key = self.insert_get_hash_key(file_hash=file_hash)
+            self.debug_execute("INSERT INTO hash_assoz (hash_key, file_key, file_size_bytes, hash_date, initial) "
+                               "VALUES (?, ?, ?, ?, ?)",
+                               (hash_key, file_key, file_size, now.isoformat(), int(initial)))
+            return False
+
+        # Parse the row and get the newest hash
+        hash_str, hash_key, file_key = res
+        newest_hash, _ = self.get_newest_hash(res[1])
+
+        # Check the given hash is the newest hash of the file.
+        if newest_hash != file_hash:
+            ndt = datetime.datetime.now(datetime.timezone.utc)
+            # Update the row to be the newest one.
+            self.debug_execute(stmt="UPDATE hash_assoz "
+                                    "SET hash_date = ? "
+                                    "WHERE hash_key = ? AND file_key = ? AND file_size_bytes = ? AND initial = 0",
+                               args=(ndt.isoformat(), hash_key, file_key, file_size))
+
+        return True
+
     # ==================================================================================================================
     # DB Integrity checks and utility
     # ==================================================================================================================
@@ -2331,54 +2379,6 @@ class PhotoDB(BaseSQliteDB):
             return {}, None, NewMatchTypes.NO_MATCH
 
         return keys, highest_match_key, highest_match
-
-    def check_add_file_hash(self, file_key: int,
-                            file_size: int,
-                            file_hash: str,
-                            initial: bool = False) -> bool:
-        """
-        Checks if a given row in the hash_assoz table exists provided a file_hash, a file_size and file_key.
-
-        Adds the row if it doesn't exist.
-
-        :param file_hash: The hash of the file to check.
-        :param file_size: The size of the file to check.
-        :param file_key: The key of the file to check.
-        :param initial: If this the hash gotten when hashing in the source directory of the import.
-
-        :return: True if the row exists, False if the rows were added.
-        """
-        # Consider the hashes a set of all hashes the file had at a given point. The hash to check during import is the one marked with initial
-        self.debug_execute("SELECT h.hash, ha.hash_key, ha.file_key "
-                           "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
-                           "WHERE h.hash = ? AND ha.file_key = ? AND ha.file_size_bytes = ? AND ha.initial = ?",
-                           (file_hash, file_key, file_size, int(initial)))
-
-        res = self.sq_cur.fetchone()
-
-        # Row not found, need to add a new one.
-        if res is None:
-            now = datetime.datetime.now(datetime.timezone.utc)
-            hash_key = self.insert_get_hash_key(file_hash=file_hash)
-            self.debug_execute("INSERT INTO hash_assoz (hash_key, file_key, file_size_bytes, hash_date, initial) "
-                               "VALUES (?, ?, ?, ?, ?)",
-                               (hash_key, file_key, file_size, now.isoformat(), int(initial)))
-            return False
-
-        # Parse the row and get the newest hash
-        hash_str, hash_key, file_key = res
-        newest_hash, _ = self.get_newest_hash(res[1])
-
-        # Check the given hash is the newest hash of the file.
-        if newest_hash != file_hash:
-            ndt = datetime.datetime.now(datetime.timezone.utc)
-            # Update the row to be the newest one.
-            self.debug_execute(stmt="UPDATE hash_assoz "
-                                    "SET hash_date = ? "
-                                    "WHERE hash_key = ? AND file_key = ? AND file_size_bytes = ? AND initial = 0",
-                               args=(ndt.isoformat(), hash_key, file_key, file_size))
-
-        return True
 
     def _add_update_exif_tag(self, key: int, target_datetime: datetime.datetime, file_path: str):
         """
