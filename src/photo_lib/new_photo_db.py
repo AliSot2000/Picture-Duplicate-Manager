@@ -518,11 +518,70 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
-    def update_trash_from_presence(self, from_select: bool = False):
+    def update_trash_flag_from_selection(self, selection: Selection, target_value: bool):
         """
         Update the files which have aren't present to have been moved to the trash.
 
         :param from_select: Use the selection marker to only affect those files.
+        :param selection: Selection of Files to update
+        :param target_value: bool, whether to set the flag to True or False
+        """
+        if target_value:
+            update_stmt = "UPDATE main SET flags = flags + 4 "
+            args = tuple()
+
+            # handle selection
+            if selection.selection_type == SelectionType.SELECTION_A:
+                where_stmt = "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1"
+            elif selection.selection_type == SelectionType.SELECTION_B:
+                where_stmt = "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1"
+            elif selection.selection_type == SelectionType.TIME_RANGE:
+                where_stmt = ("WHERE mod(flags >> 2, 2) = 0 "
+                              "AND datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)")
+                args = (selection.start.isoformat(), selection.end.isoformat())
+            else:
+                raise ImplementationError("Unknown selection type")
+
+            assert where_stmt is not None, "Where statement needed"
+
+            # Get affected rows
+            self.debug_execute(stmt="SELECT COUNT(key) FROM main " + where_stmt,
+                               args=args)
+            count = self.sq_cur.fetchone()[0]
+
+            # Execute statement
+            self.debug_execute(stmt=update_stmt + where_stmt, args=args)
+        else:
+            update_stmt = "UPDATE main SET flags = flags + 4 "
+            args = tuple()
+
+            # handle selection
+            if selection.selection_type == SelectionType.SELECTION_A:
+                where_stmt = "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1"
+            elif selection.selection_type == SelectionType.SELECTION_B:
+                where_stmt = "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1"
+            elif selection.selection_type == SelectionType.TIME_RANGE:
+                where_stmt = ("WHERE mod(flags >> 2, 2) = 0 "
+                              "AND datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)")
+                args = (selection.start.isoformat(), selection.end.isoformat())
+            else:
+                raise ImplementationError("Unknown selection type")
+
+            assert where_stmt is not None, "Where statement needed"
+
+            # Get affected rows
+            self.debug_execute(stmt="SELECT COUNT(key) FROM main " + where_stmt,
+                               args=args)
+            count = self.sq_cur.fetchone()[0]
+
+            # Execute statement
+            self.debug_execute(stmt=update_stmt + where_stmt, args=args)
+
+        self.main_logger.debug(f"updated {count} entries in main table to have trash flag = {target_value} "
+                               f"where selection type = {selection}")
+        self.commit()
+        return count
+
         """
         ...
 
