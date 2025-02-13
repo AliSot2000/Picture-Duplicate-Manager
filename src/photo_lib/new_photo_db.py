@@ -1418,7 +1418,7 @@ class PhotoDB(BaseSQliteDB):
         #   remove the lowest node tree and then go up and attempt to remove all upper nodes and remove those as well
         #   if they are empty.
         keys_to_delete = []
-        for raw in self.sq_cur:
+        for raw in self.prune_db_dir_iterator():
             ktd = raw[0]
             db_local_dir = self.parse_db_local_dir(raw[1])
 
