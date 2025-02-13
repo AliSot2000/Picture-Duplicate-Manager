@@ -133,6 +133,12 @@ class BaseSQliteDB:
 
         return cur
 
+    def cursor_exists(self, name: str) -> bool:
+        """
+        Check if a given cursor exists.
+        """
+        return self.__extra_cur.get(name) is not None
+
     def cleanup(self):
         """
         Actions performed:
