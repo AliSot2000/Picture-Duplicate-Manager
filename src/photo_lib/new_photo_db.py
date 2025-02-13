@@ -2157,7 +2157,7 @@ class PhotoDB(BaseSQliteDB):
 
         # Parse the row and get the newest hash
         hash_str, hash_key, file_key = res
-        newest_hash = self.get_newest_hash(res[1])
+        newest_hash, _ = self.get_newest_hash(res[1])
 
         # Check the given hash is the newest hash of the file.
         if newest_hash != file_hash:
