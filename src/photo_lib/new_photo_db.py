@@ -1495,10 +1495,13 @@ class PhotoDB(BaseSQliteDB):
                 dest_dir = os.path.abspath(_dest_dir)
 
             if not dest_dir.startswith(self.root_path):
-                raise ValueError(f"Destination directory {_dest_dir} doesn't exist must be within the database root.")
+                raise ValueError(f"Destination directory {_dest_dir} doesn't exist must be within the database")
 
         if not self.import_table_exists(name=tbl_name):
             raise ValueError(f"Table {tbl_name} doesn't exist")
+
+        if self._import_table_flags(tbl_name).internal:
+            raise TypeError("cannot import internal import table with perform_import")
 
         added_mda = False
         if self.mda is None and add_safety_exif_tags:
