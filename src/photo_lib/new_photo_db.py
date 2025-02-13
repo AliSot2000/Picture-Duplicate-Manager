@@ -1054,7 +1054,7 @@ class PhotoDB(BaseSQliteDB):
 
             first = True
             for i in range(len(db_local_dir)):
-                tgt_dir = os.path.join(self.root_path, *db_local_dir[:len(db_local_dir ) - i])
+                tgt_dir = os.path.join(self.root_path, *db_local_dir[:len(db_local_dir) - i])
                 if not os.path.exists(tgt_dir):
                     continue
 
