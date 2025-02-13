@@ -1708,7 +1708,7 @@ class PhotoDB(BaseSQliteDB):
             self.debug_execute(f"INSERT INTO main "
                                f"(original_filename, metadata, google_metadata, db_name,"
                                f" datetime, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                               (ofn, md, gfmd, db_name, _dt, tz, flags.to_int()))
+                               (ofn, md, gfmd, db_name, dt.isoformat(), tz, flags.to_int()))
 
             insert_key = self._db_resolve_filename_to_key(self.temp_db_name)
             assert insert_key is not None, "Key should exist after insert."
