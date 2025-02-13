@@ -76,11 +76,13 @@ class GenericTableFlags:
     Flags for generic tables.
     """
     stale: bool
+    internal: bool
 
     @classmethod
     def from_int(cls, group: int):
         _present = bool(group & 0b1)
+        _internal = bool(group & 0b10)
 
     def to_int(self):
         return (int(self.stale)
-                + 0)
+                + int(self.internal))
