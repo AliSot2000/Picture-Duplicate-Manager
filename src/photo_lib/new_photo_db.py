@@ -1758,12 +1758,13 @@ class PhotoDB(BaseSQliteDB):
             assert os.path.exists(target_fp), "Import file needs to exist."
 
             matches, highest_key, highest_match = self._get_best_match_type(tgt_fp=target_fp,
-                                                                         file_hash=file_hash,
-                                                                         fsb=file_size_bytes)
+                                                                            file_hash=file_hash,
+                                                                            fsb=file_size_bytes)
 
+            serializable_matches = {k: v.value for k, v in matches.items()}
             self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET match_type = ?, highest_match = ?, matches = ? "
                                     f"WHERE key = {key}",
-                               args=(highest_match.value, highest_match, json.dumps(matches), key))
+                               args=(highest_match.value, highest_match, json.dumps(serializable_matches), key))
             count += 1
 
         self.main_logger.info(f"Found {count} matches for {tbl_name}")
