@@ -2328,6 +2328,8 @@ class PhotoDB(BaseSQliteDB):
         """
         ...
 
+        # TODO reset flags of hash, presence and filename tables
+
     def _internal_rename(self, key: int, flags: MainFlags, dbn: str, new_name: str, dt: datetime.datetime,
                          ndt: datetime.datetime = None,
                          db_local_dir: str = None):
