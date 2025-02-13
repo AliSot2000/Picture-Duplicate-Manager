@@ -2300,7 +2300,6 @@ class PhotoDB(BaseSQliteDB):
         if not flags.present or flags.trashed or flags.duplicate:
             raise ValueError("Cannot change name from files in trash, not present and duplicates")
 
-        # TODO CHECK if value error corrupts db
         self._internal_rename(key=key,
                               flags=flags,
                               dbn=db_name,
@@ -2314,12 +2313,14 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("UPDATE metadata SET naming_tag = ? WHERE main_key = ?",
                            ("CUSTOM", key))
 
-        # Last operation, clear lookup caches
-        self.commit()
-        # Evicting lookup of old name to key
+        # Update cache
         if self.filename_to_key_cache.evict(arg=db_name):
             self.filename_to_key_cache.set(arg=db_name, value=key)
+
         # TODO reset flags of hash, presence and filename tables
+        self.clear_presence_table()
+
+        self.commit()
 
     def move_file(self, key: int, new_dir: str):
         """
