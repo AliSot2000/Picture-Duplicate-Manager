@@ -3354,7 +3354,7 @@ class PhotoDB(BaseSQliteDB):
     # Lookup Methods
     # ==================================================================================================================
 
-    def _db_resolve_key_to_original_path(self, key: int) -> str | None:
+    def _db_resolve_key_to_abs_path(self, key: int) -> str | None:
         """
         Resolves a given key to an absolute filepath. The file doesn't have to exist.
 
@@ -3404,7 +3404,7 @@ class PhotoDB(BaseSQliteDB):
 
         # Path is not in cache, resolve using db, store in cache and return value
         if res is nd:
-            path = self._db_resolve_key_to_original_path(key)
+            path = self._db_resolve_key_to_abs_path(key)
             self.key_to_filepath_cache.set(key, path)
             return path
 
