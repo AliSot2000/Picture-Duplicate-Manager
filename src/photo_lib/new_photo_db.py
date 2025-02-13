@@ -641,7 +641,7 @@ class PhotoDB(BaseSQliteDB):
             assert self.sq_cur.rowcount == 1, f"Failed to set imported = 2 in table {tbl_name}, PRECONDITION"
 
         else:
-            raise ValueError("Unknown ImportStatus")
+            raise ImplementationError(f"Unknown ImportStatus {status.name}")
 
     # ==================================================================================================================
     # Presence Table
