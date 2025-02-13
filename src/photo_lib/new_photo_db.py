@@ -361,7 +361,6 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT COUNT(main_key) FROM presence_table")
         return self.sq_cur.fetchone()[0] == 0
 
-
     # ==================================================================================================================
     # Tabular Integrity checks
     # ==================================================================================================================
@@ -852,7 +851,6 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return tbl_name, new_files
 
-    def prune_dir(self) -> int:
     # INFO: long-running action
     def import_internal_new_files(self, tbl: str, add_safety_exif_tags: bool = None,
                                   rename: bool = True, move: bool = True) -> Tuple[int, int]:
@@ -972,6 +970,72 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count, name_conflict
 
+    def _handle_file_internal_import(self, rename: bool, move: bool,
+                                     main_key: int, dt: datetime.datetime, ofn: str, ofd: str) -> str:
+        """
+        Handle a file from an internal import operation
+
+        :param rename: Whether tho rename the file so it has a standardized filename
+        :param move: Whether to move the file to the directory indicated by its datetime
+        :param main_key: The key of the file in the main table
+        :param dt: The datetime of the file
+        :param ofn: The name of the file
+        :param ofd: The name of the file
+
+        :returns: file path of the file after import
+        """
+        if rename and move:
+            target_path = os.path.join(self.root_path, self.dt_to_dir(dt),
+                                       self.db_name(original_filename=ofn, key=main_key, fdt=dt))
+
+            os.makedirs(os.path.dirname(target_path), exist_ok=True)
+
+            assert not os.path.exists(target_path), "Target path is not supposed to exist"
+            os.rename(os.path.join(ofd, ofn), target_path)
+
+        elif not rename and move:
+            target_path = os.path.join(self.root_path, self.dt_to_dir(dt), ofn)
+
+            os.makedirs(os.path.dirname(target_path), exist_ok=True)
+
+            if os.path.exists(target_path):
+                # Remove rows inserted for the file before raising error.
+                self.debug_execute("DELETE FROM main WHERE key = ?", (main_key,))
+                self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (main_key,))
+                self.commit()
+                raise FileExistsError(f"Couldn't import {ofn}, file already exists in {self.dt_to_dir(dt)}")
+
+            os.rename(os.path.join(ofd, ofn), target_path)
+
+        elif rename and not move:
+            ofd: str
+            assert ofd.startswith(self.root_path), "Erronious import, original_dir_name should start with root_dir"
+            target_path = os.path.join(ofd, self.db_name(original_filename=ofn, key=main_key, fdt=dt))
+
+            # Check if the directory matches the datetime
+            if os.path.dirname(target_path) != os.path.join(self.root_path, self.dt_to_dir(dt)):
+                db_local_dir = os.path.dirname(target_path)
+                dir_key = self._insert_get_dir(dir_name=db_local_dir)
+                self.debug_execute("UPDATE metadata SET db_dir = ? WHERE main_key = ?", (dir_key, main_key))
+
+            assert not os.path.exists(target_path), "Target path is not supposed to exist"
+            os.rename(os.path.join(ofd, ofn), target_path)
+
+        elif not rename and not move:
+            target_path = os.path.join(ofd, ofn)
+            dt_dir = os.path.join(self.root_path, self.dt_to_dir(dt))
+
+            # Need to add a db_local_dir if the directory doesn't match the datetime of the image
+            if ofd != dt_dir:
+                dir_key = self._insert_get_dir(ofd)
+                self.debug_execute("UPDATE metadata SET db_dir = ? WHERE main_key = ?", (dir_key, main_key))
+
+        else:
+            raise ImplementationError("Tertiem Non Datur")
+
+        return target_path
+
+    def prune_db_dir(self) -> int:
         """
         Remove all entries and all directories form the database which are no longer referenced
         """
