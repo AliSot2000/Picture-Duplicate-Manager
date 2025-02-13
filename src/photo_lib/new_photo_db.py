@@ -530,7 +530,7 @@ class PhotoDB(BaseSQliteDB):
         """
 
         # - Check that file_keys in the hash_assoz table have a matching entry in replaced or main
-        # - Check that all entries in main  have a hash
+        # - Check that all entries in main have a hash
         # - Check no entries in main table with reserved db_name
         # - Exactly one entry per file_key with initial flags hash_assoz.
         # - Check constraint on flags: either trashed OR duplicate but both.
