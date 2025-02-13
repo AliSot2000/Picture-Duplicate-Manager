@@ -4004,22 +4004,6 @@ class PhotoDB(BaseSQliteDB):
         return {"EXIF:ModifyDate": dt.strftime("%Y:%m:%d %H:%M:%S"),
                 "EXIF:OffsetTime": dt.strftime("%z")}
 
-    @staticmethod
-    def sanitize_json(obj: Any):
-        """
-        Util function to reduce code length.
-        """
-        return json.dumps(obj).replace("'", "''")
-
-    def get_db_file_path(self, config: Config = None):
-        """
-        Resolve the db_file to an absolute path
-        """
-        config = self.config if config is None else config
-        if os.path.isabs(config.db_file):
-            return config.db_file
-        else:
-            return os.path.abspath(os.path.join(self.root_path, config.db_file))
 
 
 class RemedyPhotoDB(PhotoDB):
