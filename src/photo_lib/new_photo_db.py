@@ -2522,7 +2522,8 @@ class PhotoDB(BaseSQliteDB):
 
             # skip missing images or images in trash
             if not flags.present or flags.trashed or flags.duplicate:
-                raise ImplementationError("Error in SQL Statement, should not find trash or not present files")
+                if __debug__:
+                    raise ImplementationError("Error in SQL Statement, should not find trash or not present files")
                 continue
 
             fp = self.resolve_key_to_path(key)
