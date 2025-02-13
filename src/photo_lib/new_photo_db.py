@@ -912,15 +912,18 @@ class PhotoDB(BaseSQliteDB):
                     raise ImplementationError("Didn't receive Selection B")
 
             # Don't want to fuck up cache.
+            self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True)
             path = self._db_resolve_key_to_abs_path(key)
 
             if os.path.exists(path) and not flags.present:
                 self.debug_execute(f"INSERT INTO presence_table (main_key) VALUES (?)", (key,))
                 count += 1
+
             elif not os.path.exists(path) and flags.present:
                 self.debug_execute(f"INSERT INTO presence_table (main_key) VALUES (?)", (key,))
                 count += 1
 
+        self.remove_extra_cursor("check_presence")
         self.commit()
 
         self.main_logger.info(f"Detected {count} entries in main table with mismatched presence flag")
