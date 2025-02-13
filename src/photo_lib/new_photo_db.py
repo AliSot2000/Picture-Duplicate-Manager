@@ -696,6 +696,42 @@ class PhotoDB(BaseSQliteDB):
         else:
             raise ImplementationError(f"Unknown ImportStatus {status.name}")
 
+    def find_match_iterator(self, tbl_name: str, recompute: bool = False) -> Iterator[Tuple[int, str, str, int, str]]:
+        """
+        Get an iterator with the necessary information to check for matches in the main table.
+
+        Tuple are in this sequence:
+
+        - import table key
+        - original file name
+        - original directory name
+        - file size bytes
+        - file hash
+
+        :param tbl_name: Import table to iterate over
+        :param recompute: Recompute the matches, otherwise
+
+        :raises sqlite3.OperationalError: If the Import Table doesn't exist'
+        """
+        self.add_extra_cursor("match_cursor")
+        if recompute:
+            # Reset the match columns before recomputing.
+            self.debug_execute(f"UPDATE `{tbl_name}` SET highest_match= NULL, matches = NULL, match_type = 0 "
+                               f"WHERE allowed = 1, AND imported IN (0, 1)")
+
+            self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
+                               f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1",
+                               cur="match_cursor")
+        else:
+            self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
+                               f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1 AND matches IS NULL",
+                               cur="match_cursor")
+
+        for key, ofn, ofd, fsb, fh in self.get_cursor("match_cursor"):
+            yield key, ofn, ofd, fsb, fh
+
+        self.remove_extra_cursor("match_cursor")
+
     # ==================================================================================================================
     # Presence Table
     # ==================================================================================================================
