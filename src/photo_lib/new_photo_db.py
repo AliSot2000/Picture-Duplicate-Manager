@@ -1298,6 +1298,7 @@ class PhotoDB(BaseSQliteDB):
 
                 # Name not in db, importing file
                 if key is None:
+                    # USE self.add_file_to_import_table()
                     self._prepare_file_import(file_path=os.path.join(root, file),
                                               tbl_name=tbl_name,
                                               allowed_ext=allowed_ext,
@@ -1742,6 +1743,7 @@ class PhotoDB(BaseSQliteDB):
 
             for root, dirs, files in os.walk(source_dir):
                 for f in files:
+                    # USE self.add_file_to_import_table()
                     self._prepare_file_import(file_path=os.path.join(root, f),
                                               tbl_name=tbl_name,
                                               allowed_ext=allowed_ext,
@@ -1751,6 +1753,7 @@ class PhotoDB(BaseSQliteDB):
 
             for entry in os.listdir(source_dir):
                 if os.path.isfile(os.path.join(source_dir, entry)):
+                    # USE self.add_file_to_import_table()
                     self._prepare_file_import(file_path=os.path.join(source_dir, entry),
                                               tbl_name=tbl_name,
                                               allowed_ext=allowed_ext,
