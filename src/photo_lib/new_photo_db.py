@@ -703,46 +703,63 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count
 
-    def update_presence_from_table(self, missing: bool = True) -> int:
+    def update_presence_from_table(self, missing: bool = True, mtype: MediaType = MediaType.MAIN) -> int:
         """
         Go through the main table and update the presence of the files from the given presence table.
 
         Files updated may not be marked as duplicates or trashed
 
         :param missing: True Perform update from present -> missing; False Perform Update from missing -> present.
+        :param mtype: Which type of media to update
 
         :return: number of rows affected.
         """
         if self.presence_table_empty():
             raise ValueError("Presence Table Empty, nothing to update.")
 
+        if mtype == MediaType.MAIN:
+            dup_flag = False
+            trash_flag = False
+        elif mtype == MediaType.DUPLICATE:
+            dup_flag = True
+            trash_flag = False
+        elif mtype == MediaType.TRASH:
+            trash_flag = True
+            dup_flag = False
+        else:
+            raise ImplementationError("Unknown MediaType")
+
         if missing:
             self.debug_execute(f"SELECT COUNT(key) FROM main "
                                # Check key is in the table                            
                                f"WHERE key IN (SELECT main_key FROM presence_table) "
                                # Check present,             check not duplicate        check not trash
-                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0")
+                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
+                               args=(int(dup_flag), int(trash_flag)))
             count = self.sq_cur.fetchone()[0]
 
             self.debug_execute(f"UPDATE main SET flags = flags - 1 "
                                # Check key is in the table                            
                                f"WHERE key IN (SELECT main_key FROM presence_table) "
                                #     Check present,         check not duplicate        check not trash
-                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0")
+                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
+                               args=(int(dup_flag), int(trash_flag)))
 
         else:
             self.debug_execute(f"SELECT COUNT(key) FROM main "
                                # Check key is in the table                            
                                f"WHERE key IN (SELECT main_key FROM presence_table) "
                                #     Check present,         check not duplicate        check not trash
-                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0")
+                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
+                               args=(int(dup_flag), int(trash_flag)))
             count = self.sq_cur.fetchone()[0]
 
             self.debug_execute(f"UPDATE main SET flags = flags + 1 "
                                # Check key is in the table
                                f"WHERE key IN (SELECT main_key FROM presence_table) "
                                #     Check present,         check not duplicate        check not trash
-                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0")
+                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
+                               args=(int(dup_flag), int(trash_flag)))
         self.commit()
         return count
 
