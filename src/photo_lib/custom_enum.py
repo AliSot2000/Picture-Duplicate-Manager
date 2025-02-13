@@ -99,3 +99,15 @@ class SelectionType(Enum):
     SELECTION_A = 0
     SELECTION_B = 1
     TIME_RANGE = 2
+
+
+class MediaType(Enum):
+    MAIN = 0
+    DUPLICATE = 1
+    TRASH = 2
+
+
+class Allowed(Enum):
+    NOT_ALLOWED_EXT = 0
+    ALLOWED = 1
+    NOT_ALLOWED_ERR = 2
