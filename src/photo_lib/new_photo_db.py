@@ -1509,12 +1509,8 @@ class PhotoDB(BaseSQliteDB):
             local_path = d.removeprefix(self.root_path).removeprefix(os.sep)
             local_path_list = local_path.split(os.sep)
 
-            # Check if it's in the db_dir
-            self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE db_local_dir = ?",
-                               (self.dump_db_local_dir(local_path_list),))
-
             # Got something from the db_dir table, continue.
-            if self.sq_cur.fetchone() is not None:
+            if self.get_dir_key(local_path_list) is not None:
                 continue
 
             # PRECONDITION: Directory is empty and not listed in the db_dir table, deleting
