@@ -290,6 +290,18 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return tbl_name
 
+    def _import_table_flags(self, tbl_name: str) -> GenericTableFlags:
+        """
+        Return the Flags of an Import Table.
+
+        PRECONDITION: Table Exists
+        """
+        self.debug_execute("SELECT flags FROM import_tables WHERE table_name = ?", (tbl_name,))
+        res = self.sq_cur.fetchone()
+        assert res is not None, "Precondition violated, import table does not exist"
+
+        return GenericTableFlags.from_int(res[0])
+
     def import_table_exists(self, name: str = None) -> bool:
         """
         Check if a given name with root_path and name exists already.
