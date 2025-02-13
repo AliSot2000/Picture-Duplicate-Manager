@@ -43,11 +43,13 @@ class PhotoDB(BaseSQliteDB):
     # Flags
     opt_integrity_check: bool
 
-    mda: Optional[NewMetadataAggregator] = None
-
-    # Caches
-    filename_to_key_cache: Cache
-    key_to_filepath_cache: Cache
+    # ==================================================================================================================
+    # Object Utility Function
+    # - Classmethods
+    # - Properties
+    # - Dunder Methods
+    # ... Basically what you need to create a usable object of type PhtosDB
+    # ==================================================================================================================
 
     @property
     def reserved_names(self):
