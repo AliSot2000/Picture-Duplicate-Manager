@@ -673,16 +673,16 @@ class PhotoDB(BaseSQliteDB):
             # Execute statement
             self.debug_execute(stmt=update_stmt + where_stmt, args=args)
         else:
-            update_stmt = "UPDATE main SET flags = flags + 4 "
+            update_stmt = "UPDATE main SET flags = flags - 4 "
             args = tuple()
 
             # handle selection
             if selection.selection_type == SelectionType.SELECTION_A:
-                where_stmt = "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1"
+                where_stmt = "WHERE mod(flags >> 2, 2) = 1 AND mod(flags >> 4, 2) = 1"
             elif selection.selection_type == SelectionType.SELECTION_B:
-                where_stmt = "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1"
+                where_stmt = "WHERE mod(flags >> 2, 2) = 1 AND mod(flags >> 5, 2) = 1"
             elif selection.selection_type == SelectionType.TIME_RANGE:
-                where_stmt = ("WHERE mod(flags >> 2, 2) = 0 "
+                where_stmt = ("WHERE mod(flags >> 2, 2) = 1 "
                               "AND datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)")
                 args = (selection.start.isoformat(), selection.end.isoformat())
             else:
