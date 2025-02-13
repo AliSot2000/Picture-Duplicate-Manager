@@ -1524,6 +1524,17 @@ class PhotoDB(BaseSQliteDB):
 
         return [r[0] for r in self.sq_cur.fetchall()]
 
+    def get_main_flags(self, key: int) -> None | MainFlags:
+        """
+        Get the flags from any entry in the main table
+        """
+        self.debug_execute("SELECT flags FROM main WHERE key = ?", (key,))
+        res = self.sq_cur.fetchone()
+        if res is None:
+            return None
+
+        return MainFlags.from_int(res[0])
+
     # Pruning functions
     # -----------------
 
