@@ -84,11 +84,9 @@ class BaseSQliteDB:
         :param name: Name of the cursor
 
         :return: newly created Cursor
-
-        :raises ValueError: The name is already taken
         """
         if self.__extra_cur.get(name) is not None:
-            raise ValueError(f"Cursor with name {name} already exists.")
+            return self.__extra_cur[name]
 
         cur = self.sq_con.cursor()
         self.__extra_cur[name] = cur
@@ -101,12 +99,10 @@ class BaseSQliteDB:
         :param name: Name of the cursor to remove
 
         :return: None
-
-        :raise ValueError: The cursor doesn't exist
         """
         cur = self.__extra_cur.get(name)
         if cur is None:
-            raise ValueError(f"Cursor {name} doesn't exist")
+            return
 
         cur: Cursor
         cur.close()
