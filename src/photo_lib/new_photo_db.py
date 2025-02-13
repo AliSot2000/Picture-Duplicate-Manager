@@ -2029,7 +2029,7 @@ class PhotoDB(BaseSQliteDB):
             if os.path.exists(match_path):
                 binary_match = filecmp.cmp(tgt_fp, match_path, shallow=False)
 
-            m_newest_hash = self.get_newest_hash(m_key)
+            m_newest_hash, _ = self.get_newest_hash(m_key)
 
             # Rare occurrence
             # TODO different logger
