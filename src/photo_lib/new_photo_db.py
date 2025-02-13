@@ -3399,6 +3399,8 @@ class PhotoDB(BaseSQliteDB):
 
             # TODO darktable
             file_path = self.resolve_key_to_path(key)
+            self.check_flags(key=key, flags=flags, org_path=file_path)
+
             if os.path.exists(file_path):
                 self.main_logger.debug(f"Deleting {db_name} from trash")
                 os.remove(file_path)
