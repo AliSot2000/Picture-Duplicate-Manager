@@ -1115,11 +1115,10 @@ class PhotoDB(BaseSQliteDB):
                 continue
 
             for file in files:
-                self.debug_execute("SELECT key FROM main WHERE db_name = ?", (file, ))
+                key = self._db_resolve_filename_to_key(file)
 
                 # Name not in db, importing file
-                res = self.sq_cur.fetchone()
-                if res is None:
+                if key is None:
                     self._prepare_file_import(file_path=os.path.join(root, file),
                                               tbl_name=tbl_name,
                                               allowed_ext=allowed_ext,
@@ -1129,7 +1128,6 @@ class PhotoDB(BaseSQliteDB):
                 # File exists
                 else:
                     # Check that the file is in the correct directory.
-                    key = res[0]
                     path = self.resolve_key_to_path(key)
 
                     if not path == os.path.join(root, file):
