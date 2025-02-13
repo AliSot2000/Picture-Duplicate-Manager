@@ -849,6 +849,7 @@ class PhotoDB(BaseSQliteDB):
             self.remove_import_table(tbl_name)
             return None
 
+        self.commit()
         return tbl_name, new_files
 
     def prune_dir(self) -> int:
