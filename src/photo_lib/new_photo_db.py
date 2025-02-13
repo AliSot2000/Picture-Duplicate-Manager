@@ -2208,8 +2208,10 @@ class PhotoDB(BaseSQliteDB):
         if self.filename_to_key_cache.evict(arg=db_name):
             self.filename_to_key_cache.set(arg=db_name, value=key)
 
-        self.commit()
         # TODO reset flags of hash, presence and filename tables
+        self.clear_presence_table()
+
+        self.commit()
 
     # TODO params if selected from exif_parsing_results
     def change_datetime(self,
