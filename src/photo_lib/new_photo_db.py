@@ -3088,10 +3088,11 @@ class PhotoDB(BaseSQliteDB):
             flags = MainFlags.from_int(_flags)
 
             # Check for consistency
-            if duplicates and flags.duplicate is False:
-                raise ImplementationError("Didn't receive duplicate file despite call for it")
-            if not duplicates and flags.trashed is False:
-                raise ImplementationError("Didn't receive trashed file despite call for it")
+            if __debug__:
+                if duplicates and flags.duplicate is False:
+                    raise ImplementationError("Didn't receive duplicate file despite call for it")
+                if not duplicates and flags.trashed is False:
+                    raise ImplementationError("Didn't receive trashed file despite call for it")
 
             # TODO darktable
             file_path = self.resolve_key_to_path(key)
