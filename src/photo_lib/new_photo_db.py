@@ -25,6 +25,7 @@ from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAgg
 from photo_lib.sqlite_wrapper import BaseSQliteDB
 
 
+# https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
 # TODO mda is property what needed again?
 # TODO mda set during init
 class PhotoDB(BaseSQliteDB):
