@@ -853,6 +853,125 @@ class PhotoDB(BaseSQliteDB):
         return tbl_name, new_files
 
     def prune_dir(self) -> int:
+    # INFO: long-running action
+    def import_internal_new_files(self, tbl: str, add_safety_exif_tags: bool = None,
+                                  rename: bool = True, move: bool = True) -> Tuple[int, int]:
+        """
+        Import the files found within the database folder.
+        Needs to add entries for db_dir with every file separately.
+
+        :param tbl: Table name of the import table
+        :param add_safety_exif_tags: Add safety exif tag, if the datetime source is from the file metadata,
+            default from config
+        :param rename: Rename the file to the db_name
+        :param move: Move the file to the db_name
+
+        :returns: number of files imported, number of files with name conflict.
+        """
+        name_conflict = 0
+        count = 0
+
+        if not self.import_table_exists(tbl):
+            raise ValueError(f"Tabl {tbl} does not exist")
+
+        if not self._import_table_flags(tbl).internal:
+            raise ValueError("Cannot use this function with non-internal import table")
+
+        if add_safety_exif_tags is None:
+            add_safety_exif_tags = self.config.add_safety_exif_tags
+
+        added_mda = False
+        if self.mda is None and add_safety_exif_tags:
+            self.add_default_metadata_aggregator()
+            added_mda = True
+
+        self.add_extra_cursor("import_table")
+        self.debug_execute(stmt=f"SELECT key, original_filename, original_dirname, metadata, google_metadata, "
+                                f"file_hash, file_size_bytes, datetime, timezone, naming_tag, gps_latitude, "
+                                f"gps_longitude, datetime_source, allowed, import_key "
+                                f"FROM `{tbl}` WHERE imported = 1",
+                           cur="import_cursor")
+
+        for row in self.get_cursor("import_table"):
+            ik, ofn, ofd, md, gfmd, fh, fsb, _dt, tz, nt, gps_lat, gps_long, _dts, _allowed, ipk = row
+            dts = DateTimeSource(_dts)
+            dt = datetime.datetime.fromisoformat(_dt)
+            allowed = bool(_allowed)
+
+            assert dt.tzinfo is not None, "All datetime objects should have tz"
+
+            # Check input
+            assert ipk is None, "SQL Error, files which are imported shouldn't have imported = 1"
+
+            # Check allowed
+            if allowed:
+                raise ImplementationError("Only Allowed Files may have the marked for import flag")
+
+            # Define flags
+            flags = MainFlags.default()
+            if dts == DateTimeSource.FILE_AWARE:
+                flags.verify = True
+
+            # Check name ok and mark not allowed if necessary
+            if not rename:
+                if self._db_resolve_filename_to_key(ofn) is not None:
+                    self.main_logger.info(f"Couldn't import file {ofn}, filename already used in db")
+                    self.debug_execute(f"UPDATE `{tbl}` SET allowed = 0 WHERE key = ?", (ik,))
+                    name_conflict += 1
+                    continue
+
+                db_name = ofn
+            else:
+                db_name = self.temp_db_name
+
+            # Add row in main table
+            self.debug_execute(f"INSERT INTO main "
+                               f"(original_filename, metadata, google_metadata, db_name,"
+                               f" datetime, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                               (ofn, md, gfmd, db_name, _dt, tz, flags.to_int()))
+
+            insert_key = self._db_resolve_filename_to_key(self.temp_db_name)
+            assert insert_key is not None, "Key should exist after insert."
+
+            # Handle metadata table
+            self.debug_execute("INSERT INTO metadata (main_key, original_dirname, naming_tag, datetime_source) "
+                               "VALUES (?, ?, ?, ?)", args=(insert_key, ofd, nt, _dts))
+
+            # Handle GPS
+            assert (gps_lat is not None and gps_long is not None) or (gps_lat is None and gps_long is None), \
+                "gps_lat and gps_long unequally set."
+            if gps_lat is not None and gps_long is not None:
+                gps_key = self.insert_get_gps_loc(gps_lat=gps_lat, gps_long=gps_long)
+
+                self.debug_execute("UPDATE metadata SET gps_location = ? WHERE main_key = ?",
+                                   (gps_key, insert_key))
+
+            # Handle hash
+            assert fh is not None, "File Hash needs to be defined"
+            self.check_add_file_hash(file_key=insert_key, file_hash=fh, file_size=fsb, initial=True)
+
+            target_path = self._handle_file_internal_import(rename=rename, move=move,
+                                                            dt=dt, main_key=insert_key, ofn=ofn, ofd=ofd)
+
+            # Update the name in the db
+            if rename:
+                self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
+                                   (self.db_name(original_filename=ofn, key=insert_key, fdt=dt), insert_key))
+
+            if flags.verify and add_safety_exif_tags:
+                self._add_update_exif_tag(key=insert_key, target_datetime=dt, file_path=target_path)
+
+            self.debug_execute(f"UPDATE `{tbl}` SET import_key = ?, imported = 2 WHERE key = ?",
+                               (insert_key, ik))
+            count += 1
+
+        if added_mda:
+            self.mda = None
+
+        self.remove_extra_cursor("import_table")
+        self.commit()
+        return count, name_conflict
+
         """
         Remove all entries and all directories form the database which are no longer referenced
         """
