@@ -3808,42 +3808,6 @@ class PhotoDB(BaseSQliteDB):
         self.remove_extra_cursor("check_disp_files")
         return missing_thumb, present_thumb, correct_thumb, missing_min, present_min, correct_min
 
-
-    def check_flags(self, key: int,
-                    flags: MainFlags,
-                    miniature: bool = False,
-                    thumbnail: bool = False,
-                    org_path: str = None):
-        """
-        Check the flags, of a given image. Report issues to integrity_logger.
-
-        INFO:
-        - Doesn't update the DB and doesn't update the flags object
-        - Only is executed when self.opt_integrity_check si True.
-
-        """
-        if not self.opt_integrity_check:
-            return
-
-        # Check the miniatures.
-        if miniature:
-            if os.path.exists(self.full_miniature_path(key)) and not flags.has_miniature:
-                self.integrity_logger.warning(f"Miniature present, flags record not present.")
-            elif not os.path.exists(self.full_miniature_path(key)) and flags.has_miniature:
-                self.integrity_logger.warning(f"Miniature not present, flags record present.")
-
-        if thumbnail:
-            if os.path.exists(self.full_thumbnail_path(key)) and not flags.has_thumbnail:
-                self.integrity_logger.warning(f"Thumbnail present, flags record not present.")
-            elif not os.path.exists(self.full_thumbnail_path(key)) and flags.has_thumbnail:
-                self.integrity_logger.warning(f"Thumbnail not present, flags record present.")
-
-        if org_path is not None:
-            if os.path.exists(org_path) and not flags.present:
-                self.integrity_logger.warning(f"original present, flags record not present.")
-            elif not os.path.exists(org_path) and flags.present:
-                self.integrity_logger.warning(f"original present, flags record present.")
-
     # ==================================================================================================================
     # Lookup Methods
     # ==================================================================================================================
