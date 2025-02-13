@@ -570,8 +570,75 @@ class PhotoDB(BaseSQliteDB):
     def update_filename_from_hash(self, move: bool):
         """
         Update the names of files resolved through hash and filesize.
+
+        # INFO: Update only possible for files which are neither a duplicate nor trashed.
+        # INFO: Given all MatchTypes, the function only considers HASH_MATCH_MAIN
+
+        :parma move: move the file to the correct location based on it's datetime.
         """
-        ...
+        self.add_extra_cursor("update_filename")
+        self.debug_execute("SELECT key, name, dir_name, best_match FROM name_update_table "
+                           # Ensure match is HASH_MATCH_MAIN
+                           "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2")
+
+        count = 0
+        conflict = 0
+        for key, name, dir_name, best_match in self.get_cursor("name_update_table"):
+            assert best_match is not None, "best_match shouldn't be None, SQL Error"
+
+            # Try to get the parent's path
+            tgt_path = self._db_resolve_key_to_abs_path(best_match)
+            if tgt_path is None:
+                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
+                                   ("Matched key doesn't exist in main table", key))
+                conflict += 1
+                continue
+
+            if os.path.exists(tgt_path):
+                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
+                                   ("Parent File is Present", key))
+                conflict += 1
+                continue
+
+            # Determine target location
+            if not move:
+                dst_path = os.path.join(dir_name, name)
+            else:
+                dst_path = os.path.join(os.path.dirname(tgt_path), name)
+
+            # Check if the destination exists.
+            if os.path.exists(dst_path):
+                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
+                                   ("File exists at destination", key))
+                conflict += 1
+                continue
+
+            flags = self.get_main_flags(best_match)
+            assert flags is not None, "Flags should exist, if path resolved"
+
+            if flags.trashed or flags.duplicate:
+                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
+                                   (f"Parent is trash or duplicate, not allowd to upadte. ", key))
+                conflict += 1
+
+            # Need to update
+            dir_key = None
+            if os.path.dirname(dst_path) != os.path.dirname(tgt_path):
+                dir_key = self._insert_get_dir(os.path.dirname(dst_path))
+
+            os.rename(os.path.join(dir_name, name), os.path.join(os.path.dirname(tgt_path), name))
+            flags.present = True
+
+            self.debug_execute("UPDATE name_update_table SET updated = 1 WHERE key = ?", (key,))
+            self.debug_execute("UPDATE main SET db_name = ?, flags = ? WHERE key = ?",
+                               (name, flags.to_int(), best_match))
+            if dir_key is not None:
+                self.debug_execute("UPDATE metadata SET db_dir = ? WHERE key = ?", (dir_key, key))
+
+            count += 1
+
+        self.commit()
+        return count, conflict
 
     def update_trash_flag_from_selection(self, selection: Selection, target_value: bool):
         """
