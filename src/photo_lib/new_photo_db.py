@@ -2781,8 +2781,7 @@ class PhotoDB(BaseSQliteDB):
         :param key: Key in main database to update with the new filename
         :param new_filename: The new file name to use. Sets the db_name column.
         """
-        self.debug_execute("SELECT key FROM main WHERE db_name = ?", (new_filename,))
-        if self.sq_cur.fetchone() is not None:
+        if self._db_resolve_filename_to_key(new_filename):
             raise ValueError("Filename already exists in main table.")
 
         # PRECONDITION: Filename not present
