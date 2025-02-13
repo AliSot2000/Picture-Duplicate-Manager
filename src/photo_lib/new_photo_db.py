@@ -90,6 +90,56 @@ class PhotoDB(BaseSQliteDB):
         new_inst.__verified = inst.verified
         return new_inst
 
+    def debug_execute(self, stmt: str, args: Union[tuple, dict, None] = None, cur: str = None):
+        """
+        Wrapper that blocks if the database isn't verified.
+
+        :raises ImplementationError: If the database isn't verifeid.
+
+        Original Doc String:
+        --------------------
+
+        Function executes statement in database and in case of an exception prints the offending statement.
+
+        User ? for placeholder by index or :name for placeholder by name.
+
+        :param stmt: Statement to execute
+        :param args: Substitution arguments to pass to the statement
+        :param cur: string to get an extra named cursor from the extra cursors.
+
+        :return:
+        """
+        if not self.verified:
+            raise ImplementationError("Cannot operate on Non-Verified Database")
+
+        return super().debug_execute(stmt=stmt, args=args, cur=cur)
+
+    def debug_execute_many(self, stmt: str, args: List[Union[tuple, dict]], cur: str = None):
+        """
+        Wrapper that blocks if the database isn't verified.
+
+        :raises ImplementationError: If the database isn't verifeid.
+
+        Original Doc String:
+        --------------------
+
+        Function executes statement with multiple arguments in database and in case of an exception prints the
+        offending statement.
+
+        User ? for placeholder by index or :name for placeholder by name.
+
+        :param stmt: Statement to execute
+        :param args: Substitution arguments to pass to the statement
+        :param cur: string to get an extra named cursor from the extra cursors.
+
+        :return:
+        """
+        if not self.verified:
+            raise ImplementationError("Cannot operate on Non-Verified Database")
+
+        return super().debug_execute_many(stmt=stmt, args=args, cur=cur)
+
+
     def __init__(self,
                  db_path: str,
                  init: bool = False,
