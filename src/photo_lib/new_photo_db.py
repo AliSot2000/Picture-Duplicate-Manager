@@ -2899,9 +2899,13 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("UPDATE main SET flags = ? WHERE key = ?", (main_flags.to_int(), key))
         self.debug_execute("UPDATE metadata SET replaced = 1, db_dir = NULL WHERE key = ?", (key,))
 
-        self.prune_dir()
+        self.prune_db_dir()
         self.prune_fs_dir = True
+
         self.key_to_filepath_cache.update(arg=key, value=target_path)
+
+        # TODO clear presence, hash, filenaem
+        self.clear_presence_table()
         self.commit()
 
     def restore_replaced(self, key: int, create_disp_filey: bool = True):
