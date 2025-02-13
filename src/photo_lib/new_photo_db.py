@@ -2831,11 +2831,14 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("UPDATE main SET parent = ? WHERE key = ?", (parent_key, child_key))
 
         # TODO Darktable???
-        self.prune_dir()
+        self.prune_db_dir()
         self.prune_gps()
         self.prune_fs_dir = True
-        self.commit()
+        # TODO clear presence, hash, filename
         self.key_to_filepath_cache.update(arg=child_key, value=os.path.join(self.get_trash_dir(), db_name))
+
+        self.clear_presence_table()
+        self.commit()
 
     def move_to_trash(self, key: int):
         """
