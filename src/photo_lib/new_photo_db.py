@@ -674,6 +674,22 @@ class PhotoDB(BaseSQliteDB):
     # GPS Table
     # ==================================================================================================================
 
+    def prune_gps(self) -> int:
+        """
+        Remove all rows in the gps table which are no longer referenced
+
+        :return: Number of rows removed
+        """
+        self.debug_execute("SELECT COUNT(key) FROM gps_location WHERE key NOT IN (SELECT gps_location FROM metadata)")
+        count = self.sq_cur.fetchone()[0]
+
+        self.debug_execute("DELETE FROM gps_location WHERE key NOT IN (SELECT gps_location FROM metadata)")
+        if count > 0:
+            self.logger.info(f"Pruned {count} rows in gps table")
+        else:
+            self.logger.debug(f"Call to prune_gps, no rows pruned")
+        return count
+
     # ==================================================================================================================
     # Dir Table
     # ==================================================================================================================
@@ -1568,25 +1584,6 @@ class PhotoDB(BaseSQliteDB):
             return None
 
         return MainFlags.from_int(res[0])
-
-    # Pruning functions
-    # -----------------
-
-    def prune_gps(self) -> int:
-        """
-        Remove all rows in the gps table which are no longer referenced
-
-        :return: Number of rows removed
-        """
-        self.debug_execute("SELECT COUNT(key) FROM gps_location WHERE key NOT IN (SELECT gps_location FROM metadata)")
-        count = self.sq_cur.fetchone()[0]
-
-        self.debug_execute("DELETE FROM gps_location WHERE key NOT IN (SELECT gps_location FROM metadata)")
-        if count > 0:
-            self.main_logger.info(f"Pruned {count} rows in gps table")
-        else:
-            self.main_logger.debug(f"Call to prune_gps, no rows pruned")
-        return count
 
     # ==================================================================================================================
     # Importing
