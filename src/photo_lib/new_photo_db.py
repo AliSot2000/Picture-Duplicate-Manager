@@ -3732,17 +3732,3 @@ class PhotoDB(BaseSQliteDB):
         assert dt.tzinfo is not None, "Need a timezone aware object inside database"
         return {"EXIF:ModifyDate": dt.strftime("%Y:%m:%d %H:%M:%S"),
                 "EXIF:OffsetTime": dt.strftime("%z")}
-
-
-
-class RemedyPhotoDB(PhotoDB):
-    """
-    A specific instance I need to migrate some remaining images, which are only available in older databases into this
-    one.
-    """
-
-    def import_other_db(self):
-        """
-        Functionality needed because some images are only on older dbs including their metadata.
-        """
-        ...
