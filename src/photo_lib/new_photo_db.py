@@ -1300,7 +1300,7 @@ class PhotoDB(BaseSQliteDB):
 
         elif rename and not move:
             ofd: str
-            assert ofd.startswith(self.root_path), "Erronious import, original_dir_name should start with root_dir"
+            assert ofd.startswith(self.root_path), "Erroneous import, original_dir_name should start with root_dir"
             target_path = os.path.join(ofd, self.db_name(original_filename=ofn, key=main_key, fdt=dt))
 
             # Check if the directory matches the datetime
