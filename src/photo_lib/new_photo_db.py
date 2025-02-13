@@ -348,6 +348,20 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute(stmt, args)
         self.commit()
 
+    def clear_presence_table(self):
+        """
+        Clear the content of the presence table.
+        """
+        self.debug_execute("DELETE FROM presence_table")
+
+    def presence_table_empty(self) -> bool:
+        """
+        Check if the presence table contains any entries.
+        """
+        self.debug_execute("SELECT COUNT(main_key) FROM presence_table")
+        return self.sq_cur.fetchone()[0] == 0
+
+
     # ==================================================================================================================
     # Tabular Integrity checks
     # ==================================================================================================================
