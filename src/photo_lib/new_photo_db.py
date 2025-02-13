@@ -3220,7 +3220,7 @@ class PhotoDB(BaseSQliteDB):
             self.mark_import_table_as_stale()
             self.prune_hash()
             self.prune_gps()
-            self.prune_dir()
+            self.prune_db_dir()
             self.prune_fs_dir = True
             self.commit()
 
