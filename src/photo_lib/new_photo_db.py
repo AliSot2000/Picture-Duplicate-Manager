@@ -764,7 +764,6 @@ class PhotoDB(BaseSQliteDB):
         return count
 
     def selection_from_presence_table(self,
-                                      tbl_name: str,
                                       sel_a: bool = True,
                                       missing: bool = True) -> int:
         """
@@ -774,7 +773,6 @@ class PhotoDB(BaseSQliteDB):
 
         Checks Presence Table Exists and Presence Table isn't stale.
 
-        :param tbl_name: Presence table to take as a source
         :param sel_a: Whether to set the sel_a flag or the sel_b flag
         :param missing: Whether to get the files which are missing but marked as present or get the files which are
         present but marked as missing
