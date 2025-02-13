@@ -539,6 +539,110 @@ class PhotoDB(BaseSQliteDB):
                                (allowed.value, message, key))
         assert self.sq_cur.rowcount == 1, f"Key {key} in {tbl_name} does not exist, PRECONDITION"
 
+    def perform_import_iterator(self, tbl_name: str) -> Iterator[
+        Tuple[int, str, str, str | None, str | None, str, int, datetime.datetime,
+              str, str, float | None, float | None, DateTimeSource, Allowed, int | None]]:
+        """
+        Iterator to get all rows which can be imported from the import table.
+
+        Tuple are in this sequence:
+
+        - key: (key of row in import table)
+        - original_filename
+        - original_dirname
+        - metadata_ json string or None if not present
+        - google_metadata: json string or None if not present
+        - file_hash: hash hex string
+        - file_size: in bytes integer
+        - datetime: (computed datetime when image was taken)
+        - timezone: string of timezone where image was taken
+        - naming_tag: string of metadata tag that was used to compute datetime
+        - gps_latitude: or None
+        - gps_longitude: or None
+        - datetime_source: DateTimeSource Object (to determine the quality of the datetime judgement)
+        - allowed: Allowed Enum of the file
+        - import_key: key in main table as which the file was imported
+
+        :param tbl_name: Import table to iterate over
+
+        :raises sqlite3.OperationalError: If the Import Table doesn't exist
+        """
+        self.add_extra_cursor("import_cursor")
+        self.debug_execute(stmt=f"SELECT key, original_filename, original_dirname, metadata, google_metadata, "
+                                f"file_hash, file_size_bytes, datetime, timezone, naming_tag, gps_latitude, "
+                                f"gps_longitude, datetime_source, allowed, import_key "
+                                f"FROM `{tbl_name}` WHERE imported = 1",
+                       cur="import_cursor")
+
+        for row in self.get_cursor("import_cursor"):
+            k, ofn, ofd, md, gfmd, fh, fsb, _dt, tz, nt, gps_lat, gps_long, _dts, _allowed, imp_key = row
+
+            k: int
+            ofn: str
+            ofd: str
+            md: str | None
+            gfmd: str | None
+            fh: str
+            fsb: int
+            tz: str
+            nt: str
+            gps_lat: float | None
+            gps_long: float | None
+            imp_key: int | None
+
+            dt = datetime.datetime.fromisoformat(_dt)
+            allowed = Allowed(_allowed)
+            dts = DateTimeSource(_dts)
+
+            yield k, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, imp_key
+
+        self.remove_extra_cursor("import_cursor")
+
+    def set_imported_status(self, tbl_name: str, key: int, status: ImportStatus, import_key: int = None):
+        """
+        Set the imported status of a given row of an import table.
+
+        :param tbl_name: import table to update
+        :param key: key in table to update
+        :param status: status to set
+        :param import_key: key in main table as which the file was imported
+
+        :raises sqlite3.OperationalError: If the Import Table doesn't exist
+        """
+        if status == ImportStatus.IGNORE:
+
+            # PRECONDITION: Row wasn't imported
+            # PRECONDITION: Key exists in table
+            self.debug_execute(f"UPDATE `{tbl_name}` SET imported = ? WHERE key = ? AND imported != 2",
+                               args=(0, key))
+            assert self.sq_cur.rowcount == 1, f"Failed to set imported = 0 in table {tbl_name}, PRECONDITION"
+
+        elif status == ImportStatus.MARKED_FOR_IMPORT:
+
+            # PRECONDITION: Row wasn't imported
+            # PRECONDITION: Key exists in table
+            # PRECONDITION: Key is allowed
+            self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET imported = ? "
+                                    f"WHERE key = ? AND imported != 2 AND allowed = 1",
+                               args=(1, key))
+            assert self.sq_cur.rowcount == 1, f"Failed to set imported = 1 in table {tbl_name}, PRECONDITION"
+
+        elif status == ImportStatus.IMPORTED:
+
+            if import_key is None:
+                raise ValueError("import_key must be specified for imported status IMPORTED")
+
+            # PRECONDITION: Row marked for import
+            # PRECONDITION: Key exists in table
+            # PRECONDITION: Key is allowed
+            self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET imported = ?,  import_key = ? "
+                                    f"WHERE key = ? AND imported = 1 AND allowed = 1",
+                               args=(2, import_key, key))
+            assert self.sq_cur.rowcount == 1, f"Failed to set imported = 2 in table {tbl_name}, PRECONDITION"
+
+        else:
+            raise ValueError("Unknown ImportStatus")
+
     # ==================================================================================================================
     # Presence Table
     # ==================================================================================================================
