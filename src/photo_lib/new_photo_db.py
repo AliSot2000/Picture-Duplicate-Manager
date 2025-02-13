@@ -602,6 +602,13 @@ class PhotoDB(BaseSQliteDB):
     # Hash Table
     # ==================================================================================================================
 
+    def get_hash_table_size(self) -> int:
+        """
+        Get number of unique file hashes
+        """
+        self.debug_execute("SELECT COUNT(key) FROM hashes")
+        return self.sq_cur.fetchone()[0]
+
     def insert_get_hash_key(self, file_hash: str) -> int:
         """
         Get the Key of a given hash string in the hash table. If it doesn't exist, add it to the hash table.
