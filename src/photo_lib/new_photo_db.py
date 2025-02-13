@@ -591,7 +591,39 @@ class PhotoDB(BaseSQliteDB):
 
         :return: number of rows affected.
         """
-        ...
+        if self.presence_table_empty():
+            raise ValueError("Presence Table Empty, nothing to update.")
+
+        if missing:
+            self.debug_execute(f"SELECT COUNT(key) FROM main "
+                               # Check key is in the table                            
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               # Check present,             check not duplicate        check not trash
+                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0")
+            count = self.sq_cur.fetchone()[0]
+
+            self.debug_execute(f"UPDATE main SET flags = flags - 1 "
+                               # Check key is in the table                            
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               #     Check present,         check not duplicate        check not trash
+                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0")
+
+        else:
+            self.debug_execute(f"SELECT COUNT(key) FROM main "
+                               # Check key is in the table                            
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               #     Check present,         check not duplicate        check not trash
+                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0")
+            count = self.sq_cur.fetchone()[0]
+
+            self.debug_execute(f"UPDATE main SET flags = flags + 1 "
+                               # Check key is in the table
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               #     Check present,         check not duplicate        check not trash
+                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0")
+        self.commit()
+        return count
+
 
     def check_presence(self, from_select: bool = False):
         """
