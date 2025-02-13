@@ -602,6 +602,21 @@ class PhotoDB(BaseSQliteDB):
     # Hash Table
     # ==================================================================================================================
 
+    def insert_get_hash_key(self, file_hash: str) -> int:
+        """
+        Get the Key of a given hash string in the hash table. If it doesn't exist, add it to the hash table.
+        """
+        self.debug_execute("SELECT key FROM hashes WHERE hash = ?", (file_hash,))
+        res = self.sq_cur.fetchone()
+
+        if res is not None:
+            return res[0]
+
+        # PRECONDITION: Hash string doesn't exist
+        self.debug_execute("INSERT INTO hashes (hash) VALUES (?)", (file_hash,))
+        key = self.insert_get_hash_key(file_hash)
+        return key
+
     # ==================================================================================================================
     # Hash Assoz Table
     # ==================================================================================================================
@@ -2109,21 +2124,6 @@ class PhotoDB(BaseSQliteDB):
                                args=(ndt.isoformat(), hash_key, file_key, file_size))
 
         return True
-
-    def insert_get_hash_key(self, file_hash: str) -> int:
-        """
-        Get the Key of a given hash string in the hash table. If it doesn't exist, add it to the hash table.
-        """
-        self.debug_execute("SELECT key FROM hashes WHERE hash = ?", (file_hash,))
-        res = self.sq_cur.fetchone()
-
-        if res is not None:
-            return res[0]
-
-        # PRECONDITION: Hash string doesn't exist
-        self.debug_execute("INSERT INTO hashes (hash) VALUES (?)", (file_hash,))
-        key = self.insert_get_hash_key(file_hash)
-        return key
 
     def _insert_get_dir(self, dir_name: str) -> int:
         """
