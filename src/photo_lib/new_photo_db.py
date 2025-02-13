@@ -2002,7 +2002,7 @@ class PhotoDB(BaseSQliteDB):
         return res[0], res[1]
 
     def _get_best_match_type(self, tgt_fp: str, file_hash: str, fsb: int) \
-            -> Tuple[List[int], int | None, NewMatchTypes]:
+            -> Tuple[Dict[int, NewMatchTypes], int | None, NewMatchTypes]:
         """
         PRECONDITION: tgt_fp exists.
 
@@ -2103,9 +2103,9 @@ class PhotoDB(BaseSQliteDB):
                     highest_match_key = key
 
         if highest_match is None:
-            return [], None, NewMatchTypes.NO_MATCH
+            return {}, None, NewMatchTypes.NO_MATCH
 
-        return list(keys.keys()), highest_match_key, highest_match
+        return {k: v.value for k, v in keys.items()}, highest_match_key, highest_match
 
     def insert_get_gps_loc(self, gps_lat: float, gps_long: float):
         """
