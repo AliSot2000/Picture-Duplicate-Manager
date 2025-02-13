@@ -901,7 +901,7 @@ class PhotoDB(BaseSQliteDB):
             flags = MainFlags.from_int(_flags)
 
             # Internal checks for general sql statement integrity
-            assert flags.trashed is False and flags.duplicate is False, \
+            assert flags.trashed == trash_flag and flags.duplicate ==  dup_flag, \
                 "SQL Error, no trashed or duplicate files allowed"
 
             # Check selection.
