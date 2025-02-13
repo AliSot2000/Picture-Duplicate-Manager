@@ -2103,14 +2103,12 @@ class PhotoDB(BaseSQliteDB):
                               add_tag=add_safety_exif_tags and default_flags.verify)
 
             # Finally update the import table
-            self.debug_execute(f"UPDATE `{tbl_name}` SET import_key = ?, imported = 2 WHERE key = ?",
-                               (insert_key, k))
+            self.set_imported_status(tbl_name=tbl_name, key=k, status=ImportStatus.IMPORTED, import_key=insert_key)
             count += 1
 
         if added_mda:
             self.mda = None
 
-        self.remove_extra_cursor("import_table")
         self.commit()
         return count
 
