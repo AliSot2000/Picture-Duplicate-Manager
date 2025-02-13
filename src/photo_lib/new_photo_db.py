@@ -19,6 +19,7 @@ from photo_lib.data_objects import Selection, NewImportTableEntry
 from photo_lib.db_definitions import current_version, history, StaticDeclaration, GenericDeclaration
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
 from photo_lib.flag_dataclasses import MainFlags, GenericTableFlags
+from photo_lib.metadata_aggregator import MetadataParsingResult
 from photo_lib.metadata_aggregator.config import DoubleKey
 from photo_lib.metadata_aggregator.enums import DateTimeSource
 from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAggregator
