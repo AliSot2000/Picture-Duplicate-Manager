@@ -2510,8 +2510,9 @@ class PhotoDB(BaseSQliteDB):
         if self.filename_to_key_cache.evict(arg=db_name):
             self.filename_to_key_cache.set(arg=db_name, value=key)
 
-        # TODO reset flags of hash, presence and filename tables
         self.clear_presence_table()
+        self.clear_hash_update_table()
+        self.clear_filename_update_table()
 
         self.commit()
 
