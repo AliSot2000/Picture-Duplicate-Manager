@@ -147,7 +147,7 @@ class PhotoDB(BaseSQliteDB):
         attr: main_logger_name for main_logger
         attr: integrity_logger_name for integrity_logger
         """
-        self.main_logger = logging.getLogger(self.main_logger_name)
+        self.logger = logging.getLogger(self.db_logger_name)
         self.integrity_logger = logging.getLogger(self.integrity_logger_name)
 
     def set_logging_defaults(self):
@@ -155,19 +155,19 @@ class PhotoDB(BaseSQliteDB):
         Set Defaults of loggers.
         """
         # Level
-        self.main_logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.DEBUG)
         self.integrity_logger.setLevel(logging.DEBUG)
 
         # Propagate
         self.integrity_logger.propagate = True
-        self.main_logger.propagate = False
+        self.logger.propagate = False
 
         # Define handler
         handler = logging.StreamHandler(sys.stderr)
         handler.setLevel(logging.DEBUG)
         handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 
-        self.main_logger.addHandler(handler)
+        self.logger.addHandler(handler)
 
     def cleanup(self):
         """
