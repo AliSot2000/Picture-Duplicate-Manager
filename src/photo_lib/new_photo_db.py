@@ -28,9 +28,6 @@ from photo_lib.sqlite_wrapper import BaseSQliteDB
 # https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
 class PhotoDB(BaseSQliteDB):
     __verified: bool = False
-    config: Config
-
-    root_path: str
 
     static_decls: Dict[str, StaticDeclaration]
     generic_decls: Dict[str, GenericDeclaration]
@@ -38,15 +35,12 @@ class PhotoDB(BaseSQliteDB):
     __reserved_names: List[str] = ["<temp>"]
 
     # Redefining logger as mandatory
-    main_logger_name: str = "PhotoDB"
-    integrity_logger_name: str = "PhotoDB.Integrity"
-    metadata_aggregator_name: str = "PhotoDB.MetadataAggregator"
-    metadata_aggregator_parsing_name: str = "PhotoDB.MetadataAggregator.Parsing"
-    main_logger: logging.Logger
+    db_logger_name: str = "PhotoDB.SQLiteDB"
+    integrity_logger_name: str = "PhotoDB.SQLiteDB.Integrity"
+
     integrity_logger: logging.Logger
 
     # Flags
-    prune_fs_dir: bool = False
     opt_integrity_check: bool
 
     mda: Optional[NewMetadataAggregator] = None
