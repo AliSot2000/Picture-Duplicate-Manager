@@ -1419,7 +1419,6 @@ class PhotoDB(BaseSQliteDB):
         """
         Remove all entries and all directories form the database which are no longer referenced
         """
-        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN (SELECT db_dir FROM metadata)")
         # TODO Darktable
 
         # INFO: A db_local_dir can share a partial path with other directories, for example
