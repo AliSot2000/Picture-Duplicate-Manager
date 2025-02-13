@@ -2248,7 +2248,6 @@ class PhotoDB(BaseSQliteDB):
         # INFO: no exit with dt == new_dt because we could be switching keys.
         # Rename the file
         if rename:
-            # TODO CHECK if value error corrupts db
             self._internal_rename(key=key,
                                   flags=flags,
                                   dbn=db_name,
@@ -2259,7 +2258,6 @@ class PhotoDB(BaseSQliteDB):
 
         else:
             # Only move the file.
-            # TODO CHECK if value error corrupts db
             self._internal_move_file(ndt=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
 
         self.debug_execute("UPDATE main SET datetime = ?, db_name = ?, timezone = ?WHERE key = ?",
@@ -2267,7 +2265,6 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("UPDATE metadata SET naming_tag = ?, datetime_source = ? WHERE main_key = ?",
                            (NewMetadataAggregator.serialize_key(tag), dts.value, key))
 
-        self.commit()
         if add_exif_tag or (add_exif_tag is None and self.config.add_safety_exif_tags):
             if dt != new_dt:
                 self._add_update_exif_tag(key=key, target_datetime=new_dt, file_path=self.resolve_key_to_path(key))
@@ -2275,7 +2272,11 @@ class PhotoDB(BaseSQliteDB):
         # Evicting lookup of old name to key
         if self.filename_to_key_cache.evict(arg=db_name):
             self.filename_to_key_cache.set(arg=db_name, value=key)
+
         # TODO reset flags of hash, presence and filename tables
+        self.clear_presence_table()
+
+        self.commit()
 
     def change_filename(self, key: int, new_filename: str):
         """
