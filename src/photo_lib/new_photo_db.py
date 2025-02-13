@@ -624,6 +624,22 @@ class PhotoDB(BaseSQliteDB):
         key = self.insert_get_hash_key(file_hash)
         return key
 
+    def prune_hash(self) -> int:
+        """
+        Remove all rows in the hash table which are no longer referenced
+
+        :return: Number of rows removed
+        """
+        self.debug_execute("SELECT COUNT(key) FROM hashes AS h WHERE h.key NOT IN (SELECT hash_key FROM hash_assoz)")
+        count = self.sq_cur.fetchone()[0]
+
+        self.debug_execute("DELETE FROM hashes WHERE key NOT IN (SELECT hash_key FROM hash_assoz)")
+        if count > 0:
+            self.logger.info(f"Pruned {count} rows in hash table")
+        else:
+            self.logger.debug("Call to prune_hash, no hashes pruned")
+        return count
+
     # ==================================================================================================================
     # Hash Assoz Table
     # ==================================================================================================================
@@ -1498,22 +1514,6 @@ class PhotoDB(BaseSQliteDB):
 
     # Pruning functions
     # -----------------
-
-    def prune_hash(self) -> int:
-        """
-        Remove all rows in the hash table which are no longer referenced
-
-        :return: Number of rows removed
-        """
-        self.debug_execute("SELECT COUNT(key) FROM hashes AS h WHERE h.key NOT IN (SELECT hash_key FROM hash_assoz)")
-        count = self.sq_cur.fetchone()[0]
-
-        self.debug_execute("DELETE FROM hashes WHERE key NOT IN (SELECT hash_key FROM hash_assoz)")
-        if count > 0:
-            self.main_logger.info(f"Pruned {count} rows in hash table")
-        else:
-            self.main_logger.debug("Call to prune_hash, no hashes pruned")
-        return count
 
     def prune_gps(self) -> int:
         """
