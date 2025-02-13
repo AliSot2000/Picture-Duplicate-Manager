@@ -182,275 +182,18 @@ class PhotoDB(BaseSQliteDB):
             self.basic_integrity_check()
         self.cleanup()
 
-    def add_default_metadata_aggregator(self):
-        """
-        Add a default metadata aggregator (user could provide a custom MDA if he so chooses)
-        """
-        self.mda = NewMetadataAggregator(
-            logger=logging.getLogger("MetadataAggregator"),
-            discover_logger=logging.getLogger("MetadataAggregator.Parsing"),
-            use_dateutil=True,
-            datetime_fmt=self.config.datetime_fmt
-        )
-
-    def check_create_default_dirs(self):
-        """
-        Create default directories needed for the db.
-        """
-        if not os.path.exists(self.get_trash_dir()):
-            self.main_logger.info(f"Created Trash Directory")
-            os.makedirs(self.get_trash_dir())
-
-        if not os.path.exists(self.get_thumb_dir()):
-            self.main_logger.info(f"Created Thumbnail Directory")
-            os.makedirs(self.get_thumb_dir())
-
-        if not os.path.exists(self.get_temp_dir()):
-            self.main_logger.info(f"Created Temp Directory")
-            os.makedirs(self.get_temp_dir())
-
-    # ==================================================================================================================
-    # Table Creation & Deletion & Modify Functions
-    # ==================================================================================================================
-
     def init_db(self):
         """
         Create all tables from db_definitions.py
         """
-        self.main_logger.info("Initializing Database")
+        self.logger.info("Initializing Database")
 
         for short_name, decl in self.static_decls.items():
-            self.main_logger.info(f"Creating {short_name}")
+            self.logger.info(f"Creating {short_name}")
 
             self.debug_execute(decl.declaration_string.replace(decl.name_placeholder, decl.name))
 
-        self.main_logger.info("Initialization Complete")
-
-    @staticmethod
-    def build_default_config() -> Config:
-        """
-        Create a new config with only defaults.
-        """
-        return Config(
-            version=current_version.current_version,
-            image_extensions=defaults.image_extensions,
-            video_extensions=defaults.video_extensions,
-            allowed_extensions=defaults.extensions,
-            temp_path=defaults.temp_path,
-            thumbnail=defaults.thumbnails_path,
-            trash=defaults.trash_path,
-            db_file=defaults.db_file,
-            thumbnail_target=defaults.thumbnail_size,
-            miniature_target=defaults.miniature_size,
-        )
-
-    def _add_import_table(self, root_path: str, name: str = None, description: str = None, internal: bool = False):
-        """
-        Add a new import table to the database.
-
-        PRECONDITION: The table doesn't exist.
-
-        :param root_path: dir_root from which to import
-        :param name: The name of the table. Override, defaults to dirname(root_path) + hash(current_datetime)
-        :param description: The description of the table. Override, defaults to None
-        :param internal: If we're checking if there are new files in the db we don't know yet.
-
-        :raises sqlite.IntegrityError: if that import table already exists.
-        """
-        # Default Name
-        if name is None:
-            tbl_name = (os.path.dirname(os.path.abspath(root_path))
-                        + str(hash(datetime.datetime.now(datetime.timezone.utc))))
-        else:
-            tbl_name = name
-
-        # Check name Length
-        if len(tbl_name) > 120:
-            tbl_name = tbl_name[:120]
-            self.main_logger.warning(f"Table Name longer than 120 characters. Truncating to: `{tbl_name}`")
-
-        # Add the table to the generic lookup table
-        flags = GenericTableFlags(stale=False, internal=internal)
-        self.debug_execute(stmt="INSERT INTO import_tables (root_path, table_name, table_description, flags) "
-                           "VALUES (?, ?, ?, ?)",
-                           args=(root_path, tbl_name, description, flags.to_int()))
-
-        # Actually creating table
-        decl = self.generic_decls["import_table"]
-        self.debug_execute(decl.declaration_string.replace(decl.name_placeholder, tbl_name))
-        self.commit()
-        return tbl_name
-
-    def _import_table_flags(self, tbl_name: str) -> GenericTableFlags:
-        """
-        Return the Flags of an Import Table.
-
-        PRECONDITION: Table Exists
-        """
-        self.debug_execute("SELECT flags FROM import_tables WHERE table_name = ?", (tbl_name,))
-        res = self.sq_cur.fetchone()
-        assert res is not None, "Precondition violated, import table does not exist"
-
-        return GenericTableFlags.from_int(res[0])
-
-    def import_table_exists(self, name: str = None) -> bool:
-        """
-        Check if a given name with root_path and name exists already.
-        """
-        self.debug_execute("SELECT key FROM import_tables WHERE  name = ?", (name,))
-        return self.sq_cur.fetchone() is not None
-
-    def remove_import_table(self, name: str = None) -> Tuple[bool, bool]:
-        """
-        Remove a specific import table from the database.
-
-        :returns: True -> Successfully deleted table, successfully removed entry from generic lookup table
-        """
-        # Check if the table existed.
-        self.debug_execute("SELECT sql FROM sqlite_master WHERE name IS ?", (name,))
-        del_table = self.sq_cur.fetchone() is not None
-
-        # Drop the table with "if exists" just to be sure
-        self.debug_execute(f"DROP TABLE IF EXISTS `{name}`")
-
-        self.debug_execute("SELECT key FROM import_tables WHERE table_name IS ?", (name,))
-        del_row = self.sq_cur.fetchone() is not None
-
-        self.debug_execute("DELETE FROM import_tables WHERE table_name IS ?", (name,))
-        return del_table, del_row
-
-    def mark_import_table_as_stale(self, key: int = None):
-        """
-        Update either single import table or all import tables (if no key is provided) as stale.
-
-        Stale indicates that the references in the table to the main database are no longer guaranteed to hold, so a
-        reference might have been moved tables, or moved to trash or forgotten.
-        """
-        if key is None:
-            # The stale flags is bit 1,
-            # And we only update the flags by adding a +1 if that flag hasn't already been set mod(flags, 2) == 0
-            stmt = "UPDATE import_tables SET flags = flags + 1 WHERE key = ? AND mod(flags, 2) == 0"
-            args = (key,)
-        else:
-            # Update all tables to be stale if they aren't already.
-            stmt = "UPDATE import_tables SET flags = flags + 1 WHERE mod(flags, 2) == 0"
-            args = tuple()
-
-        self.debug_execute(stmt, args)
-        self.commit()
-
-    def clear_presence_table(self):
-        """
-        Clear the content of the presence table.
-        """
-        self.debug_execute("DELETE FROM presence_table")
-        self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='presence_table'")
-
-    def presence_table_empty(self) -> bool:
-        """
-        Check if the presence table contains any entries.
-        """
-        self.debug_execute("SELECT COUNT(main_key) FROM presence_table")
-        return self.sq_cur.fetchone()[0] == 0
-
-    def clear_hash_update_table(self):
-        """
-        Clear the content of the hash update table.
-        """
-        self.debug_execute("DELETE FROM hash_update_table")
-        self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='hash_update_table'")
-
-    def hash_update_table_empty(self) -> bool:
-        """
-        Check if the hash update table contains any entries.
-        """
-        self.debug_execute("SELECT COUNT(main_key) FROM hash_update_table")
-        return self.sq_cur.fetchone()[0] == 0
-
-    def get_size_of_hash_assoz_table(self) -> int:
-        """
-        Get the size of the hash_assoz table
-        """
-        self.debug_execute("SELECT COUNT(*) FROM hash_assoz")
-        return self.sq_cur.fetchone()[0]
-
-    def clear_filename_update_table(self):
-        """
-        Clear the filename update table.
-        """
-        self.debug_execute("DELETE FROM name_update_table")
-        self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='name_update_table'")
-
-    def filename_update_table_empty(self) -> bool:
-        """
-        Check whether the filename_update_table contains any entries.
-        """
-        self.debug_execute("SELECT COUNT(*) FROM name_update_table")
-        return self.sq_cur.fetchone()[0] == 0
-
-    # ==================================================================================================================
-    # Tabular Integrity checks
-    # ==================================================================================================================
-
-    def verify_version(self):
-        """
-        Check the version of the photo database. Raise Error, if it doesn't match and allow for conversion.
-        """
-        # Check the config
-        self._check_config()
-
-        # Check the tables
-        self._verify_tables()
-
-    def _check_config(self):
-        """
-        Check the config is valid and contains everything needed. Future proofing. Not needed at the moment.
-        """
-        # INFO: This function is a placeholder needed in case bigger changes to the config come and need to be
-        #  accounted for. Cases like the config is updated and the db is not, or the other way around, ...
-        pass
-
-    def _verify_tables(self) -> bool:
-        """
-        Go through all tables and check their definitions
-
-        INFO: Function will remove orphaned rows in the generic lookups table.
-
-        :return: True if all tables were verified and have the correct definitions
-        """
-        for name, decl in self.static_decls.items():
-            self.debug_execute("SELECT sql FROM sqlite_master WHERE name = ?", (decl.name,))
-            result = self.sq_cur.fetchone()
-
-            # No result found, return, do not update verified.
-            if result is None:
-                return False
-
-            if not result[0] == decl.declaration_string.replace(decl.name_placeholder, decl.name):
-                return False
-
-        # INFO Poor convention: the key of the generic decls is also the name of a table which contains a list of all
-        #  tables which follow the generic definition. The table who's name is the key, must have a column
-        #  table_name and key
-        for name, decl in self.generic_decls.items():
-            self.debug_execute(f"SELECT key, table_name FROM `{name}`")
-            results = self.sq_cur.fetchall()
-
-            for key, table in results:
-                self.debug_execute(f"SELECT sql FROM sqlite_master WHERE name = ?", (table,))
-                result = self.sq_cur.fetchone()
-
-                if result is None:
-                    self.integrity_logger.warning(f"Found orphaned entry: {table} in the parent table: {name}. "
-                                                  f"Deleting orphaned entry")
-
-                    self.debug_execute(f"DELETE FROM `{name}` WHERE key = ?", (key,))
-
-                if not result[0] == decl.declaration_string.replace(decl.name_placeholder, table):
-                    return False
-
-        self.__verified = True
-        return True
+        self.logger.info("Initialization Complete")
 
     def build_definition_lookup(self):
         """
@@ -515,6 +258,52 @@ class PhotoDB(BaseSQliteDB):
         self.static_decls = temp_static
         self.generic_decls = temp_generic
 
+    # ==================================================================================================================
+    # Table Integrity Checks
+    # ==================================================================================================================
+
+    def _verify_tables(self) -> bool:
+        """
+        Go through all tables and check their definitions
+
+        INFO: Function will remove orphaned rows in the generic lookups table.
+
+        :return: True if all tables were verified and have the correct definitions
+        """
+        for name, decl in self.static_decls.items():
+            self.debug_execute("SELECT sql FROM sqlite_master WHERE name = ?", (decl.name,))
+            result = self.sq_cur.fetchone()
+
+            # No result found, return, do not update verified.
+            if result is None:
+                return False
+
+            if not result[0] == decl.declaration_string.replace(decl.name_placeholder, decl.name):
+                return False
+
+        # INFO Poor convention: the key of the generic decls is also the name of a table which contains a list of all
+        #  tables which follow the generic definition. The table who's name is the key, must have a column
+        #  table_name and key
+        for name, decl in self.generic_decls.items():
+            self.debug_execute(f"SELECT key, table_name FROM `{name}`")
+            results = self.sq_cur.fetchall()
+
+            for key, table in results:
+                self.debug_execute(f"SELECT sql FROM sqlite_master WHERE name = ?", (table,))
+                result = self.sq_cur.fetchone()
+
+                if result is None:
+                    self.integrity_logger.warning(f"Found orphaned entry: {table} in the parent table: {name}. "
+                                                  f"Deleting orphaned entry")
+
+                    self.debug_execute(f"DELETE FROM `{name}` WHERE key = ?", (key,))
+
+                if not result[0] == decl.declaration_string.replace(decl.name_placeholder, table):
+                    return False
+
+        self.__verified = True
+        return True
+
     def basic_integrity_check(self):
         """
         Basic sanity checks on the db to ensure we don't get corrupt data.
@@ -529,6 +318,353 @@ class PhotoDB(BaseSQliteDB):
         pass
 
     # ==================================================================================================================
+    # Import Table
+    # ==================================================================================================================
+
+    def add_import_table(self, root_path: str, name: str = None, description: str = None, internal: bool = False):
+        """
+        Add a new import table to the database.
+
+        :param root_path: dir_root from which to import
+        :param name: The name of the table. Override, defaults to dirname(root_path) + hash(current_datetime)
+        :param description: The description of the table. Override, defaults to None
+        :param internal: If we're checking if there are new files in the db we don't know yet.
+
+        :raises ValueError: if that import table already exists.
+        """
+        # Default Name
+        if name is None:
+            tbl_name = (os.path.dirname(os.path.abspath(root_path))
+                        + str(hash(datetime.datetime.now(datetime.timezone.utc))))
+        else:
+            tbl_name = name
+
+        # Check name Length
+        if len(tbl_name) > 120:
+            tbl_name = tbl_name[:120]
+            self.logger.warning(f"Table Name longer than 120 characters. Truncating to: `{tbl_name}`")
+
+        if self.import_table_exists(tbl_name):
+            raise ValueError(f"Table `{tbl_name}` already exists.")
+
+        # Add the table to the generic lookup table
+        flags = GenericTableFlags(stale=False, internal=internal)
+        self.debug_execute(stmt="INSERT INTO import_tables (root_path, table_name, table_description, flags) "
+                                "VALUES (?, ?, ?, ?)",
+                           args=(root_path, tbl_name, description, flags.to_int()))
+
+        # Actually creating table
+        decl = self.generic_decls["import_table"]
+        self.debug_execute(decl.declaration_string.replace(decl.name_placeholder, tbl_name))
+        self.commit()
+        return tbl_name
+
+    def import_table_flags(self, tbl_name: str) -> GenericTableFlags | None:
+        """
+        Return the Flags of an Import Table.
+
+        """
+        self.debug_execute("SELECT flags FROM import_tables WHERE table_name = ?", (tbl_name,))
+        res = self.sq_cur.fetchone()
+
+        if res is None:
+            return None
+
+        return GenericTableFlags.from_int(res[0])
+
+    def import_table_exists(self, name: str = None) -> bool:
+        """
+        Check if a given name with root_path and name exists already.
+        """
+        self.debug_execute("SELECT key FROM import_tables WHERE  name = ?", (name,))
+        return self.sq_cur.fetchone() is not None
+
+    def remove_import_table(self, name: str = None) -> Tuple[bool, bool]:
+        """
+        Remove a specific import table from the database.
+
+        :returns: True -> Successfully deleted table, successfully removed entry from generic lookup table
+        """
+        # Check if the table existed.
+        self.debug_execute("SELECT sql FROM sqlite_master WHERE name IS ?", (name,))
+        del_table = self.sq_cur.fetchone() is not None
+
+        # Drop the table with "if exists" just to be sure
+        self.debug_execute(f"DROP TABLE IF EXISTS `{name}`")
+
+        self.debug_execute("SELECT key FROM import_tables WHERE table_name IS ?", (name,))
+        del_row = self.sq_cur.fetchone() is not None
+
+        self.debug_execute("DELETE FROM import_tables WHERE table_name IS ?", (name,))
+        return del_table, del_row
+
+    def mark_import_table_as_stale(self, key: int = None):
+        """
+        Update either single import table or all import tables (if no key is provided) as stale.
+
+        Stale indicates that the references in the table to the main database are no longer guaranteed to hold, so a
+        reference might have been moved tables, or moved to trash or forgotten.
+        """
+        if key is None:
+            # The stale flags is bit 1,
+            # And we only update the flags by adding a +1 if that flag hasn't already been set mod(flags, 2) == 0
+            stmt = "UPDATE import_tables SET flags = flags + 1 WHERE key = ? AND mod(flags, 2) == 0"
+            args = (key,)
+        else:
+            # Update all tables to be stale if they aren't already.
+            stmt = "UPDATE import_tables SET flags = flags + 1 WHERE mod(flags, 2) == 0"
+            args = tuple()
+
+        self.debug_execute(stmt, args)
+        self.commit()
+
+    def list_import_tables(self) -> Iterator[NewImportTableEntry]:
+        """
+        Return List of all Import Tables
+        """
+        self.add_extra_cursor("list_import_tables")
+        self.debug_execute("SELECT key, root_path, table_name, table_name, flags FROM import_tables")
+        for key, rp, tbl_name, tbl_desc, _flags in self.get_cursor("list_import_tables"):
+            yield NewImportTableEntry(key, rp, tbl_name, tbl_desc, GenericTableFlags.from_int(_flags))
+
+        self.remove_extra_cursor("list_import_tables")
+
+    # ==================================================================================================================
+    # Presence Table
+    # ==================================================================================================================
+
+    def clear_presence_table(self):
+        """
+        Clear the content of the presence table.
+        """
+        self.debug_execute("DELETE FROM presence_table")
+        self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='presence_table'")
+
+    def presence_table_size(self) -> int:
+        """
+        Get Number of Row of presence table (needed for gui)
+        """
+        self.debug_execute("SELECT COUNT(main_key) FROM presence_table")
+        return self.sq_cur.fetchone()[0]
+
+    def update_presence_from_table(self, missing: bool = True, mtype: MediaType = MediaType.MAIN) -> int:
+        """
+        Go through the main table and update the presence of the files from the given presence table.
+
+        Files updated may not be marked as duplicates or trashed
+
+        :param missing: True Perform update from present -> missing; False Perform Update from missing -> present.
+        :param mtype: Which type of media to update
+
+        :return: number of rows affected.
+        """
+        if self.presence_table_size() == 0:
+            raise ValueError("Presence Table Empty, nothing to update.")
+
+        if mtype == MediaType.MAIN:
+            dup_flag = False
+            trash_flag = False
+        elif mtype == MediaType.DUPLICATE:
+            dup_flag = True
+            trash_flag = False
+        elif mtype == MediaType.TRASH:
+            trash_flag = True
+            dup_flag = False
+        else:
+            raise ImplementationError("Unknown MediaType")
+
+        if missing:
+            self.debug_execute(f"SELECT COUNT(key) FROM main "
+                               # Check key is in the table                            
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               # Check present,             check not duplicate        check not trash
+                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
+                               args=(int(dup_flag), int(trash_flag)))
+            count = self.sq_cur.fetchone()[0]
+
+            self.debug_execute(f"UPDATE main SET flags = flags - 1 "
+                               # Check key is in the table                            
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               #     Check present,         check not duplicate        check not trash
+                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
+                               args=(int(dup_flag), int(trash_flag)))
+
+        else:
+            self.debug_execute(f"SELECT COUNT(key) FROM main "
+                               # Check key is in the table                            
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               #     Check present,         check not duplicate        check not trash
+                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
+                               args=(int(dup_flag), int(trash_flag)))
+            count = self.sq_cur.fetchone()[0]
+
+            self.debug_execute(f"UPDATE main SET flags = flags + 1 "
+                               # Check key is in the table
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               #     Check present,         check not duplicate        check not trash
+                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
+                               args=(int(dup_flag), int(trash_flag)))
+        self.commit()
+        return count
+
+    def selection_from_presence_table(self,
+                                      sel_a: bool = True,
+                                      missing: bool = True) -> int:
+        """
+        Set the selection flags based on the images which are eina given table.
+
+        INFO: Doesn't clear previously set flags. i.e. if you selected something before.
+
+        Checks Presence Table Exists and Presence Table isn't stale.
+
+        :param sel_a: Whether to set the sel_a flag or the sel_b flag
+        :param missing: Whether to get the files which are missing but marked as present or get the files which are
+        present but marked as missing
+
+        :return: Number of rows affected.
+        """
+        if self.presence_table_size() == 0:
+            raise ValueError("Presence Table Empty, nothing to update.")
+
+        if missing and sel_a:
+            # Set sel_a if file is missing but marked as presente
+            self.debug_execute("UPDATE main SET flags = flags + 16 "
+                               "WHERE key IN (SELECT main_key FROM presence_table) "
+                               "AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 1")
+
+            return self.sq_cur.rowcount
+
+        elif missing and not sel_a:
+            # Set sel_b if file is missing but marked as presente
+            self.debug_execute("UPDATE main SET flags = flags + 32 "
+                               "WHERE key IN (SELECT main_key FROM presence_table) "
+                               "AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 1")
+
+            return self.sq_cur.rowcount
+
+        elif not missing and sel_a:
+            # Set sel_a if file is present but marked as missing
+            self.debug_execute("UPDATE main SET flags = flags + 16 "
+                               "WHERE key IN (SELECT main_key FROM presence_table) "
+                               "AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 0")
+
+            return self.sq_cur.rowcount
+
+        elif not missing and not sel_a:
+            # Set sel_b if file is present but marked as missing
+            self.debug_execute("UPDATE main SET flags = flags + 32 "
+                               "WHERE key IN (SELECT main_key FROM presence_table) "
+                               "AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 0")
+
+            return self.sq_cur.rowcount
+
+        else:
+            raise ImplementationError("Tertiem Non Datur")
+
+    # ==================================================================================================================
+    # Hash Update Table
+    # ==================================================================================================================
+
+    def clear_hash_update_table(self):
+        """
+        Clear the content of the hash update table.
+        """
+        self.debug_execute("DELETE FROM hash_update_table")
+        self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='hash_update_table'")
+
+    def hash_update_table_size(self) -> int:
+        """
+        Get the number of rows of the hash hash_updat_table
+        """
+        self.debug_execute("SELECT COUNT(main_key) FROM hash_update_table")
+        return self.sq_cur.fetchone()[0]
+
+
+    # ==================================================================================================================
+    # Name Update Table
+    # ==================================================================================================================
+
+    def clear_filename_update_table(self):
+        """
+        Clear the filename update table.
+        """
+        self.debug_execute("DELETE FROM name_update_table")
+        self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='name_update_table'")
+
+    def filename_update_table_size(self) -> int:
+        """
+        Check whether the filename_update_table contains any entries.
+        """
+        self.debug_execute("SELECT COUNT(*) FROM name_update_table")
+        return self.sq_cur.fetchone()[0]
+
+    # ==================================================================================================================
+    # Hash Table
+    # ==================================================================================================================
+
+    # ==================================================================================================================
+    # Hash Assoz Table
+    # ==================================================================================================================
+
+    def get_size_of_hash_assoz_table(self) -> int:
+        """
+        Get the size of the hash_assoz table
+        """
+        self.debug_execute("SELECT COUNT(*) FROM hash_assoz")
+        return self.sq_cur.fetchone()[0]
+
+    def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
+        """
+        Given a hash and file size, finds all file_keys which share this hash.
+
+        mode (case-insensitive):
+
+        - EARLIEST, given a file_key, only take into account the earliest hash of that file
+        - LATEST, given a file_key, only take into account the latest hash of that file (detecting changed filenames)
+        - ANY, given a file_key, take into account all hashes the file has had (detecting duplicates)
+        - INITIAL, given a file_key, only look at initial hashes (importing)
+
+        :param target_hash: Target hash to search for
+        :param file_size: File size to search for
+        :param mode: Mode to search for, can be EARLIEST, LATEST, ANY
+
+        :returns: List[int] - list of matching file_keys
+        """
+        if mode.lower() not in ("earliest", "latest", "any", "initial"):
+            raise ValueError(f"Unsupported mode: {mode.lower()}, allowed: [earliest, latest, any]")
+
+        if mode.lower() == "earliest":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
+                               "(SELECT MIN(datetime(ha.hash_date)) "
+                               "FROM hash_assoz AS ha JOIN hash ON hash.key = ha.hash_key "
+                               "WHERE hash.hash = ? AND ha.file_size_bytes = ? GROUP BY hash_key, file_key)",
+                               (target_hash, file_size, target_hash, file_size))
+
+        elif mode.lower() == "latest":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
+                               "(SELECT MAX(datetime(ha.hash_date)) "
+                               "FROM hash_assoz AS ha JOIN hash ON hash.key = ha.hash_key "
+                               "WHERE hash.hash = ? AND ha.file_size_bytes = ? GROUP BY hash_key, file_key)",
+                               (target_hash, file_size, target_hash, file_size))
+        elif mode.lower() == "any":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ?",
+                               (target_hash, file_size))
+        elif mode.lower() == "initial":
+            self.debug_execute("SELECT ha.file_key "
+                               "FROM hashes AS h JOIN hash_assoz AS ha "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.initial = 1")
+        else:
+            raise ImplementationError(f"Got unexpected mode {mode.lower()}")
+
+        return [r[0] for r in self.sq_cur.fetchall()]
+
+    # ==================================================================================================================
     # DB Integrity checks and utility
     # ==================================================================================================================
 
@@ -538,7 +674,7 @@ class PhotoDB(BaseSQliteDB):
 
         :return: number of new entries in hash_assoz table, number of hashes updated
         """
-        if self.hash_update_table_empty():
+        if self.hash_update_table_size() == 0:
             raise ValueError("Hash table is empty")
 
         # Get the size of the hash assoz table
@@ -694,144 +830,6 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count
 
-    def update_presence_from_table(self, missing: bool = True, mtype: MediaType = MediaType.MAIN) -> int:
-        """
-        Go through the main table and update the presence of the files from the given presence table.
-
-        Files updated may not be marked as duplicates or trashed
-
-        :param missing: True Perform update from present -> missing; False Perform Update from missing -> present.
-        :param mtype: Which type of media to update
-
-        :return: number of rows affected.
-        """
-        if self.presence_table_empty():
-            raise ValueError("Presence Table Empty, nothing to update.")
-
-        if mtype == MediaType.MAIN:
-            dup_flag = False
-            trash_flag = False
-        elif mtype == MediaType.DUPLICATE:
-            dup_flag = True
-            trash_flag = False
-        elif mtype == MediaType.TRASH:
-            trash_flag = True
-            dup_flag = False
-        else:
-            raise ImplementationError("Unknown MediaType")
-
-        if missing:
-            self.debug_execute(f"SELECT COUNT(key) FROM main "
-                               # Check key is in the table                            
-                               f"WHERE key IN (SELECT main_key FROM presence_table) "
-                               # Check present,             check not duplicate        check not trash
-                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
-                               args=(int(dup_flag), int(trash_flag)))
-            count = self.sq_cur.fetchone()[0]
-
-            self.debug_execute(f"UPDATE main SET flags = flags - 1 "
-                               # Check key is in the table                            
-                               f"WHERE key IN (SELECT main_key FROM presence_table) "
-                               #     Check present,         check not duplicate        check not trash
-                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
-                               args=(int(dup_flag), int(trash_flag)))
-
-        else:
-            self.debug_execute(f"SELECT COUNT(key) FROM main "
-                               # Check key is in the table                            
-                               f"WHERE key IN (SELECT main_key FROM presence_table) "
-                               #     Check present,         check not duplicate        check not trash
-                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
-                               args=(int(dup_flag), int(trash_flag)))
-            count = self.sq_cur.fetchone()[0]
-
-            self.debug_execute(f"UPDATE main SET flags = flags + 1 "
-                               # Check key is in the table
-                               f"WHERE key IN (SELECT main_key FROM presence_table) "
-                               #     Check present,         check not duplicate        check not trash
-                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
-                               args=(int(dup_flag), int(trash_flag)))
-        self.commit()
-        return count
-
-    def selection_from_presence_table(self,
-                                      sel_a: bool = True,
-                                      missing: bool = True) -> int:
-        """
-        Set the selection flags based on the images which are eina given table.
-
-        INFO: Doesn't clear previously set flags. i.e. if you selected something before.
-
-        Checks Presence Table Exists and Presence Table isn't stale.
-
-        :param sel_a: Whether to set the sel_a flag or the sel_b flag
-        :param missing: Whether to get the files which are missing but marked as present or get the files which are
-        present but marked as missing
-
-        :return: Number of rows affected.
-        """
-        if self.presence_table_empty():
-            raise ValueError("Presence Table Empty, nothing to update.")
-
-        if missing and sel_a:
-            # Get the number of rows to update
-            self.debug_execute(f"SELECT COUNT(key) FROM main "
-                               f"WHERE key IN (SELECT main_key FROM presence_table) "
-                               #     selection a                check present
-                               f"AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 1")
-
-            count = self.sq_cur.fetchone()[0]
-
-            # Actually set the flag
-            self.debug_execute("UPDATE main SET flags = flags + 16 "
-                               "WHERE key IN (SELECT main_key FROM presence_table) "
-                               "AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 1")
-            return count
-        elif missing and not sel_a:
-            # Get the number of rows to update
-            self.debug_execute(f"SELECT COUNT(key) FROM main "
-                               f"WHERE key IN (SELECT main_key FROM presence_table) "
-                               #     selection a                check present
-                               f"AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 1")
-
-            count = self.sq_cur.fetchone()[0]
-
-            # Actually set the flag
-            self.debug_execute("UPDATE main SET flags = flags + 32 "
-                               "WHERE key IN (SELECT main_key FROM presence_table) "
-                               "AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 1")
-            return count
-        elif not missing and sel_a:
-            # Get the number of rows to update
-            self.debug_execute(f"SELECT COUNT(key) FROM main "
-                               f"WHERE key IN (SELECT main_key FROM presence_table) "
-                               #     selection a                check present
-                               f"AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 0")
-
-            count = self.sq_cur.fetchone()[0]
-
-            # Actually set the flag
-            self.debug_execute("UPDATE main SET flags = flags + 16 "
-                               "WHERE key IN (SELECT main_key FROM presence_table) "
-                               "AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 0")
-            return count
-        elif not missing and not sel_a:
-            # Get the number of rows to update
-            self.debug_execute(f"SELECT COUNT(key) FROM main "
-                               f"WHERE key IN (SELECT main_key FROM presence_table) "
-                               #     selection a                check present
-                               f"AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 0")
-
-            count = self.sq_cur.fetchone()[0]
-
-            # Actually set the flag
-            self.debug_execute("UPDATE main SET flags = flags + 32 "
-                               "WHERE key IN (SELECT main_key FROM presence_table) "
-                               "AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 0")
-            return count
-        else:
-            raise ImplementationError("Tertiem Non Datur")
-
     # INFO: long-running action,
     def check_presence(self, selection: Selection = None, mtype: MediaType = MediaType.MAIN):
         """
@@ -878,8 +876,8 @@ class PhotoDB(BaseSQliteDB):
                                    cur="check_presence")
             elif selection.selection_type == SelectionType.TIME_RANGE:
                 self.debug_execute(stmt="SELECT key, flags FROM main "
-                                        "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?) " 
-                                        # Check not duplicate             Check not trash
+                                        "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?) "
+                # Check not duplicate             Check not trash
                                         "AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
                                    args=(selection.start.isoformat(), selection.end.isoformat(),
                                          int(dup_flag), int(trash_flag)),
@@ -1017,9 +1015,9 @@ class PhotoDB(BaseSQliteDB):
                                    cur="check_file_hashes")
             elif selection.selection_type == SelectionType.TIME_RANGE:
                 self.debug_execute(stmt="SELECT key, flags FROM main "
-                                        # Check datetime range
-                                        "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?) " 
-                                        # Check not duplicate             Check not trash
+                # Check datetime range
+                                        "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?) "
+                # Check not duplicate             Check not trash
                                         "AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0",
                                    args=(selection.start.isoformat(), selection.end.isoformat()),
                                    cur="check_file_hashes")
@@ -1464,57 +1462,6 @@ class PhotoDB(BaseSQliteDB):
         flags = MainFlags.from_int(_flags)
 
         return key, dt, flags, db_local_dir, db_name, original_name
-
-    def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
-        """
-        Given a hash, finds all file_keys which share this hash.
-
-        mode (case-insensitive):
-
-        - EARLIEST, given a file_key, only take into account the earliest hash of that file
-        - LATEST, given a file_key, only take into account the latest hash of that file (detecting changed filenames)
-        - ANY, given a file_key, take into account all hashes the file has had (detecting duplicates)
-        - INITIAL, given a file_key, only look at initial hashes (importing)
-
-        :param target_hash: Target hash to search for
-        :param file_size: File size to search for
-        :param mode: Mode to search for, can be EARLIEST, LATEST, ANY
-
-        :returns: List[int] - list of matching file_keys
-        """
-        if mode.lower() not in ("earliest", "latest", "any", "initial"):
-            raise ValueError(f"Unsupported mode: {mode.lower()}, allowed: [earliest, latest, any]")
-
-        if mode.lower() == "earliest":
-            self.debug_execute("SELECT ha.file_key "
-                               "FROM hashes AS h JOIN hash_assoz AS ha "
-                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
-                               "(SELECT MIN(datetime(ha.hash_date)) "
-                               "FROM hash_assoz AS ha JOIN hash ON hash.key = ha.hash_key "
-                               "WHERE hash.hash = ? AND ha.file_size_bytes = ? GROUP BY hash_key, file_key)",
-                               (target_hash, file_size, target_hash, file_size))
-
-        elif mode.lower() == "latest":
-            self.debug_execute("SELECT ha.file_key "
-                               "FROM hashes AS h JOIN hash_assoz AS ha "
-                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
-                               "(SELECT MAX(datetime(ha.hash_date)) "
-                               "FROM hash_assoz AS ha JOIN hash ON hash.key = ha.hash_key "
-                               "WHERE hash.hash = ? AND ha.file_size_bytes = ? GROUP BY hash_key, file_key)",
-                               (target_hash, file_size, target_hash, file_size))
-        elif mode.lower() == "any":
-            self.debug_execute("SELECT ha.file_key "
-                               "FROM hashes AS h JOIN hash_assoz AS ha "
-                               "WHERE h.hash = ? AND ha.file_size_bytes = ?",
-                               (target_hash, file_size))
-        elif mode.lower() == "initial":
-            self.debug_execute("SELECT ha.file_key "
-                               "FROM hashes AS h JOIN hash_assoz AS ha "
-                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.initial = 1")
-        else:
-            raise ImplementationError(f"Got unexpected mode {mode.lower()}")
-
-        return [r[0] for r in self.sq_cur.fetchall()]
 
     def get_main_flags(self, key: int) -> None | MainFlags:
         """
@@ -2803,8 +2750,8 @@ class PhotoDB(BaseSQliteDB):
         self.add_extra_cursor("update_thumbnails")
 
         self.debug_execute(stmt="SELECT m.key, m.db_name, m.flags FROM main AS m "
-                           # Check present                 check trash                     check duplicate
-                           "WHERE mod(m.flags, 2) == 1 AND mod((m.flags >> 2), 2) == 0 AND mod((m.flags >> 8), 2) == 0",
+        # Check present                 check trash                     check duplicate
+                                "WHERE mod(m.flags, 2) == 1 AND mod((m.flags >> 2), 2) == 0 AND mod((m.flags >> 8), 2) == 0",
                            cur="update_thumbnails")
 
         missing: int = 0
@@ -2977,8 +2924,8 @@ class PhotoDB(BaseSQliteDB):
             probe_res = ffmpeg.probe(in_path)
         except ffmpeg.Error as e:
             self.main_logger.exception(f"Error Probing File with FFMPEG: {in_path}, "
-                                  f"stderr: {e.stderr.decode('utf-8')}, "
-                                  f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
+                                       f"stderr: {e.stderr.decode('utf-8')}, "
+                                       f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
             return False
 
         except Exception as e:
@@ -3020,8 +2967,8 @@ class PhotoDB(BaseSQliteDB):
             )
         except ffmpeg.Error as e:
             self.main_logger.exception(f"Error Exporting Thumbnail from video: {in_path}, "
-                                  f"stderr: {e.stderr.decode('utf-8')}, "
-                                  f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
+                                       f"stderr: {e.stderr.decode('utf-8')}, "
+                                       f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
             return False
         except Exception as e:
             self.main_logger.exception(f"Unexpected Exception while writing thumbnail: {type(e).__name__}", exc_info=e)
@@ -3566,8 +3513,8 @@ class PhotoDB(BaseSQliteDB):
             else:
                 raise ImplementationError("Uncovered Type of SelectionType")
         else:
-              self.debug_execute(stmt="SELECT key, flags FROM main",
-                                 cur="check_disp_files")
+            self.debug_execute(stmt="SELECT key, flags FROM main",
+                               cur="check_disp_files")
 
         for key, _flags in self.get_cursor("check_disp_files"):
             flags = MainFlags.from_int(_flags)
