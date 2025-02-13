@@ -1541,10 +1541,8 @@ class PhotoDB(BaseSQliteDB):
                                f" datetime, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
                                (ofn, md.replace("'", "''"), gfmd.replace("'", "''"), self.temp_db_name,
                                 _dt, tz, default_flags.to_int()))
-            self.debug_execute("SELECT key FROM main WHERE db_name = ?", (self.temp_db_name,))
-            kr = self.sq_cur.fetchone()
-            assert kr is not None, "Key should exist after insert."
-            insert_key = kr[0]
+            insert_key = self._db_resolve_filename_to_key(self.temp_db_name)
+            assert insert_key is not None, "Key should exist after insert."
 
             # Handle metadata table
             self.debug_execute("INSERT INTO metadata (main_key, original_dirname, naming_tag, datetime_source) "
