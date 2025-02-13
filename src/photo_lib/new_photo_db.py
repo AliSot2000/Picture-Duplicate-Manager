@@ -652,7 +652,6 @@ class PhotoDB(BaseSQliteDB):
                                #     selection a                check present
                                f"AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 1")
 
-    def check_presence(self, from_select: bool = False):
             count = self.sq_cur.fetchone()[0]
 
             # Actually set the flag
@@ -704,14 +703,76 @@ class PhotoDB(BaseSQliteDB):
             return count
         else:
             raise ImplementationError("Tertiem Non Datur")
+
+    # INFO: long-running action
+    def check_presence(self, selection: Selection = None):
         """
         Go through db and check that all files in the db are present in the file system.
 
-        :param from_select: Use selection marker of images to check changed hashes for those images.
+        :param selection: Use selection marker of images to check changed hashes for those images.
         """
-        ...
+        self.clear_presence_table()
+        count = 0
 
-    def check_filenames(self, from_select: bool = False):
+        self.add_extra_cursor("check_presence")
+
+        if selection is None:
+            self.debug_execute("SELECT key, flags FROM main "
+                               # Check not duplicate             Check not trash
+                               "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0",
+                               cur="check_presence")
+        else:
+            if selection.selection_type == SelectionType.SELECTION_A:
+                self.debug_execute("SELECT key, flags FROM main "
+                                   # Check not duplicate             Check not trash            Check selection A
+                                   "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1",
+                                   cur="check_presence")
+            elif selection.selection_type == SelectionType.SELECTION_B:
+                self.debug_execute("SELECT key, flags FROM main "
+                                   # Check not duplicate             Check not trash            Check selection B
+                                   "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1",
+                                   cur="check_presence")
+            elif selection.selection_type == SelectionType.TIME_RANGE:
+                self.debug_execute(stmt="SELECT key, flags FROM main "
+                                        "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?) " 
+                                        # Check not duplicate             Check not trash
+                                        "AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0",
+                                   args=(selection.start.isoformat(), selection.end.isoformat()),
+                                   cur="check_disp_files")
+            else:
+                raise ImplementationError("Missing Selection Type")
+
+        # Go through all files and check if they exist.
+        for key, _flags in self.get_cursor("check_presence"):
+            flags = MainFlags.from_int(_flags)
+
+            # Internal checks for general sql statement integrity
+            assert flags.trashed is False and flags.duplicate is False, \
+                "SQL Error, no trashed or duplicate files allowed"
+
+            # Check selection.
+            if __debug__:
+                if selection.selection_type == SelectionType.SELECTION_A and not flags.sel_a:
+                    raise ImplementationError("Didn't receive Selection A")
+                elif selection.selection_type == SelectionType.SELECTION_B and not flags.sel_b:
+                    raise ImplementationError("Didn't receive Selection B")
+
+            # Don't want to fuck up cache.
+            path = self._db_resolve_key_to_abs_path(key)
+
+            if os.path.exists(path) and not flags.present:
+                self.debug_execute(f"INSERT INTO presence_table (main_key) VALUES (?)", (key,))
+                count += 1
+            elif not os.path.exists(path) and flags.present:
+                self.debug_execute(f"INSERT INTO presence_table (main_key) VALUES (?)", (key,))
+                count += 1
+
+        self.commit()
+
+        self.main_logger.info(f"Detected {count} entries in main table with mismatched presence flag")
+        return count
+
+    def check_filenames(self, selection: Selection = None):
         """
         Check the file names by associating file hashes from files found in the db with files
         """
