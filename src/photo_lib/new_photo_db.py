@@ -522,7 +522,6 @@ class PhotoDB(BaseSQliteDB):
         """
         Update the files which have aren't present to have been moved to the trash.
 
-        :param from_select: Use the selection marker to only affect those files.
         :param selection: Selection of Files to update
         :param target_value: bool, whether to set the flag to True or False
         """
@@ -582,6 +581,15 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count
 
+    def update_presence_from_table(self, missing: bool = True) -> int:
+        """
+        Go through the main table and update the presence of the files from the given presence table.
+
+        Files updated may not be marked as duplicates or trashed
+
+        :param missing: True Perform update from present -> missing; False Perform Update from missing -> present.
+
+        :return: number of rows affected.
         """
         ...
 
