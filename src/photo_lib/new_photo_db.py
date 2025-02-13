@@ -514,6 +514,31 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("update_allowed")
 
+    def set_allowed(self, tbl_name: str, key: int, allowed: Allowed, message: str = None):
+        """
+        Set the allowed flag of a given row of an import table.
+        Can also set the message of the given row in the import table.
+
+        PRECONDITION: Key exists in import table
+
+        imported column is updated to 0, if the allowed is not ALLOWED
+
+        :param tbl_name: import table to update
+        :param key: key in table to update
+        :param allowed: allowed flag allowed state to set
+        :param message: error message to append
+
+        :raises sqlite3.OperationalError: If the Import Table doesn't exist
+        """
+        if allowed == Allowed.ALLOWED:
+            self.debug_execute(f"UPDATE `{tbl_name}` SET allowed = ?, message = ? WHERE key = ?",
+                               (allowed.value, message, key))
+
+        else:
+            self.debug_execute(f"UPDATE `{tbl_name}` SET allowed = ?, message = ?, imported = 0 WHERE key = ?",
+                               (allowed.value, message, key))
+        assert self.sq_cur.rowcount == 1, f"Key {key} in {tbl_name} does not exist, PRECONDITION"
+
     # ==================================================================================================================
     # Presence Table
     # ==================================================================================================================
