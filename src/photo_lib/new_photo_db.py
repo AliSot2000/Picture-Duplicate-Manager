@@ -841,40 +841,57 @@ class PhotoDB(BaseSQliteDB):
         else:
             raise ImplementationError("Tertiem Non Datur")
 
-    # INFO: long-running action
-    def check_presence(self, selection: Selection = None):
+    # INFO: long-running action,
+    def check_presence(self, selection: Selection = None, mtype: MediaType = MediaType.MAIN):
         """
         Go through db and check that all files in the db are present in the file system.
 
         :param selection: Use selection marker of images to check changed hashes for those images.
+        :param mtype: For which type of media to update the presence.
         """
         self.clear_presence_table()
         count = 0
 
         self.add_extra_cursor("check_presence")
 
+        if mtype == MediaType.MAIN:
+            dup_flag = False
+            trash_flag = False
+        elif mtype == MediaType.DUPLICATE:
+            dup_flag = True
+            trash_flag = False
+        elif mtype == MediaType.TRASH:
+            trash_flag = True
+            dup_flag = False
+        else:
+            raise ImplementationError("Unknown MediaType")
+
         if selection is None:
             self.debug_execute("SELECT key, flags FROM main "
                                # Check not duplicate             Check not trash
-                               "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0",
+                               "WHERE mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
+                               args=(int(dup_flag), int(trash_flag)),
                                cur="check_presence")
         else:
             if selection.selection_type == SelectionType.SELECTION_A:
                 self.debug_execute("SELECT key, flags FROM main "
                                    # Check not duplicate             Check not trash            Check selection A
-                                   "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1",
+                                   "WHERE mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ? AND mod(flags >> 4, 2) = 1",
+                                   args=(int(dup_flag), int(trash_flag)),
                                    cur="check_presence")
             elif selection.selection_type == SelectionType.SELECTION_B:
                 self.debug_execute("SELECT key, flags FROM main "
                                    # Check not duplicate             Check not trash            Check selection B
-                                   "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1",
+                                   "WHERE mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ? AND mod(flags >> 5, 2) = 1",
+                                   args=(int(dup_flag), int(trash_flag)),
                                    cur="check_presence")
             elif selection.selection_type == SelectionType.TIME_RANGE:
                 self.debug_execute(stmt="SELECT key, flags FROM main "
                                         "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?) " 
                                         # Check not duplicate             Check not trash
-                                        "AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0",
-                                   args=(selection.start.isoformat(), selection.end.isoformat()),
+                                        "AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
+                                   args=(selection.start.isoformat(), selection.end.isoformat(),
+                                         int(dup_flag), int(trash_flag)),
                                    cur="check_disp_files")
             else:
                 raise ImplementationError("Missing Selection Type")
