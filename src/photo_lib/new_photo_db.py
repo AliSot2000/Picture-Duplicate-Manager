@@ -1518,18 +1518,8 @@ class PhotoDB(BaseSQliteDB):
             self.add_default_metadata_aggregator()
             added_mda = True
 
-        self.add_extra_cursor("import_table")
-        self.debug_execute(stmt=f"SELECT key, original_filename, original_dirname, metadata, google_metadata, "
-                                f"file_hash, file_size_bytes, datetime, timezone, naming_tag, gps_latitude, "
-                                f"gps_longitude, datetime_source, allowed, import_key "
-                                f"FROM `{tbl}` WHERE imported = 1",
-                           cur="import_cursor")
-
-        for row in self.get_cursor("import_table"):
-            ik, ofn, ofd, md, gfmd, fh, fsb, _dt, tz, nt, gps_lat, gps_long, _dts, _allowed, ipk = row
-            dts = DateTimeSource(_dts)
-            dt = datetime.datetime.fromisoformat(_dt)
-            allowed = bool(_allowed)
+        for row in self.perform_import_iterator(tbl):
+            ik, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, ipk = row
 
             assert dt.tzinfo is not None, "All datetime objects should have tz"
 
@@ -1537,7 +1527,7 @@ class PhotoDB(BaseSQliteDB):
             assert ipk is None, "SQL Error, files which are imported shouldn't have imported = 1"
 
             # Check allowed
-            if allowed:
+            if allowed != Allowed.ALLOWED:
                 raise ImplementationError("Only Allowed Files may have the marked for import flag")
 
             # Define flags
@@ -1548,8 +1538,9 @@ class PhotoDB(BaseSQliteDB):
             # Check name ok and mark not allowed if necessary
             if not rename:
                 if self._db_resolve_filename_to_key(ofn) is not None:
+                    self.set_allowed(tbl_name=tbl, key=ik, allowed=Allowed.NOT_ALLOWED_ERR,
+                                     message=f"File {ofn} already exists")
                     self.main_logger.info(f"Couldn't import file {ofn}, filename already used in db")
-                    self.debug_execute(f"UPDATE `{tbl}` SET allowed = 0 WHERE key = ?", (ik,))
                     name_conflict += 1
                     continue
 
@@ -1594,14 +1585,13 @@ class PhotoDB(BaseSQliteDB):
             if flags.verify and add_safety_exif_tags:
                 self._add_update_exif_tag(key=insert_key, target_datetime=dt, file_path=target_path)
 
-            self.debug_execute(f"UPDATE `{tbl}` SET import_key = ?, imported = 2 WHERE key = ?",
-                               (insert_key, ik))
+            self.set_imported_status(tbl_name=tbl, import_key=insert_key, status=ImportStatus.IMPORTED, key=ik)
+
             count += 1
 
         if added_mda:
             self.mda = None
 
-        self.remove_extra_cursor("import_table")
         self.commit()
         return count, name_conflict
 
