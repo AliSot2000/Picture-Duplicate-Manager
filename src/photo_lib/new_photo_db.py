@@ -676,6 +676,34 @@ class PhotoDB(BaseSQliteDB):
     # Dir Table
     # ==================================================================================================================
 
+    def get_db_dir_count(self):
+        """
+        Get number of rows of custom directories in the db_dir table
+        """
+        self.debug_execute("SELECT COUNT(key) FROM db_dir")
+        return self.sq_cur.fetchone()[0]
+
+    def insert_get_dir(self, local_dir: List[str]) -> int:
+        """
+        Get the key of a given custom directory.
+
+        :param local_dir: List of Directory names starting at the root_path from database model
+        """
+        # rel_path = dir_name.removeprefix(self.root_path).removeprefix(os.sep)
+        # rel_path_list = rel_path.split(os.sep)
+
+        self.debug_execute("SELECT key FROM db_dir WHERE db_local_dir = ?",
+                           (self.dump_db_local_dir(local_dir),))
+
+        res = self.sq_cur.fetchone()
+        if res is not None:
+            return res[0]
+
+        self.debug_execute("INSERT INTO db_dir (db_local_dir) VALUES (?)",
+                           (self.dump_db_local_dir(local_dir),))
+        self.logger.debug(f"Added custom dir {os.path.join(*local_dir)}")
+        return self.insert_get_dir(local_dir)
+
     # ==================================================================================================================
     # Hash Assoz Table
     # ==================================================================================================================
@@ -2141,36 +2169,6 @@ class PhotoDB(BaseSQliteDB):
                                args=(ndt.isoformat(), hash_key, file_key, file_size))
 
         return True
-
-    def _insert_get_dir(self, dir_name: str) -> int:
-        """
-        PRECONDITION:
-
-        - dir_name is absolute
-        - dir_name is child of root_path
-        - dir_name separated by os.sep
-
-        Get the key of a given custom directory.
-
-        :param dir_name: The name of the directory to insert.
-        """
-        rel_path = dir_name.removeprefix(self.root_path).removeprefix(os.sep)
-        rel_path_list = rel_path.split(os.sep)
-
-        self.debug_execute("SELECT key FROM db_dir WHERE db_local_dir = ?",
-                           (self.dump_db_local_dir(rel_path_list),))
-
-        res = self.sq_cur.fetchone()
-        if res is not None:
-            assert os.path.exists(dir_name), "Directories in db_dir must exist."
-            return res[0]
-
-        # PRECONDITION: doesn't exist
-        os.makedirs(dir_name, exist_ok=True)
-        self.debug_execute("INSERT INTO db_dir (db_local_dir) VALUES (?)",
-                           (self.dump_db_local_dir(rel_path_list),))
-        self.main_logger.debug(f"Created custom dir {rel_path}")
-        return self._insert_get_dir(dir_name)
 
     def _add_update_exif_tag(self, key: int, target_datetime: datetime.datetime, file_path: str):
         """
