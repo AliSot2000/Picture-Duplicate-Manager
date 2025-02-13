@@ -1549,6 +1549,7 @@ class PhotoDB(BaseSQliteDB):
                 db_name = self.temp_db_name
 
             # Add row in main table
+            # TODO GFMD and MD can be None
             self.debug_execute(f"INSERT INTO main "
                                f"(original_filename, metadata, google_metadata, db_name,"
                                f" datetime, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -2049,26 +2050,17 @@ class PhotoDB(BaseSQliteDB):
             self.add_default_metadata_aggregator()
             added_mda = True
 
-        self.add_extra_cursor("import_table")
-        self.debug_execute(stmt=f"SELECT key, original_filename, original_dirname, metadata, google_metadata, "
-                                f"file_hash, file_size_bytes, datetime, timezone, naming_tag, gps_latitude, "
-                                f"gps_longitude, datetime_source, allowed, import_key "
-                                f"FROM `{tbl_name}` WHERE imported = 1",
-                           cur="import_cursor")
         count = 0
-        for row in self.get_cursor("import_table"):
+        for row in self.perform_import_iterator(tbl_name):
             # Handle the setting of all the rows needed into the main table.
-            k, ofn, ofd, md, gfmd, fh, fsb, _dt, tz, nt, gps_lat, gps_long, _dts, _allowed, impk = row
-            dt = datetime.datetime.fromisoformat(_dt)
-            allowed = bool(_allowed)
-            dts = DateTimeSource(_dts)
+            k, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, impk = row
             default_flags = MainFlags.default()
 
             # Set verify on FILE_AWARE
             if dts == DateTimeSource.FILE_AWARE:
                 default_flags.verify = True
 
-            if not allowed:
+            if allowed != Allowed.ALLOWED:
                 self.main_logger.warning(f"Found entry marked for import, that isn't allowed.")
                 assert False, "Invariant broken, found element marked for import with allowed = 0"
                 continue
@@ -2077,6 +2069,7 @@ class PhotoDB(BaseSQliteDB):
             assert import_key is None, "File marked as not imported, shouldn't have a import_key set."
 
             # Insert into main table and add
+            # TODO gfmd and md can be None
             self.debug_execute(f"INSERT INTO main "
                                f"(original_filename, metadata, google_metadata, db_name,"
                                f" datetime, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
