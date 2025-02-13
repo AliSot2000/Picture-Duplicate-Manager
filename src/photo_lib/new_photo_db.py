@@ -218,7 +218,6 @@ class PhotoDB(BaseSQliteDB):
             self.main_logger.info(f"Created Temp Directory")
             os.makedirs(self.get_temp_dir())
 
-
     # ==================================================================================================================
     # Table Creation & Deletion & Modify Functions
     # ==================================================================================================================
