@@ -684,6 +684,19 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT COUNT(key) FROM db_dir")
         return self.sq_cur.fetchone()[0]
 
+    def get_dir_key(self, local_dir: List[str]) -> int | None:
+        """
+        Resolve local_dir to key or None if it doesn't exist
+        """
+        self.debug_execute("SELECT key FROM db_dir WHERE db_local_dir = ?",
+                           (self.dump_db_local_dir(local_dir),))
+
+        res = self.sq_cur.fetchone()
+        if res is None:
+            return None
+
+        return res[0]
+
     def insert_get_dir(self, local_dir: List[str]) -> int:
         """
         Get the key of a given custom directory.
@@ -693,12 +706,9 @@ class PhotoDB(BaseSQliteDB):
         # rel_path = dir_name.removeprefix(self.root_path).removeprefix(os.sep)
         # rel_path_list = rel_path.split(os.sep)
 
-        self.debug_execute("SELECT key FROM db_dir WHERE db_local_dir = ?",
-                           (self.dump_db_local_dir(local_dir),))
-
-        res = self.sq_cur.fetchone()
-        if res is not None:
-            return res[0]
+        key = self.get_dir_key(local_dir)
+        if key is not None:
+            return key
 
         self.debug_execute("INSERT INTO db_dir (db_local_dir) VALUES (?)",
                            (self.dump_db_local_dir(local_dir),))
