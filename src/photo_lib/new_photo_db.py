@@ -2038,12 +2038,10 @@ class PhotoDB(BaseSQliteDB):
             elif m_newest_hash != file_hash and binary_match:
                 self.main_logger.warning("Found files different hashes but match binary.")
 
-            self.debug_execute("SELECT flags FROM main WHERE key = ?", (m_key,))
-            res = self.sq_cur.fetchone()
-            if res is None:
+            flags = self.get_main_flags(m_key)
+            if flags is None:
                 raise CorruptDatabase("Inconsistency between tables. File from hash_assoz not present in main tables.")
 
-            flags = MainFlags.from_int(res[0])
             # parse into NewMatchTypes
             if not (flags.trashed and not flags.duplicate):
                 if m_newest_hash != file_hash:
