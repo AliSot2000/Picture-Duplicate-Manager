@@ -994,9 +994,87 @@ class PhotoDB(BaseSQliteDB):
     # INFO: long-running action
     def check_file_hashes(self, selection: Selection = None):
         """
-        Check the file hashes based on the file names and add them to a list of table.s
+        Check the file hashes based on the file names.
+
+        INFO: Only files which aren't duplicates and which aren't in the trash are considered
         """
-        ...
+        self.clear_hash_update_table()
+        self.add_extra_cursor("check_file_hashes")
+        count = 0
+
+        added_mda = False
+        if self.mda is None:
+            self.add_default_metadata_aggregator()
+            added_mda = True
+
+        if selection is None:
+            self.debug_execute("SELECT key, flags FROM main "
+                               # Check not duplicate             Check not trash
+                               "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0",
+                               cur="check_file_hashes")
+        else:
+            if selection.selection_type == SelectionType.SELECTION_A:
+                self.debug_execute("SELECT key, flags FROM main "
+                                   # Check not duplicate             Check not trash            Check selection A
+                                   "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1",
+                                   cur="check_file_hashes")
+            elif selection.selection_type == SelectionType.SELECTION_B:
+                self.debug_execute("SELECT key, flags FROM main "
+                                   # Check not duplicate             Check not trash            Check selection B
+                                   "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1",
+                                   cur="check_file_hashes")
+            elif selection.selection_type == SelectionType.TIME_RANGE:
+                self.debug_execute(stmt="SELECT key, flags FROM main "
+                                        # Check datetime range
+                                        "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?) " 
+                                        # Check not duplicate             Check not trash
+                                        "AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0",
+                                   args=(selection.start.isoformat(), selection.end.isoformat()),
+                                   cur="check_file_hashes")
+            else:
+                raise ImplementationError("Missing Selection Type")
+
+        for key, _flags in self.get_cursor("check_file_hashes"):
+            flags = MainFlags.from_int(_flags)
+            org_path = self._db_resolve_key_to_abs_path(key)
+
+            # Checks on path and flags
+            assert org_path is not None, "Key in main table should resolve to path"
+            self.check_flags(key=key, flags=flags, org_path=org_path, miniature=True, thumbnail=True)
+
+            if __debug__ and (flags.trashed or flags.duplicate):
+                raise ImplementationError("SQL Statement Error, shouldn't get duplicates or trashed files")
+
+            # Cannot hash what doesn't exist
+            if not os.path.exists(org_path):
+                continue
+
+            # Get current hash and file size
+            new_hash = self.mda.hash_file(org_path)
+            file_size_bytes = os.stat(org_path).st_size
+
+            # Get the newest file hash of that file from the db
+            h, fsb = self.get_newest_hash(key)
+
+            # Different hash, update
+            if new_hash != h:
+                self.debug_execute(stmt="INSERT INTO hash_update_table "
+                                        "(main_key, new_hash, file_size_bytes)"
+                                        "VALUES (?, ?, ?)",
+                                   args=(key, new_hash, file_size_bytes))
+                count += 1
+
+            # Rare occurrence
+            elif file_size_bytes != new_hash and new_hash == h:
+                # TODO change logger
+                self.main_logger.info(f"Rare Occurrence: File Size changed but hash stayed the same: {org_path}")
+
+        self.remove_extra_cursor("check_file_hashes")
+        self.commit()
+
+        if added_mda:
+            self.mda = None
+        return count
 
     # INFO: long-running action
     def check_new_files(self, allowed_ext: Set[str] = None) -> None | Tuple[str, int]:
