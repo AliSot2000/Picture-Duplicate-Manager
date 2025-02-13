@@ -169,14 +169,17 @@ class PhotoDB(BaseSQliteDB):
 
         self.logger.addHandler(handler)
 
-    def cleanup(self):
+    def cleanup(self, fast: bool = False):
         """
         Besides writing to file, perform some checks and pruning operations
-        """
-        if self.prune_fs_dir:
-            self.prune_filesystem_directories()
 
-        self.basic_integrity_check()
+        :param fast: If true, skip any integrity checks.
+        """
+        if not fast:
+            if self.prune_fs_dir:
+                self.prune_filesystem_directories()
+
+            self.basic_integrity_check()
         self.cleanup()
 
     def add_default_metadata_aggregator(self):
