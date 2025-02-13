@@ -984,9 +984,10 @@ class PhotoDB(BaseSQliteDB):
             matches, best_match, best_match_type = \
                 self._get_best_match_type(file_hash=fh, fsb=fsb, tgt_fp=os.path.join(dir_name, name))
 
+            serializable_matches = {k: v.value for k, v in matches.items()}
             self.debug_execute(stmt="UPDATE name_update_table SET matches = ?, best_match = ?, best_match_type = ? "
                                     "WHERE key = ?",
-                               args=(json.dumps(matches), matches, best_match, key))
+                               args=(json.dumps(serializable_matches), matches, best_match, key))
 
         self.commit()
         return count
