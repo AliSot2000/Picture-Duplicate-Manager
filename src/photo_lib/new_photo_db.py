@@ -1820,10 +1820,7 @@ class PhotoDB(BaseSQliteDB):
         now_disallowed = 0
         same = 0
 
-        self.add_extra_cursor("update_allowed")
-        self.debug_execute(stmt=f"SELECT key, allowed, original_filename FROM `{tbl}` WHERE imported IN (0, 1)",
-                           cur="update_allowed")
-        for row in self.get_cursor("update_allowed"):
+        for row in self.update_allowed_iterator(tbl):
             key, _a, original_filename = row
             allowed = bool(_a)
 
@@ -1831,21 +1828,18 @@ class PhotoDB(BaseSQliteDB):
             #  files.
             if allowed and os.path.splitext(original_filename)[1] not in allowed_ext:
                 now_disallowed += 1
+                self.set_allowed(tbl_name=tbl, allowed=Allowed.NOT_ALLOWED_EXT, key=key)
                 self.main_logger.debug(f"{key} is now disallowed")
-                self.debug_execute(f"UPDATE `{tbl}` SET allowed = ?, imported = ? WHERE key = {key}",
-                                   (0, 0, key))
 
             elif not allowed and os.path.splitext(original_filename)[1] in allowed_ext:
                 now_allowed += 1
                 self.main_logger.debug(f"{key} is now allowed")
-                self.debug_execute(f"UPDATE `{tbl}` SET allowed = ? WHERE key = {key}",
-                                   (1, key))
+                self.set_allowed(tbl_name=tbl, allowed=Allowed.ALLOWED, key=key)
+
 
             else:
                 same += 1
                 self.main_logger.debug(f"{key} remains the same")
-
-        self.remove_extra_cursor("update_allowed")
 
         self.find_match_for_import_table(tbl)
         self.main_logger.info(f"Updated Allowed {tbl}. {now_allowed} now allowed, {now_disallowed} now disallowed, "
