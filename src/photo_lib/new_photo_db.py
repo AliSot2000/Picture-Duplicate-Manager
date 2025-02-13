@@ -579,6 +579,7 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT COUNT(main_key) FROM hash_update_table")
         return self.sq_cur.fetchone()[0]
 
+    # TODO move
     def update_hash_from_filename_table(self) -> Tuple[int, int]:
         """
         Updates the hash of the image file with the given file name.
