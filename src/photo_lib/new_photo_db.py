@@ -2183,7 +2183,6 @@ class PhotoDB(BaseSQliteDB):
         if rename:
             new_name = self.db_name(original_filename=original_name, key=key, fdt=new_dt)
 
-            # TODO CHECK if value error corrupts db
             self._internal_rename(key=key,
                                   flags=flags,
                                   dbn=db_name,
@@ -2196,7 +2195,6 @@ class PhotoDB(BaseSQliteDB):
                                (new_dt.isoformat(), new_dt.tzname(), new_name, key))
 
         else:
-            # TODO CHECK if value error corrupts db
             self._internal_move_file(ndt=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
 
             self.debug_execute("UPDATE main SET datetime = ?, timezone = ? WHERE key = ?",
