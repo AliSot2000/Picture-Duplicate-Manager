@@ -28,7 +28,7 @@ from photo_lib.sqlite_wrapper import BaseSQliteDB
 # https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
 # TODO mda is property what needed again?
 # TODO mda set during init
-class PhotoDB(BaseSQliteDB):
+class PhotoModel:
     __verified: bool = False
     config: Config
 
@@ -578,6 +578,9 @@ class PhotoDB(BaseSQliteDB):
         :parma move: move the file to the correct location based on it's datetime.
         """
         self.add_extra_cursor("update_filename")
+
+        # if self.db.filename_update_table_size == 0:
+        #     raise ValueError("FileName Update Table is empty")
         self.debug_execute("SELECT key, name, dir_name, best_match FROM name_update_table "
                            # Ensure match is HASH_MATCH_MAIN
                            "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2")
