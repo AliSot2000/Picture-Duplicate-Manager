@@ -976,7 +976,7 @@ class PhotoDB(BaseSQliteDB):
             # Need to update
             dir_key = None
             if os.path.dirname(dst_path) != os.path.dirname(tgt_path):
-                dir_key = self._insert_get_dir(os.path.dirname(dst_path))
+                dir_key = self.insert_get_dir(os.path.dirname(dst_path))
 
             os.rename(os.path.join(dir_name, name), os.path.join(os.path.dirname(tgt_path), name))
             flags.present = True
@@ -1522,7 +1522,7 @@ class PhotoDB(BaseSQliteDB):
             # Check if the directory matches the datetime
             if os.path.dirname(target_path) != os.path.join(self.root_path, self.dt_to_dir(dt)):
                 db_local_dir = os.path.dirname(target_path)
-                dir_key = self._insert_get_dir(dir_name=db_local_dir)
+                dir_key = self.insert_get_dir(dir_name=db_local_dir)
                 self.debug_execute("UPDATE metadata SET db_dir = ? WHERE main_key = ?", (dir_key, main_key))
 
             assert not os.path.exists(target_path), "Target path is not supposed to exist"
@@ -1534,7 +1534,7 @@ class PhotoDB(BaseSQliteDB):
 
             # Need to add a db_local_dir if the directory doesn't match the datetime of the image
             if ofd != dt_dir:
-                dir_key = self._insert_get_dir(ofd)
+                dir_key = self.insert_get_dir(ofd)
                 self.debug_execute("UPDATE metadata SET db_dir = ? WHERE main_key = ?", (dir_key, main_key))
 
         else:
@@ -2025,7 +2025,7 @@ class PhotoDB(BaseSQliteDB):
         assert os.path.exists(os.path.join(original_dirname, original_filename)), "Source File doesn't exist"
 
         if tgt_dir is not None:
-            dir_key = self._insert_get_dir(tgt_dir)
+            dir_key = self.insert_get_dir(tgt_dir)
         else:
             tgt_dir = os.path.join(self.root_path, self.dt_to_dir(fdt))
             if not os.path.exists(tgt_dir):
