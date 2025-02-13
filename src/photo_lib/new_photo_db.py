@@ -783,6 +783,13 @@ class PhotoDB(BaseSQliteDB):
     # GPS Table
     # ==================================================================================================================
 
+    def get_gps_table_size(self) -> int:
+        """
+        Get number of unique file hashes
+        """
+        self.debug_execute("SELECT COUNT(key) FROM gps_location")
+        return self.sq_cur.fetchone()[0]
+
     def insert_get_gps_loc(self, gps_lat: float, gps_long: float):
         """
         Get the Key of a given pair of GPS coordinates. If it doesn't exist, add it to the GPS Table.
