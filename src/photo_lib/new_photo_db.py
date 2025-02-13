@@ -3405,9 +3405,10 @@ class PhotoDB(BaseSQliteDB):
             if os.path.exists(file_path):
                 self.main_logger.debug(f"Deleting {db_name} from trash")
                 os.remove(file_path)
-                flags.present = False
                 count += 1
                 self.debug_execute(update_stmt, (flags.to_int(), key))
+
+            flags.present = False
 
             # Removing row in metadata table.
             self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (key,))
