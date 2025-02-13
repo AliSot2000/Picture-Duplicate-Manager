@@ -5,7 +5,7 @@ import logging
 import os.path
 import shutil
 import sys
-from typing import Set, Dict, List, Union, Tuple, Optional, Any
+from typing import Set, Dict, List, Union, Tuple, Optional, Any, Iterator
 from zoneinfo import ZoneInfo
 
 import cv2
@@ -15,7 +15,7 @@ import photo_lib.defaults as defaults
 from photo_lib.cache import Cache, nd
 from photo_lib.config import Config
 from photo_lib.custom_enum import GroupingCriterion, NewMatchTypes, SelectionType, MediaType
-from photo_lib.data_objects import Selection
+from photo_lib.data_objects import Selection, NewImportTableEntry
 from photo_lib.db_definitions import current_version, history, StaticDeclaration, GenericDeclaration
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
 from photo_lib.flag_dataclasses import MainFlags, GenericTableFlags
