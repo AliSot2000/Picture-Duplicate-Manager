@@ -2105,7 +2105,7 @@ class PhotoDB(BaseSQliteDB):
         if highest_match is None:
             return {}, None, NewMatchTypes.NO_MATCH
 
-        return {k: v.value for k, v in keys.items()}, highest_match_key, highest_match
+        return keys, highest_match_key, highest_match
 
     def insert_get_gps_loc(self, gps_lat: float, gps_long: float):
         """
