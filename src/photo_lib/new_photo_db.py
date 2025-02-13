@@ -353,12 +353,48 @@ class PhotoDB(BaseSQliteDB):
         Clear the content of the presence table.
         """
         self.debug_execute("DELETE FROM presence_table")
+        self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='presence_table'")
 
     def presence_table_empty(self) -> bool:
         """
         Check if the presence table contains any entries.
         """
         self.debug_execute("SELECT COUNT(main_key) FROM presence_table")
+        return self.sq_cur.fetchone()[0] == 0
+
+    def clear_hash_update_table(self):
+        """
+        Clear the content of the hash update table.
+        """
+        self.debug_execute("DELETE FROM hash_update_table")
+        self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='hash_update_table'")
+
+    def hash_update_table_empty(self) -> bool:
+        """
+        Check if the hash update table contains any entries.
+        """
+        self.debug_execute("SELECT COUNT(main_key) FROM hash_update_table")
+        return self.sq_cur.fetchone()[0] == 0
+
+    def get_size_of_hash_assoz_table(self) -> int:
+        """
+        Get the size of the hash_assoz table
+        """
+        self.debug_execute("SELECT COUNT(*) FROM hash_assoz")
+        return self.sq_cur.fetchone()[0]
+
+    def clear_filename_update_table(self):
+        """
+        Clear the filename update table.
+        """
+        self.debug_execute("DELETE FROM name_update_table")
+        self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='name_update_table'")
+
+    def filename_update_table_empty(self) -> bool:
+        """
+        Check whether the filename_update_table contains any entries.
+        """
+        self.debug_execute("SELECT COUNT(*) FROM name_update_table")
         return self.sq_cur.fetchone()[0] == 0
 
     # ==================================================================================================================
