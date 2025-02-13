@@ -624,8 +624,86 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count
 
+    def selection_from_presence_table(self,
+                                      tbl_name: str,
+                                      sel_a: bool = True,
+                                      missing: bool = True) -> int:
+        """
+        Set the selection flags based on the images which are eina given table.
+
+        INFO: Doesn't clear previously set flags. i.e. if you selected something before.
+
+        Checks Presence Table Exists and Presence Table isn't stale.
+
+        :param tbl_name: Presence table to take as a source
+        :param sel_a: Whether to set the sel_a flag or the sel_b flag
+        :param missing: Whether to get the files which are missing but marked as present or get the files which are
+        present but marked as missing
+
+        :return: Number of rows affected.
+        """
+        if self.presence_table_empty():
+            raise ValueError("Presence Table Empty, nothing to update.")
+
+        if missing and sel_a:
+            # Get the number of rows to update
+            self.debug_execute(f"SELECT COUNT(key) FROM main "
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               #     selection a                check present
+                               f"AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 1")
 
     def check_presence(self, from_select: bool = False):
+            count = self.sq_cur.fetchone()[0]
+
+            # Actually set the flag
+            self.debug_execute("UPDATE main SET flags = flags + 16 "
+                               "WHERE key IN (SELECT main_key FROM presence_table) "
+                               "AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 1")
+            return count
+        elif missing and not sel_a:
+            # Get the number of rows to update
+            self.debug_execute(f"SELECT COUNT(key) FROM main "
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               #     selection a                check present
+                               f"AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 1")
+
+            count = self.sq_cur.fetchone()[0]
+
+            # Actually set the flag
+            self.debug_execute("UPDATE main SET flags = flags + 32 "
+                               "WHERE key IN (SELECT main_key FROM presence_table) "
+                               "AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 1")
+            return count
+        elif not missing and sel_a:
+            # Get the number of rows to update
+            self.debug_execute(f"SELECT COUNT(key) FROM main "
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               #     selection a                check present
+                               f"AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 0")
+
+            count = self.sq_cur.fetchone()[0]
+
+            # Actually set the flag
+            self.debug_execute("UPDATE main SET flags = flags + 16 "
+                               "WHERE key IN (SELECT main_key FROM presence_table) "
+                               "AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 0")
+            return count
+        elif not missing and not sel_a:
+            # Get the number of rows to update
+            self.debug_execute(f"SELECT COUNT(key) FROM main "
+                               f"WHERE key IN (SELECT main_key FROM presence_table) "
+                               #     selection a                check present
+                               f"AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 0")
+
+            count = self.sq_cur.fetchone()[0]
+
+            # Actually set the flag
+            self.debug_execute("UPDATE main SET flags = flags + 32 "
+                               "WHERE key IN (SELECT main_key FROM presence_table) "
+                               "AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 0")
+            return count
+        else:
+            raise ImplementationError("Tertiem Non Datur")
         """
         Go through db and check that all files in the db are present in the file system.
 
