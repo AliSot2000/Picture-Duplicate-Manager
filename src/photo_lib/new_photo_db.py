@@ -90,9 +90,9 @@ class PhotoDB(BaseSQliteDB):
         return new_inst
 
     def __init__(self,
-                 root_path: str,
+                 db_path: str,
                  init: bool = False,
-                 config: Config = None,
+                 verify: bool = True,
                  init_loggers: bool = True,
                  opt_integrity_check: bool = False):
         """
@@ -103,75 +103,42 @@ class PhotoDB(BaseSQliteDB):
         - For initialization, you can provide the db with a custom config
         - Both the config and the db_file mustn't exist.
 
-        :param root_path: Root path of the database
+        :param db_path: Root path of the database
         :param init: If true, initialize the database.
-        :param config: Override the default config during initialization. Ignored otherwise
         :param init_loggers: If true, initialize the loggers. Otherwise, Loggers must be defined externally.
         :param opt_integrity_check: Every time full file paths are computed and flags are present. Flags consistency
             with file system are checked.
         """
-        self.main_logger = logging.getLogger(self.main_logger_name)
-        self.integrity_logger = logging.getLogger(self.integrity_logger_name)
+        self.logger = logging.getLogger(PhotoDB.db_logger_name)
+        self.integrity_logger = logging.getLogger(PhotoDB.integrity_logger_name)
+
         if init_loggers:
             self.set_logging_defaults()
 
-        self.filename_to_key_cache = Cache(size=1024)
-        self.key_to_filepath_cache = Cache(size=1024)
-
         self.build_definition_lookup()
-        self.root_path = os.path.abspath(root_path)
         self.opt_integrity_check = opt_integrity_check
-        cfg_path = defaults.config_path(self.root_path)
 
         # Prepping Config
         if not init:
-            if not os.path.exists(os.path.abspath(cfg_path)):
+            if not os.path.exists(db_path):
                 raise FileNotFoundError("Config File Not Found")
 
-            # Set the config
-            with open(os.path.abspath(cfg_path), "r") as f:
-                self.config = Config.model_validate_json(f.read())
-
-            if self.config.version != self.current_version:
-                raise ValueError(f"Incompatible Version. "
-                                 f"Expected: {self.current_version.major}.{self.current_version.minor}."
-                                 f"{self.current_version.patch},"
-                                 f"Got: {self.config.version.major}.{self.config.version.minor}.{self.config.version.patch}")
-
         else:
-            # Create default config if not provided
-            if config is None:
-                config = self.build_default_config()
-
-            if not os.path.exists(self.root_path):
-                self.main_logger.info("Create Root Path")
-                os.makedirs(self.root_path)
-
-            # Checking existence of config path
-            if os.path.exists(os.path.abspath(cfg_path)):
-                raise FileExistsError("Config File Exists")
-
             # Checking existence of db file
-            if os.path.exists(self.get_db_file_path(config)):
+            if os.path.exists(db_path):
                 raise FileExistsError("Database File Exists")
 
-            with open(os.path.abspath(cfg_path), "w") as f:
-                f.write(config.model_dump_json())
-
-            self.config = config
-
-        assert hasattr(self, "config") and self.config is not None, "Config must be populated by now"
-
-        # PRECONDITION: Config defined
-        super().__init__(self.get_db_file_path())
+        super().__init__(db_path)
 
         if init:
             self.init_db()
         else:
-            self.verify_version()
-
-        self.check_create_default_dirs()
-        # TODO empty presence, hash and name table.
+            if verify:
+                self._verify_tables()
+                self.clear_filename_update_table()
+                self.clear_hash_update_table()
+                self.clear_presence_table()
+                self.basic_integrity_check()
 
     def reload_loggers(self):
         """
