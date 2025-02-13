@@ -430,6 +430,79 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("list_import_tables")
 
+    def get_import_table_key_from_path(self, tbl_name: str, path: str) -> int | None:
+        """
+        Check whether a given path is already present in the import table.
+
+        :param tbl_name: Name of the table to search in
+        :param path: Path of given file to search
+
+        :returns: key of row given path in import table or none
+        """
+        dir_name, file_name = os.path.split(path)
+        self.debug_execute(f"SELECT key FROM `{tbl_name}` WHERE original_filename = ? AND original_dirname = ? ",
+                           (file_name, dir_name))
+
+        res = self.sq_cur.fetchone()
+
+        if res is None:
+            return None
+
+        return res[0]
+
+    def add_file_to_import_table(self,
+                                 tbl_name: str,
+                                 parsing_result: MetadataParsingResult,
+                                 allowed_ext: Set[str]):
+        """
+        Add file metadata to import table. Compute allowed state of file from filename
+
+        :param tbl_name: Name of table to add the file to
+        :param parsing_result: Parsing result of metadata aggregator
+        :param allowed_ext: Allowed file extensions, to compute allowed field.
+
+
+        :raises ValueError: If not append and file in table.
+        :raises sqlite3.OperationalError: If the Import Table doesn't exist
+        :raises sqlite3.IntegrityError: If the file path already exists
+        """
+        # Compute complex rows
+        allowed = os.path.splitext(parsing_result.filename)[1] in allowed_ext
+        md_str = json.dumps(parsing_result.metadata) if parsing_result.metadata else None
+        gfmd_str = json.dumps(parsing_result.google_photos_metadata) if parsing_result.google_photos_metadata else None
+        tz_str = parsing_result.tz_name if isinstance(parsing_result.tz_name, str) else parsing_result.tz_name.key
+
+        self.debug_execute(f"INSERT INTO `{tbl_name}` ("
+                           f"original_filename, "
+                           f"original_dirname, "
+                           f"metadata, "
+                           f"google_metadata, "
+                           f"file_hash, "
+                           f"file_size_bytes, "
+                           f"allowed, "
+                           f"datetime, "
+                           f"timezone, "
+                           f"naming_tag, "
+                           f"gps_latitude, "
+                           f"gps_longitude,"
+                           f"datetime_source) "
+                           f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                           args=(
+                               parsing_result.filename,
+                               parsing_result.dirname,
+                               md_str,
+                               gfmd_str,
+                               parsing_result.file_hash,
+                               parsing_result.file_size,
+                               1 if allowed else 0,
+                               parsing_result.creation_date.isoformat(),
+                               tz_str,
+                               parsing_result.naming_tag,
+                               parsing_result.gps_lat,
+                               parsing_result.gps_long,
+                               parsing_result.source.value
+                           ))
+
     # ==================================================================================================================
     # Presence Table
     # ==================================================================================================================
@@ -1896,63 +1969,6 @@ class PhotoDB(BaseSQliteDB):
         self.remove_extra_cursor("import_table")
         self.commit()
         return count
-
-    def _prepare_file_import(self, file_path: str, tbl_name: str, allowed_ext: Set[str], append: bool):
-        """
-        Handle Import for a singular file.
-
-        PRECONDITION:
-        - Filepath exists
-        - Table Exists
-        - File not in table
-
-        :raises ValueError: If not append and file in table.
-        """
-        dirname, filename = os.path.split(file_path)
-        self.debug_execute(f"SELECT key FROM `{tbl_name}` WHERE original_filename = ? AND original_dirname = ? ",
-                           (filename, dirname))
-
-        # Ensure file not in table yet.
-        if self.sq_cur.fetchone() is not None:
-            if append:
-                return
-            else:
-                raise ValueError(f"File {file_path} already exists in table {tbl_name}")
-
-        pres = self.mda.handle_file(file_path)
-        allowed = os.path.splitext(file_path)[1] in allowed_ext
-
-        self.debug_execute(f"INSERT INTO `{tbl_name}` ("
-                           f"original_filename, "
-                           f"original_dirname, "
-                           f"metadata, "
-                           f"google_metadata, "
-                           f"file_hash, "
-                           f"file_size_bytes, "
-                           f"allowed, "
-                           f"datetime, "
-                           f"timezone, "
-                           f"naming_tag, "
-                           f"gps_latitude, "
-                           f"gps_longitude,"
-                           f"datetime_source) "
-                           f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                           args=(
-                               pres.filename,
-                               pres.dirname,
-                               None if pres.metadata is None else self.sanitize_json(pres.metadata),
-                               None if pres.google_photos_metadata is None \
-                                   else self.sanitize_json(pres.google_photos_metadata),
-                               pres.file_hash,
-                               pres.file_size,
-                               1 if allowed else 0,
-                               pres.creation_date.isoformat(),
-                               pres.tz_name if isinstance(pres.tz_name, str) else pres.tz_name.key,
-                               pres.naming_tag,
-                               pres.gps_lat,
-                               pres.gps_long,
-                               pres.source.value
-                           ))
 
     def _import_file(self,
                      key: int,
