@@ -185,7 +185,7 @@ class PhotoDB(BaseSQliteDB):
             self.init_db()
         else:
             if verify:
-                self._verify_tables()
+                self.verify_tables()
                 self.clear_filename_update_table()
                 self.clear_hash_update_table()
                 self.clear_presence_table()
@@ -313,7 +313,7 @@ class PhotoDB(BaseSQliteDB):
     # Table Integrity Checks
     # ==================================================================================================================
 
-    def _verify_tables(self) -> bool:
+    def verify_tables(self) -> bool:
         """
         Go through all tables and check their definitions
 
