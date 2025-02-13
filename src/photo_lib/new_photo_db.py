@@ -2345,6 +2345,9 @@ class PhotoDB(BaseSQliteDB):
         :param dt: Datetime of current file
         :param ndt: New datetime of current file
         :param db_local_dir: Local path of current file if not standard.
+
+        :raises FileNotFoundError: if the path where the file is currently supposed to be doesn't exist
+        :raises FileExistsError: if the path where the file is supposed to be moved to does exist
         """
         # Parse the paths.
         if flags.trashed or flags.duplicate:
