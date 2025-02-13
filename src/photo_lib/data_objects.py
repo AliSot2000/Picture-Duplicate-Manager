@@ -6,7 +6,7 @@ from photo_lib.custom_enum import *
 from photo_lib.errors_and_warnings import ImplementationError
 
 """
-Dataclasses related to the backend of the phtoto library.
+Dataclasses related to the backend of the photo library.
 """
 
 
