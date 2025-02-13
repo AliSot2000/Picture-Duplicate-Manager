@@ -1539,7 +1539,7 @@ class PhotoDB(BaseSQliteDB):
         return count
 
     # INFO: long-running action
-    def check_new_files(self, allowed_ext: Set[str] = None) -> None | Tuple[str, int]:
+    def import_internal_new_files(self, allowed_ext: Set[str] = None) -> None | Tuple[str, int]:
         """
         Search the database folder itself for new files which were added by the user. Basically performs identical
         operation to import.
