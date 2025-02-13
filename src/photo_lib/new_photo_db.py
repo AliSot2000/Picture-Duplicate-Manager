@@ -503,6 +503,17 @@ class PhotoDB(BaseSQliteDB):
                                parsing_result.source.value
                            ))
 
+    def update_allowed_iterator(self, tbl_name: str) -> Iterator[Tuple[int, bool, str]]:
+        """
+        Creates an iterator to update the allowed state of the files in the import table.
+        """
+        self.add_extra_cursor("update_allowed")
+        self.debug_execute(stmt=f"SELECT key, allowed, original_filename FROM `{tbl_name}` WHERE imported IN (0, 1)")
+        for key, _allowed, org_fname in self.get_cursor("update_allowed"):
+            yield key, bool(_allowed), org_fname
+
+        self.remove_extra_cursor("update_allowed")
+
     # ==================================================================================================================
     # Presence Table
     # ==================================================================================================================
