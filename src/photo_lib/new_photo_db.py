@@ -1983,22 +1983,23 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("UPDATE metadata SET db_dir = ? WHERE main_key = ?",
                            (dir_key, key))
 
-    def get_newest_hash(self, key: int) -> str | None:
+    def get_newest_hash(self, key: int) -> Tuple[str, int] | Tuple[None, None]:
         """
         Get the newest hash of a given file. If the newest hash doesn't match, we don't perform binary comparison.
 
         :param key: File key to search for
-        :returns: None -> key not found, str, newest hash of the given file
+        :returns: Tuple[None, None] -> key not found, Tuple[str, int] -> newest hash and file_size_bytes of that hash.
         """
-        self.debug_execute("SELECT h.hash FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+        self.debug_execute("SELECT h.hash, ha.file_size_bytes "
+                           "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
                            "WHERE ha.file_key = ? AND ha.hash_date IN "
                            "(SELECT MAX(hash_date) FROM hash_assoz WHERE file_key = ?)",
                            (key, key))
         res = self.sq_cur.fetchone()
         if res is None:
-            return None
+            return None, None
 
-        return res[0]
+        return res[0], res[1]
 
     def _get_best_match_type(self, tgt_fp: str, file_hash: str, fsb: int) \
             -> Tuple[List[int], int | None, NewMatchTypes]:
