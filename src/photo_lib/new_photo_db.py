@@ -3267,9 +3267,7 @@ class PhotoDB(BaseSQliteDB):
             raise ValueError("Key not found in main table")
 
         # Removing all children in replaced
-        self.debug_execute("SELECT key FROM main WHERE parent = ?", (key,))
-        children = [r[0] for r in self.sq_cur.fetchall()]
-
+        children = self.list_children(key)
         if rec and len(children) > 0:
             raise CorruptDatabase("Got Entry where the children have children.")
 
