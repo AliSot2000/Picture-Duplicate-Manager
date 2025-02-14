@@ -1880,7 +1880,7 @@ class PhotoDB(BaseSQliteDB):
                 # File exists
                 else:
                     # Check that the file is in the correct directory.
-                    path = self.resolve_key_to_path(key)
+                    path = self._db_resolve_key_to_abs_path(key)
 
                     if not path == os.path.join(root, file):
                         self.integrity_logger.warning(f"File {file} found in db but path mismatch:"
