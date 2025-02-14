@@ -1555,7 +1555,7 @@ class PhotoDB(BaseSQliteDB):
             assert best_match is not None, "best_match shouldn't be None, SQL Error"
 
             # Try to get the parent's path
-            tgt_path = self._db_resolve_key_to_abs_path(best_match)
+            tgt_path = self.db_resolve_key_to_abs_path(best_match)
             if tgt_path is None:
                 self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
                                    ("Matched key doesn't exist in main table", key))
@@ -1743,7 +1743,7 @@ class PhotoDB(BaseSQliteDB):
 
             # Don't want to fuck up cache.
             self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True)
-            path = self._db_resolve_key_to_abs_path(key)
+            path = self.db_resolve_key_to_abs_path(key)
 
             if os.path.exists(path) and not flags.present:
                 self.insert_row_presence_table(key)
@@ -1785,7 +1785,7 @@ class PhotoDB(BaseSQliteDB):
                 continue
 
             for file in files:
-                tgt_key = self._db_resolve_filename_to_key(file)
+                tgt_key = self.db_resolve_filename_to_key(file)
 
                 if tgt_key is not None:
                     continue
@@ -1867,7 +1867,7 @@ class PhotoDB(BaseSQliteDB):
 
         for key, _flags in self.get_cursor("check_file_hashes"):
             flags = MainFlags.from_int(_flags)
-            org_path = self._db_resolve_key_to_abs_path(key)
+            org_path = self.db_resolve_key_to_abs_path(key)
 
             # Checks on path and flags
             assert org_path is not None, "Key in main table should resolve to path"
@@ -1943,7 +1943,7 @@ class PhotoDB(BaseSQliteDB):
                 continue
 
             for file in files:
-                key = self._db_resolve_filename_to_key(file)
+                key = self.db_resolve_filename_to_key(file)
 
                 # Name not in db, importing file
                 if key is None:
@@ -1957,7 +1957,7 @@ class PhotoDB(BaseSQliteDB):
                 # File exists
                 else:
                     # Check that the file is in the correct directory.
-                    path = self._db_resolve_key_to_abs_path(key)
+                    path = self.db_resolve_key_to_abs_path(key)
 
                     if not path == os.path.join(root, file):
                         self.integrity_logger.warning(f"File {file} found in db but path mismatch:"
@@ -2022,7 +2022,7 @@ class PhotoDB(BaseSQliteDB):
 
             # Check name ok and mark not allowed if necessary
             if not rename:
-                if self._db_resolve_filename_to_key(ofn) is not None:
+                if self.db_resolve_filename_to_key(ofn) is not None:
                     self.set_allowed(tbl_name=tbl, key=ik, allowed=Allowed.NOT_ALLOWED_ERR,
                                      message=f"File {ofn} already exists")
                     self.main_logger.info(f"Couldn't import file {ofn}, filename already used in db")
@@ -2040,7 +2040,7 @@ class PhotoDB(BaseSQliteDB):
                                f" datetime, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
                                (ofn, md, gfmd, db_name, dt.isoformat(), tz, flags.to_int()))
 
-            insert_key = self._db_resolve_filename_to_key(self.temp_db_name)
+            insert_key = self.db_resolve_filename_to_key(self.temp_db_name)
             assert insert_key is not None, "Key should exist after insert."
 
             # Handle metadata table
@@ -2499,7 +2499,7 @@ class PhotoDB(BaseSQliteDB):
                                f" datetime, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
                                (ofn, md.replace("'", "''"), gfmd.replace("'", "''"), self.temp_db_name,
                                 _dt, tz, default_flags.to_int()))
-            insert_key = self._db_resolve_filename_to_key(self.temp_db_name)
+            insert_key = self.db_resolve_filename_to_key(self.temp_db_name)
             assert insert_key is not None, "Key should exist after insert."
 
             # Handle metadata table
@@ -2769,7 +2769,7 @@ class PhotoDB(BaseSQliteDB):
         :param key: Key in main database to update with the new filename
         :param new_filename: The new file name to use. Sets the db_name column.
         """
-        if self._db_resolve_filename_to_key(new_filename):
+        if self.db_resolve_filename_to_key(new_filename):
             raise ValueError("Filename already exists in main table.")
 
         # PRECONDITION: Filename not present
