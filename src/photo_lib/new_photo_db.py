@@ -23,6 +23,7 @@ from photo_lib.sqlite_wrapper import BaseSQliteDB
 
 
 # https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
+# https://en.wikipedia.org/wiki/Join_(SQL)
 class PhotoDB(BaseSQliteDB):
     __verified: bool = False
 
