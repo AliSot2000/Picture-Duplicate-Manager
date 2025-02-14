@@ -28,6 +28,8 @@ class PhotoDB(BaseSQliteDB):
 
     static_decls: Dict[str, StaticDeclaration]
     generic_decls: Dict[str, GenericDeclaration]
+    config: Config
+    root_path: str
 
     __reserved_names: List[str] = ["<temp>"]
 
