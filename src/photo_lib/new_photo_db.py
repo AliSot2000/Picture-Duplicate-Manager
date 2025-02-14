@@ -3286,9 +3286,9 @@ class PhotoDB(BaseSQliteDB):
         if os.path.exists(fp):
             # Logging message
             if flags.trashed or flags.duplicate:
-                self.main_logger.debug(f"Deleting {db_name} from trash directory")
+                self.main_logger.debug(f"Deleting {os.path.basename(fp)} from trash directory")
             else:
-                self.main_logger.debug(f"Deleting {db_name} from main database")
+                self.main_logger.debug(f"Deleting {os.path.basename(fp)} from main database")
 
             # Actually removing the file
             os.remove(fp)
