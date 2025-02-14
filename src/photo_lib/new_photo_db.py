@@ -1,20 +1,16 @@
 import datetime
-import filecmp
 import json
 import logging
 import os.path
 import shutil
 import sys
-from typing import Set, Dict, List, Union, Tuple, Any, Iterator
+from typing import Set, Dict, List, Union, Tuple, Iterator
 from zoneinfo import ZoneInfo
-
-import cv2
-import ffmpeg
 
 import photo_lib.defaults as defaults
 from photo_lib.cache import nd
 from photo_lib.config import Config
-from photo_lib.custom_enum import GroupingCriterion, NewMatchTypes, SelectionType, MediaType, Allowed, ImportStatus
+from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus
 from photo_lib.data_objects import Selection, NewImportTableEntry
 from photo_lib.db_definitions import current_version, history, StaticDeclaration, GenericDeclaration
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
