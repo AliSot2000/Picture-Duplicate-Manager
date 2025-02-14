@@ -3423,6 +3423,7 @@ class PhotoDB(BaseSQliteDB):
     # Lookup Methods
     # ==================================================================================================================
 
+    # TODO Check against rename data
     def _db_resolve_key_to_abs_path(self, key: int) -> str | None:
         """
         Resolves a given key to an absolute filepath. The file doesn't have to exist.
