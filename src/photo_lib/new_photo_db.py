@@ -3331,7 +3331,7 @@ class PhotoDB(BaseSQliteDB):
 
         # Clearing Cache
         self.key_to_filepath_cache.evict(key)
-        self.filename_to_key_cache.evict(db_name)
+        self.filename_to_key_cache.evict(os.path.basename(fp))
 
         # Print info
         if not rec:
