@@ -3262,9 +3262,8 @@ class PhotoDB(BaseSQliteDB):
         Prunes empty gps_locs
         Prunes empty db_dirs
         """
-        self.debug_execute("SELECT m.db_name, m.flags FROM main AS m WHERE m.key = ?", (key, ))
-        row = self.sq_cur.fetchone()
-        if row is None:
+        flags = self.get_main_flags(key)
+        if flags is None:
             raise ValueError("Key not found in main table")
 
         # Removing all children in replaced
