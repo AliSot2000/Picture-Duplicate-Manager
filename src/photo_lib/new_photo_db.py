@@ -2647,7 +2647,11 @@ class PhotoDB(BaseSQliteDB):
             raise TypeError("target_tz must be str, a ZoneInfo or datetime.timedelta.")
 
         # Get current row
-        _, dt, flags, db_local_dir, db_name, original_name = self._get_rename_data(key=key)
+        pd = self.get_path_data(key=key)
+        if pd is None:
+            raise ValueError(f"Couldn't find Path data for key: {key}")
+
+        dt, flags, db_local_dir, db_name, original_name = pd
 
         if not flags.present or flags.trashed or flags.duplicate:
             raise ValueError("Cannot change datetime from files in trash, not present and duplicates")
@@ -2716,7 +2720,11 @@ class PhotoDB(BaseSQliteDB):
         if new_dt.tzinfo is None:
             raise ValueError("new_dt must have a timezone")
 
-        _, dt, flags, db_local_dir, db_name, original_name = self._get_rename_data(key=key)
+        pd = self.get_path_data(key=key)
+        if pd is None:
+            raise ValueError(f"Couldn't find Path data for key: {key}")
+
+        dt, flags, db_local_dir, db_name, original_name = pd
         new_name = self.db_name(original_filename=original_name, key=key, fdt=new_dt)
         timezone = new_dt.tzname()
         assert timezone is not None, "Unexpected timezone of None"
@@ -2773,7 +2781,11 @@ class PhotoDB(BaseSQliteDB):
             raise ValueError("Filename already exists in main table.")
 
         # PRECONDITION: Filename not present
-        _, dt, flags, db_local_dir, db_name, _ = self._get_rename_data(key=key)
+        pd = self.get_path_data(key=key)
+        if pd is None:
+            raise ValueError(f"Couldn't find Path data for key: {key}")
+
+        dt, flags, db_local_dir, db_name, _ = pd
 
         if not flags.present or flags.trashed or flags.duplicate:
             raise ValueError("Cannot change name from files in trash, not present and duplicates")
