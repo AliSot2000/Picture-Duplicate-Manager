@@ -3275,10 +3275,6 @@ class PhotoDB(BaseSQliteDB):
         for k in children:
             self._internal_forget(key=k, rec=True)
 
-        # Parse the row
-        db_name, _flags = row
-        flags = MainFlags.from_int(_flags)
-
         # TODO darktable
         # Remove files
         fp = self.resolve_key_to_path(key)
