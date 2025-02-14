@@ -1156,7 +1156,7 @@ class PhotoDB(BaseSQliteDB):
         :param file_key: The key of the file to check.
         :param initial: If this the hash gotten when hashing in the source directory of the import.
 
-        :return: True if the row exists, False if the rows were added.
+        :return: True if the row exists, False if the row were added.
         """
         # Consider the hashes a set of all hashes the file had at a given point. The hash to check during import is the one marked with initial
         self.debug_execute("SELECT h.hash, ha.hash_key, ha.file_key "
