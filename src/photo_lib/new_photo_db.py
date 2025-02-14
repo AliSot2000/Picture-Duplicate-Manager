@@ -3520,7 +3520,7 @@ class PhotoDB(BaseSQliteDB):
         return missing_thumb, present_thumb, correct_thumb, missing_min, present_min, correct_min
 
     # ==================================================================================================================
-    # Lookup Methods
+    # Path Lookup Methods
     # ==================================================================================================================
 
     @staticmethod
