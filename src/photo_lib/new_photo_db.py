@@ -2062,9 +2062,7 @@ class PhotoDB(BaseSQliteDB):
                     keys_to_delete.append(ktd)
                     first = False
 
-        # TODO in ? does work?
-        self.debug_execute("DELETE FROM db_dir WHERE key IN ?",
-                           (f"({', '.join(map(str, keys_to_delete))})",))
+        self.delete_dir(keys_to_delete)
 
         if len(keys_to_delete) > 0:
             self.main_logger.info(f"Pruned {len(keys_to_delete)} rows in dir table")
