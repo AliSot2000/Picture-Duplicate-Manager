@@ -2949,7 +2949,7 @@ class PhotoDB(BaseSQliteDB):
         - Moves the original file to the trash
         - Updates the flags of the file.
         """
-        self.debug_execute(stmt="SELECT key, db_name, flags  FROM main WHERE key = ?",
+        self.debug_execute(stmt="SELECT key, flags  FROM main WHERE key = ?",
                            args=(key,))
         _raw_res = self.sq_cur.fetchone()
 
@@ -2957,7 +2957,7 @@ class PhotoDB(BaseSQliteDB):
             raise ValueError(f"Key {key} not found in main table.")
 
         # Parse the row
-        k, dbn, _flags = _raw_res
+        k, _flags = _raw_res
         main_flags = MainFlags.from_int(_flags)
 
         if main_flags.trashed:
@@ -2966,9 +2966,9 @@ class PhotoDB(BaseSQliteDB):
         if main_flags.duplicate:
             raise ValueError("File is Duplicate")
 
-        # Get the paths
+        # INFO: Get the paths, using resolve correct, bc ui probably
         current_path = self.resolve_key_to_path(key)
-        target_path = os.path.join(self.get_trash_dir(), dbn)
+        target_path = os.path.join(self.get_trash_dir(), os.path.basename(current_path))
 
         # Store existence in flags
         main_flags.present = os.path.exists(current_path)
