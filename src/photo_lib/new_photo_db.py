@@ -1318,7 +1318,7 @@ class PhotoDB(BaseSQliteDB):
         else:
             raise TypeError("key_a and key_b must be either both list or both int.")
 
-    def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
+    def migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
         """
         Update the duplicates tables. All tuples with child_key, some_key are replaced by tuples of parent_key, some_key
 
@@ -1335,7 +1335,7 @@ class PhotoDB(BaseSQliteDB):
         results = self.sq_cur.fetchall()
 
         if len(results) > 0:
-            self.main_logger.debug(f"Changing {len(results)} `{tbl}` entries to the new parent")
+            self.logger.debug(f"Changing {len(results)} `{tbl}` entries to the new parent")
 
             args = []
             for result in results:
