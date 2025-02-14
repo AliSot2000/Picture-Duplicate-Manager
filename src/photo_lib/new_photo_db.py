@@ -3499,24 +3499,6 @@ class PhotoDB(BaseSQliteDB):
         self.check_flags(flags=flags, key=key, miniature=False, thumbnail=False, org_path=path)
         return path
 
-    def resolve_key_to_path(self, key: int) -> str | None:
-        """
-        Get the original filepath for media file. Path doesn't need to exist.
-
-        :param key: The key to resolve.
-
-        :returns: Path to the original file,
-        """
-        res = self.key_to_filepath_cache.get(key)
-
-        # Path is not in cache, resolve using db, store in cache and return value
-        if res is nd:
-            path = self._db_resolve_key_to_abs_path(key)
-            self.key_to_filepath_cache.set(key, path)
-            return path
-
-        return res
-
     def _db_resolve_filename_to_key(self, file_name: str) -> int | None:
         """
         Query the Database and get the key given a file name.
@@ -3531,20 +3513,6 @@ class PhotoDB(BaseSQliteDB):
 
         # PRECONDITION: number of results = 1
         return res[0][0]
-
-    def filename_to_key(self, fname: str) -> int | None:
-        """
-        Resolve a filename to key
-        """
-        res = self.filename_to_key_cache.get(fname)
-
-        # Key not in cache, resolve using db, store in cache and return value
-        if res is nd:
-            key = self._db_resolve_filename_to_key(fname)
-            self.filename_to_key_cache.set(fname, key)
-            return key
-
-        return res
 
     @staticmethod
     def dt_to_dir(dt: datetime.datetime) -> str:
@@ -3643,12 +3611,3 @@ class PhotoDB(BaseSQliteDB):
         Convert a list of dir names into a json list which can be inserted into the database.
         """
         return json.dumps(dir_names).replace("'", "''")
-
-    @staticmethod
-    def exif_tag_creator(dt: datetime.datetime) -> dict[str, str]:
-        """
-        Create a dict of
-        """
-        assert dt.tzinfo is not None, "Need a timezone aware object inside database"
-        return {"EXIF:ModifyDate": dt.strftime("%Y:%m:%d %H:%M:%S"),
-                "EXIF:OffsetTime": dt.strftime("%z")}
