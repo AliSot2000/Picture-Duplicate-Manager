@@ -921,6 +921,18 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("hash_update")
 
+    def insert_row_hash_update_table(self, key: int, new_hash: str, file_size: int):
+        """
+        Insert a new row into the hash_update_table.
+
+        :param key: Key of the file in the main table
+        :param new_hash: New hash of the file
+        :param file_size: New file size of the file
+        """
+        self.debug_execute(stmt="INSERT INTO hash_update_table (main_key, new_hash, file_size_bytes) VALUES (?, ?, ?)",
+                           args=(key, new_hash, file_size))
+
+        assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to Insert Row"
 
     # ==================================================================================================================
     # Name Update Table
