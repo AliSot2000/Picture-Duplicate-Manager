@@ -2769,7 +2769,7 @@ class PhotoDB(BaseSQliteDB):
         """
         self.add_extra_cursor("update_thumbnails")
 
-        self.debug_execute(stmt="SELECT m.key, m.db_name, m.flags FROM main AS m "
+        self.debug_execute(stmt="SELECT m.key, m.flags FROM main AS m "
         # Check present                 check trash                     check duplicate
                                 "WHERE mod(m.flags, 2) == 1 AND mod((m.flags >> 2), 2) == 0 AND mod((m.flags >> 8), 2) == 0",
                            cur="update_thumbnails")
@@ -2777,7 +2777,7 @@ class PhotoDB(BaseSQliteDB):
         missing: int = 0
         created: int = 0
         for row in self.get_cursor("update_thumbnails"):
-            key, dbn, _flags = row
+            key, _flags = row
 
             flags = MainFlags.from_int(_flags)
 
@@ -2792,7 +2792,8 @@ class PhotoDB(BaseSQliteDB):
             # checking for missing file
             if not os.path.exists(fp):
                 # INFO we're not updating the presence in the db because it doesn't fit the scope of this function.
-                self.integrity_logger.warning(f"File from DB is missing: {dbn}, in {os.path.dirname(fp)}")
+                self.integrity_logger.warning(f"File from DB is missing: {os.path.basename(fp)}, "
+                                              f"in {os.path.dirname(fp)}")
                 missing += 1
                 continue
 
