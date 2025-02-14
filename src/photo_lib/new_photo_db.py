@@ -1384,6 +1384,20 @@ class PhotoDB(BaseSQliteDB):
     # Main Table
     # ==================================================================================================================
 
+    def change_parent(self, key: int, new_parent: int):
+        """
+        Option to change a parent of a duplicate file, needed to undo an erroneous selection of the parent
+        """
+        self.debug_execute("UPDATE main SET parent = ? WHERE key = ?", (new_parent, key))
+
+    def list_children(self, key: int) -> List[int]:
+        """
+        List all files which have the given key as parent.
+        """
+        self.debug_execute("SELECT key FROM main WHERE parent = ?", (key,))
+        return [res[0] for res in self.sq_cur.fetchall()]
+
+
     # ==================================================================================================================
     # DB Integrity checks and utility
     # ==================================================================================================================
@@ -3069,19 +3083,6 @@ class PhotoDB(BaseSQliteDB):
         Only works if delete_trash wasn't called already
         """
         # TODO implement
-
-    def change_parent(self, key: int, new_parent: int):
-        """
-        Option to change a parent of a duplicate file, needed to undo an erroneous selection of the parent
-        """
-        self.debug_execute("UPDATE main SET parent = ? WHERE key = ?", (new_parent, key))
-
-    def list_children(self, key: int) -> List[int]:
-        """
-        List all files which have the given key as parent.
-        """
-        self.debug_execute("SELECT key FROM main WHERE parent = ?", (key,))
-        return [res[0] for res in self.sq_cur.fetchall()]
 
     def delete_trash_thumb(self, key: Union[List[int], int, None]) -> int:
         """
