@@ -1090,15 +1090,15 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT COUNT(*) FROM hash_assoz")
         return self.sq_cur.fetchone()[0]
 
-    def _find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
+    def find_hash_match_keys(self, target_hash: str, file_size: int, mode: str) -> List[int]:
         """
         Given a hash and file size, finds all file_keys which share this hash.
 
         mode (case-insensitive):
 
-        - EARLIEST, given a file_key, only take into account the earliest hash of that file
-        - LATEST, given a file_key, only take into account the latest hash of that file (detecting changed filenames)
-        - ANY, given a file_key, take into account all hashes the file has had (detecting duplicates)
+        - EARLIEST, given a file_key, only take into account the earliest hash of that file (not initial)
+        - LATEST, given a file_key, only take into account the latest hash of that file (including initial)
+        - ANY, given a file_key, take into account all hashes the file has had (including initial)
         - INITIAL, given a file_key, only look at initial hashes (importing)
 
         :param target_hash: Target hash to search for
@@ -1116,7 +1116,8 @@ class PhotoDB(BaseSQliteDB):
                                "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
                                "(SELECT MIN(datetime(ha.hash_date)) "
                                "FROM hash_assoz AS ha JOIN hash ON hash.key = ha.hash_key "
-                               "WHERE hash.hash = ? AND ha.file_size_bytes = ? GROUP BY hash_key, file_key)",
+                               "WHERE hash.hash = ? AND ha.file_size_bytes = ? AND ha.initial = 0 "
+                               "GROUP BY hash_key, file_key)",
                                (target_hash, file_size, target_hash, file_size))
 
         elif mode.lower() == "latest":
