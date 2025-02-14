@@ -1812,10 +1812,7 @@ class PhotoDB(BaseSQliteDB):
 
             # Different hash, update
             if new_hash != h:
-                self.debug_execute(stmt="INSERT INTO hash_update_table "
-                                        "(main_key, new_hash, file_size_bytes)"
-                                        "VALUES (?, ?, ?)",
-                                   args=(key, new_hash, file_size_bytes))
+                self.insert_row_hash_update_table(key=key, new_hash=new_hash, file_size=file_size_bytes)
                 count += 1
 
             # Rare occurrence
