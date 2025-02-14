@@ -560,7 +560,7 @@ class PhotoDB(BaseSQliteDB):
                                parsing_result.source.value
                            ))
 
-    def update_allowed_iterator(self, tbl_name: str) -> Iterator[Tuple[int, bool, str]]:
+    def update_allowed_iterator(self, tbl_name: str) -> Iterator[Tuple[int, Allowed, str]]:
         """
         Creates an iterator to update the allowed state of the files in the import table.
         """
