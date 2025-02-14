@@ -1434,19 +1434,14 @@ class PhotoDB(BaseSQliteDB):
         if self.hash_update_table_size() == 0:
             raise ValueError("Hash table is empty")
 
-        self.add_extra_cursor("update_hash")
-        self.debug_execute(stmt="SELECT main_key, new_hash, file_size_bytes FROM hash_update_table",
-                           cur="update_hash")
-
         modified = 0
         added = 0
-        for mk, nh, fsb in self.get_cursor("update_hash"):
+        for mk, nh, fsb in self.hash_update_iterator():
             added += int(not self.check_add_file_hash(file_hash=nh, file_key=mk, file_size=fsb))
             modified += 1
 
         self.logger.info(f"Updated {modified} file hashes. {added} of unseen hashes.")
 
-        self.remove_extra_cursor("update_hash")
         self.commit()
         return added, modified
 
