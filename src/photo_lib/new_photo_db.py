@@ -1199,6 +1199,176 @@ class PhotoDB(BaseSQliteDB):
         return True
 
     # ==================================================================================================================
+    # Duplicates and Known Duplicates Table
+    # ==================================================================================================================
+
+    def add_default_duplicate(self, key_a: int | List[int], key_b: int | List[int], delta: float | List[float] = None):
+        """
+        Add a pair into the duplicate table. If no delta is provided, a default of 0 is added.
+
+        :param key_a: The key of the first media file.
+        :param key_b: The key of the second media file.
+        :param delta: The delta metric between the images.
+        """
+        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=True, delta=delta)
+
+    def remove_default_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
+        """
+        Removes a pair of duplicates from the known_duplicates table.
+
+        :param key_a: The key of the first media file.
+        :param key_b: The key of the second media file.
+        """
+        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=False)
+
+    def add_known_duplicate(self, key_a: int | List[int], key_b: int | List[int], delta: float | List[float] = None):
+        """
+        Moves a pair of duplicates into the known_duplicates table.
+
+        :param key_a: The key of the first media file.
+        :param key_b: The key of the second media file.
+        :param delta: The delta metric between the images.
+        """
+        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=True, delta=delta)
+
+    def remove_known_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
+        """
+        Removes a pair of duplicates from the known_duplicates table.
+
+        :param key_a: The key of the first media file.
+        :param key_b: The key of the second media file.
+        """
+        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=False)
+
+    def _internal_modify_duplicates(self, key_a: int | List[int],
+                                    key_b: int | List[int],
+                                    known: bool,
+                                    add: bool,
+                                    delta: float | List[float] = None):
+        """
+        Internal Function to add or remove a duplicate tuple, parametrizes the table to modify and operation.
+
+        :param key_a: First key of Tuple
+        :param key_b: Second key of Tuple
+        :param known: If true, will remove the tuple from the known_duplicates table else duplicates table.
+        :param add: if true, will add the tuple to the table, else remove the tuple.
+        :param delta: Delta metric to add for the duplicates. (Only affects add calls)
+        """
+        tbl = "known_duplicates" if known else "duplicates"
+
+        if add:
+            if delta is not None:
+                op = f"INSERT OR IGNORE INTO `{tbl}` (key_a, key_b) VALUES (?, ?)"
+            else:
+                op = f"INSERT OR IGNORE INTO `{tbl}` (key_a, key_b, delta) VALUES (?, ?, ?)"
+        else:
+            op = f"DELETE FROM `{tbl}` WHERE key_a = ? AND key_b = ?"
+
+        if isinstance(key_a, int) and isinstance(key_b, int):
+            if delta is not None:
+                if not isinstance(delta, float):
+                    raise TypeError("float required if key_a and key_b are int")
+
+            if key_b == key_a:
+                raise ValueError("Identical Keys.")
+
+            if key_a >= key_b:
+                key_a, key_b = key_b, key_a
+
+            args = (key_a, key_b) if delta is None else (key_a, key_b, delta)
+
+            self.debug_execute(op, args)
+
+        elif isinstance(key_a, list) and isinstance(key_b, list):
+            if not len(key_a) == len(key_b):
+                raise ValueError("key_a and key_b must have same length")
+
+            if delta is not None:
+                if not isinstance(delta, list):
+                    raise TypeError("List[float] required if key_a and key_b are List[int]")
+
+                if not len(key_a) == len(delta):
+                    raise ValueError("delta and key_x must have the same length")
+
+            args = []
+            if delta is None:
+                for ka, kb in zip(key_a, key_b):
+                    if ka == kb:
+                        raise ValueError("Identical Keys.")
+
+                    args.append((kb, ka) if ka >= kb else (kb, ka))
+            else:
+                for ka, kb, dlt in zip(key_a, key_b, delta):
+                    if ka == kb:
+                        raise ValueError("Identical Keys.")
+
+                    args.append((kb, ka, dlt) if ka >= kb else (kb, ka, dlt))
+
+            self.debug_execute_many(op, args)
+        else:
+            raise TypeError("key_a and key_b must be either both list or both int.")
+
+    def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
+        """
+        Update the duplicates tables. All tuples with child_key, some_key are replaced by tuples of parent_key, some_key
+
+        :param child_key: Key to replace
+        :param parent_key: Key to use for replacement
+        :param known: True -> update known_duplicates table else duplicates
+        """
+        tbl = "known_duplicates" if known else "duplicates"
+
+        # Check Entries in duplicates table
+        self.debug_execute(f"SELECT key_a, key_b, delta FROM `{tbl}` WHERE key_a = ? OR key_b = ?",
+                           (child_key, child_key))
+
+        results = self.sq_cur.fetchall()
+
+        if len(results) > 0:
+            self.main_logger.debug(f"Changing {len(results)} `{tbl}` entries to the new parent")
+
+            args = []
+            for result in results:
+                if result[0] == child_key:
+                    args.append({"key_a": parent_key, "key_b": result[1], "delta": result[2]})
+                elif result[1] == child_key:
+                    args.append({"key_a": result[0], "key_b": parent_key, "delta": result[2]})
+                else:
+                    raise ImplementationError("Couldn't find targeted key. Erroneous SQL Statement?")
+
+            # Remove tuple of kind (parent_key, parent_key)
+            filtered_args = list(filter(lambda a: a["key_a"] != a["key_b"], args))
+            self._internal_modify_duplicates(key_a=[a["key_a"] for a in filtered_args],
+                                             key_b=[a["key_b"] for a in filtered_args],
+                                             known=known,
+                                             add=True,
+                                             delta=[a["delta"] for a in filtered_args])
+
+            self._internal_modify_duplicates(key_a=[r["key_a"] for r in results],
+                                             key_b=[r["key_b"] for r in results],
+                                             known=known,
+                                             add=False,
+                                             delta=[a["delta"] for a in results])
+
+    def remove_all_tuples_with_key(self, key: int, known: bool = False) -> int:
+        """
+        Removes all tuples either from the known_duplicates table or the duplicates table which contain the specified
+        key.
+
+        :param key: Key which needs to be contained for the tuple to be removed.
+        :param known: If true, will remove the tuples from the known_duplicates table else duplicates table.
+
+        :return: Number of removed tuples.
+        """
+        tbl = "known_duplicates" if known else "duplicates"
+
+        self.debug_execute(f"SELECT COUNT(*) FROM `{tbl}` WHERE key_a = ? AND key_b = ?", (key, key))
+        cnt = self.sq_cur.fetchone()[0]
+
+        self.debug_execute(f"DELETE FROM `{tbl}` WHERE key_a = ? OR key_b = ?", (key, key))
+        return cnt
+
+    # ==================================================================================================================
     # DB Integrity checks and utility
     # ==================================================================================================================
 
@@ -2333,172 +2503,6 @@ class PhotoDB(BaseSQliteDB):
         Partition can be the entire table like import table
         """
         ...
-
-    def add_default_duplicate(self, key_a: int | List[int], key_b: int | List[int], delta: float | List[float] = None):
-        """
-        Add a pair into the duplicate table. If no delta is provided, a default of 0 is added.
-
-        :param key_a: The key of the first media file.
-        :param key_b: The key of the second media file.
-        :param delta: The delta metric between the images.
-        """
-        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=True, delta=delta)
-
-    def remove_default_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
-        """
-        Removes a pair of duplicates from the known_duplicates table.
-
-        :param key_a: The key of the first media file.
-        :param key_b: The key of the second media file.
-        """
-        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=False, add=False)
-
-    def add_known_duplicate(self, key_a: int | List[int], key_b: int | List[int], delta: float | List[float] = None):
-        """
-        Moves a pair of duplicates into the known_duplicates table.
-
-        :param key_a: The key of the first media file.
-        :param key_b: The key of the second media file.
-        :param delta: The delta metric between the images.
-        """
-        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=True, delta=delta)
-
-    def remove_known_duplicate(self, key_a: int | List[int], key_b: int | List[int]):
-        """
-        Removes a pair of duplicates from the known_duplicates table.
-
-        :param key_a: The key of the first media file.
-        :param key_b: The key of the second media file.
-        """
-        self._internal_modify_duplicates(key_a=key_a, key_b=key_b, known=True, add=False)
-
-    def _internal_modify_duplicates(self, key_a: int | List[int],
-                                    key_b: int | List[int],
-                                    known: bool,
-                                    add: bool,
-                                    delta: float | List[float] = None):
-        """
-        Internal Function to add or remove a duplicate tuple, parametrizes the table to modify and operation.
-
-        :param key_a: First key of Tuple
-        :param key_b: Second key of Tuple
-        :param known: If true, will remove the tuple from the known_duplicates table else duplicates table.
-        :param add: if true, will add the tuple to the table, else remove the tuple.
-        :param delta: Delta metric to add for the duplicates. (Only affects add calls)
-        """
-        tbl = "known_duplicates" if known else "duplicates"
-
-        if add:
-            if delta is not None:
-                op = f"INSERT OR IGNORE INTO `{tbl}` (key_a, key_b) VALUES (?, ?)"
-            else:
-                op = f"INSERT OR IGNORE INTO `{tbl}` (key_a, key_b, delta) VALUES (?, ?, ?)"
-        else:
-            op = f"DELETE FROM `{tbl}` WHERE key_a = ? AND key_b = ?"
-
-        if isinstance(key_a, int) and isinstance(key_b, int):
-            if delta is not None:
-                if not isinstance(delta, float):
-                    raise TypeError("float required if key_a and key_b are int")
-
-            if key_b == key_a:
-                raise ValueError("Identical Keys.")
-
-            if key_a >= key_b:
-                key_a, key_b = key_b, key_a
-
-            args = (key_a, key_b) if delta is None else (key_a, key_b, delta)
-
-            self.debug_execute(op, args)
-
-        elif isinstance(key_a, list) and isinstance(key_b, list):
-            if not len(key_a) == len(key_b):
-                raise ValueError("key_a and key_b must have same length")
-
-            if delta is not None:
-                if not isinstance(delta, list):
-                    raise TypeError("List[float] required if key_a and key_b are List[int]")
-
-                if not len(key_a) == len(delta):
-                    raise ValueError("delta and key_x must have the same length")
-
-            args = []
-            if delta is None:
-                for ka, kb in zip(key_a, key_b):
-                    if ka == kb:
-                        raise ValueError("Identical Keys.")
-
-                    args.append((kb, ka) if ka >= kb else (kb, ka))
-            else:
-                for ka, kb, dlt in zip(key_a, key_b, delta):
-                    if ka == kb:
-                        raise ValueError("Identical Keys.")
-
-                    args.append((kb, ka, dlt) if ka >= kb else (kb, ka, dlt))
-
-            self.debug_execute_many(op, args)
-        else:
-            raise TypeError("key_a and key_b must be either both list or both int.")
-
-    def _migrate_parent_duplicate(self, child_key: int, parent_key: int, known: bool):
-        """
-        Update the duplicates tables. All tuples with child_key, some_key are replaced by tuples of parent_key, some_key
-
-        :param child_key: Key to replace
-        :param parent_key: Key to use for replacement
-        :param known: True -> update known_duplicates table else duplicates
-        """
-        tbl = "known_duplicates" if known else "duplicates"
-
-        # Check Entries in duplicates table
-        self.debug_execute(f"SELECT key_a, key_b, delta FROM `{tbl}` WHERE key_a = ? OR key_b = ?",
-                           (child_key, child_key))
-
-        results = self.sq_cur.fetchall()
-
-        if len(results) > 0:
-            self.main_logger.debug(f"Changing {len(results)} `{tbl}` entries to the new parent")
-
-            args = []
-            for result in results:
-                if result[0] == child_key:
-                    args.append({"key_a": parent_key, "key_b": result[1], "delta": result[2]})
-                elif result[1] == child_key:
-                    args.append({"key_a": result[0], "key_b": parent_key, "delta": result[2]})
-                else:
-                    raise ImplementationError("Couldn't find targeted key. Erroneous SQL Statement?")
-
-            # Remove tuple of kind (parent_key, parent_key)
-            filtered_args = list(filter(lambda a: a["key_a"] != a["key_b"], args))
-            self._internal_modify_duplicates(key_a=[a["key_a"] for a in filtered_args],
-                                             key_b=[a["key_b"] for a in filtered_args],
-                                             known=known,
-                                             add=True,
-                                             delta=[a["delta"] for a in filtered_args])
-
-            self._internal_modify_duplicates(key_a=[r["key_a"] for r in results],
-                                             key_b=[r["key_b"] for r in results],
-                                             known=known,
-                                             add=False,
-                                             delta=[a["delta"] for a in results])
-
-    def remove_all_tuples_with_key(self, key: int, known: bool = False) -> int:
-        """
-        Removes all tuples either from the known_duplicates table or the duplicates table which contain the specified
-        key.
-
-        :param key: Key which needs to be contained for the tuple to be removed.
-        :param known: If true, will remove the tuples from the known_duplicates table else duplicates table.
-
-        :return: Number of removed tuples.
-        """
-        tbl = "known_duplicates" if known else "duplicates"
-
-        self.debug_execute(f"SELECT COUNT(*) FROM `{tbl}` WHERE key_a = ? AND key_b = ?", (key, key))
-        cnt = self.sq_cur.fetchone()[0]
-
-        self.debug_execute(f"DELETE FROM `{tbl}` WHERE key_a = ? OR key_b = ?", (key, key))
-        return cnt
 
     # ==================================================================================================================
     # UI
