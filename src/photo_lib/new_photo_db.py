@@ -1238,6 +1238,18 @@ class PhotoDB(BaseSQliteDB):
 
         return True
 
+    def delete_file_association(self, file_key: int) -> int:
+        """
+        Delete all associations between a file and its hashes over its life time.
+
+        :parma file_key: The key of the file to delete.
+
+        :returns: Number of Rows deleted
+        """
+        self.debug_execute("DELETE FROM hash_assoz WHERE file_key = ?", (file_key,))
+
+        return self.sq_cur.rowcount
+
     # ==================================================================================================================
     # Duplicates and Known Duplicates Table
     # ==================================================================================================================
@@ -1507,6 +1519,69 @@ class PhotoDB(BaseSQliteDB):
         # PRECONDITION: number of results = 1
         return res[0][0]
 
+    def update_trash_flag_from_selection(self, selection: Selection, target_value: bool):
+        """
+        Update the files which have aren't present to have been moved to the trash.
+
+        :param selection: Selection of Files to update
+        :param target_value: bool, whether to set the flag to True or False
+        """
+        if target_value:
+            update_stmt = "UPDATE main SET flags = flags + 4 "
+            args = tuple()
+
+            # handle selection
+            if selection.selection_type == SelectionType.SELECTION_A:
+                where_stmt = "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1"
+            elif selection.selection_type == SelectionType.SELECTION_B:
+                where_stmt = "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1"
+            elif selection.selection_type == SelectionType.TIME_RANGE:
+                where_stmt = ("WHERE mod(flags >> 2, 2) = 0 "
+                              "AND datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)")
+                args = (selection.start.isoformat(), selection.end.isoformat())
+            else:
+                raise ImplementationError("Unknown selection type")
+
+            assert where_stmt is not None, "Where statement needed"
+
+            # Get affected rows
+            self.debug_execute(stmt="SELECT COUNT(key) FROM main " + where_stmt,
+                               args=args)
+            count = self.sq_cur.fetchone()[0]
+
+            # Execute statement
+            self.debug_execute(stmt=update_stmt + where_stmt, args=args)
+        else:
+            update_stmt = "UPDATE main SET flags = flags - 4 "
+            args = tuple()
+
+            # handle selection
+            if selection.selection_type == SelectionType.SELECTION_A:
+                where_stmt = "WHERE mod(flags >> 2, 2) = 1 AND mod(flags >> 4, 2) = 1"
+            elif selection.selection_type == SelectionType.SELECTION_B:
+                where_stmt = "WHERE mod(flags >> 2, 2) = 1 AND mod(flags >> 5, 2) = 1"
+            elif selection.selection_type == SelectionType.TIME_RANGE:
+                where_stmt = ("WHERE mod(flags >> 2, 2) = 1 "
+                              "AND datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)")
+                args = (selection.start.isoformat(), selection.end.isoformat())
+            else:
+                raise ImplementationError("Unknown selection type")
+
+            assert where_stmt is not None, "Where statement needed"
+
+            # Get affected rows
+            self.debug_execute(stmt="SELECT COUNT(key) FROM main " + where_stmt,
+                               args=args)
+            count = self.sq_cur.fetchone()[0]
+
+            # Execute statement
+            self.debug_execute(stmt=update_stmt + where_stmt, args=args)
+
+        self.main_logger.debug(f"updated {count} entries in main table to have trash flag = {target_value} "
+                               f"where selection type = {selection}")
+        self.commit()
+        return count
+
     # ==================================================================================================================
     # DB Integrity checks and utility
     # ==================================================================================================================
@@ -1608,69 +1683,6 @@ class PhotoDB(BaseSQliteDB):
 
         self.commit()
         return count, conflict
-
-    def update_trash_flag_from_selection(self, selection: Selection, target_value: bool):
-        """
-        Update the files which have aren't present to have been moved to the trash.
-
-        :param selection: Selection of Files to update
-        :param target_value: bool, whether to set the flag to True or False
-        """
-        if target_value:
-            update_stmt = "UPDATE main SET flags = flags + 4 "
-            args = tuple()
-
-            # handle selection
-            if selection.selection_type == SelectionType.SELECTION_A:
-                where_stmt = "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1"
-            elif selection.selection_type == SelectionType.SELECTION_B:
-                where_stmt = "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1"
-            elif selection.selection_type == SelectionType.TIME_RANGE:
-                where_stmt = ("WHERE mod(flags >> 2, 2) = 0 "
-                              "AND datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)")
-                args = (selection.start.isoformat(), selection.end.isoformat())
-            else:
-                raise ImplementationError("Unknown selection type")
-
-            assert where_stmt is not None, "Where statement needed"
-
-            # Get affected rows
-            self.debug_execute(stmt="SELECT COUNT(key) FROM main " + where_stmt,
-                               args=args)
-            count = self.sq_cur.fetchone()[0]
-
-            # Execute statement
-            self.debug_execute(stmt=update_stmt + where_stmt, args=args)
-        else:
-            update_stmt = "UPDATE main SET flags = flags - 4 "
-            args = tuple()
-
-            # handle selection
-            if selection.selection_type == SelectionType.SELECTION_A:
-                where_stmt = "WHERE mod(flags >> 2, 2) = 1 AND mod(flags >> 4, 2) = 1"
-            elif selection.selection_type == SelectionType.SELECTION_B:
-                where_stmt = "WHERE mod(flags >> 2, 2) = 1 AND mod(flags >> 5, 2) = 1"
-            elif selection.selection_type == SelectionType.TIME_RANGE:
-                where_stmt = ("WHERE mod(flags >> 2, 2) = 1 "
-                              "AND datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)")
-                args = (selection.start.isoformat(), selection.end.isoformat())
-            else:
-                raise ImplementationError("Unknown selection type")
-
-            assert where_stmt is not None, "Where statement needed"
-
-            # Get affected rows
-            self.debug_execute(stmt="SELECT COUNT(key) FROM main " + where_stmt,
-                               args=args)
-            count = self.sq_cur.fetchone()[0]
-
-            # Execute statement
-            self.debug_execute(stmt=update_stmt + where_stmt, args=args)
-
-        self.main_logger.debug(f"updated {count} entries in main table to have trash flag = {target_value} "
-                               f"where selection type = {selection}")
-        self.commit()
-        return count
 
     # INFO: long-running action,
     def check_presence(self, selection: Selection = None, mtype: MediaType = MediaType.MAIN):
@@ -3404,7 +3416,7 @@ class PhotoDB(BaseSQliteDB):
             os.remove(self.full_thumbnail_path(key))
 
         # Remove hashes of parent
-        self.debug_execute("DELETE FROM hash_assoz WHERE file_key = ?", (key,))
+        self.delete_file_association(key)
 
         # Remove row from metadata
         self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (key,))
