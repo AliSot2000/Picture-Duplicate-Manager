@@ -3119,13 +3119,13 @@ class PhotoDB(BaseSQliteDB):
         # Remove display files:
         self.main_logger.info(f"Deleting Thumbnails of existing images.")
         self.add_extra_cursor("rm_disp_media")
-        self.debug_execute("SELECT key, flags, db_name FROM main "
+        self.debug_execute("SELECT key, flags FROM main "
                            # Check present = 1,            Check trash = 0           check duplicate = 0
                            "WHERE mod(flags, 2) = 1 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 8, 2) = 0",
                            cur="rm_disp_media")
 
         for row in self.get_cursor("rm_disp_media"):
-            key, _flags, db_name = row
+            key, _flags = row
             flags = MainFlags.from_int(_flags)
 
             assert flags.trashed is False and flags.duplicate, "SQL Error, Trashed should be false."
