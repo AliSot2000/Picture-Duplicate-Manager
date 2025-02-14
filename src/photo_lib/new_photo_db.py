@@ -80,6 +80,8 @@ class PhotoDB(BaseSQliteDB):
         inst.cleanup(fast=True)
 
         new_inst = cls(db_path=inst.db_path,
+                       root_path=inst.root_path,
+                       config=inst.config,
                        init=False,
                        init_loggers=False,
                        verify=False,
@@ -137,9 +139,10 @@ class PhotoDB(BaseSQliteDB):
 
         return super().debug_execute_many(stmt=stmt, args=args, cur=cur)
 
-
     def __init__(self,
                  db_path: str,
+                 root_path: str,
+                 config: Config,
                  init: bool = False,
                  verify: bool = True,
                  init_loggers: bool = True,
@@ -153,6 +156,8 @@ class PhotoDB(BaseSQliteDB):
         - Both the config and the db_file mustn't exist.
 
         :param db_path: Root path of the database
+        :param root_path: Root path of the database
+        :param config: Config Object needed for path resolution. Config isn't verified or checked in any way.
         :param init: If true, initialize the database.
         :param init_loggers: If true, initialize the loggers. Otherwise, Loggers must be defined externally.
         :param opt_integrity_check: Every time full file paths are computed and flags are present. Flags consistency
@@ -160,6 +165,10 @@ class PhotoDB(BaseSQliteDB):
         """
         self.logger = logging.getLogger(PhotoDB.db_logger_name)
         self.integrity_logger = logging.getLogger(PhotoDB.integrity_logger_name)
+
+        # Needed for path generation.
+        self.config = config
+        self.root_path = root_path
 
         if init_loggers:
             self.set_logging_defaults()
