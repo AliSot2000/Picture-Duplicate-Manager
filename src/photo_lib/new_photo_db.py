@@ -903,36 +903,6 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT COUNT(main_key) FROM hash_update_table")
         return self.sq_cur.fetchone()[0]
 
-    # TODO move
-    def update_hash_from_filename_table(self) -> Tuple[int, int]:
-        """
-        Updates the hash of the image file with the given file name.
-
-        :return: number of new entries in hash_assoz table, number of hashes updated
-        """
-        if self.hash_update_table_size() == 0:
-            raise ValueError("Hash table is empty")
-
-        # Get the size of the hash assoz table
-        current_size = self.get_size_of_hash_assoz_table()
-
-        self.add_extra_cursor("update_hash")
-        self.debug_execute(stmt="SELECT main_key, new_hash, file_size_bytes FROM hash_update_table",
-                           cur="update_hash")
-
-        count = 0
-        for mk, nh, fsb in self.get_cursor("update_hash"):
-            self.check_add_file_hash(file_hash=nh, file_key=mk, file_size=fsb)
-            count += 1
-
-        new_size = self.get_size_of_hash_assoz_table()
-
-        self.logger.info(f"Updated {count} file hashes. {new_size - current_size} of unseen hashes.")
-
-        self.remove_extra_cursor("update_hash")
-        self.commit()
-        return new_size - current_size, count
-
     # ==================================================================================================================
     # Name Update Table
     # ==================================================================================================================
@@ -1394,6 +1364,36 @@ class PhotoDB(BaseSQliteDB):
     # DB Integrity checks and utility
     # ==================================================================================================================
 
+    # INFO: long-running action
+    def update_hash_from_filename_table(self) -> Tuple[int, int]:
+        """
+        Updates the hash of the image file with the given file name.
+
+        # INFO: Because this function is a long running action, it isn't a database function
+        #   (despite being only in the db)
+
+        :return: number of new entries in hash_assoz table, number of hashes updated
+        """
+        if self.hash_update_table_size() == 0:
+            raise ValueError("Hash table is empty")
+
+        self.add_extra_cursor("update_hash")
+        self.debug_execute(stmt="SELECT main_key, new_hash, file_size_bytes FROM hash_update_table",
+                           cur="update_hash")
+
+        modified = 0
+        added = 0
+        for mk, nh, fsb in self.get_cursor("update_hash"):
+            added += int(not self.check_add_file_hash(file_hash=nh, file_key=mk, file_size=fsb))
+            modified += 1
+
+        self.logger.info(f"Updated {modified} file hashes. {added} of unseen hashes.")
+
+        self.remove_extra_cursor("update_hash")
+        self.commit()
+        return added, modified
+
+    # INFO: long-running action,
     def update_filename_from_hash(self, move: bool):
         """
         Update the names of files resolved through hash and filesize.
