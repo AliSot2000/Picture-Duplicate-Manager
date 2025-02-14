@@ -1428,6 +1428,83 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT key FROM main WHERE parent = ?", (key,))
         return [res[0] for res in self.sq_cur.fetchall()]
 
+    def get_path_data(self, key: int) -> Tuple[datetime.datetime, MainFlags, str, str, str] | None:
+        """
+        Get the necessary data from the database to rename a file
+
+        :param key: Key to query the db for
+
+        :returns: Tuple(datetime, flags, db_local_dir, db_name, original_name)
+        """
+        # TODO test this function
+        self.debug_execute(stmt="SELECT m.db_name, d.db_local_dir, m.datetime, m.flags, m.original_filename "
+                                "FROM main AS m "
+                                "LEFT OUTER JOIN metadata AS md ON m.key = md.main_key "
+                                "LEFT OUTER JOIN db_dir AS d ON md.db_dir = d.key "
+                                "WHERE m.key = ? ",
+                           args=(key,))
+        row = self.sq_cur.fetchone()
+        if row is None:
+            return None
+
+        db_name, db_local_dir, _dt, _flags, original_filename = row
+
+        dt = datetime.datetime.fromisoformat(_dt)
+        flags = MainFlags.from_int(_flags)
+
+        return dt, flags, db_local_dir, db_name, original_filename
+
+    def get_main_flags(self, key: int) -> None | MainFlags:
+        """
+        Get the flags from any entry in the main table
+        """
+        self.debug_execute("SELECT flags FROM main WHERE key = ?", (key,))
+        res = self.sq_cur.fetchone()
+        if res is None:
+            return None
+
+        return MainFlags.from_int(res[0])
+
+    def db_resolve_key_to_abs_path(self, key: int) -> str | None:
+        """
+        Resolves a given key to an absolute filepath. The file doesn't have to exist.
+
+        :param key: The key to resolve.
+        """
+        pd = self.get_path_data(key)
+        if pd is None:
+            return None
+
+        dt, flags, db_local_dir, db_name, _ = pd
+
+        # Parse the paths.
+        if flags.trashed or flags.duplicate:
+            path = os.path.join(self.get_trash_dir(), db_name)
+        elif db_local_dir is not None:
+            path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), db_name)
+        else:
+            assert db_local_dir is None and dt is not None, \
+                f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {dt}"
+            path = os.path.join(self.root_path, self.dt_to_dir(dt), db_name)
+
+        # TODO check in outer function
+        # self.check_flags(flags=flags, key=key, miniature=False, thumbnail=False, org_path=path)
+        return path
+
+    def db_resolve_filename_to_key(self, file_name: str) -> int | None:
+        """
+        Query the Database and get the key given a file name.
+        """
+        self.debug_execute("SELECT key FROM main WHERE db_name = ? ", (file_name,))
+        res = self.sq_cur.fetchall()
+        if len(res) == 0:
+            return None
+
+        if len(res) > 1:
+            raise CorruptDatabase(f"file_name {file_name} appears in main and replaced table.")
+
+        # PRECONDITION: number of results = 1
+        return res[0][0]
 
     # ==================================================================================================================
     # DB Integrity checks and utility
@@ -3432,62 +3509,6 @@ class PhotoDB(BaseSQliteDB):
     # ==================================================================================================================
     # Lookup Methods
     # ==================================================================================================================
-
-    # TODO Check against rename data
-    def _db_resolve_key_to_abs_path(self, key: int) -> str | None:
-        """
-        Resolves a given key to an absolute filepath. The file doesn't have to exist.
-
-        :param key: The key to resolve.
-        """
-        # TODO test.
-        self.debug_execute(stmt="SELECT m.key, m.db_name, d.db_local_dir, m.datetime, m.flags "
-                                "FROM main AS m "
-                                "LEFT OUTER JOIN metadata AS md ON m.key = md.main_key "
-                                "LEFT OUTER JOIN db_dir AS d ON md.db_dir = d.key "
-                                "WHERE m.key = ? ",
-                           args=(key,))
-
-        res = self.sq_cur.fetchall()
-        if len(res) == 0:
-            return None
-
-        # Result is not None
-        if len(res) > 1:
-            raise CorruptDatabase(f"Key duplicated.")
-
-        # PRECONDITION, len(res) == 1
-        _, db_name, db_local_dir, _dt, _flags = res[0]
-        dt = datetime.datetime.fromisoformat(_dt)
-        flags = MainFlags.from_int(_flags)
-
-        # Parse the paths.
-        if flags.trashed or flags.duplicate:
-            path = os.path.join(self.get_trash_dir(), db_name)
-        elif db_local_dir is not None:
-            path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), db_name)
-        else:
-            assert db_local_dir is None and dt is not None, \
-                f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {dt}"
-            path = os.path.join(self.root_path, self.dt_to_dir(dt), db_name)
-
-        self.check_flags(flags=flags, key=key, miniature=False, thumbnail=False, org_path=path)
-        return path
-
-    def _db_resolve_filename_to_key(self, file_name: str) -> int | None:
-        """
-        Query the Database and get the key given a file name.
-        """
-        self.debug_execute("SELECT key FROM main WHERE db_name = ? ", (file_name,))
-        res = self.sq_cur.fetchall()
-        if len(res) == 0:
-            return None
-
-        if len(res) > 1:
-            raise CorruptDatabase(f"file_name {file_name} appears in main and replaced table.")
-
-        # PRECONDITION: number of results = 1
-        return res[0][0]
 
     @staticmethod
     def dt_to_dir(dt: datetime.datetime) -> str:
