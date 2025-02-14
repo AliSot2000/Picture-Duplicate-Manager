@@ -1605,11 +1605,11 @@ class PhotoDB(BaseSQliteDB):
             path = self._db_resolve_key_to_abs_path(key)
 
             if os.path.exists(path) and not flags.present:
-                self.debug_execute(f"INSERT INTO presence_table (main_key) VALUES (?)", (key,))
+                self.insert_row_presence_table(key)
                 count += 1
 
             elif not os.path.exists(path) and flags.present:
-                self.debug_execute(f"INSERT INTO presence_table (main_key) VALUES (?)", (key,))
+                self.insert_row_presence_table(key)
                 count += 1
 
         self.remove_extra_cursor("check_presence")
