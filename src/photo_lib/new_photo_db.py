@@ -903,6 +903,25 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT COUNT(main_key) FROM hash_update_table")
         return self.sq_cur.fetchone()[0]
 
+    def hash_update_iterator(self) -> Iterator[Tuple[int, str, int]]:
+        """
+        Returns an iterator to the table containing the information to update the file hashes.
+
+        Tuple elements are in this sequence:
+
+        - main_key (key in the main table)
+        - new_hash newly computed file hash of that file
+        - file_size_bytes (new) file size of the given file.
+        """
+        self.add_extra_cursor("hash_update")
+        self.debug_execute("SELECT main_key, new_hash, file_size_bytes")
+
+        for main_key, hash_str, file_size in self.get_cursor("hash_update"):
+            yield main_key, hash_str, file_size
+
+        self.remove_extra_cursor("hash_update")
+
+
     # ==================================================================================================================
     # Name Update Table
     # ==================================================================================================================
