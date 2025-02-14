@@ -111,3 +111,9 @@ class Allowed(Enum):
     NOT_ALLOWED_EXT = 0
     ALLOWED = 1
     NOT_ALLOWED_ERR = 2
+
+
+class ImportStatus(Enum):
+    IGNORE = 0
+    MARKED_FOR_IMPORT = 1
+    IMPORTED = 2
