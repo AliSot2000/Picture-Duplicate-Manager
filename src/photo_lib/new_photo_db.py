@@ -873,6 +873,18 @@ class PhotoDB(BaseSQliteDB):
         else:
             raise ImplementationError("Tertiem Non Datur")
 
+    def insert_row_presence_table(self, key: int):
+        """
+        Insert a key into the presence_table to indicate a mismatch between the presence flag and the file system.
+
+        :param key: key to add into the presence_table
+
+        :raises sqlite3.IntegrityError: If the file path already exists
+        """
+        self.debug_execute(f"INSERT INTO presence_table (main_key) VALUES (?)", (key,))
+
+        assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to Insert Row"
+
     # ==================================================================================================================
     # Hash Update Table
     # ==================================================================================================================
