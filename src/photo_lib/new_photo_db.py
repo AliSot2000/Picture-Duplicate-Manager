@@ -3181,11 +3181,11 @@ class PhotoDB(BaseSQliteDB):
 
         self.add_extra_cursor("del_trash")
         if duplicates:
-            self.debug_execute(stmt="SELECT key, db_name, flags FROM main WHERE mod(flags >> 8, 2) = 1",
+            self.debug_execute(stmt="SELECT key, flags FROM main WHERE mod(flags >> 8, 2) = 1",
                                cur="del_trash")
             update_stmt = "UPDATE replaced SET flags = ? WHERE key = ? "
         else:
-            self.debug_execute(stmt="SELECT key, db_name, flags FROM main WHERE mod(flags >> 2, 2) = 1",
+            self.debug_execute(stmt="SELECT key, flags FROM main WHERE mod(flags >> 2, 2) = 1",
                                cur="del_trash")
             update_stmt = f"UPDATE main SET flags = ? WHERE key = ?"
 
@@ -3193,7 +3193,7 @@ class PhotoDB(BaseSQliteDB):
 
         # Remove originals from files marked as trash
         for row in self.get_cursor("del_trash"):
-            key, db_name, _flags = row
+            key, _flags = row
             flags = MainFlags.from_int(_flags)
 
             # Check for consistency
@@ -3208,7 +3208,7 @@ class PhotoDB(BaseSQliteDB):
             self.check_flags(key=key, flags=flags, org_path=file_path)
 
             if os.path.exists(file_path):
-                self.main_logger.debug(f"Deleting {db_name} from trash")
+                self.main_logger.debug(f"Deleting {os.path.basename(file_path)} from trash")
                 os.remove(file_path)
                 count += 1
                 self.debug_execute(update_stmt, (flags.to_int(), key))
