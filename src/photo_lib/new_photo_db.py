@@ -650,7 +650,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Iterator to get all rows which can be imported from the import table.
 
-        Tuple are in this sequence:
+        Tuple elements are in this sequence:
 
         - key: (key of row in import table)
         - original_filename
@@ -709,7 +709,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Get an iterator with the necessary information to check for matches in the main table.
 
-        Tuple are in this sequence:
+        Tuple elements are in this sequence:
 
         - import table key
         - original file name
