@@ -1291,14 +1291,14 @@ class PhotoDB(BaseSQliteDB):
 
         elif isinstance(key_a, list) and isinstance(key_b, list):
             if not len(key_a) == len(key_b):
-                raise ValueError("key_a and key_b must have same length")
+                raise IndexError("key_a and key_b must have same length")
 
             if delta is not None:
                 if not isinstance(delta, list):
                     raise TypeError("List[float] required if key_a and key_b are List[int]")
 
                 if not len(key_a) == len(delta):
-                    raise ValueError("delta and key_x must have the same length")
+                    raise IndexError("delta and key_x must have the same length")
 
             args = []
             if delta is None:
