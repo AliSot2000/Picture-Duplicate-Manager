@@ -560,17 +560,6 @@ class PhotoDB(BaseSQliteDB):
                                parsing_result.source.value
                            ))
 
-    def update_allowed_iterator(self, tbl_name: str) -> Iterator[Tuple[int, Allowed, str]]:
-        """
-        Creates an iterator to update the allowed state of the files in the import table.
-        """
-        self.add_extra_cursor("update_allowed")
-        self.debug_execute(stmt=f"SELECT key, allowed, original_filename FROM `{tbl_name}` WHERE imported IN (0, 1)")
-        for key, _allowed, org_fname in self.get_cursor("update_allowed"):
-            yield key, Allowed(_allowed), org_fname
-
-        self.remove_extra_cursor("update_allowed")
-
     def set_allowed(self, tbl_name: str, key: int, allowed: Allowed, message: str = None):
         """
         Set the allowed flag of a given row of an import table.
@@ -595,6 +584,65 @@ class PhotoDB(BaseSQliteDB):
             self.debug_execute(f"UPDATE `{tbl_name}` SET allowed = ?, message = ?, imported = 0 WHERE key = ?",
                                (allowed.value, message, key))
         assert self.sq_cur.rowcount == 1, f"Key {key} in {tbl_name} does not exist, PRECONDITION"
+
+    def set_imported_status(self, tbl_name: str, key: int, status: ImportStatus, import_key: int = None):
+        """
+        Set the imported status of a given row of an import table.
+
+        :param tbl_name: import table to update
+        :param key: key in table to update
+        :param status: status to set
+        :param import_key: key in main table as which the file was imported
+
+        :raises sqlite3.OperationalError: If the Import Table doesn't exist
+        """
+        if status == ImportStatus.IGNORE:
+
+            # PRECONDITION: Row wasn't imported
+            # PRECONDITION: Key exists in table
+            self.debug_execute(f"UPDATE `{tbl_name}` SET imported = ? WHERE key = ? AND imported != 2",
+                               args=(0, key))
+            assert self.sq_cur.rowcount == 1, \
+                f"Failed to set imported = 0 in table {tbl_name}, key: {key}, PRECONDITION"
+
+        elif status == ImportStatus.MARKED_FOR_IMPORT:
+
+            # PRECONDITION: Row wasn't imported
+            # PRECONDITION: Key exists in table
+            # PRECONDITION: Key is allowed
+            self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET imported = ? "
+                                    f"WHERE key = ? AND imported != 2 AND allowed = 1",
+                               args=(1, key))
+            assert self.sq_cur.rowcount == 1, \
+                f"Failed to set imported = 1 in table {tbl_name}, key: {key},PRECONDITION"
+
+        elif status == ImportStatus.IMPORTED:
+
+            if import_key is None:
+                raise ValueError("import_key must be specified for imported status IMPORTED")
+
+            # PRECONDITION: Row marked for import
+            # PRECONDITION: Key exists in table
+            # PRECONDITION: Key is allowed
+            self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET imported = ?,  import_key = ? "
+                                    f"WHERE key = ? AND imported = 1 AND allowed = 1",
+                               args=(2, import_key, key))
+            assert self.sq_cur.rowcount == 1, \
+                f"Failed to set imported = 2 in table {tbl_name}, key: {key}, PRECONDITION"
+
+        else:
+            raise ImplementationError(f"Unknown ImportStatus {status.name}")
+
+    def update_allowed_iterator(self, tbl_name: str) -> Iterator[Tuple[int, Allowed, str]]:
+        """
+        Creates an iterator to update the allowed state of the files in the import table.
+        """
+        self.add_extra_cursor("update_allowed")
+        self.debug_execute(stmt=f"SELECT key, allowed, original_filename FROM `{tbl_name}` WHERE imported IN (0, 1)")
+        for key, _allowed, org_fname in self.get_cursor("update_allowed"):
+            yield key, Allowed(_allowed), org_fname
+
+        self.remove_extra_cursor("update_allowed")
 
     def perform_import_iterator(self, tbl_name: str) -> Iterator[
         Tuple[int, str, str, str | None, str | None, str, int, datetime.datetime,
@@ -654,54 +702,6 @@ class PhotoDB(BaseSQliteDB):
             yield k, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, imp_key
 
         self.remove_extra_cursor("import_cursor")
-
-    def set_imported_status(self, tbl_name: str, key: int, status: ImportStatus, import_key: int = None):
-        """
-        Set the imported status of a given row of an import table.
-
-        :param tbl_name: import table to update
-        :param key: key in table to update
-        :param status: status to set
-        :param import_key: key in main table as which the file was imported
-
-        :raises sqlite3.OperationalError: If the Import Table doesn't exist
-        """
-        if status == ImportStatus.IGNORE:
-
-            # PRECONDITION: Row wasn't imported
-            # PRECONDITION: Key exists in table
-            self.debug_execute(f"UPDATE `{tbl_name}` SET imported = ? WHERE key = ? AND imported != 2",
-                               args=(0, key))
-            assert self.sq_cur.rowcount == 1, \
-                f"Failed to set imported = 0 in table {tbl_name}, key: {key}, PRECONDITION"
-
-        elif status == ImportStatus.MARKED_FOR_IMPORT:
-
-            # PRECONDITION: Row wasn't imported
-            # PRECONDITION: Key exists in table
-            # PRECONDITION: Key is allowed
-            self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET imported = ? "
-                                    f"WHERE key = ? AND imported != 2 AND allowed = 1",
-                               args=(1, key))
-            assert self.sq_cur.rowcount == 1, \
-                f"Failed to set imported = 1 in table {tbl_name}, key: {key},PRECONDITION"
-
-        elif status == ImportStatus.IMPORTED:
-
-            if import_key is None:
-                raise ValueError("import_key must be specified for imported status IMPORTED")
-
-            # PRECONDITION: Row marked for import
-            # PRECONDITION: Key exists in table
-            # PRECONDITION: Key is allowed
-            self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET imported = ?,  import_key = ? "
-                                    f"WHERE key = ? AND imported = 1 AND allowed = 1",
-                               args=(2, import_key, key))
-            assert self.sq_cur.rowcount == 1, \
-                f"Failed to set imported = 2 in table {tbl_name}, key: {key}, PRECONDITION"
-
-        else:
-            raise ImplementationError(f"Unknown ImportStatus {status.name}")
 
     def find_match_iterator(self, tbl_name: str, recompute: bool = False) -> Iterator[Tuple[int, str, str, int, str]]:
         """
