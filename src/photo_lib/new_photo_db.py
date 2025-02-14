@@ -1061,6 +1061,22 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("prune_db_dir")
 
+    def delete_dir(self, key: int | List[int]):
+        """
+        Delete row(s) of the directory table, given a key. PRECONDITION
+        """
+        if isinstance(key, int):
+            raw_key = [key]
+        else:
+            assert isinstance(key, list), f"Unexpected Type: {type(key).__name__}"
+            raw_key = key
+
+        pruned_keys = list(set(raw_key))
+        self.debug_execute_many("DELETE FROM db_dir WHERE key = ?", args=[(k,) for k in pruned_keys])
+
+        assert len(pruned_keys) == self.sq_cur.rowcount, (f"Unexpected number of updated rows {self.sq_cur.rowcount}, "
+                                                          f"given keys: {pruned_keys}")
+
     # ==================================================================================================================
     # Hash Assoz Table
     # ==================================================================================================================
