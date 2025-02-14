@@ -699,6 +699,8 @@ class PhotoDB(BaseSQliteDB):
             allowed = Allowed(_allowed)
             dts = DateTimeSource(_dts)
 
+            assert dt.tzinfo is not None, "Timezone needed for import"
+
             yield k, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, imp_key
 
         self.remove_extra_cursor("import_cursor")
