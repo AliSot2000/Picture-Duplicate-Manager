@@ -4,6 +4,9 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict
 
 
+debug = True
+
+
 class Version(BaseModel):
     major: int = Field(..., ge=0,
                        description="The major version of the database declaration")
