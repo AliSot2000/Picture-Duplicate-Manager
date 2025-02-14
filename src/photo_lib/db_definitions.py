@@ -303,6 +303,7 @@ current_version = DBVersion(
     }
 )
 
+
 with open(os.path.join(os.path.dirname(__file__), "previous_versions.json")) as defs:
     def_str = defs.read()
     _history = DBHistorySpec.model_validate_json(def_str)
