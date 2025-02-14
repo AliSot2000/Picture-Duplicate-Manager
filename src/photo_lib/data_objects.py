@@ -4,6 +4,7 @@ from typing import Union, Optional
 
 from photo_lib.custom_enum import *
 from photo_lib.errors_and_warnings import ImplementationError
+from photo_lib.flag_dataclasses import GenericTableFlags
 
 """
 Dataclasses related to the backend of the photo library.
@@ -106,6 +107,14 @@ class GroupCount:
     count: int
     group_crit: GroupingCriterion
     start_date: Union[None, datetime.datetime]
+
+@dataclass
+class NewImportTableEntry:
+    key: int
+    root_path: str
+    table_name: str
+    table_desc: str
+    flags: GenericTableFlags
 
 
 class Selection:
