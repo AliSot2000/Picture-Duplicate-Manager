@@ -2896,7 +2896,7 @@ class PhotoDB(BaseSQliteDB):
         self._migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=True)
 
         # Marking row as duplicate in metadata table
-        self.debug_execute("UPDATE metadata SET replaced = 2 WHERE key = ?", (child_key,))
+        self.debug_execute("UPDATE metadata SET replaced = 1 WHERE key = ?", (child_key,))
 
         # Update file system
         fp = self.resolve_key_to_path(child_key)
@@ -2997,7 +2997,7 @@ class PhotoDB(BaseSQliteDB):
 
         # All things done, update the flags and write the db, update the metadata table.
         self.debug_execute("UPDATE main SET flags = ? WHERE key = ?", (main_flags.to_int(), key))
-        self.debug_execute("UPDATE metadata SET replaced = 1, db_dir = NULL WHERE key = ?", (key,))
+        self.debug_execute("UPDATE metadata SET replaced = 2 WHERE key = ?", (key,))
 
         self.prune_db_dir()
         self.prune_fs_dir = True
