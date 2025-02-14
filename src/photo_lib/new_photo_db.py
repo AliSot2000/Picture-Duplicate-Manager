@@ -2173,54 +2173,6 @@ class PhotoDB(BaseSQliteDB):
         return count
 
     # ==================================================================================================================
-    # DB functions (functions operating only on the DB - basically wrapper for multiple sql statements)
-    # ==================================================================================================================
-
-    # Get Functions
-    # -------------
-    def _get_rename_data(self, key: int) -> Tuple[int, datetime.datetime, MainFlags, str, str, str]:
-        """
-        Get the necessary data from the database to rename a file
-
-        :param key: Key to query the db for
-
-        :returns: Tuple(key, datetime, flags, db_local_dir, db_name, original_name)
-        """
-        # Get current row
-        self.debug_execute("SELECT key, datetime, flags, db_name, original_filename FROM main WHERE m.key = ?",
-                           (key,))
-
-        row = self.sq_cur.fetchone()
-        if row is None:
-            raise ValueError(f"Key {key} does not exist in main table")
-
-        self.debug_execute("SELECT m.main_key, d.db_local_dir "
-                           "FROM metadata AS m LEFT OUTER JOIN db_dir AS d ON m.db_dir = d.key WHERE m.main_key = ?")
-
-        db_dir_row = self.sq_cur.fetchone()
-        if db_dir_row is None:
-            raise ValueError(f"Key {key} does not exist in metadata table")
-
-        metadata_key, db_local_dir = db_dir_row
-
-        main_key, _dt, _flags, db_name, original_name = row
-        dt = datetime.datetime.fromisoformat(_dt)
-        flags = MainFlags.from_int(_flags)
-
-        return key, dt, flags, db_local_dir, db_name, original_name
-
-    def get_main_flags(self, key: int) -> None | MainFlags:
-        """
-        Get the flags from any entry in the main table
-        """
-        self.debug_execute("SELECT flags FROM main WHERE key = ?", (key,))
-        res = self.sq_cur.fetchone()
-        if res is None:
-            return None
-
-        return MainFlags.from_int(res[0])
-
-    # ==================================================================================================================
     # Importing
     # ==================================================================================================================
 
