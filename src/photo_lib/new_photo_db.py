@@ -3466,11 +3466,13 @@ class PhotoDB(BaseSQliteDB):
         :param key: The key to resolve.
         """
         # TODO test.
-        self.debug_execute("SELECT m.key, m.db_name, d.db_local_dir, m.datetime, m.flags "
-                           "FROM main AS m "
-                           "JOIN metadata AS md ON m.key = md.main_key "
-                           "LEFT OUTER JOIN db_dir AS d ON md.db_dir = d.key "
-                           "WHERE m.key = ? ", (key,))
+        self.debug_execute(stmt="SELECT m.key, m.db_name, d.db_local_dir, m.datetime, m.flags "
+                                "FROM main AS m "
+                                "LEFT OUTER JOIN metadata AS md ON m.key = md.main_key "
+                                "LEFT OUTER JOIN db_dir AS d ON md.db_dir = d.key "
+                                "WHERE m.key = ? ",
+                           args=(key,))
+
         res = self.sq_cur.fetchall()
         if len(res) == 0:
             return None
