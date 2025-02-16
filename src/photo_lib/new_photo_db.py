@@ -2322,35 +2322,9 @@ class PhotoDB(BaseSQliteDB):
             self.add_default_metadata_aggregator()
             added_mda = True
 
-        if selection is None:
-            self.debug_execute("SELECT key, flags FROM main "
-                               # Check not duplicate             Check not trash
-                               "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0",
-                               cur="check_file_hashes")
-        else:
-            if selection.selection_type == SelectionType.SELECTION_A:
-                self.debug_execute("SELECT key, flags FROM main "
-                                   # Check not duplicate             Check not trash            Check selection A
-                                   "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1",
-                                   cur="check_file_hashes")
-            elif selection.selection_type == SelectionType.SELECTION_B:
-                self.debug_execute("SELECT key, flags FROM main "
-                                   # Check not duplicate             Check not trash            Check selection B
-                                   "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1",
-                                   cur="check_file_hashes")
-            elif selection.selection_type == SelectionType.TIME_RANGE:
-                self.debug_execute(stmt="SELECT key, flags FROM main "
-                # Check datetime range
-                                        "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?) "
-                # Check not duplicate             Check not trash
-                                        "AND mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0",
-                                   args=(selection.start.isoformat(), selection.end.isoformat()),
-                                   cur="check_file_hashes")
-            else:
-                raise ImplementationError("Missing Selection Type")
+        for key, flags in self.main_key_flags_iterator(allow_selection=True, selection=selection,
+                                                       trashed=False, duplicate=False):
 
-        for key, _flags in self.get_cursor("check_file_hashes"):
-            flags = MainFlags.from_int(_flags)
             org_path = self.db_resolve_key_to_abs_path(key)
 
             # Checks on path and flags
