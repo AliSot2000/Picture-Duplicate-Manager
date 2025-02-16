@@ -2124,8 +2124,7 @@ class PhotoDB(BaseSQliteDB):
             assert insert_key is not None, "Key should exist after insert."
 
             # Handle metadata table
-            self.debug_execute("INSERT INTO metadata (main_key, original_dirname, naming_tag, datetime_source) "
-                               "VALUES (?, ?, ?, ?)", args=(insert_key, ofd, nt, _dts))
+            self.insert_row_metadata_table(key=insert_key, original_dirname=ofd, naming_tag=nt, datetime_source=dts)
 
             # Handle GPS
             assert (gps_lat is not None and gps_long is not None) or (gps_lat is None and gps_long is None), \
@@ -2580,8 +2579,7 @@ class PhotoDB(BaseSQliteDB):
             assert insert_key is not None, "Key should exist after insert."
 
             # Handle metadata table
-            self.debug_execute("INSERT INTO metadata (main_key, original_dirname, naming_tag, datetime_source) "
-                               "VALUES (?, ?, ?, ?)", args=(insert_key, ofd, nt, _dts))
+            self.insert_row_metadata_table(key=insert_key, original_dirname=ofd, naming_tag=nt, datetime_source=dts)
 
             # Handle GPS
             assert (gps_lat is not None and gps_long is not None) or (gps_lat is None and gps_long is None), \
