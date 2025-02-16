@@ -3859,28 +3859,8 @@ class PhotoDB(BaseSQliteDB):
             correct_miniatures
         """
         missing_thumb = missing_min = present_thumb = present_min = correct_thumb = correct_min = 0
-        self.add_extra_cursor("check_disp_files")
-        if selection is not None:
-            if selection.selection_type == SelectionType.SELECTION_A:
-                self.debug_execute(stmt="SELECT key, flags FROM main WHERE mod(flags >> 4, 2) = 1",
-                                   cur="check_disp_files")
-            elif selection.selection_type == SelectionType.SELECTION_B:
-                self.debug_execute(stmt="SELECT key, flags FROM main WHERE mod(flags >> 5, 2) = 1",
-                                   cur="check_disp_files")
-            elif selection.selection_type == SelectionType.TIME_RANGE:
-                # TODO test
-                self.debug_execute(stmt="SELECT key, flags FROM main "
-                                        "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)",
-                                   args=(selection.start.isoformat(), selection.end.isoformat()),
-                                   cur="check_disp_files")
-            else:
-                raise ImplementationError("Uncovered Type of SelectionType")
-        else:
-            self.debug_execute(stmt="SELECT key, flags FROM main",
-                               cur="check_disp_files")
 
-        for key, _flags in self.get_cursor("check_disp_files"):
-            flags = MainFlags.from_int(_flags)
+        for key, flags in self.main_key_flags_iterator(allow_selection=True, selection=selection):
             update: bool = False
 
             self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True)
@@ -3918,7 +3898,6 @@ class PhotoDB(BaseSQliteDB):
         self.main_logger.info(f"Found {missing_min} missing miniatures and {present_min} present miniatures.")
         self.main_logger.info(f"{correct_min} miniatures for thumbnails were correct")
 
-        self.remove_extra_cursor("check_disp_files")
         return missing_thumb, present_thumb, correct_thumb, missing_min, present_min, correct_min
 
     # ==================================================================================================================
