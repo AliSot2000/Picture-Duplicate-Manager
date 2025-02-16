@@ -3744,7 +3744,7 @@ class PhotoDB(BaseSQliteDB):
 
             # Update flags if they changed.
             if update:
-                self.debug_execute("UPDATE main SET flags = ? WHERE key = ?", (flags.to_int(), key))
+                self.update_row_main_table(key=key, flags=flags)
 
         self.main_logger.info(f"Found {missing_thumb} missing thumbnails and {present_thumb} present thumbnails.")
         self.main_logger.info(f"{correct_thumb} flags for thumbnails were correct")
