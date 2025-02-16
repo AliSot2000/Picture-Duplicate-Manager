@@ -1927,8 +1927,8 @@ class PhotoDB(BaseSQliteDB):
             flags.present = True
 
             self.debug_execute("UPDATE name_update_table SET updated = 1 WHERE key = ?", (key,))
-            self.debug_execute("UPDATE main SET db_name = ?, flags = ? WHERE key = ?",
-                               (name, flags.to_int(), best_match))
+            self.update_row_main_table(key=best_match, db_name=name, flags=flags)
+
             if dir_key is not None:
                 self.update_row_metadata_table(key=key, db_dir=dir_key)
 
@@ -2326,8 +2326,8 @@ class PhotoDB(BaseSQliteDB):
 
             # Update the name in the db
             if rename:
-                self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
-                                   (self.db_name(original_filename=ofn, key=insert_key, fdt=dt), insert_key))
+                name = self.db_name(original_filename=ofn, key=insert_key, fdt=dt)
+                self.update_row_main_table(key=insert_key, db_name=name)
 
             if flags.verify and add_safety_exif_tags:
                 self._add_update_exif_tag(key=insert_key, target_datetime=dt, file_path=target_path)
@@ -2832,8 +2832,7 @@ class PhotoDB(BaseSQliteDB):
         if add_tag:
             self._add_update_exif_tag(key=key, file_path=os.path.join(tgt_dir, db_name), target_datetime=fdt)
 
-        self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
-                           (db_name, key))
+        self.update_row_main_table(key=key, db_name=db_name)
         self.update_row_metadata_table(key=key, db_dir=dir_key)
 
     # ==================================================================================================================
@@ -2928,14 +2927,12 @@ class PhotoDB(BaseSQliteDB):
                                   db_local_dir=db_local_dir,
                                   ndt=new_dt)
 
-            self.debug_execute("UPDATE main SET datetime = ?, timezone = ?, db_name = ? WHERE key = ?",
-                               (new_dt.isoformat(), new_dt.tzname(), new_name, key))
+            self.update_row_main_table(key=key, datetime=new_dt, timezone=new_dt.tzname(), db_name=new_name)
 
         else:
             self._internal_move_file(ndt=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
 
-            self.debug_execute("UPDATE main SET datetime = ?, timezone = ? WHERE key = ?",
-                               (new_dt.isoformat(), new_dt.tzname(), key))
+            self.update_row_main_table(key=key, datetime=new_dt, timezone=new_dt.tzname())
 
         if add_exif_tag or (add_exif_tag is None and self.config.add_safety_exif_tags):
             if dt != new_dt:
@@ -3002,8 +2999,8 @@ class PhotoDB(BaseSQliteDB):
             # Only move the file.
             self._internal_move_file(ndt=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
 
-        self.debug_execute("UPDATE main SET datetime = ?, db_name = ?, timezone = ?WHERE key = ?",
-                           (new_dt.isoformat(), new_name, timezone, key))
+        self.update_row_main_table(key=key, datetime=new_dt, db_name=new_name, timezone=timezone)
+
         self.update_row_metadata_table(key=key,
                                        naming_tag=NewMetadataAggregator.serialize_key(tag),
                                        datetime_source=dts)
@@ -3054,8 +3051,7 @@ class PhotoDB(BaseSQliteDB):
                               db_local_dir=db_local_dir)
 
         # Update the database after renaming
-        self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
-                           (new_filename, key))
+        self.update_row_main_table(key=key, db_name=new_filename)
         self.update_row_metadata_table(key=key, naming_tag="CUSTOM")
 
         # Update cache
@@ -3200,8 +3196,7 @@ class PhotoDB(BaseSQliteDB):
                     flags.has_miniature = True
 
             # Update the flags of the given key.
-            self.debug_execute(stmt="UPDATE main SET flags = ? WHERE key = ?",
-                               args=(flags.to_int(), key))
+            self.update_row_main_table(key=key, flags=flags)
 
         self.remove_extra_cursor("update_thumbnails")
         self.commit()
@@ -3301,10 +3296,9 @@ class PhotoDB(BaseSQliteDB):
         # Copy the Google photos metadata to the parent.
         if copy_google_metadata and parent_google_metadata is None and google_metadata is not None:
             parent_flags.org_google_metadata = False
-            self.debug_execute("UPDATE main SET google_metadata = ?, flags = ? WHERE key = ?",
-                               (google_metadata, parent_flags.to_int(), parent_key))
+            self.update_row_main_table(key=parent_key, google_metadata=google_metadata, flags=parent_flags)
 
-        self.debug_execute("UPDATE main SET parent = ? WHERE key = ?", (parent_key, child_key))
+        self.change_parent(key=child_key, new_parent=parent_key)
 
         # TODO Darktable???
         self.prune_db_dir()
@@ -3365,7 +3359,7 @@ class PhotoDB(BaseSQliteDB):
         main_flags.trashed = True
 
         # All things done, update the flags and write the db, update the metadata table.
-        self.debug_execute("UPDATE main SET flags = ? WHERE key = ?", (main_flags.to_int(), key))
+        self.update_row_main_table(key=key, flags=main_flags)
         self.update_row_metadata_table(key=key, replaced=MediaType.TRASH)
 
         self.prune_db_dir()
@@ -3436,8 +3430,7 @@ class PhotoDB(BaseSQliteDB):
                 flags.has_miniature = False
                 count += 1
 
-            self.debug_execute("UPDATE main SET flags = ? WHERE key = ?",
-                               (flags.to_int(), key))
+            self.update_row_main_table(key=key, flags=flags)
 
         self.remove_extra_cursor("del_trash_thumb")
         self.commit()
@@ -3498,8 +3491,7 @@ class PhotoDB(BaseSQliteDB):
                 flags.has_miniature = False
                 count += 1
 
-            self.debug_execute("UPDATE main SET flags = ? WHERE key = ?",
-                               (flags.to_int(), key))
+            self.update_row_main_table(key=key, flags=flags)
 
         self.remove_extra_cursor("rm_disp_media")
         self.commit()
@@ -3556,12 +3548,10 @@ class PhotoDB(BaseSQliteDB):
                 self.main_logger.debug(f"Deleting {os.path.basename(file_path)} from trash")
                 os.remove(file_path)
                 count += 1
-                self.debug_execute("UPDATE main SET flags = ? WHERE key = ? ", (flags.to_int(), key))
 
             flags.present = False
-
-            # Removing row in metadata table.
-            self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (key,))
+            self.update_row_main_table(key=key, flags=flags)
+            self.delete_row_metadata_table(key=key)
 
         self.main_logger.info(f"Finished Deleting {count} Originals {'Duplicates' if duplicates else 'Trash'}")
         self.remove_extra_cursor("del_trash")
