@@ -2039,7 +2039,7 @@ class PhotoDB(BaseSQliteDB):
         if not self.import_table_exists(tbl):
             raise ValueError(f"Tabl {tbl} does not exist")
 
-        if not self._import_table_flags(tbl).internal:
+        if not self.import_table_flags(tbl).internal:
             raise ValueError("Cannot use this function with non-internal import table")
 
         if add_safety_exif_tags is None:
