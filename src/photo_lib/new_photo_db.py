@@ -3622,12 +3622,6 @@ class PhotoDB(BaseSQliteDB):
 
         # Remove display files:
         self.main_logger.info(f"Deleting Thumbnails of existing images.")
-        self.add_extra_cursor("rm_disp_media")
-        self.debug_execute("SELECT key, flags FROM main "
-                           # Check present = 1,            Check trash = 0           check duplicate = 0
-                           "WHERE mod(flags, 2) = 1 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 8, 2) = 0",
-                           cur="rm_disp_media")
-
         for key, flags in self.main_key_flags_iterator(allow_selection=False,
                                                        present=True, trashed=False, duplicate=False):
 
