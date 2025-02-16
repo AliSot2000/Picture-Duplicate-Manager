@@ -96,7 +96,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Wrapper that blocks if the database isn't verified.
 
-        :raises ImplementationError: If the database isn't verifeid.
+        :raises ImplementationError: If the database isn't verified.
 
         Original Doc String:
         --------------------
@@ -120,7 +120,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Wrapper that blocks if the database isn't verified.
 
-        :raises ImplementationError: If the database isn't verifeid.
+        :raises ImplementationError: If the database isn't verified.
 
         Original Doc String:
         --------------------
