@@ -1642,6 +1642,20 @@ class PhotoDB(BaseSQliteDB):
         """
         self.debug_execute("UPDATE main SET parent = ? WHERE key = ?", (new_parent, key))
 
+    def reset_selection(self, sel_a: bool = True) -> int:
+        """
+        Reset all rows with a set sel_a flag if sel_a, else reset all rows with sel_b flag.
+
+        :param sel_a: Bool whether to reset selection a or selection b
+        """
+        if sel_a:
+            self.debug_execute("UPDATE main SET flags = flags - 16 WHERE (flags >> 4, 2) == 1")
+            return self.sq_cur.rowcount
+
+        else:
+            self.debug_execute("UPDATE main SET flags = flags - 32 WHERE (flags >> 5, 2) == 1")
+            return self.sq_cur.rowcount
+
     def list_children(self, key: int) -> List[int]:
         """
         List all files which have the given key as parent.
