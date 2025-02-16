@@ -1427,6 +1427,58 @@ class PhotoDB(BaseSQliteDB):
     # Main Table
     # ==================================================================================================================
 
+    def insert_row_main_table(self,
+                              original_filename: str,
+                              db_name: str,
+                              dt: datetime.datetime,
+                              timezone: str,
+                              flags: MainFlags,
+                              metadata: str | dict | list | None = None,
+                              google_metadata: str | dict | list | None = None):
+        """
+        Add a new row into the main table.
+
+        :param original_filename: Original filename in import source.
+        :param db_name: Name of file in database.
+        :param dt: datetime at which the media was recorded
+        :param timezone: Timezone in which media was recorded
+        :param flags: MainFlags of the media file
+        :param metadata: Metadata Dict from ExifTool
+        :param google_metadata: Metadata from Google Photos Export
+
+        :raises sqlite3.IntegrityError: If the db_name already exists.
+        """
+        assert dt.tzinfo is not None, "Timezone always needed."
+
+        if isinstance(metadata, str):
+            san_md = metadata
+        elif metadata is None:
+            san_md = None
+        elif isinstance(metadata, dict) or isinstance(metadata, list):
+            san_md = json.dumps(metadata)
+        else:
+            raise TypeError("Metadata must be a string, dict, list or None")
+
+        if isinstance(google_metadata, str):
+            san_gfmd = google_metadata
+        elif google_metadata is None:
+            san_gfmd = None
+        elif isinstance(google_metadata, dict) or isinstance(google_metadata, list):
+            san_gfmd = json.dumps(google_metadata)
+        else:
+            raise TypeError("Metadata must be a string, dict, list or None")
+
+        self.debug_execute(
+            stmt=f"INSERT INTO main "
+                 f"(original_filename, "
+                 f"metadata, "
+                 f"google_metadata, "
+                 f"db_name, "
+                 f"datetime, "
+                 f"timezone, "
+                 f"flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            args=(original_filename, san_md, san_gfmd, db_name, dt.isoformat(), timezone, flags.to_int()))
+
     def update_trash_flag_from_selection(self, selection: Selection, target_value: bool):
         """
         Update the files which have aren't present to have been moved to the trash.
