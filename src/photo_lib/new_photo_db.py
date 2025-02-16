@@ -1498,6 +1498,8 @@ class PhotoDB(BaseSQliteDB):
                  f"flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
             args=(original_filename, san_md, san_gfmd, db_name, dt.isoformat(), timezone, flags.to_int()))
 
+        assert self.sq_cur.rowcount == 1, "Failed to Insert Row into Main Table"
+
     def delete_row_main_table(self, key: int, assert_exists: bool = True) -> bool:
         """
         Delete a given row from the main table.
