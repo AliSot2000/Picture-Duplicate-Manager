@@ -8,7 +8,6 @@ from typing import Set, Dict, List, Union, Tuple, Iterator
 from zoneinfo import ZoneInfo
 
 import photo_lib.defaults as defaults
-from photo_lib.cache import nd
 from photo_lib.config import Config
 from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus
 from photo_lib.data_objects import Selection, NewImportTableEntry
