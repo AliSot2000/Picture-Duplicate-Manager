@@ -1464,6 +1464,8 @@ class PhotoDB(BaseSQliteDB):
         """
         Update the row indicated by the key in the metadata table.
 
+        PRECONDITION: row with key exists.
+
         :param key: Main Key of Row to Update.
 
         kwargs are all column names of the metadata table. If a row is not supposed to be updated, do not add it to the
