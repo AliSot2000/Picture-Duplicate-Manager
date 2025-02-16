@@ -2078,16 +2078,13 @@ class PhotoDB(BaseSQliteDB):
 
                 db_name = ofn
             else:
-                db_name = self.temp_db_name
+                db_name = self.reserved_temp_file_name
 
-            # Add row in main table
-            # TODO GFMD and MD can be None
-            self.debug_execute(f"INSERT INTO main "
-                               f"(original_filename, metadata, google_metadata, db_name,"
-                               f" datetime, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                               (ofn, md, gfmd, db_name, dt.isoformat(), tz, flags.to_int()))
+            self.insert_row_main_table(original_filename=ofn, flags=flags, dt=dt, timezone=tz, db_name=db_name,
+                                       metadata=md, google_metadata=gfmd)
 
-            insert_key = self.db_resolve_filename_to_key(self.temp_db_name)
+
+            insert_key = self.db_resolve_filename_to_key(db_name)
             assert insert_key is not None, "Key should exist after insert."
 
             # Handle metadata table
