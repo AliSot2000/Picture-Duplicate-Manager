@@ -3331,11 +3331,9 @@ class PhotoDB(BaseSQliteDB):
         if duplicates:
             self.debug_execute(stmt="SELECT key, flags FROM main WHERE mod(flags >> 8, 2) = 1",
                                cur="del_trash")
-            update_stmt = "UPDATE replaced SET flags = ? WHERE key = ? "
         else:
             self.debug_execute(stmt="SELECT key, flags FROM main WHERE mod(flags >> 2, 2) = 1",
                                cur="del_trash")
-            update_stmt = f"UPDATE main SET flags = ? WHERE key = ?"
 
         self.main_logger.info(f"Deleting Originals from Files in {'Duplicates' if duplicates else 'Trash'}")
 
@@ -3359,7 +3357,7 @@ class PhotoDB(BaseSQliteDB):
                 self.main_logger.debug(f"Deleting {os.path.basename(file_path)} from trash")
                 os.remove(file_path)
                 count += 1
-                self.debug_execute(update_stmt, (flags.to_int(), key))
+                self.debug_execute("UPDATE main SET flags = ? WHERE key = ? ", (flags.to_int(), key))
 
             flags.present = False
 
