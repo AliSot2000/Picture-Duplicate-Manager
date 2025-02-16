@@ -902,7 +902,7 @@ class PhotoDB(BaseSQliteDB):
         - file_size_bytes (new) file size of the given file.
         """
         self.add_extra_cursor("hash_update")
-        self.debug_execute("SELECT main_key, new_hash, file_size_bytes")
+        self.debug_execute("SELECT main_key, new_hash, file_size_bytes FROM hash_update_table")
 
         for main_key, hash_str, file_size in self.get_cursor("hash_update"):
             yield main_key, hash_str, file_size
