@@ -787,14 +787,6 @@ class PhotoDB(BaseSQliteDB):
             raise ImplementationError("Unknown MediaType")
 
         if missing:
-            self.debug_execute(f"SELECT COUNT(key) FROM main "
-                               # Check key is in the table                            
-                               f"WHERE key IN (SELECT main_key FROM presence_table) "
-                               # Check present,             check not duplicate        check not trash
-                               f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
-                               args=(int(dup_flag), int(trash_flag)))
-            count = self.sq_cur.fetchone()[0]
-
             self.debug_execute(f"UPDATE main SET flags = flags - 1 "
                                # Check key is in the table                            
                                f"WHERE key IN (SELECT main_key FROM presence_table) "
@@ -802,21 +794,16 @@ class PhotoDB(BaseSQliteDB):
                                f"AND mod(flags, 2) = 1 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
                                args=(int(dup_flag), int(trash_flag)))
 
+            count = self.sq_cur.rowcount
         else:
-            self.debug_execute(f"SELECT COUNT(key) FROM main "
-                               # Check key is in the table                            
-                               f"WHERE key IN (SELECT main_key FROM presence_table) "
-                               #     Check present,         check not duplicate        check not trash
-                               f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
-                               args=(int(dup_flag), int(trash_flag)))
-            count = self.sq_cur.fetchone()[0]
-
             self.debug_execute(f"UPDATE main SET flags = flags + 1 "
                                # Check key is in the table
                                f"WHERE key IN (SELECT main_key FROM presence_table) "
                                #     Check present,         check not duplicate        check not trash
                                f"AND mod(flags, 2) = 0 AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
                                args=(int(dup_flag), int(trash_flag)))
+
+            count = self.sq_cur.rowcount
         self.commit()
         return count
 
