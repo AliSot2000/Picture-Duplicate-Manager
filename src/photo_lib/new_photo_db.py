@@ -1116,7 +1116,7 @@ class PhotoDB(BaseSQliteDB):
         - EARLIEST, given a file_key, only take into account the earliest hash of that file (not initial)
         - LATEST, given a file_key, only take into account the latest hash of that file (including initial)
         - ANY, given a file_key, take into account all hashes the file has had (including initial)
-        - INITIAL, given a file_key, only look at initial hashes (importing)
+        - INITIAL, given a file_key, only look at initial hashes (only initial)
 
         :param target_hash: Target hash to search for
         :param file_size: File size to search for
@@ -1125,7 +1125,7 @@ class PhotoDB(BaseSQliteDB):
         :returns: List[int] - list of matching file_keys
         """
         if mode.lower() not in ("earliest", "latest", "any", "initial"):
-            raise ValueError(f"Unsupported mode: {mode.lower()}, allowed: [earliest, latest, any]")
+            raise ValueError(f"Unsupported mode: {mode.lower()}, allowed: [earliest, latest, any, initial]")
 
         if mode.lower() == "earliest":
             self.debug_execute("SELECT ha.file_key "
