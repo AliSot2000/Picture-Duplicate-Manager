@@ -1442,6 +1442,24 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.sq_cur.rowcount == 1, "Failed to Insert Row into Metadata Table"
 
+    def delete_row_metadata_table(self, key: int, assert_exists: bool = True) -> bool:
+        """
+        Delete a given row from the metadata table.
+
+
+        :param key: Main Key of Row to Delete.
+        :param assert_exists: Check Precondition that the row existed.
+
+        :returns: True -> Row was Deleted. False otherwise.
+        """
+        self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (key,))
+
+        rc = self.sq_cur.rowcount
+        if assert_exists:
+            assert rc == 1, "PRECONDITION Failed: Row didn't exist in Metadata Table"
+
+        return rc == 1
+
     # ==================================================================================================================
     # Main Table
     # ==================================================================================================================
