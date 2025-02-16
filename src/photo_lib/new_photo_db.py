@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 import photo_lib.defaults as defaults
 from photo_lib.config import Config
-from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus
+from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus, NameUpdateStatus
 from photo_lib.data_objects import Selection, NewImportTableEntry
 from photo_lib.db_definitions import current_version, history, StaticDeclaration, GenericDeclaration
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
@@ -946,6 +946,26 @@ class PhotoDB(BaseSQliteDB):
         """
         self.debug_execute("SELECT COUNT(*) FROM name_update_table")
         return self.sq_cur.fetchone()[0]
+
+    def set_updated_status_name_update_table(self, key: int, status: NameUpdateStatus, message: str = None):
+        """
+        Set the update state of a row in the name_update_table. Can also add a message, if one is provided.
+
+        PRECONDITION: Key exists in name_update_table
+
+        :param key: Key of the file in the name_update_table
+        :param status: New status of the file
+        :param message: New message of the file
+        """
+
+        if status == NameUpdateStatus.READY_TO_UPDATE or status == NameUpdateStatus.UPDATED:
+            if message is not None:
+                raise ValueError("Message only intended to inform about failure")
+
+        self.debug_execute("UPDATE name_update_table SET updated = ?, message = ? WHERE key = ?",
+                           (status.value, message, key))
+
+        assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to update row in name_update_table"
 
     def update_filename_from_hash_iterator(self) -> Iterator[Tuple[int, str, str, int]]:
         """
