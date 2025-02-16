@@ -2379,7 +2379,7 @@ class PhotoDB(BaseSQliteDB):
             if os.path.exists(target_path):
                 # Remove rows inserted for the file before raising error.
                 self.delete_row_main_table(key=main_key)
-                self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (main_key,))
+                self.delete_row_metadata_table(key=main_key)
                 self.commit()
                 raise FileExistsError(f"Couldn't import {ofn}, file already exists in {self.dt_to_dir(dt)}")
 
