@@ -947,6 +947,37 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT COUNT(*) FROM name_update_table")
         return self.sq_cur.fetchone()[0]
 
+    def update_filename_from_hash_iterator(self) -> Iterator[Tuple[int, str, str, int]]:
+        """
+        Get an iterator to all rows of the name_update_table which can be used to update the file name of a file matched
+        by file hash.
+
+        The criteria are:
+
+        - best_match must contain an integer (pointing to teh file in the main table that is the candidate to update)
+        - update = 0 (meaning, can be updated)
+        - match_type = 2, we only update file who's aren't trash or duplicates (no 3-6). A match type of 1 would
+        indicate that the original file is present (so it doesn't make sense to move the newly detected file) Match
+        type 0 means, no candidate to update found. So only 2 remains as an option.
+
+        Tuple elements are in this sequence:
+
+        - key in name_update_table
+        - name in name_update_table
+        - dir_name in name_update_table (so dir_name + name is the path to the detected file)
+        - best_match (key to entry in main table which was deemed the best match for this file)
+
+        """
+        self.add_extra_cursor("name_update")
+        self.debug_execute("SELECT key, name, dir_name, best_match FROM name_update_table "
+                           # Ensure match is HASH_MATCH_MAIN
+                           "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2")
+
+        for key, name, dir_name, best_match in self.get_cursor("name_update"):
+            yield key, name, dir_name, best_match
+
+        self.remove_extra_cursor("name_update")
+
     # ==================================================================================================================
     # Hash Table
     # ==================================================================================================================
@@ -1879,14 +1910,9 @@ class PhotoDB(BaseSQliteDB):
 
         :parma move: move the file to the correct location based on it's datetime.
         """
-        self.add_extra_cursor("update_filename")
-        self.debug_execute("SELECT key, name, dir_name, best_match FROM name_update_table "
-                           # Ensure match is HASH_MATCH_MAIN
-                           "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2")
-
         count = 0
         conflict = 0
-        for key, name, dir_name, best_match in self.get_cursor("name_update_table"):
+        for key, name, dir_name, best_match in self.update_filename_from_hash_iterator():
             assert best_match is not None, "best_match shouldn't be None, SQL Error"
 
             # Try to get the parent's path
