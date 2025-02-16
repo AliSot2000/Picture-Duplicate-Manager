@@ -3392,7 +3392,7 @@ class PhotoDB(BaseSQliteDB):
 
     def _internal_forget(self, key: int, rec: bool = False):
         """
-                Forgets the image in  main table:
+        Forgets the image in main table:
 
         Removes it from all tables and removes all children. Images which are forgotten, will be not be detected
         upon import and will be reimported if the given image shows up again.
