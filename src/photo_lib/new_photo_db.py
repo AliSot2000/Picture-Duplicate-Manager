@@ -1232,9 +1232,9 @@ class PhotoDB(BaseSQliteDB):
                                     "WHERE hash_key = ? AND file_key = ? AND file_size_bytes = ? AND initial = 0",
                                args=(ndt.isoformat(), hash_key, file_key, file_size))
 
-        # TODO change logger
         if newest_hash == file_hash and newest_size != file_size:
-            self.logger.info(f"Found matching hashes with different file sizes: {newest_hash}, {newest_size}")
+            self.rare_occurrence_logger.info(f"Found matching hashes with different file sizes: "
+                                             f"{newest_hash}, {newest_size}")
 
         return True
 
@@ -2166,8 +2166,8 @@ class PhotoDB(BaseSQliteDB):
 
             # Rare occurrence
             elif file_size_bytes != new_hash and new_hash == h:
-                # TODO change logger
-                self.main_logger.info(f"Rare Occurrence: File Size changed but hash stayed the same: {org_path}")
+                self.rare_occurrence_logger.info(f"Rare Occurrence: File Size changed but hash stayed the same: "
+                                                 f"{org_path}")
 
         self.remove_extra_cursor("check_file_hashes")
         self.commit()
