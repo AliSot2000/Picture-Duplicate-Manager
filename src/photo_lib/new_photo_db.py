@@ -1460,6 +1460,7 @@ class PhotoDB(BaseSQliteDB):
 
         return rc == 1
 
+    # TODO better docs for kwargs
     def update_row_metadata_table(self, key: int, **kwargs):
         """
         Update the row indicated by the key in the metadata table.
@@ -1592,6 +1593,7 @@ class PhotoDB(BaseSQliteDB):
 
         return rc == 1
 
+    # TODO better docs for kwargs
     def update_row_main_table(self, key: int, **kwargs):
         """
         Update the row indicated by the key in the main table.
