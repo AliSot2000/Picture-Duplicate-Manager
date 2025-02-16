@@ -3692,21 +3692,15 @@ class PhotoDB(BaseSQliteDB):
         """
         count: int = 0
 
-        self.add_extra_cursor("del_trash")
         if duplicates:
-            self.debug_execute(stmt="SELECT key, flags FROM main WHERE mod(flags >> 8, 2) = 1",
-                               cur="del_trash")
+            it = self.main_key_flags_iterator(allow_selection=False, duplicate=True)
         else:
-            self.debug_execute(stmt="SELECT key, flags FROM main WHERE mod(flags >> 2, 2) = 1",
-                               cur="del_trash")
+            it = self.main_key_flags_iterator(allow_selection=False, trashed=True)
 
         self.main_logger.info(f"Deleting Originals from Files in {'Duplicates' if duplicates else 'Trash'}")
 
         # Remove originals from files marked as trash
-        for row in self.get_cursor("del_trash"):
-            key, _flags = row
-            flags = MainFlags.from_int(_flags)
-
+        for key, flags in it:
             # Check for consistency
             if __debug__:
                 if duplicates and flags.duplicate is False:
@@ -3728,7 +3722,6 @@ class PhotoDB(BaseSQliteDB):
             self.delete_row_metadata_table(key=key)
 
         self.main_logger.info(f"Finished Deleting {count} Originals {'Duplicates' if duplicates else 'Trash'}")
-        self.remove_extra_cursor("del_trash")
         self.commit()
         # INFO: Don't need to update the caches, the path isn't modified.
         return count
