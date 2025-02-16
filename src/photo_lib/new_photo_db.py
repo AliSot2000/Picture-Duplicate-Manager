@@ -9,7 +9,8 @@ from zoneinfo import ZoneInfo
 
 import photo_lib.defaults as defaults
 from photo_lib.config import Config
-from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus, NameUpdateStatus
+from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus, NameUpdateStatus, \
+    NewMatchTypes
 from photo_lib.data_objects import Selection, NewImportTableEntry
 from photo_lib.db_definitions import current_version, history, StaticDeclaration, GenericDeclaration
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
@@ -981,6 +982,26 @@ class PhotoDB(BaseSQliteDB):
 
         self.debug_execute("UPDATE name_update_table SET updated = ?, message = ? WHERE key = ?",
                            (status.value, message, key))
+
+        assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to update row in name_update_table"
+
+    def set_match_data_name_update_table(self, key: int, matches: Dict[int, NewMatchTypes], best_match: int,
+                                         match_type: NewMatchTypes):
+        """
+        Set the match data for a given key in the name_update_table.
+
+        PRECONDITION: Key exists in name_update_table
+
+        :param key: Key of the file in the name_update_table
+        :param matches: Dictionary of matched keys and their respective NewMatchType
+        :param best_match: Best match of the key
+        :param match_type: Match type of best match
+        """
+        serializable_matches = {k: v.value for k, v in matches.items()}
+
+        self.debug_execute(stmt="UPDATE name_update_table SET matches = ?, best_match = ?, best_match_type = ? "
+                                "WHERE key = ?",
+                           args=(json.dumps(serializable_matches), best_match, match_type.value, key))
 
         assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to update row in name_update_table"
 
@@ -2171,10 +2192,8 @@ class PhotoDB(BaseSQliteDB):
             matches, best_match, best_match_type = \
                 self._get_best_match_type(file_hash=fh, fsb=fsb, tgt_fp=os.path.join(dir_name, name))
 
-            serializable_matches = {k: v.value for k, v in matches.items()}
-            self.debug_execute(stmt="UPDATE name_update_table SET matches = ?, best_match = ?, best_match_type = ? "
-                                    "WHERE key = ?",
-                               args=(json.dumps(serializable_matches), matches, best_match, key))
+            self.set_match_data_name_update_table(key=key, matches=matches, best_match=best_match,
+                                                  match_type=best_match_type)
 
         self.commit()
         return count
