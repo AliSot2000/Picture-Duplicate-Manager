@@ -3330,19 +3330,10 @@ class PhotoDB(BaseSQliteDB):
 
         returns: <number of new files created> and <number of undetected missing files>
         """
-        self.add_extra_cursor("update_thumbnails")
-
-        self.debug_execute(stmt="SELECT m.key, m.flags FROM main AS m "
-        # Check present                 check trash                     check duplicate
-                                "WHERE mod(m.flags, 2) == 1 AND mod((m.flags >> 2), 2) == 0 AND mod((m.flags >> 8), 2) == 0",
-                           cur="update_thumbnails")
-
         missing: int = 0
         created: int = 0
-        for row in self.get_cursor("update_thumbnails"):
-            key, _flags = row
-
-            flags = MainFlags.from_int(_flags)
+        for key, flags in self.main_key_flags_iterator(allow_selection=False,
+                                                       present=True, trashed=False, duplicate=False):
 
             # skip missing images or images in trash
             if not flags.present or flags.trashed or flags.duplicate:
@@ -3350,7 +3341,7 @@ class PhotoDB(BaseSQliteDB):
                     raise ImplementationError("Error in SQL Statement, should not find trash or not present files")
                 continue
 
-            fp = self.resolve_key_to_path(key)
+            fp = self.db_resolve_key_to_abs_path(key)
 
             # checking for missing file
             if not os.path.exists(fp):
@@ -3389,7 +3380,6 @@ class PhotoDB(BaseSQliteDB):
             # Update the flags of the given key.
             self.update_row_main_table(key=key, flags=flags)
 
-        self.remove_extra_cursor("update_thumbnails")
         self.commit()
         self.main_logger.info(f"Created: {created} Display Files, found {missing} newly missing")
 
