@@ -117,3 +117,9 @@ class ImportStatus(Enum):
     IGNORE = 0
     MARKED_FOR_IMPORT = 1
     IMPORTED = 2
+
+
+class NameUpdateStatus(Enum):
+    READY_TO_UPDATE=0
+    UPDATED=1
+    FAILED=2
