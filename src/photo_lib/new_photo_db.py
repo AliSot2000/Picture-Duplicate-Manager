@@ -3111,16 +3111,9 @@ class PhotoDB(BaseSQliteDB):
         - Moves the original file to the trash
         - Updates the flags of the file.
         """
-        self.debug_execute(stmt="SELECT key, flags  FROM main WHERE key = ?",
-                           args=(key,))
-        _raw_res = self.sq_cur.fetchone()
-
-        if _raw_res is None:
-            raise ValueError(f"Key {key} not found in main table.")
-
-        # Parse the row
-        k, _flags = _raw_res
-        main_flags = MainFlags.from_int(_flags)
+        main_flags = self.get_main_flags(key)
+        if main_flags is None:
+            raise ValueError(f"Key {key} not found in main table")
 
         if main_flags.trashed:
             raise ValueError("File is already in Trash")
