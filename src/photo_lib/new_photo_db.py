@@ -3785,7 +3785,7 @@ class PhotoDB(BaseSQliteDB):
         self.delete_file_association(key)
 
         # Remove row from metadata
-        self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (key,))
+        self.delete_row_metadata_table(key=key)
 
         # Removing files from the duplicates table
         c_known = self.remove_all_tuples_with_key(key=key, known=True)
