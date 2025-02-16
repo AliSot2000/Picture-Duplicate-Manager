@@ -2818,10 +2818,9 @@ class PhotoDB(BaseSQliteDB):
                                                                             file_hash=file_hash,
                                                                             fsb=file_size_bytes)
 
-            serializable_matches = {k: v.value for k, v in matches.items()}
-            self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET match_type = ?, highest_match = ?, matches = ? "
-                                    f"WHERE key = {key}",
-                               args=(highest_match.value, highest_match, json.dumps(serializable_matches), key))
+            self.set_match_type_import_table(tbl_name=tbl_name, key=key, matches=matches,
+                                             best_match=highest_key, best_match_type=highest_match)
+
             count += 1
 
         self.main_logger.info(f"Found {count} matches for {tbl_name}")
