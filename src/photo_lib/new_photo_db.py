@@ -1590,6 +1590,96 @@ class PhotoDB(BaseSQliteDB):
 
         return rc == 1
 
+    def update_row_main_table(self, key: int, **kwargs):
+        """
+        Update the row indicated by the key in the main table.
+
+        PRECONDITION: row with key exists.
+
+        :param key: Key of Row to Update.
+
+        kwargs are all column names of the main table. If a row is not supposed to be updated, do not add it to the
+        kwargs. If a kwargs is None, the column of that row will be set to NULL!!!
+        All possible kwargs are:
+
+        original_filename: str
+        metadata: str | dict | list | None
+        google_metadata: str | dict | list | None
+        datetime: datetime.datetime (timezone aware object)
+        db_name: str
+        parent: int
+        timezone: str
+        flags: MainFlags
+        """
+        given = set(kwargs.keys())
+        all_cols = {"original_filename",
+                    "metadata",
+                    "google_metadata",
+                    "datetime",
+                    "db_name",
+                    "parent",
+                    "timezone",
+                    "flags"}
+
+        # Check the keys
+        if not given.issubset(all_cols):
+            rem = given - all_cols
+            raise ValueError(f"Columns: {rem} not in metadata table")
+
+        # Convert metadata
+        if "metadata" in given:
+            md = kwargs["metadata"]
+
+            if md is None or isinstance(md, str):
+                san_md = md
+            elif isinstance(md, list) or isinstance(md, dict):
+                san_md = json.dumps(md)
+            else:
+                raise TypeError(f"Metadata must be a string, dict, list or None, got {type(md).__name__}")
+
+            kwargs["metadata"] = san_md
+
+        # Convert google metadata
+        if "google_metadata" in given:
+            gfmd = kwargs["google_metadata"]
+
+            if gfmd is None or isinstance(gfmd, str):
+                san_gfmd = gfmd
+            elif isinstance(gfmd, list) or isinstance(gfmd, dict):
+                san_gfmd = json.dumps(gfmd)
+            else:
+                raise TypeError(f"Metadata must be a string, dict, list or None, got {type(gfmd).__name__}")
+
+            kwargs["google_metadata"] = san_gfmd
+
+        # Convert datetime
+        if "datetime" in given:
+            dt: datetime.datetime = kwargs["datetime"]
+
+            if dt.tzinfo is None:
+                raise TypeError("Datetime Object needs to be Timezone Aware.")
+
+            kwargs["datetime"] = dt.isoformat()
+
+        if "flags" in given:
+            flags = kwargs["flags"]
+
+            if not isinstance(flags, MainFlags):
+                raise TypeError(f"Flags must be a MainFlags, got {type(flags).__name__}")
+
+            kwargs["flags"] = flags.to_int()
+
+        keys = list(kwargs.keys())
+        set_strs = [f"{k} = ?" for k in keys]
+        full_set_str = ", ".join(set_strs)
+
+        substitute = [kwargs.get(k) for k in keys]
+        substitute += [key]
+
+        self.debug_execute(f"UPDATE main SET {full_set_str} WHERE key = ?", args=tuple(substitute))
+
+        assert self.sq_cur.rowcount == 1, "Failed to Update Row in Main Table"
+
     def update_trash_flag_from_selection(self, selection: Selection, target_value: bool):
         """
         Update the files which have aren't present to have been moved to the trash.
