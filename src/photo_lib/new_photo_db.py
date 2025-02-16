@@ -3021,8 +3021,8 @@ class PhotoDB(BaseSQliteDB):
         - Attributes are transferred into the replaced table.
         - Need to remove mentions in duplicates and known_duplicates table.
 
-        :param child_key: The key of the entry in the main table which will become the child in the replaced table
-        :param parent_key: The key of the file which will be newly the parent.
+        :param child_key: The key of the entry in the main table which will become the duplicate of the parent key.
+        :param parent_key: The key of the file which will be newly the parent considered the original file of the dup.
         :param copy_google_metadata: Copy the Google Metadata from the child to the parent if the parent doesn't have
             Google Metadata
         """
