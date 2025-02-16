@@ -651,6 +651,8 @@ class PhotoDB(BaseSQliteDB):
         """
         Iterator to get all rows which can be imported from the import table.
 
+        # INFO: Metadata isn't parsed to from json, becasue we do not need to interact with it.
+
         Tuple elements are in this sequence:
 
         - key: (key of row in import table)
