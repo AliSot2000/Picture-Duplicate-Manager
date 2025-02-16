@@ -567,6 +567,28 @@ class PhotoDB(BaseSQliteDB):
                                parsing_result.source.value
                            ))
 
+    def set_match_type_import_table(self, tbl_name: str, key: int, matches: Dict[int, NewMatchTypes],
+                                    best_match: int | None, best_match_type: NewMatchTypes):
+        """
+        Set the match data for a given row in the import table.
+
+        PRECONDITION: Key exists in import table
+
+        :param tbl_name: Name of table in which to update the file
+        :param key: key in import table to update
+        :param matches: Dict of files matched against the one given with their respective NewMatchType$
+        :param best_match: Key of best match in main table
+        :param best_match_type: Type of best match.
+
+        :raises sqlite3.OperationalError: If the Import Table doesn't exist
+        """
+        serializable_matches = {k: v.value for k, v in matches.items()}
+        self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET match_type = ?, highest_match = ?, matches = ? "
+                                f"WHERE key = {key}",
+                           args=(best_match_type.value, best_match, json.dumps(serializable_matches), key))
+
+        assert self.sq_cur.rowcount == 1, f"SQL Error, key not found in table {tbl_name}"
+
     def set_allowed(self, tbl_name: str, key: int, allowed: Allowed, message: str = None):
         """
         Set the allowed flag of a given row of an import table.
@@ -985,7 +1007,7 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to update row in name_update_table"
 
-    def set_match_data_name_update_table(self, key: int, matches: Dict[int, NewMatchTypes], best_match: int,
+    def set_match_data_name_update_table(self, key: int, matches: Dict[int, NewMatchTypes], best_match: int | None,
                                          match_type: NewMatchTypes):
         """
         Set the match data for a given key in the name_update_table.
