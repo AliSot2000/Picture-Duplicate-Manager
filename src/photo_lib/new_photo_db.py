@@ -1993,6 +1993,105 @@ class PhotoDB(BaseSQliteDB):
         # PRECONDITION: number of results = 1
         return res[0][0]
 
+    def main_key_flags_iterator(self, allow_selection: bool, selection: Selection = None, **kwargs) \
+            -> Iterator[Tuple[int, MainFlags]]:
+        """
+        Function generates an iterator through the main table. The selection of rows can be controlled using a
+        Selection object or flags in the kwargs. If you provide kwargs, they must specify names of flags. These
+        can be used as additional constraints in the main table.
+
+        :param selection: Selection object to constrain rows in iterator
+        :parm allow_selection: Whether a selection object may be provided for this call.
+
+        All possible kwargs booleans, and their names are:
+
+        - present
+        - verify
+        - trashed
+        - org_google_metadata
+        - sel_a
+        - sel_b
+        - has_thumbnail
+        - has_miniature
+        - duplicate
+
+        ValueError:
+
+        - If a key is specified that's not supported
+        - If selection is provided in a location where none is allowed.
+        - If sel_a oro sel_b are specified in conjunction with SELECTION or SELECTION_B
+            respectively.
+        """
+        self.add_extra_cursor("main_key_flags_iterator")
+        keys = list(kwargs.keys())
+        all_keys = {"present", "verify", "trashed", "org_google_metadata", "sel_a", "sel_b", "has_thumbnail",
+                    "has_miniature", "duplicate"}
+
+        stmt = "SELECT key, flags FROM main "
+        constraints = []
+        const_args = []
+
+        if not set(keys).issubset(all_keys):
+            raise ValueError(f"{set(keys) - all_keys} keys aren't allowed")
+
+        if selection is not None:
+            if not allow_selection:
+                raise ValueError("Selection Provided in Call location without selection.")
+
+            if "sel_a" in keys and selection.selection_type == SelectionType.SELECTION_A:
+                raise ValueError("Cannot constrain keys with selection and kwarg, sel_a")
+
+            elif "sel_b" in kwargs and selection.selection_type == SelectionType.SELECTION_B:
+                raise ValueError("Cannot constrain keys with selection and kwarg, sel_b")
+
+            if selection.selection_type == SelectionType.SELECTION_A:
+                constraints += ["mod(flags >> 4, 2) = ?"]
+                const_args += [1]
+            elif selection.selection_type == SelectionType.SELECTION_B:
+                constraints += ["mod(flags >> 5, 2) = ?"]
+                const_args += [1]
+            elif selection.selection_type == SelectionType.TIME_RANGE:
+                constraints += ["datetime(?) <= datetime(datetime)", "datetime(datetime) <= datetime(?)"]
+                const_args += [selection.start.isoformat(), selection.end.isoformat()]
+
+        for key, value in kwargs.items():
+            # Add the argument
+            const_args += [1 if value else 0]
+            if key == "present":
+                constraints += ["mod(flags, 2) = ?"]
+            elif key == "verify":
+                constraints += ["mod(flags >> 1, 2) = ?"]
+            elif key == "trashed":
+                constraints += ["mod(flags >> 2, 2) = ?"]
+            elif key == "org_google_metadata":
+                constraints += ["mod(flags >> 3, 2) = ?"]
+            elif key == "sel_a":
+                constraints += ["mod(flags >> 4, 2) = ?"]
+            elif key == "sel_b":
+                constraints += ["mod(flags >> 5, 2) = ?"]
+            elif key == "has_thumbnail":
+                constraints += ["mod(flags >> 6, 2) = ?"]
+            elif key == "has_miniature":
+                constraints += ["mod(flags >> 7, 2) = ?"]
+            elif key == "duplicate":
+                constraints += ["mod(flags >> 8, 2) = ?"]
+            else:
+                raise ImplementationError("Uncovered key in main_key_flags_iterator")
+
+        # Execute the statement
+        if len(constraints) == 0:
+            self.debug_execute(stmt)
+
+        else:
+            stmt += " WHERE "
+            const_str = ", ".join(constraints)
+            self.debug_execute(stmt=stmt + const_str, args=tuple(const_args))
+
+        for key, _flags in self.get_cursor("main_key_flags_iterator"):
+            yield key, MainFlags.from_int(_flags)
+
+        self.remove_extra_cursor("main_key_flags_iterator")
+
     # ==================================================================================================================
     # DB Integrity checks and utility
     # ==================================================================================================================
