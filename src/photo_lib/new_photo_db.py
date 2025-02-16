@@ -1479,6 +1479,21 @@ class PhotoDB(BaseSQliteDB):
                  f"flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
             args=(original_filename, san_md, san_gfmd, db_name, dt.isoformat(), timezone, flags.to_int()))
 
+    def delete_row_main_table(self, key: int, assert_exists: bool = True) -> bool:
+        """
+        Delete a given row from the main table.
+
+        :param key: Key of row to delete.
+        :param assert_exists: Check Precondition that the row existed.
+        """
+        self.debug_execute("DELETE FROM main WHERE key = ?", (key,))
+        rc = self.sq_cur.rowcount
+
+        if assert_exists:
+            assert rc == 1, "PRECONDITION Failied, row didn't exist in main table."
+
+        return rc == 1
+
     def update_trash_flag_from_selection(self, selection: Selection, target_value: bool):
         """
         Update the files which have aren't present to have been moved to the trash.
@@ -2155,7 +2170,7 @@ class PhotoDB(BaseSQliteDB):
 
             if os.path.exists(target_path):
                 # Remove rows inserted for the file before raising error.
-                self.debug_execute("DELETE FROM main WHERE key = ?", (main_key,))
+                self.delete_row_main_table(key=main_key)
                 self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (main_key,))
                 self.commit()
                 raise FileExistsError(f"Couldn't import {ofn}, file already exists in {self.dt_to_dir(dt)}")
@@ -3449,7 +3464,7 @@ class PhotoDB(BaseSQliteDB):
         self.main_logger.debug(f"Deleted {c_default} tuples from default table")
 
         # Finally deleting the main row
-        self.debug_execute("DELETE FROM main WHERE key = ?", (key,))
+        self.delete_row_main_table(key)
         self.commit()
 
         # Doesn't make sense to call the same clean-up after every child.
