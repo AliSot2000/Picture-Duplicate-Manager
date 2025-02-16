@@ -3060,17 +3060,17 @@ class PhotoDB(BaseSQliteDB):
         main_flags.duplicate = True
 
         # Check children in replaced table
-        self.debug_execute("SELECT COUNT(*) FROM main WHERE parent = ?", args=(child_key,))
-        count = self.sq_cur.fetchone()[0]
-
+        children = self.list_children(child_key)
+        count = len(children)
         if count > 0:
             self.main_logger.info(f"Updating {count} children of this entry")
 
-            self.debug_execute("UPDATE main SET parent = ? WHERE parent = ?", (parent_key, child_key))
+            for child in children:
+                self.change_parent(key=child, new_parent=parent_key)
 
         # Check Entries in duplicates table and known_duplicates table
-        self._migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=False)
-        self._migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=True)
+        self.migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=False)
+        self.migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=True)
 
         # Marking row as duplicate in metadata table
         self.debug_execute("UPDATE metadata SET replaced = 1 WHERE key = ?", (child_key,))
