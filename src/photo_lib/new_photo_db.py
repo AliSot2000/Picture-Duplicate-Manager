@@ -962,9 +962,9 @@ class PhotoDB(BaseSQliteDB):
 
         Tuple elements are in this sequence:
 
-        - key in name_update_table
-        - name in name_update_table
-        - dir_name in name_update_table (so dir_name + name is the path to the detected file)
+        - key (in name_update_table)
+        - name (in name_update_table)
+        - dir_name (in name_update_table (so dir_name + name is the path to the detected file))
         - best_match (key to entry in main table which was deemed the best match for this file)
 
         """
