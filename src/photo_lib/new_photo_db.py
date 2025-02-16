@@ -978,6 +978,27 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("name_update")
 
+    def find_hash_match_iterator(self) -> Iterator[Tuple[int, str, str, int, str]]:
+        """
+        Get an iterator for all rows in the name_update_table to find matches based on the file hash and file size.
+
+        Tuple elements are in this sequence:
+
+        - key (in name_update_table)
+        - name (in name_update_table)
+        - dir_name (in name_update_table (so dir_name + name is the path to the detected file))
+        - file_size_bytes (size of the file indicated by name and dir_name)
+        - hash (of file indicated by name and dir_name)
+        """
+        self.add_extra_cursor("name_update_hash_match")
+        self.debug_execute(stmt="SELECT key, name, dir_name, file_size_bytes, hash FROM name_update_table",
+                           cur="name_update_hash_match")
+
+        for key, name, dir_name, file_size_bytes, hash in self.get_cursor("name_update_hash_match"):
+            yield key, name, dir_name, file_size_bytes, hash
+
+        self.remove_extra_cursor("name_update_hash_match")
+
     # ==================================================================================================================
     # Hash Table
     # ==================================================================================================================
