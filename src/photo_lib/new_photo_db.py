@@ -3709,7 +3709,7 @@ class PhotoDB(BaseSQliteDB):
                     raise ImplementationError("Didn't receive trashed file despite call for it")
 
             # TODO darktable
-            file_path = self.resolve_key_to_path(key)
+            file_path = self.db_resolve_key_to_abs_path(key)
             self.check_flags(key=key, flags=flags, org_path=file_path)
 
             if os.path.exists(file_path):
