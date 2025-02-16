@@ -1922,6 +1922,25 @@ class PhotoDB(BaseSQliteDB):
 
         return dt, flags, db_local_dir, db_name, original_filename
 
+    def get_replace_data(self, key: int) -> Tuple[str, MainFlags, str] | None:
+        """
+        Get the necessary data from the main table to mark a file as a duplicate.
+
+        :param key: key of file in main table
+
+        :returns: google_metadata json string, MainFlags, db_name
+        """
+        self.debug_execute(stmt="SELECT m.google_metadata, m.flags, m.db_name FROM main AS m WHERE m.key = ?",
+                           args=(key,))
+
+        raw = self.sq_cur.fetchone()
+        if raw is None:
+            return None
+
+        gfmd, _flags, db_name = raw
+        flags = MainFlags.from_int(_flags)
+        return gfmd, flags, db_name
+
     def get_main_flags(self, key: int) -> None | MainFlags:
         """
         Get the flags from any entry in the main table
@@ -3352,21 +3371,18 @@ class PhotoDB(BaseSQliteDB):
             Google Metadata
         """
         # Ensure both keys exist.
-        self.debug_execute("SELECT key, flags, google_metadata FROM main WHERE key = ?", (parent_key,))
-        raw_parent = self.sq_cur.fetchone()
+        parent_data = self.get_replace_data(parent_key)
 
-        if raw_parent is None:
+        if parent_data is None:
             raise ValueError("Parent Key doesn't exist")
 
-        parent_flags = MainFlags.from_int(raw_parent[1])
-        parent_google_metadata = raw_parent[2]
+        parent_google_metadata, parent_flags, _ = parent_data
 
-        self.debug_execute(stmt="SELECT key, m.google_metadata, m.flags, m.db_name FROM main AS m WHERE m.key = ?",
-                           args=(child_key,))
-
-        result = self.sq_cur.fetchone()
-        if result is None:
+        child_data = self.get_replace_data(child_key)
+        if child_data is None:
             raise ValueError("Child Key doesn't exist")
+
+        child_gfmd, main_flags, db_name = child_data
 
         # INFO: Warning User, shouldn't really be occurring, since trashed shouldn't be able to be deduplicated
         if parent_flags.trashed:
@@ -3374,10 +3390,6 @@ class PhotoDB(BaseSQliteDB):
 
         if not parent_flags.present:
             self.main_logger.warning("Marking File as Duplicate without Parent file being present")
-
-        # Unpack result for ease of use
-        _, _flags, google_metadata, db_name = result
-        main_flags = MainFlags.from_int(_flags)
 
         # Cannot update if the file is already duplicate
         if main_flags.duplicate:
@@ -3425,9 +3437,9 @@ class PhotoDB(BaseSQliteDB):
             os.remove(self.full_miniature_path(child_key))
 
         # Copy the Google photos metadata to the parent.
-        if copy_google_metadata and parent_google_metadata is None and google_metadata is not None:
+        if copy_google_metadata and parent_google_metadata is None and child_gfmd is not None:
             parent_flags.org_google_metadata = False
-            self.update_row_main_table(key=parent_key, google_metadata=google_metadata, flags=parent_flags)
+            self.update_row_main_table(key=parent_key, google_metadata=child_gfmd, flags=parent_flags)
 
         self.change_parent(key=child_key, new_parent=parent_key)
 
