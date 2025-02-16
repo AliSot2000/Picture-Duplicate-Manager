@@ -1460,6 +1460,61 @@ class PhotoDB(BaseSQliteDB):
 
         return rc == 1
 
+    def update_row_metadata_table(self, key: int, **kwargs):
+        """
+        Update the row indicated by the key in the metadata table.
+
+        :param key: Main Key of Row to Update.
+
+        kwargs are all column names of the metadata table. If a row is not supposed to be updated, do not add it to the
+        kwargs. If a kwargs is None, the column of that row will be set to NULL!!!
+        All possible kwargs are:
+
+        original_dirname: str
+        naming_tag: str
+        datetime_source: DateTimeSource
+        gps_location: int
+        db_dir: int
+        replaced: MediaType
+        """
+        given = set(kwargs.keys())
+        all_cols = {"original_dirname", "naming_tag", "datetime_source", "gps_location", "db_dir", "replaced"}
+
+        # Check the keysdatetime_source
+        if not given.issubset(all_cols):
+            rem = given - all_cols
+            raise ValueError(f"Columns: {rem} not in metadata table")
+
+        # Update kwarg types from Enums to ints
+        if "replaced" in given:
+            val = kwargs.get("replaced")
+
+            if not isinstance(val, MediaType):
+                raise TypeError(f"replaced column is of type MediaType")
+
+            # Update the replaced value
+            kwargs["replaced"] = val.value
+
+        if "datetime_source" in given:
+            val = kwargs.get("datetime_source")
+
+            if not isinstance(val, DateTimeSource):
+                raise TypeError(f"datetime_source column is of type DateTimeSource")
+
+            # Update kwargs
+            kwargs["datetime_source"] = val.value
+
+        keys = list(kwargs.keys())
+        set_strs = [f"{k} = ?" for k in keys]
+        full_set_str = ", ".join(set_strs)
+
+        substitute = [kwargs.get(k) for k in keys]
+        substitute += [key]
+
+        self.debug_execute(f"UPDATE metadata SET {full_set_str} WHERE main_key = ?", args=tuple(substitute))
+
+        assert self.sq_cur.rowcount == 1, "Failed to Update Row in Metadata Table"
+
     # ==================================================================================================================
     # Main Table
     # ==================================================================================================================
