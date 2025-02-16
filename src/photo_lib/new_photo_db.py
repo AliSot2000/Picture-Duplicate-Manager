@@ -3572,6 +3572,8 @@ class PhotoDB(BaseSQliteDB):
         """
         count: int = 0
 
+        #  TODO different iterator
+
         self.add_extra_cursor("del_trash_thumb")
         # Everything in the trash
         if key is None:
