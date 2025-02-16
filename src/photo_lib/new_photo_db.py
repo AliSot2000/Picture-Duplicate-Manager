@@ -2537,13 +2537,10 @@ class PhotoDB(BaseSQliteDB):
             assert import_key is None, "File marked as not imported, shouldn't have a import_key set."
 
             # Insert into main table and add
-            # TODO gfmd and md can be None
-            self.debug_execute(f"INSERT INTO main "
-                               f"(original_filename, metadata, google_metadata, db_name,"
-                               f" datetime, timezone, flags) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                               (ofn, md.replace("'", "''"), gfmd.replace("'", "''"), self.temp_db_name,
-                                _dt, tz, default_flags.to_int()))
-            insert_key = self.db_resolve_filename_to_key(self.temp_db_name)
+            self.insert_row_main_table(original_filename=ofn, db_name=self.reserved_temp_file_name, dt=dt, timezone=tz,
+                                       flags=default_flags, google_metadata=gfmd, metadata=md)
+
+            insert_key = self.db_resolve_filename_to_key(self.reserved_temp_file_name)
             assert insert_key is not None, "Key should exist after insert."
 
             # Handle metadata table
