@@ -1298,6 +1298,10 @@ class PhotoDB(BaseSQliteDB):
         :param known: If true, will remove the tuple from the known_duplicates table else duplicates table.
         :param add: if true, will add the tuple to the table, else remove the tuple.
         :param delta: Delta metric to add for the duplicates. (Only affects add calls)
+
+        :raises TypeError: If not key_a, key_b, delta aren't all either numbers or lists
+        :raises ValueError: If a tuple of (key_x, key_x) is found
+        :raises IndexError: If the lists don't have the same length.
         """
         tbl = "known_duplicates" if known else "duplicates"
 
