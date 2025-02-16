@@ -1422,6 +1422,26 @@ class PhotoDB(BaseSQliteDB):
     # Metadata Table
     # ==================================================================================================================
 
+    def insert_row_metadata_table(self,
+                                  key: int,
+                                  original_dirname: str,
+                                  naming_tag: str,
+                                  datetime_source: DateTimeSource):
+        """
+        Insert a new row into the metadata table.
+
+        :param key: Main Key of Row to Insert.
+        :param original_dirname: Original Directory from which the file was imported.
+        :param naming_tag: Tag who's the source of teh datetime of the image
+        :param datetime_source: Class of Datetime Objects which produced the datetime object.
+
+        :raises sqlite3.IntegrityError: If the db_name already exists.
+        """
+        self.debug_execute("INSERT INTO metadata (main_key, original_dirname, naming_tag, datetime_source) "
+                               "VALUES (?, ?, ?, ?)", args=(key, original_dirname, naming_tag, datetime_source.value))
+
+        assert self.sq_cur.rowcount == 1, "Failed to Insert Row into Metadata Table"
+
     # ==================================================================================================================
     # Main Table
     # ==================================================================================================================
