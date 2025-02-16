@@ -1524,12 +1524,14 @@ class PhotoDB(BaseSQliteDB):
 
         :param key: Key of row to delete.
         :param assert_exists: Check Precondition that the row existed.
+
+        :returns: True -> Row was Deleted. False otherwise.
         """
         self.debug_execute("DELETE FROM main WHERE key = ?", (key,))
         rc = self.sq_cur.rowcount
 
         if assert_exists:
-            assert rc == 1, "PRECONDITION Failied, row didn't exist in main table."
+            assert rc == 1, "PRECONDITION Failed, row didn't exist in main table."
 
         return rc == 1
 
