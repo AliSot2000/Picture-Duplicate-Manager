@@ -1184,6 +1184,8 @@ class PhotoDB(BaseSQliteDB):
         """
         Checks if a given row in the hash_assoz table exists provided a file_hash, a file_size and file_key.
 
+        If the row is found, but it's not the newest row, update the hash.
+
         Adds the row if it doesn't exist.
 
         :param file_hash: The hash of the file to check.
@@ -1212,7 +1214,7 @@ class PhotoDB(BaseSQliteDB):
 
         # Parse the row and get the newest hash
         hash_str, hash_key, file_key = res
-        newest_hash, _ = self.get_newest_hash(res[1])
+        newest_hash, newest_size = self.get_newest_hash(res[1])
 
         # Check the given hash is the newest hash of the file.
         if newest_hash != file_hash:
@@ -1222,6 +1224,10 @@ class PhotoDB(BaseSQliteDB):
                                     "SET hash_date = ? "
                                     "WHERE hash_key = ? AND file_key = ? AND file_size_bytes = ? AND initial = 0",
                                args=(ndt.isoformat(), hash_key, file_key, file_size))
+
+        # TODO change logger
+        if newest_hash == file_hash and newest_size != file_size:
+            self.logger.info(f"Found matching hashes with different file sizes: {newest_hash}, {newest_size}")
 
         return True
 
