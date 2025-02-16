@@ -713,7 +713,7 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("import_cursor")
 
-    def find_match_iterator(self, tbl_name: str, recompute: bool = False) -> Iterator[Tuple[int, str, str, int, str]]:
+    def find_import_match_iterator(self, tbl_name: str, recompute: bool = False) -> Iterator[Tuple[int, str, str, int, str]]:
         """
         Get an iterator with the necessary information to check for matches in the main table.
 
@@ -2123,10 +2123,7 @@ class PhotoDB(BaseSQliteDB):
         if count == 0:
             return 0
 
-        self.add_extra_cursor("update_names")
-        self.debug_execute("SELECT key, name, dir_name, file_size_bytes, hash")
-
-        for key, name, dir_name, fsb, fh in self.get_cursor("update_names"):
+        for key, name, dir_name, fsb, fh in self.find_hash_match_iterator():
             name: str
             dir_name: str
 
@@ -2730,7 +2727,7 @@ class PhotoDB(BaseSQliteDB):
             raise ValueError(f"Table {tbl_name} doesn't exist")
 
         count = 0
-        for row in self.find_match_iterator(tbl_name=tbl_name, recompute=recompute):
+        for row in self.find_import_match_iterator(tbl_name=tbl_name, recompute=recompute):
             key, original_filename, original_dirname, file_size_bytes, file_hash = row
             target_fp = str(os.path.join(original_dirname, original_filename))
             assert os.path.exists(target_fp), "Import file needs to exist."
