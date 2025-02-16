@@ -1960,14 +1960,16 @@ class PhotoDB(BaseSQliteDB):
             # Try to get the parent's path
             tgt_path = self.db_resolve_key_to_abs_path(best_match)
             if tgt_path is None:
-                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
-                                   ("Matched key doesn't exist in main table", key))
+                self.set_updated_status_name_update_table(
+                    key=key, status=NameUpdateStatus.FAILED, message="Matched key doesn't exist in main table")
+
                 conflict += 1
                 continue
 
             if os.path.exists(tgt_path):
-                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
-                                   ("Parent File is Present", key))
+                self.set_updated_status_name_update_table(
+                    key=key, status=NameUpdateStatus.FAILED, message="Parent File is Present")
+
                 conflict += 1
                 continue
 
@@ -1979,8 +1981,9 @@ class PhotoDB(BaseSQliteDB):
 
             # Check if the destination exists.
             if os.path.exists(dst_path):
-                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
-                                   ("File exists at destination", key))
+                self.set_updated_status_name_update_table(key=key, status=NameUpdateStatus.FAILED,
+                                                          message="File exists at destination")
+
                 conflict += 1
                 continue
 
@@ -1988,8 +1991,9 @@ class PhotoDB(BaseSQliteDB):
             assert flags is not None, "Flags should exist, if path resolved"
 
             if flags.trashed or flags.duplicate:
-                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
-                                   (f"Parent is trash or duplicate, not allowd to upadte. ", key))
+                self.set_updated_status_name_update_table(
+                    key=key, status=NameUpdateStatus.FAILED,message=f"Parent is trash or duplicate, update not allowed")
+
                 conflict += 1
 
             # Need to update
@@ -2000,7 +2004,7 @@ class PhotoDB(BaseSQliteDB):
             os.rename(os.path.join(dir_name, name), os.path.join(os.path.dirname(tgt_path), name))
             flags.present = True
 
-            self.debug_execute("UPDATE name_update_table SET updated = 1 WHERE key = ?", (key,))
+            self.set_updated_status_name_update_table(key=key, status=NameUpdateStatus.UPDATED)
             self.update_row_main_table(key=best_match, db_name=name, flags=flags)
 
             if dir_key is not None:
@@ -2008,6 +2012,7 @@ class PhotoDB(BaseSQliteDB):
 
             count += 1
 
+        # TODO logger
         self.commit()
         return count, conflict
 
