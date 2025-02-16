@@ -1822,7 +1822,7 @@ class PhotoDB(BaseSQliteDB):
             self.debug_execute("UPDATE main SET db_name = ?, flags = ? WHERE key = ?",
                                (name, flags.to_int(), best_match))
             if dir_key is not None:
-                self.debug_execute("UPDATE metadata SET db_dir = ? WHERE key = ?", (dir_key, key))
+                self.update_row_metadata_table(key=key, db_dir=dir_key)
 
             count += 1
 
@@ -2207,8 +2207,7 @@ class PhotoDB(BaseSQliteDB):
             if gps_lat is not None and gps_long is not None:
                 gps_key = self.insert_get_gps_loc(gps_lat=gps_lat, gps_long=gps_long)
 
-                self.debug_execute("UPDATE metadata SET gps_location = ? WHERE main_key = ?",
-                                   (gps_key, insert_key))
+                self.update_row_metadata_table(key=insert_key, gps_location=gps_key)
 
             # Handle hash
             assert fh is not None, "File Hash needs to be defined"
@@ -2281,7 +2280,7 @@ class PhotoDB(BaseSQliteDB):
             if os.path.dirname(target_path) != os.path.join(self.root_path, self.dt_to_dir(dt)):
                 db_local_dir = os.path.dirname(target_path)
                 dir_key = self.insert_get_dir(dir_name=db_local_dir)
-                self.debug_execute("UPDATE metadata SET db_dir = ? WHERE main_key = ?", (dir_key, main_key))
+                self.update_row_metadata_table(key=main_key, db_dir=dir_key)
 
             assert not os.path.exists(target_path), "Target path is not supposed to exist"
             os.rename(os.path.join(ofd, ofn), target_path)
@@ -2293,7 +2292,7 @@ class PhotoDB(BaseSQliteDB):
             # Need to add a db_local_dir if the directory doesn't match the datetime of the image
             if ofd != dt_dir:
                 dir_key = self.insert_get_dir(ofd)
-                self.debug_execute("UPDATE metadata SET db_dir = ? WHERE main_key = ?", (dir_key, main_key))
+                self.update_row_metadata_table(key=main_key, db_dir=dir_key)
 
         else:
             raise ImplementationError("Tertiem Non Datur")
@@ -2662,8 +2661,7 @@ class PhotoDB(BaseSQliteDB):
             if gps_lat is not None and gps_long is not None:
                 gps_key = self.insert_get_gps_loc(gps_lat=gps_lat, gps_long=gps_long)
 
-                self.debug_execute("UPDATE metadata SET gps_location = ? WHERE main_key = ?",
-                                   (gps_key, insert_key))
+                self.update_row_metadata_table(key=insert_key, gps_location=gps_key)
 
             # Handle hash
             assert fh is not None, "File Hash needs to be defined"
@@ -2728,8 +2726,7 @@ class PhotoDB(BaseSQliteDB):
 
         self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
                            (db_name, key))
-        self.debug_execute("UPDATE metadata SET db_dir = ? WHERE main_key = ?",
-                           (dir_key, key))
+        self.update_row_metadata_table(key=key, db_dir=dir_key)
 
     # ==================================================================================================================
     # Deduplication
@@ -2899,8 +2896,9 @@ class PhotoDB(BaseSQliteDB):
 
         self.debug_execute("UPDATE main SET datetime = ?, db_name = ?, timezone = ?WHERE key = ?",
                            (new_dt.isoformat(), new_name, timezone, key))
-        self.debug_execute("UPDATE metadata SET naming_tag = ?, datetime_source = ? WHERE main_key = ?",
-                           (NewMetadataAggregator.serialize_key(tag), dts.value, key))
+        self.update_row_metadata_table(key=key,
+                                       naming_tag=NewMetadataAggregator.serialize_key(tag),
+                                       datetime_source=dts)
 
         if add_exif_tag or (add_exif_tag is None and self.config.add_safety_exif_tags):
             if dt != new_dt:
@@ -2950,8 +2948,7 @@ class PhotoDB(BaseSQliteDB):
         # Update the database after renaming
         self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
                            (new_filename, key))
-        self.debug_execute("UPDATE metadata SET naming_tag = ? WHERE main_key = ?",
-                           ("CUSTOM", key))
+        self.update_row_metadata_table(key=key, naming_tag="CUSTOM")
 
         # Update cache
         if self.filename_to_key_cache.evict(arg=db_name):
@@ -3167,7 +3164,7 @@ class PhotoDB(BaseSQliteDB):
         self.migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=True)
 
         # Marking row as duplicate in metadata table
-        self.debug_execute("UPDATE metadata SET replaced = 1 WHERE key = ?", (child_key,))
+        self.update_row_metadata_table(key=child_key, replaced=MediaType.DUPLICATE)
 
         # Update file system
         fp = self.resolve_key_to_path(child_key)
@@ -3261,7 +3258,7 @@ class PhotoDB(BaseSQliteDB):
 
         # All things done, update the flags and write the db, update the metadata table.
         self.debug_execute("UPDATE main SET flags = ? WHERE key = ?", (main_flags.to_int(), key))
-        self.debug_execute("UPDATE metadata SET replaced = 2 WHERE key = ?", (key,))
+        self.update_row_metadata_table(key=key, replaced=MediaType.TRASH)
 
         self.prune_db_dir()
         self.prune_fs_dir = True
