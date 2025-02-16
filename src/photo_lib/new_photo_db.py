@@ -947,6 +947,23 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT COUNT(*) FROM name_update_table")
         return self.sq_cur.fetchone()[0]
 
+    def insert_row_name_update_table(self, filename: str, dirname: str, file_size: int, file_hash: str):
+        """
+        Insert a new row into the name_update_table.
+
+        :param filename: Filename of the file
+        :param dirname: Directory where file is
+        :param file_size: File size of the file
+        :param file_hash: Hash of the file
+
+        :raises sqlite3.IntegrityError: If the path alread exists.
+        """
+        self.debug_execute(stmt="INSERT INTO name_update_table (name, dir_name, file_size_bytes, hash) "
+                                "VALUES (?, ?, ?, ?)",
+                           args=(filename, dirname, file_size, file_hash))
+
+        assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to insert row into name_update_table"
+
     def set_updated_status_name_update_table(self, key: int, status: NameUpdateStatus, message: str = None):
         """
         Set the update state of a row in the name_update_table. Can also add a message, if one is provided.
@@ -2138,9 +2155,7 @@ class PhotoDB(BaseSQliteDB):
                 fsb = os.stat(os.path.join(root, file)).st_size
                 fh = self.mda.hash_file(os.path.join(root, file))
 
-                self.debug_execute(stmt="INSERT INTO name_update_table (name, dir_name, file_size_bytes, hash) "
-                                        "VALUES (?, ?, ?, ?)",
-                                   args=(file, root, fsb, fh))
+                self.insert_row_name_update_table(filename=file, dirname=root, file_size=fsb, file_hash=fh)
                 count += 1
 
         if add_mda:
