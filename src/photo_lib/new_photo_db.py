@@ -3640,12 +3640,11 @@ class PhotoDB(BaseSQliteDB):
                            "WHERE mod(flags, 2) = 1 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 8, 2) = 0",
                            cur="rm_disp_media")
 
-        for row in self.get_cursor("rm_disp_media"):
-            key, _flags = row
-            flags = MainFlags.from_int(_flags)
+        for key, flags in self.main_key_flags_iterator(allow_selection=False,
+                                                       present=True, trashed=False, duplicate=False):
 
             assert flags.trashed is False and flags.duplicate, "SQL Error, Trashed should be false."
-            file_path = self.resolve_key_to_path(key)
+            file_path = self.db_resolve_key_to_abs_path(key)
 
             # Skip if the original is not present
             self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True,
@@ -3669,7 +3668,6 @@ class PhotoDB(BaseSQliteDB):
 
             self.update_row_main_table(key=key, flags=flags)
 
-        self.remove_extra_cursor("rm_disp_media")
         self.commit()
         self.main_logger.info(f"Finished Deleting {count} Display Media of existing images.")
         return count
