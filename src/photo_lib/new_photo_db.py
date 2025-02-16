@@ -36,7 +36,9 @@ class PhotoDB(BaseSQliteDB):
     # Redefining logger as mandatory
     db_logger_name: str = "PhotoDB.SQLiteDB"
     integrity_logger_name: str = "PhotoDB.SQLiteDB.Integrity"
+    rare_occurrence_logger_name: str = "PhotoDB.SQLiteDB.RareOccurrence"
 
+    rare_occurrence_logger: logging.Logger
     integrity_logger: logging.Logger
 
     # Flags
@@ -165,6 +167,7 @@ class PhotoDB(BaseSQliteDB):
         """
         self.logger = logging.getLogger(PhotoDB.db_logger_name)
         self.integrity_logger = logging.getLogger(PhotoDB.integrity_logger_name)
+        self.rare_occurrence_logger = logging.getLogger(PhotoDB.rare_occurrence_logger_name)
 
         # Needed for path generation.
         self.config = config
@@ -207,6 +210,7 @@ class PhotoDB(BaseSQliteDB):
         """
         self.logger = logging.getLogger(self.db_logger_name)
         self.integrity_logger = logging.getLogger(self.integrity_logger_name)
+        self.rare_occurrence_logger = logging.getLogger(self.rare_occurrence_logger_name)
 
     def set_logging_defaults(self):
         """
@@ -215,9 +219,11 @@ class PhotoDB(BaseSQliteDB):
         # Level
         self.logger.setLevel(logging.DEBUG)
         self.integrity_logger.setLevel(logging.DEBUG)
+        self.rare_occurrence_logger.setLevel(logging.DEBUG)
 
         # Propagate
         self.integrity_logger.propagate = True
+        self.rare_occurrence_logger.propagate = True
         self.logger.propagate = False
 
         # Define handler
