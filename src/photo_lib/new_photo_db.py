@@ -2140,7 +2140,7 @@ class PhotoDB(BaseSQliteDB):
         self.remove_extra_cursor("main_key_flags_iterator")
 
     # ==================================================================================================================
-    # DB Integrity checks and utility
+    # INFO: ALL IMPLEMENTATIONS OF LONG RUNNING ACTIONS
     # ==================================================================================================================
 
     # INFO: long-running action
