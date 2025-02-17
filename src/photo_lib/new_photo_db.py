@@ -3150,8 +3150,7 @@ class PhotoDB(BaseSQliteDB):
             else:
                 dest_dir = os.path.abspath(_dest_dir)
 
-            if not dest_dir.startswith(self.root_path):
-                raise ValueError(f"Destination directory {_dest_dir} doesn't exist must be within the database")
+            self.verify_custom_target_dir(dest_dir)
 
         if not self.import_table_exists(name=tbl_name):
             raise ValueError(f"Table {tbl_name} doesn't exist")
