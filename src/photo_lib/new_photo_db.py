@@ -1419,7 +1419,10 @@ class PhotoDB(BaseSQliteDB):
 
         # Parse the row and get the newest hash
         hash_str, hash_key, file_key = res
-        newest_hash, newest_size = self.get_newest_hash(res[1])
+        newest_hash, newest_size, fdht = self.get_newest_hash(res[1])
+
+        if (newest_hash, newest_size, fdht) == (None, None, None):
+            raise CorruptDatabase("File without File hash found")
 
         # Check the given hash is the newest hash of the file.
         if newest_hash != file_hash:
