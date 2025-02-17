@@ -506,9 +506,15 @@ class PhotoDB(BaseSQliteDB):
 
         :returns: number of rows affected in main table
         """
-        # TODO implement
-        return 0
-
+        if sel_a:
+            self.debug_execute(f"UPDATE main SET flags = flags + 16 WHERE mod(flags >> 4) = 0 "
+                               f"AND key IN (SELECT import_key FROM `{tbl_name}` WHERE import_key IS NOT NULL) ")
+            rc = self.sq_cur.rowcount
+        else:
+            self.debug_execute(f"UPDATE main SET flags = flags + 32 WHERE mod(flags >> 5) = 0 "
+                               f"AND key IN (SELECT import_key FROM `{tbl_name}` WHERE import_key IS NOT NULL) ")
+            rc = self.sq_cur.rowcount
+        return rc
 
     def get_import_table_key_from_path(self, tbl_name: str, path: str) -> int | None:
         """
