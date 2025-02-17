@@ -3814,7 +3814,6 @@ class PhotoDB(BaseSQliteDB):
         # Add displac files (if requeste)
         # Update main table, update flags and unset parent
 
-
     def restore_trash(self, key: int, create_disp_files: bool = True):
         """
         Move file back from trash to its original location
