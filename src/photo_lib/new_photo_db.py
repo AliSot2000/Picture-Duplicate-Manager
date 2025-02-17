@@ -1327,21 +1327,23 @@ class PhotoDB(BaseSQliteDB):
 
         return [r[0] for r in self.sq_cur.fetchall()]
 
-    def get_newest_hash(self, key: int) -> Tuple[str, int] | Tuple[None, None]:
+    def get_newest_hash(self, key: int) -> Tuple[str, int, datetime.datetime] | Tuple[None, None, None]:
         """
         Get the newest hash of a given file. If the newest hash doesn't match, we don't perform binary comparison.
 
         :param key: File key to search for
         :returns: Tuple[None, None] -> key not found, Tuple[str, int] -> newest hash and file_size_bytes of that hash.
         """
-        self.debug_execute("SELECT h.hash, ha.file_size_bytes "
+        self.debug_execute("SELECT h.hash, ha.file_size_bytes, ha.hash_date "
                            "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
                            "WHERE ha.file_key = ? AND ha.hash_date IN "
                            "(SELECT MAX(hash_date) FROM hash_assoz WHERE file_key = ?)",
                            (key, key))
         res = self.sq_cur.fetchone()
         if res is None:
-            return None, None
+            return None, None, None
+
+        return res[0], res[1], res[2]
 
         return res[0], res[1]
 
