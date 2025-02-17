@@ -1657,6 +1657,31 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.sq_cur.rowcount == 1, "Failed to Update Row in Metadata Table"
 
+    def get_metadata_row(self, key: int) -> MetadataRow | None:
+        """
+        Get a row of metadata table given a key.
+
+        :param key: Main Key of Row to Get
+
+        :returns: Metadata Row or None (if the row wasn't found)
+        """
+        self.debug_execute(
+            "SELECT m.main_key, m.original_dirname, m.naming_tag, m.datetime_source, m.replaced, "
+            "d.db_local_dir, g.gps_latitude, g.gps_longitude "
+            "FROM metadata AS m "
+            "LEFT OUTER JOIN db_dir AS d ON m.db_dir = d.key "
+            "LEFT OUTER JOIN gps_location AS g ON g.key = m.gps_location "
+            "WHERE m.main_key = ?", (key,))
+
+        res = self.sq_cur.fetchone()
+        if res is None:
+            return None
+
+        mk, ofd, nt, _dts, rep, db_ld, gps_lat, gps_long = res
+        dts = DateTimeSource(_dts)
+        return MetadataRow(main_key=mk, original_dirname=ofd, naming_tag=nt, datetime_source=dts,
+                           replaced=rep, db_local_dir=db_ld, gps_lat=gps_lat, gps_long=gps_long)
+
     # ==================================================================================================================
     # Main Table
     # ==================================================================================================================
