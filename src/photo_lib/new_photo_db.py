@@ -2048,7 +2048,7 @@ class PhotoDB(BaseSQliteDB):
         can be used as additional constraints in the main table.
 
         :param selection: Selection object to constrain rows in iterator
-        :parm allow_selection: Whether a selection object may be provided for this call.
+        :param allow_selection: Whether a selection object may be provided for this call.
 
         All possible kwargs booleans, and their names are:
 
