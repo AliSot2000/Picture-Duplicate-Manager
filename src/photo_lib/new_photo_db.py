@@ -3493,6 +3493,30 @@ class PhotoDB(BaseSQliteDB):
 
         self.commit()
 
+    def verify_custom_target_dir(self, tgt_dir: str):
+        """
+        Verify the correctness of a custom import directory
+
+        - Path is absolute
+        - Path points to directory
+        - Path is subdir of root_path
+        - Path isn't temp, thumb or trash directory
+        """
+        if not os.path.isabs(tgt_dir):
+            raise TypeError("Destination must be an absolute path")
+
+        if not os.path.isdir(tgt_dir):
+            raise TypeError("Destination must point to a directory")
+
+        # Path checks
+        if not tgt_dir.startswith(self.root_path):
+            raise ValueError("new_dir must start with root_path")
+
+        if tgt_dir.startswith(self.get_thumb_dir()) \
+                or tgt_dir.startswith(self.get_temp_dir()) \
+                or tgt_dir.startswith(self.get_trash_dir()):
+            raise ValueError("Trash, Temp and Thumbnail Directory aren't valid destinations.")
+
     def move_file(self, key: int, new_dir: str):
         """
         Move a file within the database. Option to set the db_dir later on
