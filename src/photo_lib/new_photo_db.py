@@ -2444,13 +2444,13 @@ class PhotoDB(BaseSQliteDB):
             add_mda = True
 
         for root, dirs, files in os.walk(self.root_path):
-            if root == self.get_temp_dir():
+            if root.startswith(self.get_temp_dir()):
                 continue
 
-            if root == self.get_temp_dir():
+            if root.startswith(self.get_temp_dir()):
                 continue
 
-            if root == self.get_thumb_dir():
+            if root.startswith(self.get_thumb_dir()):
                 continue
 
             for file in files:
@@ -2565,17 +2565,13 @@ class PhotoDB(BaseSQliteDB):
 
         # Walk the directory
         for root, dirs, files in os.walk(self.root_path):
-
-            # We're not importing from temp
-            if root == self.get_temp_dir():
+            if root.startswith(self.get_temp_dir()):
                 continue
 
-            # We're not importing from thumbnails
-            if root == self.get_thumb_dir():
+            if root.startswith(self.get_temp_dir()):
                 continue
 
-            # We're not importing from trash
-            if root == self.get_trash_dir():
+            if root.startswith(self.get_thumb_dir()):
                 continue
 
             for file in files:
@@ -2844,17 +2840,13 @@ class PhotoDB(BaseSQliteDB):
         """
         dir_to_prune = []
         for root, dirs, files in os.walk(self.root_path, topdown=False):
-
-            # Skip if we're in the thumbnail directory
-            if root == self.get_thumb_dir():
+            if root.startswith(self.get_temp_dir()):
                 continue
 
-            # Skip if we're in the trash directory
-            if root == self.get_trash_dir():
+            if root.startswith(self.get_temp_dir()):
                 continue
 
-            # Skip if we're in the temp directory
-            if root == self.get_temp_dir():
+            if root.startswith(self.get_thumb_dir()):
                 continue
 
             if len(files) + len(dirs) == 0:
