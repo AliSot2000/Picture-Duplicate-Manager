@@ -3741,7 +3741,13 @@ class PhotoDB(BaseSQliteDB):
 
         Only works if delete_trash wasn't called already
         """
-        # TODO implement
+        # Check key exists in main table
+        # Check key exists in metadata table
+
+        # Move file back to original path
+        # update metadata table
+        # Add display files if necessary
+        # Update main table, update flags
 
     def delete_trash_thumb(self, key: Union[int, None]) -> int:
         """
