@@ -1023,6 +1023,18 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to update row in name_update_table"
 
+    def selection_from_name_update_table(self, sel_a: bool) -> int:
+        """
+        Given the name_update_table, set either the sel_a or sel_b flag for all rows which successfully update a row in
+        the main table.
+
+        :param sel_a: Whether to set the sel_a or sel_b flag
+
+        :return: Number of rows affected in main table.
+        """
+        # TODO implement
+        return 0
+
     def set_match_data_name_update_table(self, key: int, matches: Dict[int, NewMatchTypes], best_match: int | None,
                                          match_type: NewMatchTypes):
         """
