@@ -494,6 +494,22 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("list_import_tables")
 
+    def set_selection_from_import_table(self, sel_a: bool, tbl_name: str) -> int:
+        """
+        Set the selection flag in the main table of all keys which were imported from this table. Only updates based on
+        import, no setting selection based on best_match
+
+        :param sel_a: Whether to set the selection_a flag or the selection_b flag
+        :param tbl_name: Name of Import Table from which to generate a selection.
+
+        :raises sqlite3.OperationalError: If the Import Table doesn't exist
+
+        :returns: number of rows affected in main table
+        """
+        # TODO implement
+        return 0
+
+
     def get_import_table_key_from_path(self, tbl_name: str, path: str) -> int | None:
         """
         Check whether a given path is already present in the import table.
