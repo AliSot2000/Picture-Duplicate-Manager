@@ -1855,7 +1855,6 @@ class PhotoDB(BaseSQliteDB):
         :param selection: Selection of Files to update
         :param target_value: bool, whether to set the flag to True or False
         """
-        stmt = None
         args = tuple()
         if target_value and selection.selection_type == SelectionType.SELECTION_A:
             #                                              trash                       sel_a
