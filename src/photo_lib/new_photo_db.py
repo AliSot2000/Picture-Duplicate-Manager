@@ -2522,7 +2522,10 @@ class PhotoDB(BaseSQliteDB):
             file_size_bytes = os.stat(org_path).st_size
 
             # Get the newest file hash of that file from the db
-            h, fsb = self.get_newest_hash(key)
+            h, fsb, fhdt = self.get_newest_hash(key)
+
+            if (h, fsb, fhdt) == (None, None, None):
+                raise CorruptDatabase(f"Couldn't get newest hash for key: {key}")
 
             # Different hash, update
             if new_hash != h:
