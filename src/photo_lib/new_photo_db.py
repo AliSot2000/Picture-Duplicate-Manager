@@ -3474,7 +3474,6 @@ class PhotoDB(BaseSQliteDB):
 
         # TODO reset flags of hash, presence and filename tables
 
-
     def get_media(self, key: int, strict: bool = False) -> MediaPaths:
         """
         Returns a Dataclass which contains the thumbnail path, miniature path and original path.
