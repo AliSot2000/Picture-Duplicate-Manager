@@ -2003,6 +2003,16 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT key FROM main WHERE parent = ?", (key,))
         return [res[0] for res in self.sq_cur.fetchall()]
 
+    def get_number_of_children(self, key: int) -> int:
+        """
+        Get the number of children of a given key.
+
+        INFO: Function does no checks, doesn't check whether the key is not a duplicate
+        INFO: Function doesn't check whether the key exists in the main table
+        """
+        self.debug_execute("SELECT COUNT(key) FROM main WHERE parent = ?", (key,))
+        return self.sq_cur.fetchone()[0]
+
     def get_parent(self, key: int) -> int | None:
         """
         Get the Parent of a given key.
