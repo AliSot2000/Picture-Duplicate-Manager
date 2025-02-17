@@ -3346,12 +3346,6 @@ class PhotoDB(BaseSQliteDB):
         """
         # TODO implement
 
-    def get_metadata(self, key: int):
-        """
-        Returns all metadata of a given key in a dataclass
-        """
-        # TODO implement
-
     def get_compare_data(self, key: int | List[int]):
         """
         Get all necessary information to compare images.
