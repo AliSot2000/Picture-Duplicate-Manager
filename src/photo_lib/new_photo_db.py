@@ -1988,6 +1988,25 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT key FROM main WHERE parent = ?", (key,))
         return [res[0] for res in self.sq_cur.fetchall()]
 
+    def get_parent(self, key: int) -> int | None:
+        """
+        Get the Parent of a given key.
+
+        PRECONDITION: Key exists
+
+        :param key: Key to get the parent for
+
+        :returns: None, no parent, int, parent key
+
+        :raises ValueError: If the key doesn't exist
+        """
+        self.debug_execute("SELECT parent FROM main WHERE key = ?", (key,))
+        res = self.sq_cur.fetchone()
+        if res is None:
+            raise ValueError("Key doesn't exist")
+
+        return res[0]
+
     def get_path_data(self, key: int) -> Tuple[datetime.datetime, MainFlags, str, str, str] | None:
         """
         Get the necessary data from the database to rename a file
