@@ -4,7 +4,8 @@ from typing import Union, Optional
 
 from photo_lib.custom_enum import *
 from photo_lib.errors_and_warnings import ImplementationError
-from photo_lib.flag_dataclasses import GenericTableFlags
+from photo_lib.flag_dataclasses import GenericTableFlags, MainFlags
+from photo_lib.metadata_aggregator import DateTimeSource
 
 """
 Dataclasses related to the backend of the photo library.
@@ -156,3 +157,30 @@ class Selection:
 
         else:
             raise ImplementationError("Unhandled Enum Case of SelectionType")
+
+
+@dataclass
+class MetadataRow:
+    main_key: int
+    original_dirname: str
+    naming_tag: str
+    datetime_source: DateTimeSource
+    replaced: int # can be  0, 1, 2
+
+    db_local_dir: Optional[str] = None
+    gps_lat: Optional[float] = None
+    gps_long: Optional[float] = None
+
+
+@dataclass
+class MainRow:
+    key: int
+    original_filename: str
+    datetime: datetime.datetime
+    db_name: str
+    parent: int
+    timezone: str
+    flags: MainFlags
+
+    metadata: Optional[str] = None
+    google_metadata: Optional[str] = None
