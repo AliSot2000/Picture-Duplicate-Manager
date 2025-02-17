@@ -1345,7 +1345,42 @@ class PhotoDB(BaseSQliteDB):
 
         return res[0], res[1], res[2]
 
-        return res[0], res[1]
+    def get_initial_hash(self, key: int) -> Tuple[str, int, datetime.datetime] | Tuple[None, None, None]:
+        """
+        Get the initial hash of a given file in the hash assoz table.
+
+        :param key: key in main table.
+        """
+        self.debug_execute("SELECT h.hash, ha.file_size_bytes, ha.hash_date "
+                           "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+                           "WHERE ha.file_key = ? AND ha.initial = 1",
+                           (key,))
+        res = self.sq_cur.fetchone()
+        if res is None:
+            return None, None, None
+
+        return res[0], res[1], res[2]
+
+    def get_all_hashes_of_file(self, key: int) -> Iterator[Tuple[str, int, datetime.datetime, bool]]:
+        """
+        Get all file hashes of a given file.
+
+        :param key: keys in main table to get the hashes for
+
+        :returns Iterator to all files hashes given a file key.
+        """
+        self.add_extra_cursor("get_file_hash")
+        self.debug_execute("SELECT h.hash, ha.file_size_bytes, ha.hash_date, ha.initial "
+                           "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+                           "WHERE ha.file_key = ?",
+                           (key,), "get_file_hash")
+
+        # Process the rows
+        for h, fsb, _hd, ini in self.get_cursor("get_file_hash"):
+            dt = datetime.datetime.fromisoformat(_hd)
+            yield h, fsb, dt, bool(ini)
+
+        self.remove_extra_cursor("get_file_hash")
 
     def check_add_file_hash(self, file_key: int,
                             file_size: int,
