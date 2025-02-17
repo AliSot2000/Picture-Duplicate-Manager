@@ -267,6 +267,7 @@ class PhotoModel:
     # DB Integrity checks and utility
     # ==================================================================================================================
 
+    # INFO: long-running action
     def update_hash_from_filename(self) -> Tuple[int, int]:
         """
         Updates the hash of the image file with the given file name.
@@ -293,6 +294,7 @@ class PhotoModel:
         self.main_logger.info(f"Updated {count} file hashes. {new_size - current_size} of unseen hashes.")
         return new_size - current_size, count
 
+    # INFO: long-running action
     def update_filename_from_hash(self, move: bool):
         """
         Update the names of files resolved through hash and filesize.
