@@ -184,3 +184,19 @@ class MainRow:
 
     metadata: Optional[str] = None
     google_metadata: Optional[str] = None
+
+
+@dataclass
+class MediaPaths:
+    target_key: int
+
+    # File paths, PRECONDITION: exist
+    original_fp: Optional[str] = None
+    thumbnail_fp: Optional[str] = None
+    miniature_fp: Optional[str] = None
+
+    parent_key: Optional[int] = None
+    is_parent_org: bool = False
+    is_parent_thumbnail: bool = False
+    is_parent_miniature: bool = False
+
