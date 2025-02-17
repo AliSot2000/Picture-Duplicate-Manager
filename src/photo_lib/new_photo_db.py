@@ -3446,10 +3446,18 @@ class PhotoDB(BaseSQliteDB):
         """
         # TODO implement
 
-    def get_compare_data(self, key: int | List[int]):
+    def get_compare_data(self, key: int | List[int]) -> List:
         """
         Get all necessary information to compare images.
+
+        PRECONDITIOIN: Keys exist.
         """
+        if isinstance(key, int):
+            int_key = [key]
+        else:
+            assert isinstance(key, list), "Unexpected type of key argument"
+            int_key = key
+
         # TODO implement
 
     # ==================================================================================================================
