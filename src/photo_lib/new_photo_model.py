@@ -2800,7 +2800,7 @@ class PhotoModel:
             return os.path.abspath(os.path.join(self.root_path, config.db_file))
 
 
-class RemedyPhotoDB(PhotoDB):
+class RemedyPhotoDB(PhotoModel):
     """
     A specific instance I need to migrate some remaining images, which are only available in older databases into this
     one.
