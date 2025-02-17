@@ -2017,6 +2017,29 @@ class PhotoDB(BaseSQliteDB):
         # PRECONDITION: number of results = 1
         return res[0][0]
 
+    def get_main_row(self, key: int) -> MainRow | None:
+        """
+        Get a row of main table given a key.
+
+        :param key: Main Key of Row to Get
+
+        :returns: Metadata Row or None (if the row wasn't found)
+        """
+        self.debug_execute(
+            "SELECT key, original_filename, metadata, google_metadata, datetime, db_name, parent, timezone, flags "
+            "FROM main WHERE key = ?", (key, ))
+
+        res = self.sq_cur.fetchone()
+        if res is None:
+            return None
+
+        k, ofn, md, gfmd, _dt, dbn, pr, tz, _flags = res
+        dt = datetime.datetime.fromisoformat(_dt)
+        flags = MainFlags.from_int(_flags)
+
+        return MainRow(key=k, original_filename=ofn, datetime=dt, db_name=dbn, parent=pr, timezone=tz, flags=flags,
+                       metadata=md, google_metadata=gfmd)
+
     def main_key_flags_iterator(self, allow_selection: bool, selection: Selection = None, **kwargs) \
             -> Iterator[Tuple[int, MainFlags]]:
         """
