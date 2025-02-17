@@ -2208,6 +2208,69 @@ class PhotoDB(BaseSQliteDB):
         self.remove_extra_cursor("main_key_flags_iterator")
 
     # ==================================================================================================================
+    # Display Tables
+    # ==================================================================================================================
+
+    def build_import_table_lookup(self, target_table: str):
+        """
+        Build the row lookup table for an import table
+        """
+        # TODO implement
+
+    def build_images_table_lookup(self, grouping: GroupingCriterion, trash: bool = None):
+        """
+        Build the row lookup table for the images table
+        """
+        # TODO implement
+
+    def build_presence_table_lookup(self):
+        """
+        Build the lookup table for the presence_table
+        """
+        # TODO implement
+
+    def hash_update_table_lookup(self):
+        """
+        Build the lookup table for the hash_update_table
+        """
+        # TODO implement
+
+    def name_update_table_lookup(self):
+        """
+        Build the lookup table for the name_update_table
+        """
+        # TODO implement
+
+    # TODO give smarter name
+    def lookup_row_to_xxx(self, key: int, target_table: str, tbl_name: str = None):
+        """
+        Resolve row to list of image metadata
+
+        :param key: Row to resolve
+        :param target_table: str; selection of [main, import, presence, hash, name], case insensitive
+        :param tbl_name: Name of the import table.
+        """
+        int_tbl = target_table.lower().strip()
+        self._check_target_table(int_tbl, tbl_name)
+        # TODO implement
+
+    def lookup_key_to_row(self, key: int, target_table: str, tbl_name: str = None):
+        """
+        Resolve a given key from the row table to the row in the ui
+
+        :param key: Row to resolve
+        :param target_table: str; selection of [main, import, presence, hash, name], case insensitive
+        :param tbl_name: Name of the import table.
+
+        :raises ValueError: If the given target_table isn't supported
+        :raises TypeError: If import table is selected and tbl_name isn't selected
+        """
+        int_tbl = target_table.lower().strip()
+        self._check_target_table(int_tbl, tbl_name)
+        # TODO implement
+
+
+    # ==================================================================================================================
     # INFO: ALL IMPLEMENTATIONS OF LONG RUNNING ACTIONS
     # ==================================================================================================================
 
@@ -3377,36 +3440,6 @@ class PhotoDB(BaseSQliteDB):
 
         # TODO reset flags of hash, presence and filename tables
 
-    def build_import_table_lookup(self, target_table: str):
-        """
-        Build the row lookup table for an import table
-        """
-        # TODO implement
-
-    def build_images_table_lookup(self, grouping: GroupingCriterion, trash: bool = None):
-        """
-        Build the row lookup table for the images table
-        """
-        # TODO immplement
-
-    # TODO give smarter name
-    def lookup_row_to_xxx(self, row: int, images_table: bool = True):
-        """
-        Resolve row to list of image metadata
-
-        :param row: Row to resolve
-        :param images_table: If true, resolve images table else import table
-        """
-        # TODO implement
-
-    def lookup_key_to_row(self, key: int, images_table: bool = True):
-        """
-        Resolve a given key from the row table to the row in the ui
-
-        :param key: Row to resolve
-        :param images_table: If true, resolve images table else import table
-        """
-        # TODO implement
 
     def get_media(self, key: int, strict: bool = False):
         """
