@@ -1038,8 +1038,17 @@ class PhotoDB(BaseSQliteDB):
 
         :return: Number of rows affected in main table.
         """
-        # TODO implement
-        return 0
+        if sel_a:
+            self.debug_execute(f"UPDATE main SET flags = flags + 16 WHERE mod(flags >> 4) = 0 "
+                               f"AND key IN (SELECT best_match FROM name_update_table "
+                               f"WHERE best_match IS NOT NULL AND updated = 1) ")
+            rc = self.sq_cur.rowcount
+        else:
+            self.debug_execute(f"UPDATE main SET flags = flags + 32 WHERE mod(flags >> 5) = 0 "
+                               f"AND key IN (SELECT best_match FROM name_update_table "
+                               f"WHERE best_match IS NOT NULL AND updated = 1) ")
+            rc = self.sq_cur.rowcount
+        return rc
 
     def set_match_data_name_update_table(self, key: int, matches: Dict[int, NewMatchTypes], best_match: int | None,
                                          match_type: NewMatchTypes):
