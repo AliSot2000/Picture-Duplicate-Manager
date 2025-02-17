@@ -3788,7 +3788,7 @@ class PhotoDB(BaseSQliteDB):
         self.clear_presence_table()
         self.commit()
 
-    def restore_replaced(self, key: int, create_disp_filey: bool = True):
+    def restore_replaced(self, key: int, create_disp_files: bool = True):
         """
         Moves file back to original location
         Updates the metadata table.
@@ -3809,7 +3809,7 @@ class PhotoDB(BaseSQliteDB):
         # Update main table, update flags and unset parent
 
 
-    def restore_trash(self, key: int, create_disp_filey: bool = True):
+    def restore_trash(self, key: int, create_disp_files: bool = True):
         """
         Move file back from trash to its original location
         Updates Metadata Table
