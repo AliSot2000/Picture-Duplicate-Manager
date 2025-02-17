@@ -3342,6 +3342,8 @@ class PhotoDB(BaseSQliteDB):
 
         # Early exit, if the new datetime is equivalent to the old one.
         if new_dt == dt:
+            # Only update the timezone
+            self.update_row_main_table(key=key, timezone=new_dt.tzname())
             return
 
         if rename:
