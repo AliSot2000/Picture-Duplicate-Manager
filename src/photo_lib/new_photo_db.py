@@ -3481,7 +3481,64 @@ class PhotoDB(BaseSQliteDB):
         PRECONDITION: Key exists.
 
         """
-        # TODO implement
+        # TODO fetch from cache
+        # TODO cache answer
+        org_path = self.db_resolve_key_to_abs_path(key)
+        thumb_path = self.full_thumbnail_path(key)
+        mini_path = self.full_miniature_path(key)
+
+        if org_path is None:
+            raise ValueError("Key not found")
+
+        # Handle strict case, or case when everything is present
+        if strict or (os.path.exists(org_path) and os.path.exists(thumb_path) and os.path.exists(mini_path)):
+            return MediaPaths(
+                target_key=key,
+                original_fp=org_path if os.path.exists(org_path) else None,
+                thumbnail_fp=thumb_path if os.path.exists(org_path) else None,
+                miniature_fp=mini_path if os.path.exists(mini_path) else None
+            )
+
+        # Handle non-strict case with missing paths
+        assert not os.path.exists(org_path) or not os.path.exists(thumb_path) or not os.path.exists(mini_path), \
+            f"Should have at least something missing"
+        parent = self.get_parent(key)
+
+        # No parent found, return what we got.
+        if parent is None:
+            return MediaPaths(
+                target_key=key,
+                original_fp=org_path if os.path.exists(org_path) else None,
+                thumbnail_fp=thumb_path if os.path.exists(org_path) else None,
+                miniature_fp=mini_path if os.path.exists(mini_path) else None
+            )
+
+        assert parent is not None, "Need parent for further resolution."
+
+        is_parent_org = is_parent_thumb = is_parent_mini = False
+        if not os.path.exists(org_path) and os.path.exists(self.db_resolve_key_to_abs_path(parent)):
+            org_path = self.db_resolve_key_to_abs_path(parent)
+            is_parent_org = True
+
+        if not os.path.exists(thumb_path) and os.path.exists(self.full_thumbnail_path(parent)):
+            thumb_path = self.full_thumbnail_path(parent)
+            is_parent_thumb = True
+
+        if not os.path.exists(mini_path) and os.path.exists(self.full_miniature_path(parent)):
+            mini_path = self.full_miniature_path(parent)
+            is_parent_mini = True
+
+        return MediaPaths(
+            target_key=key,
+            original_fp=org_path,
+            thumbnail_fp=thumb_path,
+            miniature_fp=mini_path,
+
+            parent_key=parent,
+            is_parent_org=is_parent_org,
+            is_parent_thumbnail=is_parent_thumb,
+            is_parent_miniature=is_parent_mini
+        )
 
     def get_compare_data(self, key: int | List[int]) -> List:
         """
