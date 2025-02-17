@@ -2269,6 +2269,25 @@ class PhotoDB(BaseSQliteDB):
         self._check_target_table(int_tbl, tbl_name)
         # TODO implement
 
+    @staticmethod
+    def _check_target_table(tgt_tbl: str, tbl_name: str = None):
+        """
+        Check if the given target_table is allowed
+
+        :param tgt_tbl: str; selection of [main, import, presence, hash, name], case-insensitive
+        :param tbl_name: Table name of import table
+
+        :raises ValueError: If the given target_table isn't supported
+        :raises TypeError: If import table is selected and tbl_name isn't selected
+        """
+        assert tgt_tbl.islower(), "Argument should be lower case"
+        allowed_targets = {"main", "import", "presence", "hash", "name"}
+
+        if tgt_tbl not in allowed_targets:
+            raise ValueError(f"Unhandled Case of Target Table: {tgt_tbl}")
+
+        if tgt_tbl == "import" and tbl_name is None:
+            raise TypeError("Selecting Import table requires a table_name to be present")
 
     # ==================================================================================================================
     # INFO: ALL IMPLEMENTATIONS OF LONG RUNNING ACTIONS
@@ -3701,7 +3720,19 @@ class PhotoDB(BaseSQliteDB):
 
         Only works if delete_trash wasn't called already
         """
-        # TODO implement
+        rep_d = self.get_replace_data(key)
+        if rep_d is None:
+            raise ValueError(f"Key {key} doesn't exist in main table")
+
+        md = self.get_metadata(key)
+        if md is None:
+            raise ValueError(f"Key {key} doesn't exist in metadata table, cannot undo")
+
+        # move file back to original path
+        # update metadata table (unset replaced column)
+        # Add displac files (if requeste)
+        # Update main table, update flags and unset parent
+
 
     def restore_trash(self, key: int, create_disp_filey: bool = True):
         """
