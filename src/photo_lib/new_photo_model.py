@@ -96,16 +96,19 @@ class PhotoModel:
             with file system are checked.
         """
         self.main_logger = logging.getLogger(self.main_logger_name)
-        self.integrity_logger = logging.getLogger(self.integrity_logger_name)
+        self.file_system_logger = logging.getLogger(self.file_system_logger_name)
+        self.mda_logger = logging.getLogger(self.metadata_aggregator_logger_name)
+        self.mda_parsing_logger = logging.getLogger(self.metadata_aggregator_parsing_logger_name)
+
         if init_loggers:
             self.set_logging_defaults()
 
         self.filename_to_key_cache = Cache(size=1024)
         self.key_to_filepath_cache = Cache(size=1024)
 
-        self.build_definition_lookup()
         self.root_path = os.path.abspath(root_path)
         self.opt_integrity_check = opt_integrity_check
+
         cfg_path = defaults.config_path(self.root_path)
 
         # Prepping Config
@@ -150,10 +153,7 @@ class PhotoModel:
         # PRECONDITION: Config defined
         super().__init__(self.get_db_file_path())
 
-        if init:
-            self.init_db()
-        else:
-            self.verify_version()
+        self.add_default_metadata_aggregator()
 
         self.check_create_default_dirs()
         # TODO empty presence, hash and name table.
