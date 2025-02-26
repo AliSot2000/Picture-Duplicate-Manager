@@ -1716,7 +1716,7 @@ class PhotoDB(BaseSQliteDB):
             val = kwargs.get("replaced")
 
             if not isinstance(val, MediaType):
-                raise TypeError(f"replaced column is of type MediaType")
+                raise TypeError(f"replaced column is not of type MediaType but {type(val).__name__}")
 
             # Update the replaced value
             kwargs["replaced"] = val.value
