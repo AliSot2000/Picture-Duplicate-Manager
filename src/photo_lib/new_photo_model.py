@@ -1294,51 +1294,6 @@ class PhotoModel:
     # ==================================================================================================================
 
     # INFO: long-running action
-    def find_match_for_import_table(self, tbl_name: str, recompute: bool = False) -> int:
-        """
-        Find matches for files in a given import table.
-
-        :param tbl_name: Name of temporary table created for import.
-        :param recompute: Recompute match for everything or only for files which have not matches are allowed and
-            not imported
-
-        :returns: int - number of files processed .
-        """
-        if not self.import_table_exists(name=tbl_name):
-            raise ValueError(f"Table {tbl_name} doesn't exist")
-
-        self.add_extra_cursor("match_cursor")
-        if recompute:
-            self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
-                               f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1",
-                               cur="match_cursor")
-        else:
-            self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
-                               f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1 AND matches IS NULL",
-                               cur="match_cursor")
-
-        count = 0
-        for row in self.get_cursor("match_cursor"):
-            key, original_filename, original_dirname, file_size_bytes, file_hash = row
-            target_fp = str(os.path.join(original_dirname, original_filename))
-            assert os.path.exists(target_fp), "Import file needs to exist."
-
-            matches, highest_key, highest_match = self._get_best_match_type(tgt_fp=target_fp,
-                                                                            file_hash=file_hash,
-                                                                            fsb=file_size_bytes)
-
-            serializable_matches = {k: v.value for k, v in matches.items()}
-            self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET match_type = ?, highest_match = ?, matches = ? "
-                                    f"WHERE key = {key}",
-                               args=(highest_match.value, highest_match, json.dumps(serializable_matches), key))
-            count += 1
-
-        self.main_logger.info(f"Found {count} matches for {tbl_name}")
-        self.remove_extra_cursor("match_cursor")
-        self.commit()
-        return count
-
-    # INFO: long-running action
     def perform_import(self, tbl_name: str, _dest_dir: str = None, add_safety_exif_tags: bool = None) -> int:
         """
         Imports all files from the given import table into the main database.
