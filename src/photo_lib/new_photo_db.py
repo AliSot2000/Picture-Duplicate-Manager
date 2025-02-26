@@ -1412,7 +1412,10 @@ class PhotoDB(BaseSQliteDB):
 
         :return: True if the row exists, False if the row were added.
         """
-        # Consider the hashes a set of all hashes the file had at a given point. The hash to check during import is the one marked with initial
+        # TODO rethink operation with initial and not initial. Maybe less optimized code but better readability
+
+        # Consider the hashes a set of all hashes the file had at a given point. The hash to check during import is
+        # the one marked with initial
         self.debug_execute("SELECT h.hash, ha.hash_key, ha.file_key "
                            "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
                            "WHERE h.hash = ? AND ha.file_key = ? AND ha.file_size_bytes = ? AND ha.initial = ?",
