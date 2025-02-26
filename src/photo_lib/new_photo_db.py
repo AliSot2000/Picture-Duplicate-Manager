@@ -2111,8 +2111,7 @@ class PhotoDB(BaseSQliteDB):
                 f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {dt}"
             path = os.path.join(self.root_path, self.dt_to_dir(dt), db_name)
 
-        # TODO check in outer function
-        # self.check_flags(flags=flags, key=key, miniature=False, thumbnail=False, org_path=path)
+        self.check_flags(flags=flags, key=key, miniature=False, thumbnail=False, org_path=path)
         return path
 
     def db_resolve_filename_to_key(self, file_name: str) -> int | None:
