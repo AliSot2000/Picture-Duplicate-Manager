@@ -237,6 +237,19 @@ class PhotoModel:
             self.main_logger.info(f"Created Temp Directory")
             os.makedirs(self.db.get_temp_dir())
 
+    def add_default_metadata_aggregator(self):
+        """
+        Add a default metadata aggregator (user could provide a custom MDA if he so chooses)
+        """
+        if self.__mda is None:
+            self.__mda = NewMetadataAggregator(
+                logger=logging.getLogger("MetadataAggregator"),
+                discover_logger=logging.getLogger("MetadataAggregator.Parsing"),
+                use_dateutil=True,
+                datetime_fmt=self.config.datetime_fmt
+            )
+            self.__is_default_mda = True
+
     # ==================================================================================================================
     # Table Creation & Deletion & Modify Functions
     # ==================================================================================================================
@@ -258,29 +271,6 @@ class PhotoModel:
             thumbnail_target=defaults.thumbnail_size,
             miniature_target=defaults.miniature_size,
         )
-
-    # ==================================================================================================================
-    # Tabular Integrity checks
-    # ==================================================================================================================
-
-    def verify_version(self):
-        """
-        Check the version of the photo database. Raise Error, if it doesn't match and allow for conversion.
-        """
-        # Check the config
-        self._check_config()
-
-        # Check the tables
-        self._verify_tables()
-
-    def _check_config(self):
-        """
-        Check the config is valid and contains everything needed. Future proofing. Not needed at the moment.
-        """
-        # INFO: This function is a placeholder needed in case bigger changes to the config come and need to be
-        #  accounted for. Cases like the config is updated and the db is not, or the other way around, ...
-        pass
-
 
     # ==================================================================================================================
     # DB Integrity checks and utility
