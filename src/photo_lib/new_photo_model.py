@@ -49,7 +49,8 @@ class PhotoModel:
     prune_fs_dir: bool = False
     opt_integrity_check: bool
 
-    mda: Optional[NewMetadataAggregator] = None
+    __mda: Optional[NewMetadataAggregator] = None
+    __is_default_mda: bool = True
 
     # Caches
     filename_to_key_cache: Cache
@@ -58,6 +59,20 @@ class PhotoModel:
     @property
     def current_version(self):
         return current_version.current_version
+
+    @property
+    def mda(self):
+        return self.__mda
+
+    @mda.setter
+    def mda(self, value: NewMetadataAggregator):
+        if value is None:
+            self.__mda = None
+            self.__is_default_mda = True
+
+        else:
+            self.__mda = value
+            self.__is_default_mda = False
 
     def __init__(self,
                  root_path: str,
