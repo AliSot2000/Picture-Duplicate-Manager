@@ -938,7 +938,7 @@ class PhotoDB(BaseSQliteDB):
 
     def hash_update_table_size(self) -> int:
         """
-        Get the number of rows of the hash hash_updat_table
+        Get the number of rows of the hash_update_table
         """
         self.debug_execute("SELECT COUNT(main_key) FROM hash_update_table")
         return self.sq_cur.fetchone()[0]
