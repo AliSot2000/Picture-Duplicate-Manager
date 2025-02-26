@@ -60,20 +60,6 @@ class PhotoModel:
     def current_version(self):
         return current_version.current_version
 
-    @property
-    def mda(self):
-        return self.__mda
-
-    @mda.setter
-    def mda(self, value: NewMetadataAggregator):
-        if value is None:
-            self.__mda = None
-            self.__is_default_mda = True
-
-        else:
-            self.__mda = value
-            self.__is_default_mda = False
-
     def __init__(self,
                  root_path: str,
                  init: bool = False,
@@ -237,6 +223,24 @@ class PhotoModel:
             self.main_logger.info(f"Created Temp Directory")
             os.makedirs(self.db.get_temp_dir())
 
+    # ==================================================================================================================
+    # Metadata Aggregator calls
+    # ==================================================================================================================
+
+    @property
+    def mda(self):
+        return self.__mda
+
+    @mda.setter
+    def mda(self, value: NewMetadataAggregator):
+        if value is None:
+            self.__mda = None
+            self.__is_default_mda = True
+
+        else:
+            self.__mda = value
+            self.__is_default_mda = False
+
     def add_default_metadata_aggregator(self):
         """
         Add a default metadata aggregator (user could provide a custom MDA if he so chooses)
@@ -249,6 +253,28 @@ class PhotoModel:
                 datetime_fmt=self.config.datetime_fmt
             )
             self.__is_default_mda = True
+
+    def _add_update_exif_tag(self, key: int, target_datetime: datetime.datetime, file_path: str):
+        """
+        Add the exif tag that the database uses to the file.
+
+        PRECONDITION:
+
+        - file_path exists
+        - target_datetime different from current datetime
+        - target_datetime is timezone aware.
+
+        :param key: Key in main table of file to update or set the  exif-tag for
+        :param target_datetime: New datetime to set
+        """
+        # Add the tag
+        self.mda.eth.set_tags(files=[file_path], tags=self.exif_tag_creator(target_datetime))
+
+        # Get Size of File and new File Hash
+        new_hash = self.mda.hash_file(file_path)
+        new_size = os.stat(file_path).st_size
+        assert new_size is not None, "New Size needed for update."
+        self.db.check_add_file_hash(file_key=key, file_hash=new_hash, file_size=new_size, initial=False)
 
     # ==================================================================================================================
     # Config
@@ -1464,32 +1490,6 @@ class PhotoModel:
             count += 1
 
         return count
-
-    # ==================================================================================================================
-    # Importing
-    # ==================================================================================================================
-
-    def _add_update_exif_tag(self, key: int, target_datetime: datetime.datetime, file_path: str):
-        """
-        Add the exif tag that the database uses to the file.
-
-        PRECONDITION:
-
-        - file_path exists
-        - target_datetime different from current datetime
-        - target_datetime is timezone aware.
-
-        :param key: Key in main table of file to update exiftag for
-        :param target_datetime: New datetime to set
-        """
-        # Add the tag
-        self.mda.eth.set_tags(files=[file_path], tags=self.exif_tag_creator(target_datetime))
-
-        # Get Size of File and new File Hash
-        new_hash = self.mda.hash_file(file_path)
-        new_size = os.stat(file_path).st_size
-        assert new_size is not None, "New Size needed for update."
-        self.check_add_file_hash(file_key=key, file_hash=new_hash, file_size=new_size, initial=False)
 
     # ==================================================================================================================
     # Deduplication
