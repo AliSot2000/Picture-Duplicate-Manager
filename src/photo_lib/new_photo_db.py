@@ -2944,39 +2944,6 @@ class PhotoDB(BaseSQliteDB):
     # ==================================================================================================================
 
     # INFO: long-running action
-    def find_match_for_import_table(self, tbl_name: str, recompute: bool = False) -> int:
-        """
-        Find matches for files in a given import table.
-
-        :param tbl_name: Name of temporary table created for import.
-        :param recompute: Recompute match for everything or only for files which have not matches are allowed and
-            not imported
-
-        :returns: int - number of files processed .
-        """
-        if not self.import_table_exists(name=tbl_name):
-            raise ValueError(f"Table {tbl_name} doesn't exist")
-
-        count = 0
-        for row in self.find_import_match_iterator(tbl_name=tbl_name, recompute=recompute):
-            key, original_filename, original_dirname, file_size_bytes, file_hash = row
-            target_fp = str(os.path.join(original_dirname, original_filename))
-            assert os.path.exists(target_fp), "Import file needs to exist."
-
-            matches, highest_key, highest_match = self._get_best_match_type(tgt_fp=target_fp,
-                                                                            file_hash=file_hash,
-                                                                            fsb=file_size_bytes)
-
-            self.set_match_type_import_table(tbl_name=tbl_name, key=key, matches=matches,
-                                             best_match=highest_key, best_match_type=highest_match)
-
-            count += 1
-
-        self.main_logger.info(f"Found {count} matches for {tbl_name}")
-        self.commit()
-        return count
-
-    # INFO: long-running action
     def perform_import(self, tbl_name: str, _dest_dir: str = None, add_safety_exif_tags: bool = None) -> int:
         """
         Imports all files from the given import table into the main database.
