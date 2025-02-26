@@ -3951,7 +3951,10 @@ class PhotoDB(BaseSQliteDB):
             raise ValueError(f"Key {key} doesn't exist in metadata table, cannot undo")
 
         # check file exists
-        if not os.path.exists(self.db_resolve_key_to_abs_path(key)):
+        cur_path = self.db_resolve_key_to_abs_path(key)
+        assert cur_path is not None, "PRECONDITION: Rows found, path must exist"
+
+        if not os.path.exists(cur_path):
             raise FileNotFoundError("File in trash not found")
 
         # Get data for moving back
@@ -3964,8 +3967,7 @@ class PhotoDB(BaseSQliteDB):
         elif not flags.trashed and trash:
             raise ValueError("File isn't trashed. Undo trashed doesn't apply")
 
-        # TODO call properly
-        self.check_flags()
+        self.check_flags(key=key, flags=flags, thumbnail=True, miniature=True, org_path=cur_path)
 
         # Build dest path
         if db_local_dir is not None:
@@ -3977,7 +3979,7 @@ class PhotoDB(BaseSQliteDB):
         if os.path.exists(db_path):
             raise FileExistsError("File already exists at destination.")
 
-        os.rename(self.db_resolve_key_to_abs_path(key), db_path)
+        os.rename(cur_path, db_path)
 
         # Update flags after movement
         if trash:
