@@ -622,6 +622,97 @@ class PhotoModel:
         self.db.commit()
         return count
 
+    # INFO: long-running action
+    def import_internal_new_files(self, tbl: str, add_safety_exif_tags: bool = None,
+                                  rename: bool = True, move: bool = True) -> Tuple[int, int]:
+        """
+        Import the files found within the database folder.
+        Needs to add entries for db_dir with every file separately.
+
+        :param tbl: Table name of the import table
+        :param add_safety_exif_tags: Add safety exif tag, if the datetime source is from the file metadata,
+            default from config
+        :param rename: Rename the file to the db_name
+        :param move: Move the file to the db_name
+
+        :returns: number of files imported, number of files with name conflict.
+        """
+        name_conflict = 0
+        count = 0
+
+        if not self.db.import_table_exists(tbl):
+            raise ValueError(f"Tabl {tbl} does not exist")
+
+        if not self.db.import_table_flags(tbl).internal:
+            raise ValueError("Cannot use this function with non-internal import table")
+
+        if add_safety_exif_tags is None:
+            add_safety_exif_tags = self.config.add_safety_exif_tags
+
+        for row in self.db.perform_import_iterator(tbl):
+            ik, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, ipk = row
+
+            assert dt.tzinfo is not None, "All datetime objects should have tz"
+
+            # Check input
+            assert ipk is None, "SQL Error, files which are imported shouldn't have imported = 1"
+
+            # Check allowed
+            if allowed != Allowed.ALLOWED:
+                raise ImplementationError("Only Allowed Files may have the marked for import flag")
+
+            # Define flags
+            flags = MainFlags.default()
+            if dts == DateTimeSource.FILE_AWARE:
+                flags.verify = True
+
+            # Check name ok and mark not allowed if necessary
+            if not rename:
+                if self.db.db_resolve_filename_to_key(ofn) is not None:
+                    self.db.set_allowed(tbl_name=tbl, key=ik, allowed=Allowed.NOT_ALLOWED_ERR,
+                                        message=f"Filename {ofn} already exists")
+                    self.main_logger.info(f"Couldn't import file {ofn}, filename already used in db")
+                    name_conflict += 1
+                    continue
+
+                db_name = ofn
+            else:
+                db_name = self.db.reserved_temp_file_name
+
+            self.db.insert_row_main_table(original_filename=ofn, flags=flags, dt=dt, timezone=tz, db_name=db_name,
+                                          metadata=md, google_metadata=gfmd)
+
+            insert_key = self.db.db_resolve_filename_to_key(db_name)
+            assert insert_key is not None, "Key should exist after insert."
+
+            # Handle metadata table
+            self.db.insert_row_metadata_table(key=insert_key, original_dirname=ofd, naming_tag=nt, datetime_source=dts)
+
+            # Handle GPS
+            self._handle_gps_import(gps_lat=gps_lat, gps_long=gps_long, main_key=insert_key)
+
+            # Handle hash
+            assert fh is not None, "File Hash needs to be defined"
+            self.db.check_add_file_hash(file_key=insert_key, file_hash=fh, file_size=fsb, initial=True)
+
+            target_path = self._handle_file_internal_import(rename=rename, move=move,
+                                                            dt=dt, main_key=insert_key, ofn=ofn, ofd=ofd)
+
+            # Update the name in the db
+            if rename:
+                name = self.db.db_name(original_filename=ofn, key=insert_key, fdt=dt)
+                self.db.update_row_main_table(key=insert_key, db_name=name)
+
+            if flags.verify and add_safety_exif_tags:
+                self._add_update_exif_tag(key=insert_key, target_datetime=dt, file_path=target_path)
+
+            self.db.set_imported_status(tbl_name=tbl, import_key=insert_key, status=ImportStatus.IMPORTED, key=ik)
+
+            count += 1
+
+        self.db.commit()
+        return count, name_conflict
+
     def _handle_gps_import(self, gps_lat: float, gps_long: float, main_key: int):
         """
         Add and or get the key of the gps entry in the gps table, and add the gps key to the metadata row of the
