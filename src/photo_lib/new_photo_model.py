@@ -170,7 +170,9 @@ class PhotoModel:
         attr: integrity_logger_name for integrity_logger
         """
         self.main_logger = logging.getLogger(self.main_logger_name)
-        self.integrity_logger = logging.getLogger(self.integrity_logger_name)
+        self.file_system_logger = logging.getLogger(self.file_system_logger_name)
+        self.mda_logger = logging.getLogger(self.metadata_aggregator_logger_name)
+        self.mda_parsing_logger = logging.getLogger(self.metadata_aggregator_parsing_logger_name)
 
     def set_logging_defaults(self):
         """
