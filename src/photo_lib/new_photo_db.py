@@ -1238,10 +1238,6 @@ class PhotoDB(BaseSQliteDB):
 
         :param local_dir: List of Directory names starting at the root_path from database model
         """
-        # TODO in outer call
-        # rel_path = dir_name.removeprefix(self.root_path).removeprefix(os.sep)
-        # rel_path_list = rel_path.split(os.sep)
-
         key = self.get_dir_key(local_dir)
         if key is not None:
             return key
