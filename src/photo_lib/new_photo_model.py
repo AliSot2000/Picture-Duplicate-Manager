@@ -180,11 +180,30 @@ class PhotoModel:
         """
         # Level
         self.main_logger.setLevel(logging.DEBUG)
-        self.integrity_logger.setLevel(logging.DEBUG)
+        self.file_system_logger.setLevel(logging.DEBUG)
+        self.mda_logger.setLevel(logging.DEBUG)
+        self.mda_parsing_logger.setLevel(logging.DEBUG)
+
+        # Get Other DB's logger
+        _photo_db_logger = logging.getLogger(PhotoDB.db_logger_name)
+        _photo_db_integrity_logger = logging.getLogger(PhotoDB.integrity_logger_name)
+        _photo_db_rare_occurrence_logger = logging.getLogger(PhotoDB.rare_occurrence_logger_name)
+
+        # Set levels
+        _photo_db_logger.setLevel(logging.DEBUG)
+        _photo_db_integrity_logger.setLevel(logging.DEBUG)
+        _photo_db_rare_occurrence_logger.setLevel(logging.DEBUG)
+
+        # Set the propagate flags.
+        _photo_db_logger.propagate = True
+        _photo_db_integrity_logger.propagate = True
+        _photo_db_rare_occurrence_logger.propagate = True
 
         # Propagate
-        self.integrity_logger.propagate = True
         self.main_logger.propagate = False
+        self.file_system_logger.propagate = True
+        self.mda_logger.propagate = True
+        self.mda_parsing_logger.propagate = True
 
         # Define handler
         handler = logging.StreamHandler(sys.stderr)
