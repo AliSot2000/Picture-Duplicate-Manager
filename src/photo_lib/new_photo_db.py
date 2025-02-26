@@ -757,7 +757,8 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("import_cursor")
 
-    def find_import_match_iterator(self, tbl_name: str, recompute: bool = False) -> Iterator[Tuple[int, str, str, int, str]]:
+    def find_import_match_iterator(self, tbl_name: str, recompute: bool = False) \
+            -> Iterator[Tuple[int, str, str, int, str]]:
         """
         Get an iterator with the necessary information to check for matches in the main table.
 
