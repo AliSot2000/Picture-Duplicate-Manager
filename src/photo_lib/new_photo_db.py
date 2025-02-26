@@ -2607,69 +2607,6 @@ class PhotoDB(BaseSQliteDB):
         return count
 
     # INFO: long-running action
-    def index_internal_new_files(self, allowed_ext: Set[str] = None) -> None | Tuple[str, int]:
-        """
-        Search the database folder itself for new files which were added by the user. Basically performs identical
-        operation to import.
-
-        Files are determined to be new, if the filename doesn't exist in the database. That means, if you remove a file
-        with name n and add a different file with name n, this function will not detect the file as new and ignore it.
-
-        :param allowed_ext: Allowed file extensions.
-
-        :returns: None if no new files were detected. Tuple[import_table_name, new_file_count]
-        """
-        # Create import table
-        tbl_name = self._add_import_table(root_path=self.root_path,
-                                          internal=True,
-                                          description="Internal Import, detect new files in db")
-
-        if allowed_ext is None:
-            allowed_ext = set(defaults.video_extensions + defaults.image_extensions)
-
-        new_files = 0
-
-        # Walk the directory
-        for root, dirs, files in os.walk(self.root_path):
-            if root.startswith(self.get_temp_dir()):
-                continue
-
-            if root.startswith(self.get_temp_dir()):
-                continue
-
-            if root.startswith(self.get_thumb_dir()):
-                continue
-
-            for file in files:
-                key = self.db_resolve_filename_to_key(file)
-
-                # Name not in db, importing file
-                if key is None:
-                    # USE self.add_file_to_import_table()
-                    self._prepare_file_import(file_path=os.path.join(root, file),
-                                              tbl_name=tbl_name,
-                                              allowed_ext=allowed_ext,
-                                              append=False)
-                    new_files += 1
-
-                # File exists
-                else:
-                    # Check that the file is in the correct directory.
-                    path = self.db_resolve_key_to_abs_path(key)
-
-                    if not path == os.path.join(root, file):
-                        self.integrity_logger.warning(f"File {file} found in db but path mismatch:"
-                                                      f"DB-Path: {path}, Discover Path: {os.path.join(root, file)}")
-
-        if new_files == 0:
-            self.main_logger.info("No new files in db were detected. Removing empty import table.")
-            self.remove_import_table(tbl_name)
-            return None
-
-        self.commit()
-        return tbl_name, new_files
-
-    # INFO: long-running action
     def import_internal_new_files(self, tbl: str, add_safety_exif_tags: bool = None,
                                   rename: bool = True, move: bool = True) -> Tuple[int, int]:
         """
