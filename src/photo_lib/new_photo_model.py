@@ -268,6 +268,100 @@ class PhotoModel:
     # ==================================================================================================================
 
     # INFO: long-running action
+    def prepare_directory_for_import(self,
+                                     source_dir: str,
+
+                                     tbl_name: str = None,
+                                     desc: str = None,
+
+                                     allowed_ext: Set[str] = None,
+                                     recursive: bool = True,
+
+                                     append: bool = False,
+                                     purge: bool = False) -> str:
+        """
+        Go through all files in the directory, and prepare the index for import.
+
+        Directory may not be subdirectory of database.
+
+        If no MetadataAggregator was set in the mda attribute, a new instance will be created.
+        Using dateutil, with loggers logger="MetadataAggregator" and "MetadataAggregator.Parsing"
+
+        :param source_dir: Directory to import into the db
+        :param allowed_ext: Allowed extensions to import from. Defaults to None (Uses from Config)
+        :param tbl_name: Name of temporary table created for import. Defaults to hash(datetime.now())
+        :param recursive: Recursively index all subdirectories.
+        :param desc: Description of the table. Defaults to None
+
+        :param append: Files were added in the import directory. Add the new files to the table. Don't modify the data
+            in the import table for the files already indexed.
+        :param purge: Clear the import table and perform indexing again, retaining the table name.
+
+        :returns: import table name. Will be the tbl_name is you provide it, otherwise the generated table name
+        """
+        if source_dir.startswith(self.root_path):
+            raise ValueError("Cannot import database into itself")
+
+        assert self.mda is not None, "MetadataAggregator needed for import preparation"
+
+        # Defaulting allowed_extensions
+        if allowed_ext is None:
+            allowed_ext = set(defaults.video_extensions + defaults.image_extensions)
+
+        # INFO: Handling all cases between append and purge for ease of understanding of the logic
+        if append and purge:
+            raise ValueError("Cannot specify both append and purge at the same time")
+
+        elif append and not purge:
+            assert tbl_name is not None, "Table name needs to be specified for append"
+            if not self.db.import_table_exists(name=tbl_name):
+                raise ValueError("Table doesn't exist, cannot append")
+
+        elif not append and purge:
+            assert tbl_name is not None, "Table name needs to be specified for purge"
+
+            if self.db.import_table_exists(name=tbl_name):
+                self.main_logger.info(f"Purging {tbl_name}")
+                self.db.remove_import_table(name=tbl_name)
+
+            tbl_name = self.db.add_import_table(root_path=source_dir, name=tbl_name, description=desc)
+
+        elif not append and not purge:
+            if not self.db.import_table_exists(name=tbl_name):
+                tbl_name = self.db.add_import_table(root_path=source_dir, name=tbl_name, description=desc)
+            else:
+                raise ValueError(f"Table with name {tbl_name} already exists")
+
+        else:
+            raise ImplementationError("Tertiem Non Datur")
+
+        # Actually search the provided directory
+        if recursive:
+            file_count = 0
+            # Compute Number of files needed for progress bar
+            for root, dirs, files in os.walk(source_dir):
+                file_count += len(files)
+
+            for root, dirs, files in os.walk(source_dir):
+                for f in files:
+                    self._prepare_file_import(file_path=os.path.join(root, f),
+                                              tbl_name=tbl_name,
+                                              allowed_ext=allowed_ext,
+                                              append=append)
+        else:
+            file_count = len(os.listdir(source_dir))
+
+            for entry in os.listdir(source_dir):
+                if os.path.isfile(os.path.join(source_dir, entry)):
+                    self._prepare_file_import(file_path=os.path.join(source_dir, entry),
+                                              tbl_name=tbl_name,
+                                              allowed_ext=allowed_ext,
+                                              append=append)
+
+        self.db.commit()
+        return tbl_name
+
+    # INFO: long-running action
     def update_hash_from_filename(self) -> Tuple[int, int]:
         """
         Updates the hash of the image file with the given file name.
