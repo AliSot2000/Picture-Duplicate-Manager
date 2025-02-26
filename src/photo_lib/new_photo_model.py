@@ -35,11 +35,15 @@ class PhotoModel:
 
     # Redefining logger as mandatory
     main_logger_name: str = "PhotoDB"
-    integrity_logger_name: str = "PhotoDB.Integrity"
-    metadata_aggregator_name: str = "PhotoDB.MetadataAggregator"
-    metadata_aggregator_parsing_name: str = "PhotoDB.MetadataAggregator.Parsing"
+    file_system_logger_name: str = "PhotoDB.FileSystem"
+    metadata_aggregator_logger_name: str = "PhotoDB.MetadataAggregator"
+    metadata_aggregator_parsing_logger_name: str = "PhotoDB.MetadataAggregator.Parsing"
+
     main_logger: logging.Logger
-    integrity_logger: logging.Logger
+    file_system_logger: logging.Logger
+
+    mda_logger: logging.Logger
+    mda_parsing_logger: logging.Logger
 
     # Flags
     prune_fs_dir: bool = False
