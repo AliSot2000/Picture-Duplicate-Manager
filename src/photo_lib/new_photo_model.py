@@ -150,8 +150,12 @@ class PhotoModel:
 
         assert hasattr(self, "config") and self.config is not None, "Config must be populated by now"
 
-        # PRECONDITION: Config defined
-        super().__init__(self.get_db_file_path())
+        self.db = PhotoDB(db_path=self.get_db_file_path(),
+                          root_path=self.root_path,
+                          config=self.config,
+                          init=init,
+                          verify=True,
+                          init_loggers=False)
 
         self.add_default_metadata_aggregator()
 
