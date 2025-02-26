@@ -1449,63 +1449,6 @@ class PhotoModel:
         self.commit()
         return count
 
-    def _prepare_file_import(self, file_path: str, tbl_name: str, allowed_ext: Set[str], append: bool):
-        """
-        Handle Import for a singular file.
-
-        PRECONDITION:
-        - Filepath exists
-        - Table Exists
-        - File not in table
-
-        :raises ValueError: If not append and file in table.
-        """
-        dirname, filename = os.path.split(file_path)
-        self.debug_execute(f"SELECT key FROM `{tbl_name}` WHERE original_filename = ? AND original_dirname = ? ",
-                           (filename, dirname))
-
-        # Ensure file not in table yet.
-        if self.sq_cur.fetchone() is not None:
-            if append:
-                return
-            else:
-                raise ValueError(f"File {file_path} already exists in table {tbl_name}")
-
-        pres = self.mda.handle_file(file_path)
-        allowed = os.path.splitext(file_path)[1] in allowed_ext
-
-        self.debug_execute(f"INSERT INTO `{tbl_name}` ("
-                           f"original_filename, "
-                           f"original_dirname, "
-                           f"metadata, "
-                           f"google_metadata, "
-                           f"file_hash, "
-                           f"file_size_bytes, "
-                           f"allowed, "
-                           f"datetime, "
-                           f"timezone, "
-                           f"naming_tag, "
-                           f"gps_latitude, "
-                           f"gps_longitude,"
-                           f"datetime_source) "
-                           f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                           args=(
-                               pres.filename,
-                               pres.dirname,
-                               None if pres.metadata is None else self.sanitize_json(pres.metadata),
-                               None if pres.google_photos_metadata is None \
-                                   else self.sanitize_json(pres.google_photos_metadata),
-                               pres.file_hash,
-                               pres.file_size,
-                               1 if allowed else 0,
-                               pres.creation_date.isoformat(),
-                               pres.tz_name if isinstance(pres.tz_name, str) else pres.tz_name.key,
-                               pres.naming_tag,
-                               pres.gps_lat,
-                               pres.gps_long,
-                               pres.source.value
-                           ))
-
     def _import_file(self,
                      key: int,
                      original_filename: str,
