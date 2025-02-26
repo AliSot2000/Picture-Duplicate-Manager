@@ -1347,7 +1347,8 @@ class PhotoDB(BaseSQliteDB):
         Get the newest hash of a given file. If the newest hash doesn't match, we don't perform binary comparison.
 
         :param key: File key to search for
-        :returns: Tuple[None, None] -> key not found, Tuple[str, int] -> newest hash and file_size_bytes of that hash.
+        :returns: Tuple[None, None, None] -> key not found, Tuple[str, int, datetime] -> newest hash and
+            file_size_bytes of that hash, datetime when hash was computed.
         """
         self.debug_execute("SELECT h.hash, ha.file_size_bytes, ha.hash_date "
                            "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
