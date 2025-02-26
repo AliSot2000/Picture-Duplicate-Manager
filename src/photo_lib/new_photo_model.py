@@ -26,8 +26,7 @@ from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAgg
 
 
 # https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
-# TODO mda is property what needed again?
-# TODO mda set during init
+# TODO: Rework Loggers, Integrity Logger needs to be present on
 class PhotoModel:
     root_path: str
 
