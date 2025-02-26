@@ -241,8 +241,6 @@ class PhotoDB(BaseSQliteDB):
         :param fast: If true, skip any integrity checks.
         """
         if not fast:
-            if self.prune_fs_dir:
-                self.prune_filesystem_directories()
 
             self.basic_integrity_check()
         self.cleanup()
