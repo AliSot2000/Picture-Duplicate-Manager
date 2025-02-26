@@ -28,15 +28,10 @@ from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAgg
 # TODO mda is property what needed again?
 # TODO mda set during init
 class PhotoModel:
-    __verified: bool = False
-    config: Config
-
     root_path: str
 
-    static_decls: Dict[str, StaticDeclaration]
-    generic_decls: Dict[str, GenericDeclaration]
-
-    __reserved_names: List[str] = ["<temp>"]
+    config: Config
+    db: PhotoDB
 
     # Redefining logger as mandatory
     main_logger_name: str = "PhotoDB"
@@ -55,14 +50,6 @@ class PhotoModel:
     # Caches
     filename_to_key_cache: Cache
     key_to_filepath_cache: Cache
-
-    @property
-    def reserved_names(self):
-        return self.__reserved_names
-
-    @property
-    def temp_db_name(self):
-        return self.__reserved_names[0]
 
     @property
     def current_version(self):
@@ -360,6 +347,225 @@ class PhotoModel:
 
         self.db.commit()
         return tbl_name
+
+    # INFO: long-running action
+    def update_allowed(self, allowed_ext: Set[str], tbl: str) -> Tuple[int, int, int]:
+        """
+        Update the allowed extensions for a given
+
+        :param allowed_ext: Allowed extensions to import from.
+        :param tbl: Name of temporary table created for import.
+
+        :returns: <number of files now allowed>, <number of files now excluded>, <number of files unaffected>
+        """
+        for ext in allowed_ext:
+            if ext[0] != ".":
+                raise ValueError(f"Allowed Extensions must start with a '.' {ext}")
+
+        self.main_logger.info(f"Updating allowed extensions in {tbl} with {allowed_ext}")
+
+        now_allowed = 0
+        now_disallowed = 0
+        same = 0
+
+        for row in self.db.update_allowed_iterator(tbl):
+            key, _a, original_filename = row
+            allowed = bool(_a)
+
+            # INFO: Need to update mark_for_import to 0, to ensure we don't get any accidental imports of not allowed
+            #  files.
+            if allowed and os.path.splitext(original_filename)[1] not in allowed_ext:
+                now_disallowed += 1
+                self.db.set_allowed(tbl_name=tbl, allowed=Allowed.NOT_ALLOWED_EXT, key=key)
+                self.main_logger.debug(f"{key} is now disallowed")
+
+            elif not allowed and os.path.splitext(original_filename)[1] in allowed_ext:
+                now_allowed += 1
+                self.main_logger.debug(f"{key} is now allowed")
+                self.db.set_allowed(tbl_name=tbl, allowed=Allowed.ALLOWED, key=key)
+
+            else:
+                same += 1
+                self.main_logger.debug(f"{key} remains the same")
+
+        self.find_match_for_import_table(tbl)
+        self.main_logger.info(f"Updated Allowed {tbl}. {now_allowed} now allowed, {now_disallowed} now disallowed, "
+                              f"{same} stayed the same")
+        self.db.commit()
+        return now_allowed, now_disallowed, same
+
+    # INFO: long-running action
+    def find_match_for_import_table(self, tbl_name: str, recompute: bool = False) -> int:
+        """
+        Find matches for files in a given import table.
+
+        :param tbl_name: Name of temporary table created for import.
+        :param recompute: Recompute match for everything or only for files which have not matches are allowed and
+            not imported
+
+        :returns: int - number of files processed .
+        """
+        if not self.db.import_table_exists(name=tbl_name):
+            raise ValueError(f"Table {tbl_name} doesn't exist")
+
+        count = 0
+        for row in self.db.find_import_match_iterator(tbl_name=tbl_name, recompute=recompute):
+            key, original_filename, original_dirname, file_size_bytes, file_hash = row
+            target_fp = str(os.path.join(original_dirname, original_filename))
+
+            assert os.path.exists(target_fp), "Import file needs to exist."
+
+            matches, highest_key, highest_match = self._get_best_match_type(tgt_fp=target_fp,
+                                                                            file_hash=file_hash,
+                                                                            fsb=file_size_bytes)
+
+            self.db.set_match_type_import_table(tbl_name=tbl_name, key=key, matches=matches,
+                                                best_match=highest_key, best_match_type=highest_match)
+
+            count += 1
+
+        self.main_logger.info(f"Found {count} matches for {tbl_name}")
+        self.db.commit()
+        return count
+
+    def _prepare_file_import(self, file_path: str, tbl_name: str, allowed_ext: Set[str], append: bool):
+        """
+        Handle Import for a singular file.
+
+        PRECONDITION:
+        - Filepath exists
+        - Table Exists
+        - File not in table
+
+        :raises ValueError: If not append and file in table.
+        """
+        # Ensure file not in table yet.
+        if self.db.get_import_table_key_from_path(tbl_name=tbl_name, path=file_path) is not None:
+            if append:
+                return
+            else:
+                raise ValueError(f"File {file_path} already exists in table {tbl_name}")
+
+        pres = self.mda.handle_file(file_path)
+
+        self.db.add_file_to_import_table(tbl_name=tbl_name, allowed_ext=allowed_ext, parsing_result=pres)
+
+    def _get_best_match_type(self, tgt_fp: str, file_hash: str, fsb: int) \
+            -> Tuple[Dict[int, NewMatchTypes], int | None, NewMatchTypes]:
+        """
+        PRECONDITION: tgt_fp exists.
+
+        Given a file_hash and file_size returns the lowest MatchType
+
+        :param tgt_fp: Target file path of the image in the import table
+        :param file_hash: File hash of the image
+        :param fsb: File size of the image
+
+        :returns List of all hash_matches, key of highest match, highest match value
+        """
+        match_keys = self.db.find_hash_match_keys(target_hash=file_hash, file_size=fsb, mode="INITIAL")
+
+        keys: Dict[int, NewMatchTypes] = {}
+        for m_key in match_keys:
+            # Resolve the matched key to the filepath
+            match_path = self.resolve_key_to_path(key=m_key)
+            binary_match = None
+
+            if match_path is None:
+                raise CorruptDatabase("Inconsistency between tables. File from hash_assoz not present in tables.")
+
+            # Check the binary difference of the files if they exist
+            if os.path.exists(match_path):
+                binary_match = filecmp.cmp(tgt_fp, match_path, shallow=False)
+
+            m_newest_hash, _ = self.db.get_newest_hash(m_key)
+
+            # Rare occurrence
+            # TODO different logger
+            if m_newest_hash == file_hash and not binary_match:
+                self.main_logger.warning("Found files with matching hash and size but different binary.")
+            elif m_newest_hash != file_hash and binary_match:
+                self.main_logger.warning("Found files different hashes but match binary.")
+
+            flags = self.db.get_main_flags(m_key)
+            if flags is None:
+                raise CorruptDatabase("Inconsistency between tables. File from hash_assoz not present in main tables.")
+
+            # parse into NewMatchTypes
+            if not (flags.trashed and not flags.duplicate):
+                if m_newest_hash != file_hash:
+                    keys[m_key] = NewMatchTypes.HASH_MATCH_MAIN
+                else:
+                    assert m_newest_hash == file_hash, "Unexpected outcome, hashes should match."
+                    if binary_match:
+                        keys[m_key] = NewMatchTypes.BINARY_MATCH_MAIN
+                    else:
+                        # INFO: relegating the case when the file was missing i.e. binary_match is None and not
+                        #  binary_match as HASH_MATCH. The assumption is, that the files were modified by some
+                        #  other software but the hash and file size used to determine the match were correct.
+                        #  Or alternatively, the part of the library is mounted from some other other location and
+                        #  the mount isn't currently done.
+                        keys[m_key] = NewMatchTypes.HASH_MATCH_MAIN
+
+            elif flags.trashed and not flags.duplicate:
+                if m_newest_hash != file_hash:
+                    keys[m_key] = NewMatchTypes.HASH_MATCH_TRASH
+                else:
+                    assert m_newest_hash == file_hash, "Unexpected outcome, hashes should match."
+                    if binary_match:
+                        keys[m_key] = NewMatchTypes.BINARY_MATCH_TRASH
+                    else:
+                        # INFO: Dito as for DBLocation.MAIN
+                        keys[m_key] = NewMatchTypes.HASH_MATCH_TRASH
+
+            elif not flags.trashed and flags.duplicate:
+                if m_newest_hash != file_hash:
+                    keys[m_key] = NewMatchTypes.HASH_MATCH_REPLACED
+                else:
+                    assert m_newest_hash == file_hash, "Unexpected outcome, hashes should match."
+                    if binary_match:
+                        keys[m_key] = NewMatchTypes.BINARY_MATCH_REPLACED
+                    else:
+                        # INFO: Dito as for DBLocation.MAIN
+                        keys[m_key] = NewMatchTypes.HASH_MATCH_REPLACED
+
+            elif flags.trashed and flags.duplicate:
+                raise CorruptDatabase("Trashed and Duplicate are True")
+
+            else:
+                raise ImplementationError("DBLocation not covered")
+
+        highest_match = None
+        highest_match_key = None
+
+        # Get highest quality match from all matches.
+        for key, match in keys.items():
+            if highest_match is None:
+                highest_match = match
+                highest_match_key = key
+
+            else:
+                if match.value < highest_match.value:
+                    highest_match = match
+                    highest_match_key = key
+
+        if highest_match is None:
+            return {}, None, NewMatchTypes.NO_MATCH
+
+        return keys, highest_match_key, highest_match
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # INFO: long-running action
     def update_hash_from_filename(self) -> Tuple[int, int]:
