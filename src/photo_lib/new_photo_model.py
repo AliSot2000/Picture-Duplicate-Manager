@@ -1347,19 +1347,6 @@ class PhotoModel:
         self.db.commit()
         return len(keys_to_delete)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     def prune_filesystem_directories(self) -> int:
         """
         Walk through the file system and check for empty directories. Remove empty directories if they exist.
@@ -1380,17 +1367,13 @@ class PhotoModel:
         """
         dir_to_prune = []
         for root, dirs, files in os.walk(self.root_path, topdown=False):
-
-            # Skip if we're in the thumbnail directory
-            if root == self.get_thumb_dir():
+            if root.startswith(self.db.get_temp_dir()):
                 continue
 
-            # Skip if we're in the trash directory
-            if root == self.get_trash_dir():
+            if root.startswith(self.db.get_temp_dir()):
                 continue
 
-            # Skip if we're in the temp directory
-            if root == self.get_temp_dir():
+            if root.startswith(self.db.get_thumb_dir()):
                 continue
 
             if len(files) + len(dirs) == 0:
@@ -1405,12 +1388,8 @@ class PhotoModel:
             local_path = d.removeprefix(self.root_path).removeprefix(os.sep)
             local_path_list = local_path.split(os.sep)
 
-            # Check if it's in the db_dir
-            self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE db_local_dir = ?",
-                               (self.dump_db_local_dir(local_path_list),))
-
             # Got something from the db_dir table, continue.
-            if self.sq_cur.fetchone() is not None:
+            if self.db.get_dir_key(local_path_list) is not None:
                 continue
 
             # PRECONDITION: Directory is empty and not listed in the db_dir table, deleting

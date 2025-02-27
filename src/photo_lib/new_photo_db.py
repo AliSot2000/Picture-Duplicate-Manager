@@ -2401,61 +2401,7 @@ class PhotoDB(BaseSQliteDB):
 
 
 
-    def prune_filesystem_directories(self) -> int:
-        """
-        Walk through the file system and check for empty directories. Remove empty directories if they exist.
-        """
-        count = 0
-        current_count = self._internal_prune_fs_dir()
 
-        # Call recursively
-        while current_count > 0:
-            count += current_count
-            current_count = self._internal_prune_fs_dir()
-
-        return count
-
-    def _internal_prune_fs_dir(self) -> int:
-        """
-        Internal function to prune file system directories. Needs to be called recursively to check
-        """
-        dir_to_prune = []
-        for root, dirs, files in os.walk(self.root_path, topdown=False):
-            if root.startswith(self.get_temp_dir()):
-                continue
-
-            if root.startswith(self.get_temp_dir()):
-                continue
-
-            if root.startswith(self.get_thumb_dir()):
-                continue
-
-            if len(files) + len(dirs) == 0:
-                dir_to_prune.append(root)
-
-        # Early exit
-        if len(dir_to_prune) == 0:
-            return 0
-
-        count = 0
-        for d in dir_to_prune:
-            local_path = d.removeprefix(self.root_path).removeprefix(os.sep)
-            local_path_list = local_path.split(os.sep)
-
-            # Got something from the db_dir table, continue.
-            if self.get_dir_key(local_path_list) is not None:
-                continue
-
-            # PRECONDITION: Directory is empty and not listed in the db_dir table, deleting
-            self.main_logger.debug(f"Pruned {count} rows in dir table")
-            shutil.rmtree(d)
-            count += 1
-
-        return count
-
-    # ==================================================================================================================
-    # Deduplication
-    # ==================================================================================================================
 
     # INFO: long-running action
     def find_hash_based_duplicates(self):
