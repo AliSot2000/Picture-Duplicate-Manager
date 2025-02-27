@@ -1494,7 +1494,7 @@ class PhotoModel:
 
         else:
             # INFO: Updates the key_to_filepath_cache
-            self._internal_move_file(ndt=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
+            self._internal_move_file(new_datetime=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
 
             self.db.update_row_main_table(key=key, datetime=new_dt, timezone=new_dt.tzname())
 
@@ -1554,7 +1554,7 @@ class PhotoModel:
 
         else:
             # INFO: Updates the key_to_filepath_cache
-            self._internal_move_file(ndt=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
+            self._internal_move_file(new_datetime=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
 
         self.db.update_row_main_table(key=key, datetime=new_dt, db_name=new_name, timezone=timezone)
 
