@@ -2456,23 +2456,15 @@ class PhotoModel:
         """
         count: int = 0
 
-        self.add_extra_cursor("del_trash")
         if duplicates:
-            self.debug_execute(stmt="SELECT key, db_name, flags FROM main WHERE mod(flags >> 8, 2) = 1",
-                               cur="del_trash")
-            update_stmt = "UPDATE replaced SET flags = ? WHERE key = ? "
+            it = self.db.main_key_flags_iterator(allow_selection=False, duplicate=True)
         else:
-            self.debug_execute(stmt="SELECT key, db_name, flags FROM main WHERE mod(flags >> 2, 2) = 1",
-                               cur="del_trash")
-            update_stmt = f"UPDATE main SET flags = ? WHERE key = ?"
+            it = self.db.main_key_flags_iterator(allow_selection=False, trashed=True)
 
         self.main_logger.info(f"Deleting Originals from Files in {'Duplicates' if duplicates else 'Trash'}")
 
         # Remove originals from files marked as trash
-        for row in self.get_cursor("del_trash"):
-            key, db_name, _flags = row
-            flags = MainFlags.from_int(_flags)
-
+        for key, flags in it:
             # Check for consistency
             if __debug__:
                 if duplicates and flags.duplicate is False:
@@ -2481,23 +2473,20 @@ class PhotoModel:
                     raise ImplementationError("Didn't receive trashed file despite call for it")
 
             # TODO darktable
-            file_path = self.resolve_key_to_path(key)
-            self.check_flags(key=key, flags=flags, org_path=file_path)
+            file_path = self.db.db_resolve_key_to_abs_path(key)
+            self.db.check_flags(key=key, flags=flags, org_path=file_path)
 
             if os.path.exists(file_path):
-                self.main_logger.debug(f"Deleting {db_name} from trash")
+                self.main_logger.debug(f"Deleting {os.path.basename(file_path)} from trash")
                 os.remove(file_path)
                 count += 1
-                self.debug_execute(update_stmt, (flags.to_int(), key))
 
             flags.present = False
-
-            # Removing row in metadata table.
-            self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (key,))
+            self.db.update_row_main_table(key=key, flags=flags)
+            self.db.delete_row_metadata_table(key=key)
 
         self.main_logger.info(f"Finished Deleting {count} Originals {'Duplicates' if duplicates else 'Trash'}")
-        self.remove_extra_cursor("del_trash")
-        self.commit()
+        self.db.commit()
         # INFO: Don't need to update the caches, the path isn't modified.
         return count
 

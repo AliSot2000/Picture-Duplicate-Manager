@@ -2522,60 +2522,6 @@ class PhotoDB(BaseSQliteDB):
     # Utility
     # ==================================================================================================================
 
-    def empty_trash(self):
-        """
-        Removes all originals from the trash.
-        """
-        self.main_logger.info(f"Emptying all Trashed files...")
-        trash = self._empty_trash(duplicates=False)
-        replaced = self._empty_trash(duplicates=True)
-        self.main_logger.info(f"Deleted a total of {trash + replaced} files from trash.")
-        return trash + replaced
-
-    def _empty_trash(self, duplicates: bool) -> int:
-        """
-        Internal function to remove originals from one of two categories of files in the trash:
-        - Files which are marked as 'trashed'
-        - Files which are duplicates and the originals were moved to trash
-
-        :param duplicates: if true, delete files from replaced table else remove files marked as 'trashed'
-        """
-        count: int = 0
-
-        if duplicates:
-            it = self.main_key_flags_iterator(allow_selection=False, duplicate=True)
-        else:
-            it = self.main_key_flags_iterator(allow_selection=False, trashed=True)
-
-        self.main_logger.info(f"Deleting Originals from Files in {'Duplicates' if duplicates else 'Trash'}")
-
-        # Remove originals from files marked as trash
-        for key, flags in it:
-            # Check for consistency
-            if __debug__:
-                if duplicates and flags.duplicate is False:
-                    raise ImplementationError("Didn't receive duplicate file despite call for it")
-                if not duplicates and flags.trashed is False:
-                    raise ImplementationError("Didn't receive trashed file despite call for it")
-
-            # TODO darktable
-            file_path = self.db_resolve_key_to_abs_path(key)
-            self.check_flags(key=key, flags=flags, org_path=file_path)
-
-            if os.path.exists(file_path):
-                self.main_logger.debug(f"Deleting {os.path.basename(file_path)} from trash")
-                os.remove(file_path)
-                count += 1
-
-            flags.present = False
-            self.update_row_main_table(key=key, flags=flags)
-            self.delete_row_metadata_table(key=key)
-
-        self.main_logger.info(f"Finished Deleting {count} Originals {'Duplicates' if duplicates else 'Trash'}")
-        self.commit()
-        # INFO: Don't need to update the caches, the path isn't modified.
-        return count
-
     def forget_file(self, key: int):
         """
         Forgets a given file.
