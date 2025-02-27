@@ -506,11 +506,11 @@ class PhotoDB(BaseSQliteDB):
         :returns: number of rows affected in main table
         """
         if sel_a:
-            self.debug_execute(f"UPDATE main SET flags = flags + 16 WHERE mod(flags >> 4) = 0 "
+            self.debug_execute(f"UPDATE main SET flags = flags + 16 WHERE mod(flags >> 4, 2) = 0 "
                                f"AND key IN (SELECT import_key FROM `{tbl_name}` WHERE import_key IS NOT NULL) ")
             rc = self.sq_cur.rowcount
         else:
-            self.debug_execute(f"UPDATE main SET flags = flags + 32 WHERE mod(flags >> 5) = 0 "
+            self.debug_execute(f"UPDATE main SET flags = flags + 32 WHERE mod(flags >> 5, 2) = 0 "
                                f"AND key IN (SELECT import_key FROM `{tbl_name}` WHERE import_key IS NOT NULL) ")
             rc = self.sq_cur.rowcount
         return rc
