@@ -1864,19 +1864,10 @@ class PhotoModel:
 
         returns: <number of new files created> and <number of undetected missing files>
         """
-        self.add_extra_cursor("update_thumbnails")
-
-        self.debug_execute(stmt="SELECT m.key, m.db_name, m.flags FROM main AS m "
-                           # Check present                 check trash                     check duplicate
-                           "WHERE mod(m.flags, 2) == 1 AND mod((m.flags >> 2), 2) == 0 AND mod((m.flags >> 8), 2) == 0",
-                           cur="update_thumbnails")
-
         missing: int = 0
         created: int = 0
-        for row in self.get_cursor("update_thumbnails"):
-            key, dbn, _flags = row
-
-            flags = MainFlags.from_int(_flags)
+        for key, flags in self.db.main_key_flags_iterator(
+                allow_selection=False, present=True, trashed=False, duplicate=False):
 
             # skip missing images or images in trash
             if not flags.present or flags.trashed or flags.duplicate:
@@ -1884,22 +1875,23 @@ class PhotoModel:
                     raise ImplementationError("Error in SQL Statement, should not find trash or not present files")
                 continue
 
-            fp = self.resolve_key_to_path(key)
+            fp = self.db.db_resolve_key_to_abs_path(key)
 
             # checking for missing file
             if not os.path.exists(fp):
                 # INFO we're not updating the presence in the db because it doesn't fit the scope of this function.
-                self.integrity_logger.warning(f"File from DB is missing: {dbn}, in {os.path.dirname(fp)}")
+                self.main_logger.warning(f"File from DB is missing: {os.path.basename(fp)}, "
+                                         f"in {os.path.dirname(fp)}")
                 missing += 1
                 continue
 
             # Thumbnail: write if not exists or exists + overwrite
             if thumbnail:
-                if (not os.path.exists(self.full_thumbnail_path(key))
-                        or (os.path.exists(self.full_thumbnail_path(key)) and overwrite)):
+                if (not os.path.exists(self.db.full_thumbnail_path(key))
+                        or (os.path.exists(self.db.full_thumbnail_path(key)) and overwrite)):
 
                     flags.has_thumbnail = self._create_display_file(
-                        in_path=fp, out_path=self.full_thumbnail_path(key), major_size=self.config.thumbnail_target)
+                        in_path=fp, out_path=self.db.full_thumbnail_path(key), major_size=self.config.thumbnail_target)
                     created += 1
 
                 else:
@@ -1908,11 +1900,11 @@ class PhotoModel:
 
             # Miniature: write if not exists or exists + overwrite
             if miniature:
-                if (not os.path.exists(self.full_miniature_path(key))
-                        or (os.path.exists(self.full_miniature_path(key)) and overwrite)):
+                if (not os.path.exists(self.db.full_miniature_path(key))
+                        or (os.path.exists(self.db.full_miniature_path(key)) and overwrite)):
 
                     flags.has_miniature = self._create_display_file(
-                        in_path=fp, out_path=self.full_miniature_path(key), major_size=self.config.thumbnail_target)
+                        in_path=fp, out_path=self.db.full_miniature_path(key), major_size=self.config.thumbnail_target)
                     created += 1
 
                 else:
@@ -1920,11 +1912,9 @@ class PhotoModel:
                     flags.has_miniature = True
 
             # Update the flags of the given key.
-            self.debug_execute(stmt="UPDATE main SET flags = ? WHERE key = ?",
-                               args=(flags.to_int(), key))
+            self.db.update_row_main_table(key=key, flags=flags)
 
-        self.remove_extra_cursor("update_thumbnails")
-        self.commit()
+        self.db.commit()
         self.main_logger.info(f"Created: {created} Display Files, found {missing} newly missing")
 
         missing: int
