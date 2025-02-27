@@ -982,7 +982,7 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute(stmt="INSERT INTO hash_update_table (main_key, new_hash, file_size_bytes) VALUES (?, ?, ?)",
                            args=(key, new_hash, file_size))
 
-        assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to Insert Row"
+        assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to Insert Row into hash_update_table"
 
     def hash_update_iterator(self) -> Iterator[Tuple[int, str, int]]:
         """
