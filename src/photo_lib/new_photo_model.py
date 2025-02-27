@@ -2238,23 +2238,113 @@ class PhotoModel:
 
         self.db.commit()
 
-    def restore_replaced(self, key: int, create_disp_filey: bool = True):
+    def restore_replaced(self, key: int, create_display_files: bool = True):
         """
         Moves file back to original location
         Updates the metadata table.
 
         Only works if delete_trash wasn't called already
-        """
-        # TODO implement
 
-    def restore_trash(self, key: int, create_disp_filey: bool = True):
+        :param key: Key in main table to restore
+        :param create_display_files: Create thumbnail and miniature if they don't exist
+        """
+        self._internal_undo(trash=False, key=key, cdf=create_display_files)
+
+    def restore_trash(self, key: int, create_display_files: bool = True):
         """
         Move file back from trash to its original location
         Updates Metadata Table
 
         Only works if delete_trash wasn't called already
+
+        :param key: Key in main table to restore
+        :param create_display_files: Create thumbnail and miniature if they don't exist
         """
-        # TODO implement
+        self._internal_undo(trash=True, key=key, cdf=create_display_files)
+
+    def _internal_undo(self, trash: bool, key: int, cdf: bool):
+        """
+        Internal shared function to undo the two common actions of moving a file to trash and marking a file as
+        duplicate
+
+        :param trash: Whether to restore file from trashed or duplicate state
+        :param key: Key in Main table of file to restore
+        :param cdf: Whether to create display files or not
+        """
+        # Check row main table
+        rep_d = self.db.get_main_row(key)
+        if rep_d is None:
+            raise ValueError(f"Key {key} doesn't exist in main table")
+
+        # Check row replaced table
+        md = self.db.get_metadata_row(key)
+        if md is None:
+            raise ValueError(f"Key {key} doesn't exist in metadata table, cannot undo")
+
+        # check file exists
+        cur_path = self.resolve_key_to_path(key)
+        assert cur_path is not None, "PRECONDITION: Rows found, path must exist"
+
+        if not os.path.exists(cur_path):
+            raise FileNotFoundError("File in trash not found")
+
+        # Get data for moving back
+        rnd = self.db.get_path_data(key)
+        assert rnd is not None, "Unexpected outcome, couldn't get path data of key"
+
+        dt, flags, db_local_dir, db_name, _ = rnd
+        if not flags.duplicate and not trash:
+            raise ValueError("File isn't duplicate. Undo replaced doesn't apply")
+        elif not flags.trashed and trash:
+            raise ValueError("File isn't trashed. Undo trashed doesn't apply")
+
+        self.db.check_flags(key=key, flags=flags, thumbnail=True, miniature=True, org_path=cur_path)
+
+        # Build dest path
+        if db_local_dir is not None:
+            db_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), db_name)
+        else:
+            db_path = os.path.join(self.root_path, self.db.dt_to_dir(dt), db_name)
+
+        # Check dest path doesn't exist
+        if os.path.exists(db_path):
+            raise FileExistsError("File already exists at destination.")
+
+        os.rename(cur_path, db_path)
+
+        # Update flags after movement
+        if trash:
+            flags.trashed = False
+            flags.present = True
+        else:
+            flags.duplicate = False
+            flags.present = True
+
+        # Create display files if necessary
+        if cdf:
+            # Create thumbnail
+            if not os.path.exists(self.db.full_thumbnail_path(key)):
+                flags.has_thumbnail = self._create_display_file(
+                    in_path=db_path, out_path=self.db.full_thumbnail_path(key), major_size=self.config.thumbnail_target)
+            else:
+                flags.has_thumbnail = True
+
+            # Create miniature
+            if not os.path.exists(self.db.full_miniature_path(key)):
+                flags.has_miniature = self._create_display_file(
+                    in_path=db_path, out_path=self.db.full_miniature_path(key), major_size=self.config.thumbnail_target)
+            else:
+                flags.has_miniature = True
+
+        self.db.update_row_metadata_table(key=key, replaced=0)
+        if trash:
+            self.db.update_row_main_table(key=key, flags=flags)
+        else:
+            self.db.update_row_main_table(key=key, flags=flags, parent=None)
+
+        # TODO update caches
+        self.key_to_filepath_cache.update(arg=key, value=db_path)
+        self.db.commit()
 
     def delete_trash_thumb(self, key: Union[List[int], int, None]) -> int:
         """
