@@ -1655,7 +1655,7 @@ class PhotoModel:
             current_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), db_name)
             new_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), new_name)
         else:
-            assert db_local_dir is None and ndt is None, \
+            assert db_local_dir is None and ndt is not None, \
                 f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {ndt}"
             current_path = os.path.join(self.root_path, self.db.dt_to_dir(dt), db_name)
             new_path = os.path.join(self.root_path, self.db.dt_to_dir(ndt), new_name)
