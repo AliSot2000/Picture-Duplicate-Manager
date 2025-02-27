@@ -192,6 +192,21 @@ class Cache:
         print(self.__index_arg_lookup)
         print(self.__lru)
 
+    def reset(self):
+        """
+        Reset entire cache. Not all cache updates are efficient. In cases where updates are rare and expensive,
+        it is easier to clear the cache instead.
+        """
+        self.__arg_res_lookup: dict = {}
+        self.__arg_index_lookup: dict = {}
+        self.__index_arg_lookup: dict = {}
+
+        self.__lru_index = 0
+        self.__lru = np.array([False for _ in range(self.size)])
+
+        self.__hits: int = 0
+        self.__misses: int = 0
+
 
 if __name__ == "__main__":
     test_cache = Cache(size=4)
@@ -226,3 +241,5 @@ if __name__ == "__main__":
 
     print(test_cache.get_stats())
 
+    test_cache.reset()
+    print(test_cache.get_stats())
