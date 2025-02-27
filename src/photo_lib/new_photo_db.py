@@ -2336,29 +2336,6 @@ class PhotoDB(BaseSQliteDB):
     # INFO: ALL IMPLEMENTATIONS OF LONG RUNNING ACTIONS
     # ==================================================================================================================
 
-    # INFO: long-running action
-    def update_hash_from_filename_table(self) -> Tuple[int, int]:
-        """
-        Updates the hash of the image file with the given file name.
-
-        # INFO: Because this function is a long running action, it isn't a database function
-        #   (despite being only in the db)
-
-        :return: number of new entries in hash_assoz table, number of hashes updated
-        """
-        if self.hash_update_table_size() == 0:
-            raise ValueError("Hash table is empty")
-
-        modified = 0
-        added = 0
-        for mk, nh, fsb in self.hash_update_iterator():
-            added += int(not self.check_add_file_hash(file_hash=nh, file_key=mk, file_size=fsb))
-            modified += 1
-
-        self.logger.info(f"Updated {modified} file hashes. {added} of unseen hashes.")
-
-        self.commit()
-        return added, modified
 
     # INFO: long-running action,
     def update_filename_from_hash(self, move: bool):
