@@ -1213,6 +1213,65 @@ class PhotoModel:
         return count
 
     # INFO: long-running action
+    def check_and_update_disp_files(self, selection: Selection = None) -> Tuple[int, int, int, int, int, int]:
+        """
+        Go through db and check the mark for thumbnail and a thumbnail existing are correct.
+
+        About the return value:
+
+        - Prefix 'missing' means, the flag specifies the file to be present but the file is missing on the file system.
+        - Prefix 'present' means, the flag specifies the file to be absent but the file is present on the file system.
+        - Prefix 'correct' means, the flag and the file system are consistent.
+
+        :param selection: Use a given selection to check the consistency of the flags of thumbnails, otherwise check
+            all thumbnails
+
+        :returns: missing_thumbnails, present_thumbnails, correct_thumbnails, missing_miniatures, present_miniatures,
+            correct_miniatures
+        """
+        missing_thumb = missing_min = present_thumb = present_min = correct_thumb = correct_min = 0
+
+        for key, flags in self.db.main_key_flags_iterator(allow_selection=True, selection=selection):
+            update: bool = False
+
+            self.db.check_flags(key=key, flags=flags, miniature=True, thumbnail=True)
+
+            # Updating Thumbnail Flag
+            if flags.has_thumbnail and not os.path.exists(self.db.full_thumbnail_path(key)):
+                missing_thumb += 1
+                flags.has_thumbnail = False
+                update = True
+            elif not flags.has_thumbnail and os.path.exists(self.db.full_thumbnail_path(key)):
+                present_thumb += 1
+                flags.has_thumbnail = True
+                update = True
+            else:
+                correct_thumb += 1
+
+            # Check Miniature Flag
+            if flags.has_miniature and not os.path.exists(self.db.full_miniature_path(key)):
+                missing_min += 1
+                flags.has_miniature = False
+                update = True
+            elif not flags.has_miniature and os.path.exists(self.db.full_miniature_path(key)):
+                present_min += 1
+                flags.has_miniature = True
+                update = True
+            else:
+                correct_min += 1
+
+            # Update flags if they changed.
+            if update:
+                self.db.update_row_main_table(key=key, flags=flags)
+
+        self.main_logger.info(f"Found {missing_thumb} missing thumbnails and {present_thumb} present thumbnails.")
+        self.main_logger.info(f"{correct_thumb} flags for thumbnails were correct")
+        self.main_logger.info(f"Found {missing_min} missing miniatures and {present_min} present miniatures.")
+        self.main_logger.info(f"{correct_min} miniatures for thumbnails were correct")
+
+        return missing_thumb, present_thumb, correct_thumb, missing_min, present_min, correct_min
+
+    # INFO: long-running action
     def update_hash_from_filename_table(self) -> Tuple[int, int]:
         """
         Updates the hash of the image file with the given file name.
@@ -2616,86 +2675,6 @@ class PhotoModel:
         self.main_logger.info(f"Pruned {hashes} unused hashes")
         self.main_logger.info(f"Pruned {gps} gps entries")
         return db_dir + fs_dir + gps + hashes
-
-    # INFO: long-running action
-    def check_and_update_disp_files(self, selection: Selection = None) -> Tuple[int, int, int, int, int, int]:
-        """
-        Go through db and check the mark for thumbnail and a thumbnail existing are correct.
-
-        About the return value:
-
-        - Prefix 'missing' means, the flag specifies the file to be present but the file is missing on the file system.
-        - Prefix 'present' means, the flag specifies the file to be absent but the file is present on the file system.
-        - Prefix 'correct' means, the flag and the file system are consostent.
-
-        :param selection: Use a given selection to check the consistency of the flags of thumbnails, otherwise check
-            all thumbnails
-
-        :returns: missing_thumbnails, present_thumbnails, correct_thumbnails, missing_miniatures, present_miniatures,
-            correct_miniatures
-        """
-        missing_thumb = missing_min = present_thumb = present_min = correct_thumb = correct_min = 0
-        self.add_extra_cursor("check_disp_files")
-        if selection is not None:
-            if selection.selection_type == SelectionType.SELECTION_A:
-                self.debug_execute(stmt="SELECT key, flags FROM main WHERE mod(flags >> 4, 2) = 1",
-                                   cur="check_disp_files")
-            elif selection.selection_type == SelectionType.SELECTION_B:
-                self.debug_execute(stmt="SELECT key, flags FROM main WHERE mod(flags >> 5, 2) = 1",
-                                   cur="check_disp_files")
-            elif selection.selection_type == SelectionType.TIME_RANGE:
-                # TODO test
-                self.debug_execute(stmt="SELECT key, flags FROM main "
-                                        "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)",
-                                   args=(selection.start.isoformat(), selection.end.isoformat()),
-                                   cur="check_disp_files")
-            else:
-                raise ImplementationError("Uncovered Type of SelectionType")
-        else:
-              self.debug_execute(stmt="SELECT key, flags FROM main",
-                                 cur="check_disp_files")
-
-        for key, _flags in self.get_cursor("check_disp_files"):
-            flags = MainFlags.from_int(_flags)
-            update: bool = False
-
-            self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True)
-
-            # Updating Thumbnail Flag
-            if flags.has_thumbnail and not os.path.exists(self.full_thumbnail_path(key)):
-                missing_thumb += 1
-                flags.has_thumbnail = False
-                update = True
-            elif not flags.has_thumbnail and os.path.exists(self.full_thumbnail_path(key)):
-                present_thumb += 1
-                flags.has_thumbnail = True
-                update = True
-            else:
-                correct_thumb += 1
-
-            # Check Miniature Flag
-            if flags.has_miniature and not os.path.exists(self.full_miniature_path(key)):
-                missing_min += 1
-                flags.has_miniature = False
-                update = True
-            elif not flags.has_miniature and os.path.exists(self.full_miniature_path(key)):
-                present_min += 1
-                flags.has_miniature = True
-                update = True
-            else:
-                correct_min += 1
-
-            # Update flags if they changed.
-            if update:
-                self.debug_execute("UPDATE main SET flags = ? WHERE key = ?", (flags.to_int(), key))
-
-        self.main_logger.info(f"Found {missing_thumb} missing thumbnails and {present_thumb} present thumbnails.")
-        self.main_logger.info(f"{correct_thumb} flags for thumbnails were correct")
-        self.main_logger.info(f"Found {missing_min} missing miniatures and {present_min} present miniatures.")
-        self.main_logger.info(f"{correct_min} miniatures for thumbnails were correct")
-
-        self.remove_extra_cursor("check_disp_files")
-        return missing_thumb, present_thumb, correct_thumb, missing_min, present_min, correct_min
 
     # ==================================================================================================================
     # Lookup Methods
