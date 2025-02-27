@@ -1548,7 +1548,7 @@ class PhotoModel:
         if rename:
             self._internal_rename(key=key,
                                   flags=flags,
-                                  dbn=db_name,
+                                  db_name=db_name,
                                   new_name=new_name,
                                   dt=dt,
                                   db_local_dir=db_local_dir,
@@ -1600,7 +1600,7 @@ class PhotoModel:
 
         self._internal_rename(key=key,
                               flags=flags,
-                              dbn=db_name,
+                              db_name=db_name,
                               new_name=new_filename,
                               dt=dt,
                               db_local_dir=db_local_dir)
