@@ -1079,6 +1079,64 @@ class PhotoModel:
         self.main_logger.info(f"Detected {count} entries in main table with mismatched presence flag")
         return count
 
+    # INFO: long-running action
+    def check_filenames(self, only_latest: bool = False) -> int:
+        """
+        Check the file names by associating file hashes from files found in the db with files.
+
+        The function checks the database. If a file is not known in the database, its hash, and file size are computed.
+
+        The hashes and file size are then matched against the hash_assoz table to see if a file with this hash existed.
+        By default, any hash a file has had over time will be considered. With only_latest, only the latest hashes are
+        considered.
+
+        The function returns the number of probably renamed files it found.
+        """
+        self.db.clear_filename_update_table()
+
+        count = 0
+
+        for root, dirs, files in os.walk(self.root_path):
+            if root.startswith(self.db.get_temp_dir()):
+                continue
+
+            if root.startswith(self.db.get_temp_dir()):
+                continue
+
+            if root.startswith(self.db.get_thumb_dir()):
+                continue
+
+            for file in files:
+                tgt_key = self.db.db_resolve_filename_to_key(file)
+
+                if tgt_key is not None:
+                    continue
+
+                fsb = os.stat(os.path.join(root, file)).st_size
+                fh = self.mda.hash_file(os.path.join(root, file))
+
+                self.db.insert_row_name_update_table(filename=file, dirname=root, file_size=fsb, file_hash=fh)
+                count += 1
+
+        if count == 0:
+            return 0
+
+        for key, name, dir_name, fsb, fh in self.db.find_hash_match_iterator():
+            name: str
+            dir_name: str
+
+            # TODO, param needed to search all hashes instead of a single one.
+            matches, best_match, best_match_type = \
+                self._get_general_best_match_type(file_hash=fh,
+                                                  fsb=fsb,
+                                                  tgt_fp=os.path.join(dir_name, name),
+                                                  latest=only_latest)
+
+            self.db.set_match_data_name_update_table(key=key, matches=matches, best_match=best_match,
+                                                  match_type=best_match_type)
+
+        self.db.commit()
+        return count
 
 
 
@@ -1196,69 +1254,6 @@ class PhotoModel:
 
         self.commit()
         return count, conflict
-
-    # INFO: long-running action
-    def check_filenames(self):
-        """
-        Check the file names by associating file hashes from files found in the db with files.
-
-        The function checks whether the name is known in the db. If it is, it will be
-        """
-        self.clear_filename_update_table()
-
-        count = 0
-        add_mda = False
-        if self.mda is None:
-            self.add_default_metadata_aggregator()
-            add_mda = True
-
-        for root, dirs, files in os.walk(self.root_path):
-            if root == self.get_temp_dir():
-                continue
-
-            if root == self.get_temp_dir():
-                continue
-
-            if root == self.get_thumb_dir():
-                continue
-
-            for file in files:
-                tgt_key = self._db_resolve_filename_to_key(file)
-
-                if tgt_key is not None:
-                    continue
-
-                fsb = os.stat(os.path.join(root, file)).st_size
-                fh = self.mda.hash_file(os.path.join(root, file))
-
-                self.debug_execute(stmt="INSERT INTO name_update_table (name, dir_name, file_size_bytes, hash) "
-                                        "VALUES (?, ?, ?, ?)",
-                                   args=(file, root, fsb, fh))
-                count += 1
-
-        if add_mda:
-            self.mda = None
-
-        if count == 0:
-            return 0
-
-        self.add_extra_cursor("update_names")
-        self.debug_execute("SELECT key, name, dir_name, file_size_bytes, hash")
-
-        for key, name, dir_name, fsb, fh in self.get_cursor("update_names"):
-            name: str
-            dir_name: str
-
-            matches, best_match, best_match_type = \
-                self._get_best_match_type(file_hash=fh, fsb=fsb, tgt_fp=os.path.join(dir_name, name))
-
-            serializable_matches = {k: v.value for k, v in matches.items()}
-            self.debug_execute(stmt="UPDATE name_update_table SET matches = ?, best_match = ?, best_match_type = ? "
-                                    "WHERE key = ?",
-                               args=(json.dumps(serializable_matches), matches, best_match, key))
-
-        self.commit()
-        return count
 
     # INFO: long-running action
     def check_file_hashes(self, selection: Selection = None):
