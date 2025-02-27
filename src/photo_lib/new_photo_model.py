@@ -204,6 +204,7 @@ class PhotoModel:
         """
         if self.prune_fs_dir and not fast:
             self.prune_filesystem_directories()
+            self.prune_db_dir()
 
         self.db.cleanup(fast)
 
