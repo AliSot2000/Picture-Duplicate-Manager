@@ -1943,8 +1943,9 @@ class PhotoModel:
                 return False
 
             # No need for larger logging info, handled within the internal functions
-            suc = self._create_img_thumbnails(in_path=self.db.temp_video_path(), out_path=out_path, major_size=major_size)
-            assert os.path.exists(self.self.db.temp_video_path()), "Video file missing despite successfully creating it?"
+            suc = self._create_img_thumbnails(
+                in_path=self.db.temp_video_path(), out_path=out_path, major_size=major_size)
+            assert os.path.exists(self.db.temp_video_path()), "Video file missing despite successfully creating it?"
             os.remove(self.db.temp_video_path())
             return suc
 
