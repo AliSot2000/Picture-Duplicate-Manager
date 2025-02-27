@@ -1125,7 +1125,6 @@ class PhotoModel:
             name: str
             dir_name: str
 
-            # TODO, param needed to search all hashes instead of a single one.
             matches, best_match, best_match_type = \
                 self._get_general_best_match_type(file_hash=fh,
                                                   fsb=fsb,
