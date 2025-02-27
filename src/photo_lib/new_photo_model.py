@@ -525,9 +525,9 @@ class PhotoModel:
 
             assert os.path.exists(target_fp), "Import file needs to exist."
 
-            matches, highest_key, highest_match = self._get_best_match_type(tgt_fp=target_fp,
-                                                                            file_hash=file_hash,
-                                                                            fsb=file_size_bytes)
+            matches, highest_key, highest_match = self._get_import_best_match_type(tgt_fp=target_fp,
+                                                                                   file_hash=file_hash,
+                                                                                   fsb=file_size_bytes)
 
             self.db.set_match_type_import_table(tbl_name=tbl_name, key=key, matches=matches,
                                                 best_match=highest_key, best_match_type=highest_match)
@@ -753,7 +753,7 @@ class PhotoModel:
 
         self.db.add_file_to_import_table(tbl_name=tbl_name, allowed_ext=allowed_ext, parsing_result=pres)
 
-    def _get_best_match_type(self, tgt_fp: str, file_hash: str, fsb: int) \
+    def _get_general_best_match_type(self, tgt_fp: str, file_hash: str, fsb: int, latest: bool = False) \
             -> Tuple[Dict[int, NewMatchTypes], int | None, NewMatchTypes]:
         """
         PRECONDITION: tgt_fp exists.
@@ -764,10 +764,41 @@ class PhotoModel:
         :param file_hash: File hash of the image
         :param fsb: File size of the image
 
-        :returns List of all hash_matches, key of highest match, highest match value
+        :returns Dict of all hash_matches with match type, key of highest match, highest match value
+        """
+        mode = "ANY" if not latest else "latest"
+        match_keys = self.db.find_hash_match_keys(target_hash=file_hash, file_size=fsb, mode=mode)
+        return self._get_best_match_type_common(tgt_fp=tgt_fp, file_hash=file_hash, match_keys=match_keys)
+
+    def _get_import_best_match_type(self, tgt_fp: str, file_hash: str, fsb: int) \
+            -> Tuple[Dict[int, NewMatchTypes], int | None, NewMatchTypes]:
+        """
+        PRECONDITION: tgt_fp exists.
+
+        Given a file_hash and file_size returns the lowest MatchType
+
+        :param tgt_fp: Target file path of the image in the import table
+        :param file_hash: File hash of the image
+        :param fsb: File size of the image
+
+        :returns Dict of all hash_matches with match type, key of highest match, highest match value
         """
         match_keys = self.db.find_hash_match_keys(target_hash=file_hash, file_size=fsb, mode="INITIAL")
+        return self._get_best_match_type_common(tgt_fp=tgt_fp, file_hash=file_hash, match_keys=match_keys)
 
+    def _get_best_match_type_common(self, tgt_fp: str, file_hash: str, match_keys: List[int]) \
+            -> Tuple[Dict[int, NewMatchTypes], int | None, NewMatchTypes]:
+        """
+        Common functionality of getting the match types as well as the best match type from the list of matches.
+
+        PRECONDITION: tgt_fp exists.
+
+        :param tgt_fp: Target file path of the image in the import table
+        :param file_hash: File hash of the image
+        :param match_keys: Files which matched the size and hash
+
+        :returns Dict of all hash_matches with match type, key of highest match, highest match value
+        """
         keys: Dict[int, NewMatchTypes] = {}
         for m_key in match_keys:
             # Resolve the matched key to the filepath
