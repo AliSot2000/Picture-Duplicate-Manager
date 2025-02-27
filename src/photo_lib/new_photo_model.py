@@ -2346,7 +2346,7 @@ class PhotoModel:
         self.key_to_filepath_cache.update(arg=key, value=db_path)
         self.db.commit()
 
-    def delete_trash_thumb(self, key: Union[List[int], int, None]) -> int:
+    def delete_trash_thumb(self, key: Union[int, None]) -> int:
         """
         Delete the remaining thumbnail of an image in the trash. For recognition purposes, the thumbnails of the
         trashed images are retained by default. Use this function with care.
@@ -2355,43 +2355,32 @@ class PhotoModel:
         """
         count: int = 0
 
-        self.add_extra_cursor("del_trash_thumb")
-        # Everything in the trash
         if key is None:
-            stmt = "SELECT key, flags FROM main WHERE mod(flags >> 2, 2) == 1"
-            args = tuple()
-        elif isinstance(key, int):
-            stmt = f"SELECT key, flags FROM main  WHERE key = ? AND mod(flags >> 2, 2) == 1"
-            args = (key, )
-        elif isinstance(key, list):
-            stmt = f"SELECT key, flags FROM main  WHERE key IN ? AND mod(flags >> 2, 2) == 1"
-            args = (f"({', '.join(map(str, key))})", )
+            it = self.db.main_key_flags_iterator(allow_selection=False, trashed=1)
         else:
-            raise TypeError(f"Unexpected Type for Key: {type(key).__name__}")
+            assert isinstance(key, int), f"Unexpected key type: {type(key).__name__}"
+            flags = self.db.get_main_flags(key)
+            if flags is None:
+                raise ValueError(f"Key: {key} doesn't exist in main table")
+            it = [(key, flags)]
 
-        self.debug_execute(stmt, args, "del_trash_thumb")
-
-        for row in self.get_cursor("del_trash_thumb"):
-            key, _flags = row
-            flags = MainFlags.from_int(_flags)
-
-            if os.path.exists(self.full_thumbnail_path(key)):
+        for key, flags in it:
+            if os.path.exists(self.db.full_thumbnail_path(key)):
                 self.main_logger.debug(f"Deleting Thumbnail for image in trash: {key}")
-                os.remove(self.full_thumbnail_path(key))
+                os.remove(self.db.full_thumbnail_path(key))
                 flags.has_thumbnail = False
                 count += 1
 
-            if os.path.exists(self.full_miniature_path(key)):
+            if os.path.exists(self.db.full_miniature_path(key)):
                 self.main_logger.debug(f"Deleting Miniature for image in trash: {key}")
-                os.remove(self.full_thumbnail_path(key))
+                os.remove(self.db.full_thumbnail_path(key))
                 flags.has_miniature = False
                 count += 1
 
-            self.debug_execute("UPDATE main SET flags = ? WHERE key = ?",
-                               (flags.to_int(), key))
+            self.db.update_row_main_table(key=key, flags=flags)
 
-        self.remove_extra_cursor("del_trash_thumb")
-        self.commit()
+        self.db.remove_extra_cursor("del_trash_thumb")
+        self.db.commit()
         return count
 
     # INFO: long-running action

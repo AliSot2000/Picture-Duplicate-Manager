@@ -2522,43 +2522,6 @@ class PhotoDB(BaseSQliteDB):
     # Utility
     # ==================================================================================================================
 
-    def delete_trash_thumb(self, key: Union[int, None]) -> int:
-        """
-        Delete the remaining thumbnail of an image in the trash. For recognition purposes, the thumbnails of the
-        trashed images are retained by default. Use this function with care.
-
-        :param key: Key to delete, list of keys to delete, or delete all thumbnails of images in the trash with None
-        """
-        count: int = 0
-
-        if key is None:
-            it = self.main_key_flags_iterator(allow_selection=False, trashed=1)
-        else:
-            assert isinstance(key, int), f"Unexpected key type: {type(key).__name__}"
-            flags = self.get_main_flags(key)
-            if flags is None:
-                raise ValueError(f"Key: {key} doesn't exist in main table")
-            it = [(key, flags)]
-
-        for key, flags in it:
-            if os.path.exists(self.full_thumbnail_path(key)):
-                self.main_logger.debug(f"Deleting Thumbnail for image in trash: {key}")
-                os.remove(self.full_thumbnail_path(key))
-                flags.has_thumbnail = False
-                count += 1
-
-            if os.path.exists(self.full_miniature_path(key)):
-                self.main_logger.debug(f"Deleting Miniature for image in trash: {key}")
-                os.remove(self.full_thumbnail_path(key))
-                flags.has_miniature = False
-                count += 1
-
-            self.update_row_main_table(key=key, flags=flags)
-
-        self.remove_extra_cursor("del_trash_thumb")
-        self.commit()
-        return count
-
     # INFO: long-running action
     def compress(self) -> int:
         """
