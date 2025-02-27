@@ -2522,67 +2522,6 @@ class PhotoDB(BaseSQliteDB):
     # Utility
     # ==================================================================================================================
 
-    def move_to_trash(self, key: int):
-        """
-        Move a given image to trash.
-
-        - Checks the file exists
-        - Creates Thumbnail and Miniature
-        - Moves the original file to the trash
-        - Updates the flags of the file.
-        """
-        main_flags = self.get_main_flags(key)
-        if main_flags is None:
-            raise ValueError(f"Key {key} not found in main table")
-
-        if main_flags.trashed:
-            raise ValueError("File is already in Trash")
-
-        if main_flags.duplicate:
-            raise ValueError("File is Duplicate")
-
-        # INFO: Get the paths, using resolve correct, bc ui probably
-        current_path = self.resolve_key_to_path(key)
-        target_path = os.path.join(self.get_trash_dir(), os.path.basename(current_path))
-
-        # Store existence in flags
-        main_flags.present = os.path.exists(current_path)
-
-        # TODO darktable
-        if main_flags.present:
-            assert os.path.exists(current_path), "Upper Condition wrong"
-
-            # Create thumbnail
-            self.main_logger.debug("Creating Thumbnail for image going into Trash")
-            main_flags.has_thumbnail = self._create_display_file(in_path=current_path,
-                                                                 out_path=self.full_thumbnail_path(key),
-                                                                 major_size=self.config.thumbnail_target)
-            # Creating miniature
-            self.main_logger.debug("Creating Miniature for image going into Trash")
-            main_flags.has_miniature = self._create_display_file(in_path=current_path,
-                                                                 out_path=self.full_miniature_path(key),
-                                                                 major_size=self.config.miniature_target)
-            # Attempt the move the file
-            self.main_logger.debug(f"Moving {current_path} to {target_path}")
-            os.rename(current_path, target_path)
-
-        # Set the presence flag and trash flag.
-        main_flags.present = os.path.exists(target_path)
-        main_flags.trashed = True
-
-        # All things done, update the flags and write the db, update the metadata table.
-        self.update_row_main_table(key=key, flags=main_flags)
-        self.update_row_metadata_table(key=key, replaced=MediaType.TRASH)
-
-        self.prune_db_dir()
-        self.prune_fs_dir = True
-
-        self.key_to_filepath_cache.update(arg=key, value=target_path)
-
-        # TODO clear presence, hash, filenaem
-        self.clear_presence_table()
-        self.commit()
-
     def restore_replaced(self, key: int, create_display_files: bool = True):
         """
         Moves file back to original location
