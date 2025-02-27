@@ -956,6 +956,30 @@ class PhotoModel:
 
         return dir_key
 
+    def verify_custom_target_dir(self, tgt_dir: str):
+        """
+        Verify the correctness of a custom import directory
+
+        - Path is absolute
+        - Path points to directory
+        - Path is subdir of root_path
+        - Path isn't temp, thumb or trash directory
+        """
+        if not os.path.isabs(tgt_dir):
+            raise TypeError("Destination must be an absolute path")
+
+        if not os.path.isdir(tgt_dir):
+            raise TypeError("Destination must point to a directory")
+
+        # Path checks
+        if not tgt_dir.startswith(self.root_path):
+            raise ValueError("new_dir must start with root_path")
+
+        if tgt_dir.startswith(self.db.get_thumb_dir()) \
+                or tgt_dir.startswith(self.db.get_temp_dir()) \
+                or tgt_dir.startswith(self.db.get_trash_dir()):
+            raise ValueError("Trash, Temp and Thumbnail Directory aren't valid destinations.")
+
     def _handle_file_internal_import(self, rename: bool, move: bool,
                                      main_key: int, dt: datetime.datetime, ofn: str, ofd: str) -> str:
         """
@@ -1621,11 +1645,77 @@ class PhotoModel:
 
     def move_file(self, key: int, new_dir: str):
         """
-        Move a file within the database. Option to set the db_dir later on
-        """
-        ...
+        Move a file within the database. Option to set the db_dir later on.
 
-        # TODO reset flags of hash, presence and filename tables
+        PRECONDITION:
+        - new_dir fulfills verify_custom_target_dir
+        - file present, not trashed, not duplicate
+
+        :param key: Key in main database to update with the new filename
+        :param new_dir: The new directory to move the file to
+        """
+        self.verify_custom_target_dir(new_dir)
+
+        flags = self.db.get_main_flags(key)
+        if flags is None:
+            raise ValueError("Couldn't find key in main table")
+
+        if flags.trashed or flags.duplicate or not flags.present:
+            raise ValueError(f"Invalid state of file, trashed: {flags.trashed}, duplicate: {flags.duplicate}, "
+                             f"present: {flags.present}")
+
+        rnd = self.db.get_path_data(key)
+        assert rnd is not None, "Unexpected outcome, path data isn't supposed to be None"
+
+        dt, flags, db_local_dir, db_name, org_name = rnd
+
+        dt_path = os.path.join(self.root_path, self.db.dt_to_dir(dt))
+
+        source_path = self.resolve_key_to_path(key)
+        assert source_path is not None, "Unexpected outcome, path for key not available"
+
+        if not os.path.exists(source_path):
+            raise FileNotFoundError("Source File not found")
+
+        # We move the file to datetime directory
+        if dt_path.removesuffix(os.sep) == new_dir.removesuffix(os.sep):
+            # The source and destination path are equivalent, abort.
+            if os.path.join(os.path.join(dt_path, db_name)) == source_path:
+                return
+
+            # Check destination is empty
+            if os.path.exists(os.path.join(dt_path, db_name)):
+                raise FileExistsError("File exists at destination")
+
+            # PRECONDITION: destination empty, source present
+            os.makedirs(dt_path, exist_ok=True)
+            os.rename(source_path, os.path.join(dt_path, db_name))
+
+            # Unset the directory
+            self.db.update_row_metadata_table(key=key, db_dir=None)
+            self.prune_db_dir()
+
+        # We move file to other directory
+        else:
+            dst = os.path.join(new_dir, db_name)
+            if dst == source_path:
+                return
+
+            if os.path.exists(dst):
+                raise FileExistsError("File exists at destination")
+
+            # PRECONDITION: destination empty, source present
+            os.makedirs(new_dir, exist_ok=True)
+            os.rename(source_path, dst)
+
+            dir_key = self._insert_get_dir(new_dir)
+
+            self.db.update_row_metadata_table(key=key, db_dir=dir_key)
+            self.prune_fs_dir = True
+
+        flags.present = True
+        self.db.update_row_main_table(key=key, flags=flags)
+        self.db.commit()
 
     def _internal_rename(self, key: int, flags: MainFlags, db_name: str, new_name: str, dt: datetime.datetime,
                          new_datetime: datetime.datetime = None, db_local_dir: str = None):
