@@ -2393,56 +2393,46 @@ class PhotoModel:
         self.main_logger.info("Compressing Database, deleting temp files.")
 
         # Remove temporary files, should they exist.
-        content = os.listdir(self.get_temp_dir())
+        content = os.listdir(self.db.get_temp_dir())
         for entry in content:
-            if os.path.isdir(os.path.join(self.get_temp_dir(), entry)):
+            if os.path.isdir(os.path.join(self.db.get_temp_dir(), entry)):
                 self.main_logger.debug(f"Deleting {entry}")
-                shutil.rmtree(os.path.join(self.get_temp_dir(), entry))
+                shutil.rmtree(os.path.join(self.db.get_temp_dir(), entry))
 
             else:
                 self.main_logger.debug(f"Deleting {entry}")
-                os.remove(os.path.join(self.get_temp_dir(), entry))
+                os.remove(os.path.join(self.db.get_temp_dir(), entry))
 
         # Remove display files:
         self.main_logger.info(f"Deleting Thumbnails of existing images.")
-        self.add_extra_cursor("rm_disp_media")
-        self.debug_execute("SELECT key, flags, db_name FROM main "
-                           # Check present = 1,            Check trash = 0           check duplicate = 0
-                           "WHERE mod(flags, 2) = 1 AND mod(flags >> 2, 2) = 0 AND mod(flags >> 8, 2) = 0",
-                           cur="rm_disp_media")
+        for key, flags in self.db.main_key_flags_iterator(allow_selection=False,
+                                                          present=True, trashed=False, duplicate=False):
 
-        for row in self.get_cursor("rm_disp_media"):
-            key, _flags, db_name = row
-            flags = MainFlags.from_int(_flags)
-
-            assert flags.trashed is False and flags.duplicate, "SQL Error, Trashed should be false."
-            file_path = self.resolve_key_to_path(key)
+            assert flags.trashed is False and flags.duplicate is False, "SQL Error, Trashed should be false."
+            file_path = self.db.db_resolve_key_to_abs_path(key)
 
             # Skip if the original is not present
-            self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True,
-                             org_path=file_path)
+            self.db.check_flags(key=key, flags=flags, miniature=True, thumbnail=True, org_path=file_path)
 
             if not os.path.exists(file_path):
                 continue
 
             # PRECONDITION: The original file exists in the database.
-            if os.path.exists(self.full_thumbnail_path(key)):
-                self.main_logger.debug(f"Deleting '{self.thumbnail_name(key)}'")
-                os.remove(self.full_thumbnail_path(key))
+            if os.path.exists(self.db.full_thumbnail_path(key)):
+                self.main_logger.debug(f"Deleting '{self.db.thumbnail_name(key)}'")
+                os.remove(self.db.full_thumbnail_path(key))
                 flags.has_thumbnail = False
                 count += 1
 
-            if os.path.exists(self.full_miniature_path(key)):
-                self.main_logger.debug(f"Deleting '{self.miniature_name(key)}'")
-                os.remove(self.full_miniature_path(key))
+            if os.path.exists(self.db.full_miniature_path(key)):
+                self.main_logger.debug(f"Deleting '{self.db.miniature_name(key)}'")
+                os.remove(self.db.full_miniature_path(key))
                 flags.has_miniature = False
                 count += 1
 
-            self.debug_execute("UPDATE main SET flags = ? WHERE key = ?",
-                               (flags.to_int(), key))
+            self.db.update_row_main_table(key=key, flags=flags)
 
-        self.remove_extra_cursor("rm_disp_media")
-        self.commit()
+        self.db.commit()
         self.main_logger.info(f"Finished Deleting {count} Display Media of existing images.")
         return count
 

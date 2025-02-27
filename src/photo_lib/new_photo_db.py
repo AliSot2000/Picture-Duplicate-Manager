@@ -2522,60 +2522,6 @@ class PhotoDB(BaseSQliteDB):
     # Utility
     # ==================================================================================================================
 
-    # INFO: long-running action
-    def compress(self) -> int:
-        """
-        Remove all files which can be recomputed to save space. Removes all Thumbnails and all temporary files
-        generated for deduplication.
-        """
-        count: int = 0
-        self.main_logger.info("Compressing Database, deleting temp files.")
-
-        # Remove temporary files, should they exist.
-        content = os.listdir(self.get_temp_dir())
-        for entry in content:
-            if os.path.isdir(os.path.join(self.get_temp_dir(), entry)):
-                self.main_logger.debug(f"Deleting {entry}")
-                shutil.rmtree(os.path.join(self.get_temp_dir(), entry))
-
-            else:
-                self.main_logger.debug(f"Deleting {entry}")
-                os.remove(os.path.join(self.get_temp_dir(), entry))
-
-        # Remove display files:
-        self.main_logger.info(f"Deleting Thumbnails of existing images.")
-        for key, flags in self.main_key_flags_iterator(allow_selection=False,
-                                                       present=True, trashed=False, duplicate=False):
-
-            assert flags.trashed is False and flags.duplicate, "SQL Error, Trashed should be false."
-            file_path = self.db_resolve_key_to_abs_path(key)
-
-            # Skip if the original is not present
-            self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True,
-                             org_path=file_path)
-
-            if not os.path.exists(file_path):
-                continue
-
-            # PRECONDITION: The original file exists in the database.
-            if os.path.exists(self.full_thumbnail_path(key)):
-                self.main_logger.debug(f"Deleting '{self.thumbnail_name(key)}'")
-                os.remove(self.full_thumbnail_path(key))
-                flags.has_thumbnail = False
-                count += 1
-
-            if os.path.exists(self.full_miniature_path(key)):
-                self.main_logger.debug(f"Deleting '{self.miniature_name(key)}'")
-                os.remove(self.full_miniature_path(key))
-                flags.has_miniature = False
-                count += 1
-
-            self.update_row_main_table(key=key, flags=flags)
-
-        self.commit()
-        self.main_logger.info(f"Finished Deleting {count} Display Media of existing images.")
-        return count
-
     def empty_trash(self):
         """
         Removes all originals from the trash.
