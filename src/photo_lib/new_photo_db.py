@@ -943,6 +943,34 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT COUNT(main_key) FROM hash_update_table")
         return self.sq_cur.fetchone()[0]
 
+    def selection_from_hash_update_table(self, sel_a: bool) -> int:
+        """
+        Given the name_update_table, set either the sel_a or sel_b flag for all rows which successfully update a row in
+        the main table.
+
+        :param sel_a: Whether to set the sel_a or sel_b flag
+
+        :return: Number of rows affected in main table.
+        """
+        if sel_a:
+            self.debug_execute(f"UPDATE main SET flags = flags + 16 WHERE mod(flags >> 4, 2) = 0 "
+                               f"AND key IN (SELECT main_key FROM hash_update_table ) ")
+            rc = self.sq_cur.rowcount
+        else:
+            self.debug_execute(f"UPDATE main SET flags = flags + 32 WHERE mod(flags >> 5, 2) = 0 "
+                               f"AND key IN (SELECT main_key FROM hash_update_table) ")
+            rc = self.sq_cur.rowcount
+        return rc
+
+    def delete_row_hash_update_table(self, key: int):
+        """
+        Delete a row from the hash_update_table (needed in case you don't want to update all files)
+
+        :param key: key to delete from hash_update_table
+        """
+        self.debug_execute("DELETE FROM hash_update_table WHERE main_key = ?", (key,))
+        assert self.sq_cur.rowcount == 1, "SQL Error, Failed to Delte Row from hash_update_table"
+
     def insert_row_hash_update_table(self, key: int, new_hash: str, file_size: int):
         """
         Insert a new row into the hash_update_table.
