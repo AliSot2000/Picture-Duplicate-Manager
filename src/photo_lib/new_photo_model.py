@@ -47,7 +47,6 @@ class PhotoModel:
 
     # Flags
     prune_fs_dir: bool = False
-    opt_integrity_check: bool
 
     __mda: Optional[NewMetadataAggregator] = None
     __is_default_mda: bool = True
@@ -93,7 +92,6 @@ class PhotoModel:
         self.key_to_filepath_cache = Cache(size=1024)
 
         self.root_path = os.path.abspath(root_path)
-        self.opt_integrity_check = opt_integrity_check
 
         cfg_path = defaults.config_path(self.root_path)
 
@@ -141,7 +139,8 @@ class PhotoModel:
                           config=self.config,
                           init=init,
                           verify=True,
-                          init_loggers=False)
+                          init_loggers=False,
+                          opt_integrity_check=opt_integrity_check)
 
         self.add_default_metadata_aggregator()
 
