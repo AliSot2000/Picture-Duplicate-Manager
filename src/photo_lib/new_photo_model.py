@@ -1535,33 +1535,35 @@ class PhotoModel:
         if new_dt.tzinfo is None:
             raise ValueError("new_dt must have a timezone")
 
-        _, dt, flags, db_local_dir, db_name, original_name = self._get_rename_data(key=key)
-        new_name = self.db_name(original_filename=original_name, key=key, fdt=new_dt)
+        path_data = self.db.get_path_data(key=key)
+        if path_data is None:
+            raise ValueError(f"Couldn't find Path data for key: {key}")
+
+        dt, flags, db_local_dir, db_name, original_name = path_data
+
+        new_name = self.db.db_name(original_filename=original_name, key=key, fdt=new_dt)
+
         timezone = new_dt.tzname()
         assert timezone is not None, "Unexpected timezone of None"
 
         if not flags.present or flags.trashed or flags.duplicate:
             raise ValueError("Cannot change datetime from files in trash, not present and duplicates")
 
-        # INFO: no exit with dt == new_dt because we could be switching keys.
-        # Rename the file
+        # INFO: no exit with dt == new_dt because we could be switching keys!!!
         if rename:
-            self._internal_rename(key=key,
-                                  flags=flags,
-                                  db_name=db_name,
-                                  new_name=new_name,
-                                  dt=dt,
-                                  db_local_dir=db_local_dir,
-                                  new_datetime=new_dt)
+            # Rename the file
+            self._internal_rename(key=key, flags=flags, db_name=db_name, new_name=new_name, dt=dt, new_datetime=new_dt,
+                                  db_local_dir=db_local_dir)
 
         else:
             # Only move the file.
             self._internal_move_file(ndt=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
 
-        self.debug_execute("UPDATE main SET datetime = ?, db_name = ?, timezone = ?WHERE key = ?",
-                           (new_dt.isoformat(), new_name, timezone, key))
-        self.debug_execute("UPDATE metadata SET naming_tag = ?, datetime_source = ? WHERE main_key = ?",
-                           (NewMetadataAggregator.serialize_key(tag), dts.value, key))
+        self.db.update_row_main_table(key=key, datetime=new_dt, db_name=new_name, timezone=timezone)
+
+        self.db.update_row_metadata_table(key=key,
+                                          naming_tag=NewMetadataAggregator.serialize_key(tag),
+                                          datetime_source=dts)
 
         if add_exif_tag or (add_exif_tag is None and self.config.add_safety_exif_tags):
             if dt != new_dt:
@@ -1571,10 +1573,7 @@ class PhotoModel:
         if self.filename_to_key_cache.evict(arg=db_name):
             self.filename_to_key_cache.set(arg=db_name, value=key)
 
-        # TODO reset flags of hash, presence and filename tables
-        self.clear_presence_table()
-
-        self.commit()
+        self.db.commit()
 
     def change_filename(self, key: int, new_filename: str):
         """
