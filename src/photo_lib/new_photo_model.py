@@ -2585,7 +2585,7 @@ class PhotoModel:
 
         # Path is not in cache, resolve using db, store in cache and return value
         if res is nd:
-            path = self._db_resolve_key_to_abs_path(key)
+            path = self.db.db_resolve_key_to_abs_path(key)
             self.key_to_filepath_cache.set(key, path)
             return path
 
@@ -2599,7 +2599,7 @@ class PhotoModel:
 
         # Key not in cache, resolve using db, store in cache and return value
         if res is nd:
-            key = self._db_resolve_filename_to_key(fname)
+            key = self.db.db_resolve_filename_to_key(fname)
             self.filename_to_key_cache.set(fname, key)
             return key
 
