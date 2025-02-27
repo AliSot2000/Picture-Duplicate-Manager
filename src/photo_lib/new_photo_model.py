@@ -1298,7 +1298,6 @@ class PhotoModel:
         """
         Remove all entries and all directories form the database which are no longer referenced
         """
-        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN (SELECT db_dir FROM metadata)")
         # TODO Darktable
 
         # INFO: A db_local_dir can share a partial path with other directories, for example
@@ -1307,20 +1306,25 @@ class PhotoModel:
         #   remove the lowest node tree and then go up and attempt to remove all upper nodes and remove those as well
         #   if they are empty.
         keys_to_delete = []
-        for raw in self.sq_cur:
+        for raw in self.db.prune_db_dir_iterator():
             ktd = raw[0]
-            db_local_dir = self.parse_db_local_dir(raw[1])
+            db_local_dir = raw[1]
 
             first = True
             for i in range(len(db_local_dir)):
                 tgt_dir = os.path.join(self.root_path, *db_local_dir[:len(db_local_dir) - i])
+
+                # Path doesn't exist => path empty => can be deleted.
                 if not os.path.exists(tgt_dir):
+                    if first:
+                        keys_to_delete.append(ktd)
+                        first = False
                     continue
 
                 # path exists
-                if os.listdir(tgt_dir):
+                if os.listdir(str(tgt_dir)):
                     if first:
-                        self.integrity_logger.warning(f"Lowest Directory Not Empty: {tgt_dir}")
+                        self.main_logger.warning(f"Lowest Directory Not Empty: {tgt_dir}")
 
                     # directory not empty, abort delete.
                     break
@@ -1333,16 +1337,28 @@ class PhotoModel:
                     keys_to_delete.append(ktd)
                     first = False
 
-        # TODO in ? does work?
-        self.debug_execute("DELETE FROM db_dir WHERE key IN ?",
-                           (f"({', '.join(map(str, keys_to_delete))})",))
+        self.db.delete_dir(keys_to_delete)
 
         if len(keys_to_delete) > 0:
             self.main_logger.info(f"Pruned {len(keys_to_delete)} rows in dir table")
         else:
             self.main_logger.debug(f"Call to prune_dir, no rows pruned")
 
+        self.db.commit()
         return len(keys_to_delete)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def prune_filesystem_directories(self) -> int:
         """
