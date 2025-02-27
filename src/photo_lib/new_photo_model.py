@@ -802,7 +802,7 @@ class PhotoModel:
         keys: Dict[int, NewMatchTypes] = {}
         for m_key in match_keys:
             # Resolve the matched key to the filepath
-            match_path = self.resolve_key_to_path(key=m_key)
+            match_path = self.db.db_resolve_key_to_abs_path(key=m_key)
             binary_match = None
 
             if match_path is None:
