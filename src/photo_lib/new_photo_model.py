@@ -1828,18 +1828,21 @@ class PhotoModel:
         """
         Returns a Dataclass which contains the thumbnail path, miniature path and original path.
         """
+        # TODO cache
         # TODO implement
 
     def get_metadata(self, key: int):
         """
         Returns all metadata of a given key in a dataclass
         """
+        # TODO cache
         # TODO implement
 
     def get_compare_data(self, key: int | List[int]):
         """
         Get all necessary information to compare images.
         """
+        # TODO cache
         # TODO implement
 
     # ==================================================================================================================
