@@ -1275,21 +1275,11 @@ class PhotoDB(BaseSQliteDB):
         self.logger.debug(f"Added custom dir {os.path.join(*local_dir)}")
         return self.insert_get_dir(local_dir)
 
-    def prune_db_dir_iterator(self) -> Iterator[Tuple[int, List[str]]]:
-        """
-        Get an iterator to all custom directories which are now empty.
-        """
-        self.add_extra_cursor("prune_db_dir")
-        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN (SELECT db_dir FROM metadata)")
-
-        for row in self.get_cursor("prune_db_dir"):
-            yield row[0], self.parse_db_local_dir(row[1])
-
-        self.remove_extra_cursor("prune_db_dir")
-
     def delete_dir(self, key: int | List[int]):
         """
-        Delete row(s) of the directory table, given a key. PRECONDITION
+        Delete row(s) of the directory table, given a key.
+
+        PRECONDITION: Rows exist in table
         """
         if isinstance(key, int):
             raw_key = [key]
@@ -1302,6 +1292,22 @@ class PhotoDB(BaseSQliteDB):
 
         assert len(pruned_keys) == self.sq_cur.rowcount, (f"Unexpected number of updated rows {self.sq_cur.rowcount}, "
                                                           f"given keys: {pruned_keys}")
+
+    def prune_db_dir_iterator(self) -> Iterator[Tuple[int, List[str]]]:
+        """
+        Get an iterator to all custom directories which are now empty.
+
+        Tuple elements are:
+        - key in db_dir table
+        - node list of directory relative to db_root
+        """
+        self.add_extra_cursor("prune_db_dir")
+        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN (SELECT db_dir FROM metadata)")
+
+        for row in self.get_cursor("prune_db_dir"):
+            yield row[0], self.parse_db_local_dir(row[1])
+
+        self.remove_extra_cursor("prune_db_dir")
 
     # ==================================================================================================================
     # Hash Assoz Table
