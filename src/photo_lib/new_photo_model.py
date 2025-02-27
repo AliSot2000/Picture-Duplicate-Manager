@@ -1213,51 +1213,37 @@ class PhotoModel:
         self.db.commit()
         return added, modified
 
-
-
-
-
-
-
-
-
-
-
-
-    # INFO: long-running action
+    # INFO: long-running action,
     def update_filename_from_hash(self, move: bool):
         """
         Update the names of files resolved through hash and filesize.
 
-        # INFO: Update only possible for files which are neither a duplicate nor trashed.
-        # INFO: Given all MatchTypes, the function only considers HASH_MATCH_MAIN
+        INFO: Update only possible for files which are neither a duplicate nor trashed.
+        INFO: Given all MatchTypes, the function only considers HASH_MATCH_MAIN
 
         :parma move: move the file to the correct location based on it's datetime.
         """
-        self.add_extra_cursor("update_filename")
-
-        # if self.db.filename_update_table_size == 0:
-        #     raise ValueError("FileName Update Table is empty")
-        self.debug_execute("SELECT key, name, dir_name, best_match FROM name_update_table "
-                           # Ensure match is HASH_MATCH_MAIN
-                           "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2")
-
         count = 0
         conflict = 0
-        for key, name, dir_name, best_match in self.get_cursor("name_update_table"):
+        for key, name, dir_name, best_match in self.db.update_filename_from_hash_iterator():
             assert best_match is not None, "best_match shouldn't be None, SQL Error"
 
             # Try to get the parent's path
-            tgt_path = self._db_resolve_key_to_abs_path(best_match)
+            tgt_path = self.db.db_resolve_key_to_abs_path(best_match)
             if tgt_path is None:
-                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
-                                   ("Matched key doesn't exist in main table", key))
+                # INFO: This case should be technically impossible. Can only happen if the name_update_table is
+                #  generated, then a file is forgotten in the main table and then update_filename_from_hash is  called.
+                self.db.set_updated_status_name_update_table(
+                    key=key, status=NameUpdateStatus.FAILED, message="Matched key doesn't exist in main table")
+
                 conflict += 1
                 continue
 
             if os.path.exists(tgt_path):
-                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
-                                   ("Parent File is Present", key))
+                # INFO: Can occur if we don't match latest, the parent file exists but has a different newest_hash
+                self.db.set_updated_status_name_update_table(
+                    key=key, status=NameUpdateStatus.FAILED, message="Parent File is Present")
+
                 conflict += 1
                 continue
 
@@ -1267,38 +1253,46 @@ class PhotoModel:
             else:
                 dst_path = os.path.join(os.path.dirname(tgt_path), name)
 
-            # Check if the destination exists.
-            if os.path.exists(dst_path):
-                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
-                                   ("File exists at destination", key))
+            # Check if the destination exists, if it's different from the current path.
+            if dst_path != os.path.join(dir_name, name) and os.path.exists(dst_path):
+                self.db.set_updated_status_name_update_table(key=key, status=NameUpdateStatus.FAILED,
+                                                             message="File exists at destination")
+
                 conflict += 1
                 continue
 
-            flags = self.get_main_flags(best_match)
+            flags = self.db.get_main_flags(best_match)
             assert flags is not None, "Flags should exist, if path resolved"
 
             if flags.trashed or flags.duplicate:
-                self.debug_execute("UPDATE name_update_table SET updated = 2, message = ? WHERE key = ?",
-                                   (f"Parent is trash or duplicate, not allowd to upadte. ", key))
+                self.db.set_updated_status_name_update_table(
+                    key=key, status=NameUpdateStatus.FAILED,message=f"Parent is trash or duplicate, update not allowed")
+
                 conflict += 1
+                continue
 
             # Need to update
             dir_key = None
             if os.path.dirname(dst_path) != os.path.dirname(tgt_path):
                 dir_key = self._insert_get_dir(os.path.dirname(dst_path))
 
-            os.rename(os.path.join(dir_name, name), os.path.join(os.path.dirname(tgt_path), name))
+            # Only need to move the file if the destination are actually different.
+            if os.path.join(dir_name, name) != os.path.join(os.path.dirname(tgt_path), name):
+                os.rename(os.path.join(dir_name, name), os.path.join(os.path.dirname(tgt_path), name))
+
             flags.present = True
 
-            self.debug_execute("UPDATE name_update_table SET updated = 1 WHERE key = ?", (key,))
-            self.debug_execute("UPDATE main SET db_name = ?, flags = ? WHERE key = ?",
-                               (name, flags.to_int(), best_match))
+            self.db.set_updated_status_name_update_table(key=key, status=NameUpdateStatus.UPDATED)
+            self.db.update_row_main_table(key=best_match, db_name=name, flags=flags)
+
             if dir_key is not None:
-                self.debug_execute("UPDATE metadata SET db_dir = ? WHERE key = ?", (dir_key, key))
+                self.db.update_row_metadata_table(key=key, db_dir=dir_key)
 
             count += 1
 
-        self.commit()
+        self.main_logger.info(f"Updated names of :{count} files. Couldn't rename: {conflict} files because of "
+                              f"conflicts.")
+        self.db.commit()
         return count, conflict
 
     def prune_db_dir(self) -> int:
