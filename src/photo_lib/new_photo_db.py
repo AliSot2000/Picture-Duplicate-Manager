@@ -2394,52 +2394,6 @@ class PhotoDB(BaseSQliteDB):
 
 
 
-    def prune_db_dir(self) -> int:
-        """
-        Remove all entries and all directories form the database which are no longer referenced
-        """
-        # TODO Darktable
-
-        # INFO: A db_local_dir can share a partial path with other directories, for example
-        #   Assume you had an event spanning a weekend and it's in a given month, so what you want is to store it in
-        #   root_dir/YYYY/MM/event-name/. Deleting the db_local_dir i.e. ['YYYY', 'MM', 'event-name'] will attempt to
-        #   remove the lowest node tree and then go up and attempt to remove all upper nodes and remove those as well
-        #   if they are empty.
-        keys_to_delete = []
-        for raw in self.prune_db_dir_iterator():
-            ktd = raw[0]
-            db_local_dir = self.parse_db_local_dir(raw[1])
-
-            first = True
-            for i in range(len(db_local_dir)):
-                tgt_dir = os.path.join(self.root_path, *db_local_dir[:len(db_local_dir) - i])
-                if not os.path.exists(tgt_dir):
-                    continue
-
-                # path exists
-                if os.listdir(tgt_dir):
-                    if first:
-                        self.integrity_logger.warning(f"Lowest Directory Not Empty: {tgt_dir}")
-
-                    # directory not empty, abort delete.
-                    break
-
-                # No guard triggered, we're deleting at last
-                self.main_logger.debug(f"deleting directory: {tgt_dir}")
-                shutil.rmtree(tgt_dir)
-
-                if first:
-                    keys_to_delete.append(ktd)
-                    first = False
-
-        self.delete_dir(keys_to_delete)
-
-        if len(keys_to_delete) > 0:
-            self.main_logger.info(f"Pruned {len(keys_to_delete)} rows in dir table")
-        else:
-            self.main_logger.debug(f"Call to prune_dir, no rows pruned")
-
-        return len(keys_to_delete)
 
     def prune_filesystem_directories(self) -> int:
         """
