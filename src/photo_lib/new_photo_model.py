@@ -2601,6 +2601,23 @@ class PhotoModel:
         else:
             self.main_logger.info(f"Forgot duplicate {key} successfully")
 
+    def prune_all(self) -> int:
+        """
+        Prune all empty rows, non-used hashes and empty directories
+
+        :returns: number of pruned items from the database
+        """
+        db_dir = self.prune_db_dir()
+        fs_dir = self.prune_filesystem_directories()
+        gps = self.db.prune_gps()
+        hashes = self.db.prune_hash()
+
+        self.main_logger.info(f"Pruned {db_dir} custom directories")
+        self.main_logger.info(f"Pruned {fs_dir} normal directories")
+        self.main_logger.info(f"Pruned {hashes} unused hashes")
+        self.main_logger.info(f"Pruned {gps} gps entries")
+        return db_dir + fs_dir + gps + hashes
+
     # INFO: long-running action
     def check_and_update_disp_files(self, selection: Selection = None) -> Tuple[int, int, int, int, int, int]:
         """
