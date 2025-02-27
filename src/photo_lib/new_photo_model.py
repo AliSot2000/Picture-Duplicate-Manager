@@ -1628,48 +1628,46 @@ class PhotoModel:
 
         # TODO reset flags of hash, presence and filename tables
 
-    def _internal_rename(self, key: int, flags: MainFlags, dbn: str, new_name: str, dt: datetime.datetime,
-                         ndt: datetime.datetime = None,
-                         db_local_dir: str = None):
+    def _internal_rename(self, key: int, flags: MainFlags, db_name: str, new_name: str, dt: datetime.datetime,
+                         new_datetime: datetime.datetime = None, db_local_dir: str = None):
         """
         Shared part of the function that all functions that rename a file use.
 
-        Info: Sets the prune_fs_dir flag.
+        INFO: Sets the prune_fs_dir flag.
 
         :param key: key of image to rename
-        :param dbn: current name of image to rename
+        :param db_name: current name of image to rename
         :param new_name: new name of image to rename
         :param flags: Flags of the current file needed to determine path
-        :param dt: Datetime of current file
-        :param ndt: New datetime of current file
+        :param dt: Datetime of the file
+        :param new_datetime: New datetime of the file
         :param db_local_dir: Local path of current file if not standard.
 
         :raises FileNotFoundError: if the path where the file is currently supposed to be doesn't exist
         :raises FileExistsError: if the path where the file is supposed to be moved to does exist
         """
         # Parse the paths.
+        ndt = dt if new_datetime is None else new_datetime
+
         if flags.trashed or flags.duplicate:
-            current_path = os.path.join(self.get_trash_dir(), dbn)
-            new_path = os.path.join(self.get_trash_dir(), new_name)
+            current_path = os.path.join(self.db.get_trash_dir(), db_name)
+            new_path = os.path.join(self.db.get_trash_dir(), new_name)
         elif db_local_dir is not None:
-            current_path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), dbn)
-            new_path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), new_name)
-        elif ndt is not None:
-            current_path = os.path.join(self.root_path, self.dt_to_dir(dt), dbn)
-            new_path = os.path.join(self.root_path, self.dt_to_dir(ndt), new_name)
+            current_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), db_name)
+            new_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), new_name)
         else:
             assert db_local_dir is None and ndt is None, \
                 f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {ndt}"
-            current_path = os.path.join(self.root_path, self.dt_to_dir(dt), dbn)
-            new_path = os.path.join(self.root_path, self.dt_to_dir(dt), new_name)
+            current_path = os.path.join(self.root_path, self.db.dt_to_dir(dt), db_name)
+            new_path = os.path.join(self.root_path, self.db.dt_to_dir(ndt), new_name)
 
-        self.check_flags(key=key, flags=flags, org_path=current_path)
+        self.db.check_flags(key=key, flags=flags, org_path=current_path)
 
         if new_path == current_path:
             return
 
         # Check the file extensions.
-        if os.path.splitext(new_name)[1] != os.path.splitext(dbn)[1]:
+        if os.path.splitext(new_name)[1] != os.path.splitext(db_name)[1]:
             self.main_logger.warning("New file extension does not match DB file extension")
 
         # Ensure existence, raise error (cannot be fixed by good programming, so no assert)
