@@ -241,8 +241,11 @@ class PhotoDB(BaseSQliteDB):
         :param fast: If true, skip any integrity checks.
         """
         if not fast:
+            self.prune_gps()
+            self.prune_hash()
 
             self.basic_integrity_check()
+
         self.cleanup()
 
     def init_db(self):
