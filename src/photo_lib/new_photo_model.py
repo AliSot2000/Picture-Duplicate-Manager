@@ -1683,42 +1683,43 @@ class PhotoModel:
         self.prune_fs_dir = True
 
     def _internal_move_file(self, key: int, flags: MainFlags, dbn: str, dt: datetime.datetime,
-                            ndt: datetime.datetime = None,
+                            new_datetime: datetime.datetime = None,
                             db_local_dir: str = None):
         """
         Internal function to move a file once its datetime has been updated. Movement needed because resolution of
         path from datetime wouldn't work otherwise.
 
+        INFO: Updates the key_to_filepath_cache
+
         :param key: key of image to rename
         :param dbn: current name of image to rename
         :param flags: Flags of the current file needed to determine path
         :param dt: Datetime of current file
-        :param ndt: New datetime of current file
+        :param new_datetime: New datetime of current file
         :param db_local_dir: Local path of current file if not standard.
 
         :raises FileNotFoundError: if the path where the file is currently supposed to be doesn't exist
         :raises FileExistsError: if the path where the file is supposed to be moved to does exist
         """
+        new_datetime = dt if new_datetime is None else new_datetime
+
         # Parse the paths.
         if flags.trashed or flags.duplicate:
-            current_path = os.path.join(self.get_trash_dir(), dbn)
-            new_path = os.path.join(self.get_trash_dir(), dbn)
+            current_path = os.path.join(self.db.get_trash_dir(), dbn)
+            new_path = os.path.join(self.db.get_trash_dir(), dbn)
         elif db_local_dir is not None:
-            current_path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), dbn)
-            new_path = os.path.join(self.root_path, *self.parse_db_local_dir(db_local_dir), dbn)
-        elif ndt is not None:
-            current_path = os.path.join(self.root_path, self.dt_to_dir(dt), dbn)
-            new_path = os.path.join(self.root_path, self.dt_to_dir(ndt), dbn)
+            current_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), dbn)
+            new_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), dbn)
         else:
-            assert db_local_dir is None and ndt is None, \
-                f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {ndt}"
-            current_path = os.path.join(self.root_path, self.dt_to_dir(dt), dbn)
-            new_path = os.path.join(self.root_path, self.dt_to_dir(dt), dbn)
+            assert db_local_dir is None and new_datetime is None, \
+                f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {new_datetime}"
+            current_path = os.path.join(self.root_path, self.db.dt_to_dir(dt), dbn)
+            new_path = os.path.join(self.root_path, self.db.dt_to_dir(dt), dbn)
 
         if current_path == new_path:
             return
 
-        self.check_flags(key=key, flags=flags, org_path=current_path)
+        self.db.check_flags(key=key, flags=flags, org_path=current_path)
 
         # Ensure existence, raise error (cannot be fixed by good programming, so no assert)
         if not os.path.exists(current_path):
