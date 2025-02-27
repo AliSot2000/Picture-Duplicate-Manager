@@ -2365,6 +2365,35 @@ class PhotoDB(BaseSQliteDB):
     # ==================================================================================================================
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def prune_db_dir(self) -> int:
         """
         Remove all entries and all directories form the database which are no longer referenced
