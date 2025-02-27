@@ -1077,7 +1077,7 @@ class PhotoDB(BaseSQliteDB):
 
         The criteria are:
 
-        - best_match must contain an integer (pointing to teh file in the main table that is the candidate to update)
+        - best_match must contain an integer (pointing to the file in the main table that is the candidate to update)
         - update = 0 (meaning, can be updated)
         - match_type = 2, we only update file who's aren't trash or duplicates (no 3-6). A match type of 1 would
         indicate that the original file is present (so it doesn't make sense to move the newly detected file) Match
