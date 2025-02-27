@@ -2434,62 +2434,6 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count, conflict
 
-    # INFO: long-running action,
-    def check_presence(self, selection: Selection = None, m_type: MediaType = MediaType.MAIN):
-        """
-        Go through db and check that all files in the db are present in the file system.
-
-        :param selection: Use selection marker of images to check changed hashes for those images.
-        :param m_type: For which type of media to update the presence.
-        """
-        self.clear_presence_table()
-        count = 0
-
-        self.add_extra_cursor("check_presence")
-
-        if m_type == MediaType.MAIN:
-            dup_flag = False
-            trash_flag = False
-        elif m_type == MediaType.DUPLICATE:
-            dup_flag = True
-            trash_flag = False
-        elif m_type == MediaType.TRASH:
-            trash_flag = True
-            dup_flag = False
-        else:
-            raise ImplementationError("Unknown MediaType")
-
-        for key, flags in self.main_key_flags_iterator(allow_selection=True, selection=selection,
-                                                       trashed=trash_flag, duplicate=dup_flag):
-
-            # Internal checks for general sql statement integrity
-            assert flags.trashed == trash_flag and flags.duplicate == dup_flag, \
-                "SQL Error, no trashed or duplicate files allowed"
-
-            # Check selection.
-            if __debug__:
-                if selection.selection_type == SelectionType.SELECTION_A and not flags.sel_a:
-                    raise ImplementationError("Didn't receive Selection A")
-                elif selection.selection_type == SelectionType.SELECTION_B and not flags.sel_b:
-                    raise ImplementationError("Didn't receive Selection B")
-
-            self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True)
-            # Don't want to fuck up cache.
-            path = self.db_resolve_key_to_abs_path(key)
-
-            if os.path.exists(path) and not flags.present:
-                self.insert_row_presence_table(key)
-                count += 1
-
-            elif not os.path.exists(path) and flags.present:
-                self.insert_row_presence_table(key)
-                count += 1
-
-        self.commit()
-
-        self.main_logger.info(f"Detected {count} entries in main table with mismatched presence flag")
-        return count
-
     # INFO: long-running action
     def check_filenames(self):
         """

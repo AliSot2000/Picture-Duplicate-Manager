@@ -990,8 +990,63 @@ class PhotoModel:
 
         return target_path
 
+    # ==================================================================================================================
+    # DB Integrity Checks
+    # ==================================================================================================================
 
+    # INFO: long-running action,
+    def check_presence(self, selection: Selection = None, m_type: MediaType = MediaType.MAIN):
+        """
+        Go through db and check that all files in the db are present in the file system.
 
+        :param selection: Use selection marker of images to check changed hashes for those images.
+        :param m_type: For which type of media to update the presence.
+        """
+        self.db.clear_presence_table()
+        count = 0
+
+        if m_type == MediaType.MAIN:
+            dup_flag = False
+            trash_flag = False
+        elif m_type == MediaType.DUPLICATE:
+            dup_flag = True
+            trash_flag = False
+        elif m_type == MediaType.TRASH:
+            trash_flag = True
+            dup_flag = False
+        else:
+            raise ImplementationError("Unknown MediaType")
+
+        for key, flags in self.db.main_key_flags_iterator(allow_selection=True, selection=selection,
+                                                          trashed=trash_flag, duplicate=dup_flag):
+
+            # Internal checks for general sql statement integrity
+            assert flags.trashed == trash_flag and flags.duplicate == dup_flag, \
+                "SQL Error, no trashed or duplicate files allowed"
+
+            # Check selection.
+            if __debug__:
+                if selection.selection_type == SelectionType.SELECTION_A and not flags.sel_a:
+                    raise ImplementationError("Didn't receive Selection A")
+                elif selection.selection_type == SelectionType.SELECTION_B and not flags.sel_b:
+                    raise ImplementationError("Didn't receive Selection B")
+
+            self.db.check_flags(key=key, flags=flags, miniature=True, thumbnail=True)
+            # Don't want to fuck up cache.
+            path = self.db.db_resolve_key_to_abs_path(key)
+
+            if os.path.exists(path) and not flags.present:
+                self.db.insert_row_presence_table(key)
+                count += 1
+
+            elif not os.path.exists(path) and flags.present:
+                self.db.insert_row_presence_table(key)
+                count += 1
+
+        self.db.commit()
+
+        self.main_logger.info(f"Detected {count} entries in main table with mismatched presence flag")
+        return count
 
 
 
@@ -1110,94 +1165,6 @@ class PhotoModel:
 
         self.commit()
         return count, conflict
-
-    # INFO: long-running action,
-    def check_presence(self, selection: Selection = None, mtype: MediaType = MediaType.MAIN):
-        """
-        Go through db and check that all files in the db are present in the file system.
-
-        :param selection: Use selection marker of images to check changed hashes for those images.
-        :param mtype: For which type of media to update the presence.
-        """
-        self.clear_presence_table()
-        count = 0
-
-        self.add_extra_cursor("check_presence")
-
-        if mtype == MediaType.MAIN:
-            dup_flag = False
-            trash_flag = False
-        elif mtype == MediaType.DUPLICATE:
-            dup_flag = True
-            trash_flag = False
-        elif mtype == MediaType.TRASH:
-            trash_flag = True
-            dup_flag = False
-        else:
-            raise ImplementationError("Unknown MediaType")
-
-        if selection is None:
-            self.debug_execute("SELECT key, flags FROM main "
-                               # Check not duplicate             Check not trash
-                               "WHERE mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
-                               args=(int(dup_flag), int(trash_flag)),
-                               cur="check_presence")
-        else:
-            if selection.selection_type == SelectionType.SELECTION_A:
-                self.debug_execute("SELECT key, flags FROM main "
-                                   # Check not duplicate             Check not trash            Check selection A
-                                   "WHERE mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ? AND mod(flags >> 4, 2) = 1",
-                                   args=(int(dup_flag), int(trash_flag)),
-                                   cur="check_presence")
-            elif selection.selection_type == SelectionType.SELECTION_B:
-                self.debug_execute("SELECT key, flags FROM main "
-                                   # Check not duplicate             Check not trash            Check selection B
-                                   "WHERE mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ? AND mod(flags >> 5, 2) = 1",
-                                   args=(int(dup_flag), int(trash_flag)),
-                                   cur="check_presence")
-            elif selection.selection_type == SelectionType.TIME_RANGE:
-                self.debug_execute(stmt="SELECT key, flags FROM main "
-                                        "WHERE datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?) " 
-                                        # Check not duplicate             Check not trash
-                                        "AND mod(flags >> 8, 2) = ? AND mod(flags >> 2, 2) = ?",
-                                   args=(selection.start.isoformat(), selection.end.isoformat(),
-                                         int(dup_flag), int(trash_flag)),
-                                   cur="check_disp_files")
-            else:
-                raise ImplementationError("Missing Selection Type")
-
-        # Go through all files and check if they exist.
-        for key, _flags in self.get_cursor("check_presence"):
-            flags = MainFlags.from_int(_flags)
-
-            # Internal checks for general sql statement integrity
-            assert flags.trashed == trash_flag and flags.duplicate ==  dup_flag, \
-                "SQL Error, no trashed or duplicate files allowed"
-
-            # Check selection.
-            if __debug__:
-                if selection.selection_type == SelectionType.SELECTION_A and not flags.sel_a:
-                    raise ImplementationError("Didn't receive Selection A")
-                elif selection.selection_type == SelectionType.SELECTION_B and not flags.sel_b:
-                    raise ImplementationError("Didn't receive Selection B")
-
-            # Don't want to fuck up cache.
-            self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True)
-            path = self._db_resolve_key_to_abs_path(key)
-
-            if os.path.exists(path) and not flags.present:
-                self.debug_execute(f"INSERT INTO presence_table (main_key) VALUES (?)", (key,))
-                count += 1
-
-            elif not os.path.exists(path) and flags.present:
-                self.debug_execute(f"INSERT INTO presence_table (main_key) VALUES (?)", (key,))
-                count += 1
-
-        self.remove_extra_cursor("check_presence")
-        self.commit()
-
-        self.main_logger.info(f"Detected {count} entries in main table with mismatched presence flag")
-        return count
 
     # INFO: long-running action
     def check_filenames(self):
