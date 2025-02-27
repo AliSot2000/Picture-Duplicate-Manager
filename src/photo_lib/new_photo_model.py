@@ -2512,7 +2512,7 @@ class PhotoModel:
 
     def _internal_forget(self, key: int, rec: bool = False):
         """
-                Forgets the image in  main table:
+        Forgets the image in main table:
 
         Removes it from all tables and removes all children. Images which are forgotten, will be not be detected
         upon import and will be reimported if the given image shows up again.
@@ -2528,15 +2528,12 @@ class PhotoModel:
         Prunes empty gps_locs
         Prunes empty db_dirs
         """
-        self.debug_execute("SELECT m.db_name, m.flags FROM main AS m WHERE m.key = ?", (key, ))
-        row = self.sq_cur.fetchone()
-        if row is None:
+        flags = self.db.get_main_flags(key)
+        if flags is None:
             raise ValueError("Key not found in main table")
 
         # Removing all children in replaced
-        self.debug_execute("SELECT key FROM main WHERE parent = ?", (key,))
-        children = [r[0] for r in self.sq_cur.fetchall()]
-
+        children = self.db.list_children(key)
         if rec and len(children) > 0:
             raise CorruptDatabase("Got Entry where the children have children.")
 
@@ -2544,14 +2541,10 @@ class PhotoModel:
         for k in children:
             self._internal_forget(key=k, rec=True)
 
-        # Parse the row
-        db_name, _flags = row
-        flags = MainFlags.from_int(_flags)
-
         # TODO darktable
         # Remove files
         fp = self.resolve_key_to_path(key)
-        self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True, org_path=fp)
+        self.db.check_flags(key=key, flags=flags, miniature=True, thumbnail=True, org_path=fp)
 
         if rec and not flags.duplicate:
             self.main_logger.warning("Child found who's duplicate flag wasn't set.")
@@ -2559,52 +2552,48 @@ class PhotoModel:
         if os.path.exists(fp):
             # Logging message
             if flags.trashed or flags.duplicate:
-                self.main_logger.debug(f"Deleting {db_name} from trash directory")
+                self.main_logger.debug(f"Deleting {os.path.basename(fp)} from trash directory")
             else:
-                self.main_logger.debug(f"Deleting {db_name} from main database")
+                self.main_logger.debug(f"Deleting {os.path.basename(fp)} from main database")
 
             # Actually removing the file
             os.remove(fp)
 
         # PRECONDITION: The original has been deleted.
         # Deleting thumbnail and miniature if they exist.
-        if os.path.exists(self.full_miniature_path(key)):
-            self.main_logger.debug(f"Deleting {self.miniature_name(key)} from thumbnails")
-            os.remove(self.full_miniature_path(key))
+        if os.path.exists(self.db.full_miniature_path(key)):
+            self.main_logger.debug(f"Deleting {self.db.miniature_name(key)} from thumbnails")
+            os.remove(self.db.full_miniature_path(key))
 
-        if os.path.exists(self.full_thumbnail_path(key)):
-            self.main_logger.debug(f"Deleting {self.thumbnail_name(key)} from thumbnails")
-            os.remove(self.full_thumbnail_path(key))
+        if os.path.exists(self.db.full_thumbnail_path(key)):
+            self.main_logger.debug(f"Deleting {self.db.thumbnail_name(key)} from thumbnails")
+            os.remove(self.db.full_thumbnail_path(key))
 
         # Remove hashes of parent
-        self.debug_execute("DELETE FROM hash_assoz WHERE file_key = ?", (key,))
+        self.db.delete_file_association(key)
 
         # Remove row from metadata
-        self.debug_execute("DELETE FROM metadata WHERE main_key = ?", (key,))
+        self.db.delete_row_metadata_table(key=key)
 
         # Removing files from the duplicates table
-        c_known = self.remove_all_tuples_with_key(key=key, known=True)
+        c_known = self.db.remove_all_tuples_with_key(key=key, known=True)
         self.main_logger.debug(f"Deleted {c_known} tuples from known_duplicates table")
-        c_default = self.remove_all_tuples_with_key(key=key, known=False)
-        self.main_logger.debug(f"Deleted {c_default} tuples from default table")
+        c_default = self.db.remove_all_tuples_with_key(key=key, known=False)
+        self.main_logger.debug(f"Deleted {c_default} tuples from duplicates table")
 
         # Finally deleting the main row
-        self.debug_execute("DELETE FROM main WHERE key = ?", (key,))
-        self.commit()
+        self.db.delete_row_main_table(key)
 
         # Doesn't make sense to call the same clean-up after every child.
         if not rec:
             # Prune dir, hash, gps
-            self.mark_import_table_as_stale()
-            self.prune_hash()
-            self.prune_gps()
-            self.prune_db_dir()
+            self.db.mark_import_table_as_stale()
             self.prune_fs_dir = True
-            self.commit()
+            self.db.commit()
 
         # Clearing Cache
         self.key_to_filepath_cache.evict(key)
-        self.filename_to_key_cache.evict(db_name)
+        self.filename_to_key_cache.evict(os.path.basename(fp))
 
         # Print info
         if not rec:
