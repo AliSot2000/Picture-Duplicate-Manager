@@ -1587,16 +1587,24 @@ class PhotoModel:
         :param key: Key in main database to update with the new filename
         :param new_filename: The new file name to use. Sets the db_name column.
         """
-        self.debug_execute("SELECT key FROM main WHERE db_name = ?", (new_filename,))
-        if self.sq_cur.fetchone() is not None:
-            raise ValueError("Filename already exists in main table.")
-
         # PRECONDITION: Filename not present
-        _, dt, flags, db_local_dir, db_name, _ = self._get_rename_data(key=key)
+        path_data = self.db.get_path_data(key=key)
+        if path_data is None:
+            raise ValueError(f"Couldn't find Path data for key: {key}")
+
+        dt, flags, db_local_dir, db_name, _ = path_data
+
+        # Abort if the name is the same
+        if db_name == new_filename:
+            return
+
+        if self.filename_to_key(new_filename):
+            raise ValueError("Filename already exists in main table.")
 
         if not flags.present or flags.trashed or flags.duplicate:
             raise ValueError("Cannot change name from files in trash, not present and duplicates")
 
+        # INFO: Updates the key_to_filepath_cache
         self._internal_rename(key=key,
                               flags=flags,
                               db_name=db_name,
@@ -1605,19 +1613,14 @@ class PhotoModel:
                               db_local_dir=db_local_dir)
 
         # Update the database after renaming
-        self.debug_execute("UPDATE main SET db_name = ? WHERE key = ?",
-                           (new_filename, key))
-        self.debug_execute("UPDATE metadata SET naming_tag = ? WHERE main_key = ?",
-                           ("CUSTOM", key))
+        self.db.update_row_main_table(key=key, db_name=new_filename)
+        self.db.update_row_metadata_table(key=key, naming_tag="CUSTOM")
 
         # Update cache
         if self.filename_to_key_cache.evict(arg=db_name):
             self.filename_to_key_cache.set(arg=db_name, value=key)
 
-        # TODO reset flags of hash, presence and filename tables
-        self.clear_presence_table()
-
-        self.commit()
+        self.db.commit()
 
     def move_file(self, key: int, new_dir: str):
         """

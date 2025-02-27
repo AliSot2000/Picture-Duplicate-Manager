@@ -2435,51 +2435,6 @@ class PhotoDB(BaseSQliteDB):
     # UI
     # ==================================================================================================================
 
-    def change_filename(self, key: int, new_filename: str):
-        """
-        INFO: Function keeps the file in the same directory of the database.
-
-        The function exists for the purpose of allowing the user to change file names however it is not recommended.
-
-        Change the filename. Set a custom filename. The filename must be unique within the database.
-        Also, the file must still be present.
-
-        :param key: Key in main database to update with the new filename
-        :param new_filename: The new file name to use. Sets the db_name column.
-        """
-        if self.db_resolve_filename_to_key(new_filename):
-            raise ValueError("Filename already exists in main table.")
-
-        # PRECONDITION: Filename not present
-        pd = self.get_path_data(key=key)
-        if pd is None:
-            raise ValueError(f"Couldn't find Path data for key: {key}")
-
-        dt, flags, db_local_dir, db_name, _ = pd
-
-        if not flags.present or flags.trashed or flags.duplicate:
-            raise ValueError("Cannot change name from files in trash, not present and duplicates")
-
-        self._internal_rename(key=key,
-                              flags=flags,
-                              dbn=db_name,
-                              new_name=new_filename,
-                              dt=dt,
-                              db_local_dir=db_local_dir)
-
-        # Update the database after renaming
-        self.update_row_main_table(key=key, db_name=new_filename)
-        self.update_row_metadata_table(key=key, naming_tag="CUSTOM")
-
-        # Update cache
-        if self.filename_to_key_cache.evict(arg=db_name):
-            self.filename_to_key_cache.set(arg=db_name, value=key)
-
-        # TODO reset flags of hash, presence and filename tables
-        self.clear_presence_table()
-
-        self.commit()
-
     def verify_custom_target_dir(self, tgt_dir: str):
         """
         Verify the correctness of a custom import directory
