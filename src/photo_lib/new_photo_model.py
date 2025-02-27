@@ -1466,11 +1466,11 @@ class PhotoModel:
             raise TypeError("target_tz must be str, a ZoneInfo or datetime.timedelta.")
 
         # Get current row
-        pd = self.db.get_path_data(key=key)
-        if pd is None:
+        path_data = self.db.get_path_data(key=key)
+        if path_data is None:
             raise ValueError(f"Couldn't find Path data for key: {key}")
 
-        dt, flags, db_local_dir, db_name, original_name = pd
+        dt, flags, db_local_dir, db_name, original_name = path_data
 
         if not flags.present or flags.trashed or flags.duplicate:
             raise ValueError("Cannot change datetime from files in trash, not present and duplicates")
