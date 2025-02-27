@@ -1548,12 +1548,12 @@ class PhotoModel:
 
         # INFO: no exit with dt == new_dt because we could be switching keys!!!
         if rename:
-            # Rename the file
+            # INFO: Updates the key_to_filepath_cache
             self._internal_rename(key=key, flags=flags, db_name=db_name, new_name=new_name, dt=dt, new_datetime=new_dt,
                                   db_local_dir=db_local_dir)
 
         else:
-            # Only move the file.
+            # INFO: Updates the key_to_filepath_cache
             self._internal_move_file(ndt=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
 
         self.db.update_row_main_table(key=key, datetime=new_dt, db_name=new_name, timezone=timezone)
