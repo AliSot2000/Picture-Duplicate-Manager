@@ -3474,7 +3474,7 @@ class PhotoDB(BaseSQliteDB):
 
         - Prefix 'missing' means, the flag specifies the file to be present but the file is missing on the file system.
         - Prefix 'present' means, the flag specifies the file to be absent but the file is present on the file system.
-        - Prefix 'correct' means, the flag and the file system are consostent.
+        - Prefix 'correct' means, the flag and the file system are consistent.
 
         :param selection: Use a given selection to check the consistency of the flags of thumbnails, otherwise check
             all thumbnails
