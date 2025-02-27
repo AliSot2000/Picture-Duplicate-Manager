@@ -1492,7 +1492,7 @@ class PhotoModel:
                                   new_name=new_name,
                                   dt=dt,
                                   db_local_dir=db_local_dir,
-                                  ndt=new_dt)
+                                  new_datetime=new_dt)
 
             self.db.update_row_main_table(key=key, datetime=new_dt, timezone=new_dt.tzname(), db_name=new_name)
 
@@ -1552,7 +1552,7 @@ class PhotoModel:
                                   new_name=new_name,
                                   dt=dt,
                                   db_local_dir=db_local_dir,
-                                  ndt=new_dt)
+                                  new_datetime=new_dt)
 
         else:
             # Only move the file.
