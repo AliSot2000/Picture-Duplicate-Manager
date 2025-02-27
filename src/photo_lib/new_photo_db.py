@@ -2434,65 +2434,6 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return count, conflict
 
-    # INFO: long-running action
-    def check_file_hashes(self, selection: Selection = None):
-        """
-        Check the file hashes based on the file names.
-
-        INFO: Only files which aren't duplicates and which aren't in the trash are considered
-        """
-        self.clear_hash_update_table()
-        self.add_extra_cursor("check_file_hashes")
-        count = 0
-
-        added_mda = False
-        if self.mda is None:
-            self.add_default_metadata_aggregator()
-            added_mda = True
-
-        for key, flags in self.main_key_flags_iterator(allow_selection=True, selection=selection,
-                                                       trashed=False, duplicate=False):
-
-            org_path = self.db_resolve_key_to_abs_path(key)
-
-            # Checks on path and flags
-            assert org_path is not None, "Key in main table should resolve to path"
-            self.check_flags(key=key, flags=flags, org_path=org_path, miniature=True, thumbnail=True)
-
-            if __debug__ and (flags.trashed or flags.duplicate):
-                raise ImplementationError("SQL Statement Error, shouldn't get duplicates or trashed files")
-
-            # Cannot hash what doesn't exist
-            if not os.path.exists(org_path):
-                continue
-
-            # Get current hash and file size
-            new_hash = self.mda.hash_file(org_path)
-            file_size_bytes = os.stat(org_path).st_size
-
-            # Get the newest file hash of that file from the db
-            h, fsb, fhdt = self.get_newest_hash(key)
-
-            if (h, fsb, fhdt) == (None, None, None):
-                raise CorruptDatabase(f"Couldn't get newest hash for key: {key}")
-
-            # Different hash, update
-            if new_hash != h:
-                self.insert_row_hash_update_table(key=key, new_hash=new_hash, file_size=file_size_bytes)
-                count += 1
-
-            # Rare occurrence
-            elif file_size_bytes != new_hash and new_hash == h:
-                self.rare_occurrence_logger.info(f"Rare Occurrence: File Size changed but hash stayed the same: "
-                                                 f"{org_path}")
-
-        self.remove_extra_cursor("check_file_hashes")
-        self.commit()
-
-        if added_mda:
-            self.mda = None
-        return count
-
     def prune_db_dir(self) -> int:
         """
         Remove all entries and all directories form the database which are no longer referenced
