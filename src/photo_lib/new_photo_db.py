@@ -2534,53 +2534,6 @@ class PhotoDB(BaseSQliteDB):
         return count
 
     # ==================================================================================================================
-    # Importing
-    # ==================================================================================================================
-
-    def _import_file(self,
-                     key: int,
-                     original_filename: str,
-                     original_dirname: str,
-                     fdt: datetime.datetime,
-                     tgt_dir: str = None,
-                     add_tag: bool = False):
-        """
-        Import a given file into the database.
-
-        PRECONDITION: the key exists in the database, and the file exists on disk.
-
-        :param key: key in main table
-        :param original_filename: original filename prior to import
-        :param original_dirname: original dirname prior to import
-        :param fdt: datetime of
-        :param tgt_dir: Target directory to import into if not default based on datetime
-        :param add_tag: Add exiftag to file. (no conditional checking in function, if True, tag will be set.)
-        """
-        assert os.path.exists(os.path.join(original_dirname, original_filename)), "Source File doesn't exist"
-
-        if tgt_dir is not None:
-            dir_key = self.insert_get_dir(tgt_dir)
-        else:
-            tgt_dir = os.path.join(self.root_path, self.dt_to_dir(fdt))
-            if not os.path.exists(tgt_dir):
-                os.makedirs(tgt_dir)
-                self.main_logger.debug(f"Creating Directory: {self.dt_to_dir(fdt)}")
-            dir_key = None
-
-        db_name = self.db_name(original_filename=original_filename, fdt=fdt, key=key)
-
-        # copy the file to the target location
-        shutil.copy2(os.path.join(original_dirname, original_filename), os.path.join(tgt_dir, db_name))
-        self.main_logger.debug(f"Imported File: {original_filename}")
-
-        assert self.mda is not None, "Metadata Aggregator is needed for import file"
-        if add_tag:
-            self._add_update_exif_tag(key=key, file_path=os.path.join(tgt_dir, db_name), target_datetime=fdt)
-
-        self.update_row_main_table(key=key, db_name=db_name)
-        self.update_row_metadata_table(key=key, db_dir=dir_key)
-
-    # ==================================================================================================================
     # Deduplication
     # ==================================================================================================================
 
