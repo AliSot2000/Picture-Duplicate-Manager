@@ -2369,43 +2369,6 @@ class PhotoDB(BaseSQliteDB):
         if tgt_tbl == "import" and tbl_name is None:
             raise TypeError("Selecting Import table requires a table_name to be present")
 
-    # ==================================================================================================================
-    # INFO: ALL IMPLEMENTATIONS OF LONG RUNNING ACTIONS
-    # ==================================================================================================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     # INFO: long-running action
     def find_hash_based_duplicates(self):
         """
