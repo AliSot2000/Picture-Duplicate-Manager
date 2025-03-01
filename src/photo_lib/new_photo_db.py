@@ -2309,13 +2309,13 @@ class PhotoDB(BaseSQliteDB):
         """
         # TODO implement
 
-    def hash_update_table_lookup(self):
+    def build_hash_update_table_lookup(self):
         """
         Build the lookup table for the hash_update_table
         """
         # TODO implement
 
-    def name_update_table_lookup(self):
+    def build_name_update_table_lookup(self):
         """
         Build the lookup table for the name_update_table
         """
