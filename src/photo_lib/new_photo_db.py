@@ -2482,69 +2482,6 @@ class PhotoDB(BaseSQliteDB):
         # TODO implement
 
     # ==================================================================================================================
-    # Utility
-    # ==================================================================================================================
-
-    # INFO: long-running action
-    def check_and_update_disp_files(self, selection: Selection = None) -> Tuple[int, int, int, int, int, int]:
-        """
-        Go through db and check the mark for thumbnail and a thumbnail existing are correct.
-
-        About the return value:
-
-        - Prefix 'missing' means, the flag specifies the file to be present but the file is missing on the file system.
-        - Prefix 'present' means, the flag specifies the file to be absent but the file is present on the file system.
-        - Prefix 'correct' means, the flag and the file system are consistent.
-
-        :param selection: Use a given selection to check the consistency of the flags of thumbnails, otherwise check
-            all thumbnails
-
-        :returns: missing_thumbnails, present_thumbnails, correct_thumbnails, missing_miniatures, present_miniatures,
-            correct_miniatures
-        """
-        missing_thumb = missing_min = present_thumb = present_min = correct_thumb = correct_min = 0
-
-        for key, flags in self.main_key_flags_iterator(allow_selection=True, selection=selection):
-            update: bool = False
-
-            self.check_flags(key=key, flags=flags, miniature=True, thumbnail=True)
-
-            # Updating Thumbnail Flag
-            if flags.has_thumbnail and not os.path.exists(self.full_thumbnail_path(key)):
-                missing_thumb += 1
-                flags.has_thumbnail = False
-                update = True
-            elif not flags.has_thumbnail and os.path.exists(self.full_thumbnail_path(key)):
-                present_thumb += 1
-                flags.has_thumbnail = True
-                update = True
-            else:
-                correct_thumb += 1
-
-            # Check Miniature Flag
-            if flags.has_miniature and not os.path.exists(self.full_miniature_path(key)):
-                missing_min += 1
-                flags.has_miniature = False
-                update = True
-            elif not flags.has_miniature and os.path.exists(self.full_miniature_path(key)):
-                present_min += 1
-                flags.has_miniature = True
-                update = True
-            else:
-                correct_min += 1
-
-            # Update flags if they changed.
-            if update:
-                self.update_row_main_table(key=key, flags=flags)
-
-        self.main_logger.info(f"Found {missing_thumb} missing thumbnails and {present_thumb} present thumbnails.")
-        self.main_logger.info(f"{correct_thumb} flags for thumbnails were correct")
-        self.main_logger.info(f"Found {missing_min} missing miniatures and {present_min} present miniatures.")
-        self.main_logger.info(f"{correct_min} miniatures for thumbnails were correct")
-
-        return missing_thumb, present_thumb, correct_thumb, missing_min, present_min, correct_min
-
-    # ==================================================================================================================
     # Path Lookup Methods
     # ==================================================================================================================
 
