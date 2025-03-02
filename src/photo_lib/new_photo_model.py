@@ -35,12 +35,14 @@ class PhotoAPI:
 
     # Redefining logger as mandatory
     main_logger_name: str = "PhotoDB"
-    file_system_logger_name: str = "PhotoDB.FileSystem"
+    integrity_logger_name: str = "PhotoDB.Integrity"
+    rare_occurrence_logger_name: str = "PhotoDB.RareOccurrence"
     metadata_aggregator_logger_name: str = "PhotoDB.MetadataAggregator"
     metadata_aggregator_parsing_logger_name: str = "PhotoDB.MetadataAggregator.Parsing"
 
     main_logger: logging.Logger
-    file_system_logger: logging.Logger
+    rare_occurrence_logger: logging.Logger
+    integrity_logger: logging.Logger
 
     mda_logger: logging.Logger
     mda_parsing_logger: logging.Logger
@@ -81,7 +83,9 @@ class PhotoAPI:
             with file system are checked.
         """
         self.main_logger = logging.getLogger(self.main_logger_name)
-        self.file_system_logger = logging.getLogger(self.file_system_logger_name)
+        self.integrity_logger = logging.getLogger(self.integrity_logger_name)
+        self.rare_occurrence_logger = logging.getLogger(self.rare_occurrence_logger_name)
+
         self.mda_logger = logging.getLogger(self.metadata_aggregator_logger_name)
         self.mda_parsing_logger = logging.getLogger(self.metadata_aggregator_parsing_logger_name)
 
@@ -155,7 +159,9 @@ class PhotoAPI:
         attr: integrity_logger_name for integrity_logger
         """
         self.main_logger = logging.getLogger(self.main_logger_name)
-        self.file_system_logger = logging.getLogger(self.file_system_logger_name)
+        self.integrity_logger = logging.getLogger(self.integrity_logger_name)
+        self.rare_occurrence_logger = logging.getLogger(self.rare_occurrence_logger_name)
+
         self.mda_logger = logging.getLogger(self.metadata_aggregator_logger_name)
         self.mda_parsing_logger = logging.getLogger(self.metadata_aggregator_parsing_logger_name)
 
@@ -165,28 +171,17 @@ class PhotoAPI:
         """
         # Level
         self.main_logger.setLevel(logging.DEBUG)
-        self.file_system_logger.setLevel(logging.DEBUG)
+        self.integrity_logger.setLevel(logging.DEBUG)
+        self.rare_occurrence_logger.setLevel(logging.DEBUG)
+
         self.mda_logger.setLevel(logging.DEBUG)
         self.mda_parsing_logger.setLevel(logging.DEBUG)
 
-        # Get Other DB's logger
-        _photo_db_logger = logging.getLogger(PhotoDB.db_logger_name)
-        _photo_db_integrity_logger = logging.getLogger(PhotoDB.integrity_logger_name)
-        _photo_db_rare_occurrence_logger = logging.getLogger(PhotoDB.rare_occurrence_logger_name)
-
-        # Set levels
-        _photo_db_logger.setLevel(logging.DEBUG)
-        _photo_db_integrity_logger.setLevel(logging.DEBUG)
-        _photo_db_rare_occurrence_logger.setLevel(logging.DEBUG)
-
-        # Set the propagate flags.
-        _photo_db_logger.propagate = True
-        _photo_db_integrity_logger.propagate = True
-        _photo_db_rare_occurrence_logger.propagate = True
-
         # Propagate
         self.main_logger.propagate = False
-        self.file_system_logger.propagate = True
+        self.integrity_logger.propagate = True
+        self.rare_occurrence_logger.propagate = True
+
         self.mda_logger.propagate = True
         self.mda_parsing_logger.propagate = True
 
