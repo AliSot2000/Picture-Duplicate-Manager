@@ -313,7 +313,7 @@ class PhotoDB(BaseSQliteDB):
             if value.name in parent_tables.keys():
                 parent_tables[value.name] = True
 
-        if not all(list(parent_tables.values())):
+        if not all(list(parent_tables.values())): # pragma: no cover
             raise ImplementationError("Not all generic tables have a parent table. Error in Table Definitions.")
 
         self.static_decls = temp_static
@@ -678,7 +678,7 @@ class PhotoDB(BaseSQliteDB):
             assert self.sq_cur.rowcount == 1, \
                 f"Failed to set imported = 2 in table {tbl_name}, key: {key}, PRECONDITION"
 
-        else:
+        else:  # pragma: no cover
             raise ImplementationError(f"Unknown ImportStatus {status.name}")
 
     def update_allowed_iterator(self, tbl_name: str) -> Iterator[Tuple[int, Allowed, str]]:
@@ -908,7 +908,7 @@ class PhotoDB(BaseSQliteDB):
 
             return self.sq_cur.rowcount
 
-        else:
+        else:  # pragma: no cover
             raise ImplementationError("Tertiem Non Datur")
 
     def insert_row_presence_table(self, key: int):
@@ -1365,7 +1365,7 @@ class PhotoDB(BaseSQliteDB):
             self.debug_execute("SELECT ha.file_key "
                                "FROM hashes AS h JOIN hash_assoz AS ha "
                                "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.initial = 1")
-        else:
+        else:  # pragma: no cover
             raise ImplementationError(f"Got unexpected mode {mode.lower()}")
 
         return [r[0] for r in self.sq_cur.fetchall()]
@@ -1637,7 +1637,7 @@ class PhotoDB(BaseSQliteDB):
                     args.append({"key_a": parent_key, "key_b": result[1], "delta": result[2]})
                 elif result[1] == child_key:
                     args.append({"key_a": result[0], "key_b": parent_key, "delta": result[2]})
-                else:
+                else:  # pragma: no cover
                     raise ImplementationError("Couldn't find targeted key. Erroneous SQL Statement?")
 
             # Remove tuple of kind (parent_key, parent_key)
@@ -1995,7 +1995,7 @@ class PhotoDB(BaseSQliteDB):
                     #            time_range
                     "AND datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)")
             args = (selection.start.isoformat(), selection.end.isoformat())
-        else:
+        else:  # pragma: no cover
             raise ImplementationError("Tertiem Non Datur")
 
         assert stmt is not None, "Implementation issue, stmt shouldn't be None"
@@ -2154,7 +2154,7 @@ class PhotoDB(BaseSQliteDB):
         if len(res) == 0:
             return None
 
-        if len(res) > 1:
+        if len(res) > 1:  # pragma: no cover
             raise CorruptDatabase(f"file_name {file_name} appears in main and replaced table.")
 
         # PRECONDITION: number of results = 1
