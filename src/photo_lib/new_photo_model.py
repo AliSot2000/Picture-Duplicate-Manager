@@ -1026,6 +1026,27 @@ class PhotoAPI:
                 or tgt_dir.startswith(self.db.get_trash_dir()):
             raise ValueError("Trash, Temp and Thumbnail Directory aren't valid destinations.")
 
+    def verify_external_dir(self, tgt_dir: str):
+        """
+        Verify it is a valid source destination for an external directory, not part of the db.
+
+        - Path is absolute
+        - Path points to directory
+        """
+        if not os.path.isabs(tgt_dir):
+            raise TypeError("Destination must be an absolute path")
+
+        if not os.path.isdir(tgt_dir):
+            raise TypeError("Destination must point to a directory")
+
+        if tgt_dir.startswith(self.root_path):
+            raise ValueError("Destination may not be in database_root")
+
+        if tgt_dir.startswith(self.db.get_thumb_dir()) \
+                or tgt_dir.startswith(self.db.get_temp_dir()) \
+                or tgt_dir.startswith(self.db.get_trash_dir()):
+            raise ValueError("Trash, Temp and Thumbnail Directory aren't valid destinations.")
+
     def _handle_file_internal_import(self, rename: bool, move: bool,
                                      main_key: int, dt: datetime.datetime, ofn: str, ofd: str) -> str:
         """
