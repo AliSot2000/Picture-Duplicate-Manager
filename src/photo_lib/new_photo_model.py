@@ -708,6 +708,57 @@ class PhotoAPI:
         self.db.commit()
         return count, name_conflict
 
+    def remove_untracked_files(self, tbl: str, delete: bool = True, target_dir: str = None) -> int:
+        """
+        Import the files found within the database folder.
+        Needs to add entries for db_dir with every file separately.
+
+        :param tbl: Table name of the import table
+        :param delete: Whether to delete the images or move them into
+        :param target_dir: Directory where to put the images when they are not deleted. In target directory, the
+            structure within the database is reproduced
+
+        :returns: number of files imported, number of files with name conflict.
+        """
+        count = 0
+
+        if not delete:
+            self.verify_external_dir(target_dir)
+
+            if not self.db.import_table_exists(tbl):
+                raise ValueError(f"Tabl {tbl} does not exist")
+
+        if not self.db.import_table_flags(tbl).internal:
+            raise ValueError("Cannot use this function with non-internal import table")
+
+        for row in self.db.perform_import_iterator(tbl):
+            ik, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, ipk = row
+
+            assert dt.tzinfo is not None, "All datetime objects should have tz"
+
+            # Check input
+            assert ipk is None, "SQL Error, files which are imported shouldn't have imported = 1"
+
+            local_path = ofd.removeprefix(self.root_path).removeprefix(os.sep)
+
+            if delete:
+                self.main_logger.debug(f"Deleting: {os.path.join(local_path, ofn)}")
+                os.remove(os.path.join(ofd, ofn))
+
+            else:
+                target = os.path.join(target_dir, local_path)
+                os.makedirs(target, exist_ok=True)
+
+                self.main_logger.debug(f"Moving: {ofn} to {target}")
+                os.rename(os.path.join(ofd, ofn), os.path.join(target, f"{ik}_{ofn}"))
+
+            self.db.set_imported_status(tbl_name=tbl, status=ImportStatus.DELETED, key=ik)
+
+            count += 1
+
+        self.db.commit()
+        return count
+
     def _handle_gps_import(self, gps_lat: float, gps_long: float, main_key: int):
         """
         Add and or get the key of the gps entry in the gps table, and add the gps key to the metadata row of the
