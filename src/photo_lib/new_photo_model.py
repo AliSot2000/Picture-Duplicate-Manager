@@ -362,7 +362,7 @@ class PhotoAPI:
             else:
                 raise ValueError(f"Table with name {tbl_name} already exists")
 
-        else:
+        else:  # pragma: no cover
             raise ImplementationError("Tertiem Non Datur")
 
         # Actually search the provided directory
@@ -653,7 +653,7 @@ class PhotoAPI:
             assert ipk is None, "SQL Error, files which are imported shouldn't have imported = 1"
 
             # Check allowed
-            if allowed != Allowed.ALLOWED:
+            if allowed != Allowed.ALLOWED:  # pragma: no cover
                 raise ImplementationError("Only Allowed Files may have the marked for import flag")
 
             # Define flags
@@ -912,7 +912,7 @@ class PhotoAPI:
             elif flags.trashed and flags.duplicate:
                 raise CorruptDatabase("Trashed and Duplicate are True")
 
-            else:
+            else:  # pragma: no cover
                 raise ImplementationError("DBLocation not covered")
 
         highest_match = None
@@ -1107,7 +1107,7 @@ class PhotoAPI:
                 dir_key = self._insert_get_dir(ofd)
                 self.db.update_row_metadata_table(key=main_key, db_dir=dir_key)
 
-        else:
+        else:   # pragma: no cover
             raise ImplementationError("Tertiem Non Datur")
 
         return target_path
@@ -1136,7 +1136,7 @@ class PhotoAPI:
         elif m_type == MediaType.TRASH:
             trash_flag = True
             dup_flag = False
-        else:
+        else:  # pragma: no cover
             raise ImplementationError("Unknown MediaType")
 
         for key, flags in self.db.main_key_flags_iterator(allow_selection=True, selection=selection,
@@ -1147,7 +1147,7 @@ class PhotoAPI:
                 "SQL Error, no trashed or duplicate files allowed"
 
             # Check selection.
-            if __debug__:
+            if __debug__:  # pragma: no cover
                 if selection.selection_type == SelectionType.SELECTION_A and not flags.sel_a:
                     raise ImplementationError("Didn't receive Selection A")
                 elif selection.selection_type == SelectionType.SELECTION_B and not flags.sel_b:
@@ -1249,7 +1249,7 @@ class PhotoAPI:
             assert org_path is not None, "Key in main table should resolve to path"
             self.db.check_flags(key=key, flags=flags, org_path=org_path, miniature=True, thumbnail=True)
 
-            if __debug__ and (flags.trashed or flags.duplicate):
+            if __debug__ and (flags.trashed or flags.duplicate):  # pragma: no cover
                 raise ImplementationError("SQL Statement Error, shouldn't get duplicates or trashed files")
 
             # Cannot hash what doesn't exist
@@ -1996,7 +1996,7 @@ class PhotoAPI:
                 allow_selection=False, present=True, trashed=False, duplicate=False):
 
             # skip missing images or images in trash
-            if not flags.present or flags.trashed or flags.duplicate:
+            if not flags.present or flags.trashed or flags.duplicate:  # pragma: no cover
                 if __debug__:
                     raise ImplementationError("Error in SQL Statement, should not find trash or not present files")
                 continue
@@ -2467,7 +2467,6 @@ class PhotoAPI:
         else:
             self.db.update_row_main_table(key=key, flags=flags, parent=None)
 
-        # TODO update caches
         self.key_to_filepath_cache.update(arg=key, value=db_path)
         self.db.commit()
 
@@ -2504,7 +2503,6 @@ class PhotoAPI:
 
             self.db.update_row_main_table(key=key, flags=flags)
 
-        self.db.remove_extra_cursor("del_trash_thumb")
         self.db.commit()
         return count
 
@@ -2591,7 +2589,7 @@ class PhotoAPI:
         # Remove originals from files marked as trash
         for key, flags in it:
             # Check for consistency
-            if __debug__:
+            if __debug__:  # pragma: no cover
                 if duplicates and flags.duplicate is False:
                     raise ImplementationError("Didn't receive duplicate file despite call for it")
                 if not duplicates and flags.trashed is False:
