@@ -2,12 +2,9 @@ import datetime
 import json
 import logging
 import os.path
-import shutil
 import sys
 from typing import Set, Dict, List, Union, Tuple, Iterator
-from zoneinfo import ZoneInfo
 
-import photo_lib.defaults as defaults
 from photo_lib.config import Config
 from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus, NameUpdateStatus, \
     NewMatchTypes
@@ -16,9 +13,7 @@ from photo_lib.db_definitions import current_version, history, StaticDeclaration
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
 from photo_lib.flag_dataclasses import MainFlags, GenericTableFlags
 from photo_lib.metadata_aggregator import MetadataParsingResult
-from photo_lib.metadata_aggregator.config import DoubleKey
 from photo_lib.metadata_aggregator.enums import DateTimeSource
-from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAggregator
 from photo_lib.sqlite_wrapper import BaseSQliteDB
 
 
