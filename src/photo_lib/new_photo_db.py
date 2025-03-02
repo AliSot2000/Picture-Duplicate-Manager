@@ -31,8 +31,8 @@ class PhotoDB(BaseSQliteDB):
 
     # Redefining logger as mandatory
     db_logger_name: str = "PhotoDB.SQLiteDB"
-    integrity_logger_name: str = "PhotoDB.SQLiteDB.Integrity"
-    rare_occurrence_logger_name: str = "PhotoDB.SQLiteDB.RareOccurrence"
+    integrity_logger_name: str = "PhotoDB.Integrity"
+    rare_occurrence_logger_name: str = "PhotoDB.RareOccurrence"
 
     rare_occurrence_logger: logging.Logger
     integrity_logger: logging.Logger
