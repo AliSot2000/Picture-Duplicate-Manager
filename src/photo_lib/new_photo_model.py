@@ -27,7 +27,7 @@ from photo_lib.new_photo_db import PhotoDB
 
 # https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
 # TODO: Rework Loggers, Integrity Logger needs to be present on
-class PhotoModel:
+class PhotoAPI:
     root_path: str
 
     config: Config
@@ -2732,7 +2732,7 @@ class PhotoModel:
             return os.path.abspath(os.path.join(self.root_path, config.db_file))
 
 
-class RemedyPhotoDB(PhotoModel):
+class RemedyPhotoDB(PhotoAPI):
     """
     A specific instance I need to migrate some remaining images, which are only available in older databases into this
     one.
