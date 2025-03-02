@@ -1737,7 +1737,7 @@ class PhotoDB(BaseSQliteDB):
         given = set(kwargs.keys())
         all_cols = {"original_dirname", "naming_tag", "datetime_source", "gps_location", "db_dir", "replaced"}
 
-        # Check the keysdatetime_source
+        # Check the keys datetime_source
         if not given.issubset(all_cols):
             rem = given - all_cols
             raise ValueError(f"Columns: {rem} not in metadata table")
