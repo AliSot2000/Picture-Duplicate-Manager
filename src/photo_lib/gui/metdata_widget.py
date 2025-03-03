@@ -7,7 +7,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from photo_lib.PhotoDatabase import FullImportTableEntry, ImportTileInfo, MatchTypes, FullReplacedEntry, FullDatabaseEntry
 from photo_lib.custom_enum import GoogleFotosMetadataStatus
 from photo_lib.gui.text_scroll_area import TextScroller
-from photo_lib.gui.model import Model
+from photo_lib.gui.old_model import Model
 from photo_lib.gui.gui_utils import bake_attribute
 
 from typing import Union

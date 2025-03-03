@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QWidget, QScrollArea, QSplitter, QApplication, QMainWindow, QMenu
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImageReader
-from photo_lib.gui.model import Model
+from photo_lib.gui.old_model import Model
 from photo_lib.gui.carousell import Carousel
 from photo_lib.gui.image_viewer import ImportImageView
 import sys
