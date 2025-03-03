@@ -7,7 +7,7 @@ import sys
 from typing import List, Union
 from photo_lib.PhotoDatabase import BaseTileInfo
 from photo_lib.gui.image_tile import ClickablePatch, IndexedTile
-from photo_lib.gui.model import Model, TileBuffer
+from photo_lib.gui.old_model import Model, TileBuffer
 from photo_lib.gui.gui_utils import image_wrapper
 from photo_lib.data_objects import ImportTileInfo
 import datetime
