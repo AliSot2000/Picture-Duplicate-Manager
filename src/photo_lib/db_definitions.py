@@ -99,7 +99,10 @@ current_version = DBVersion(
                   "gps_location", "gps_location_key_index",
                   "import_tables",
                   "known_duplicates", "known_duplicates_key_index",
-                  "duplicates", "duplicates_key_index",
+                  "duplicates", "duplicates_key_index","duplicates_delta_index",
+                  "presence_table", "presence_key_index",
+                  "hash_update_table", "hash_update_key_index",
+                  "name_update_table", "name_update_key_index", "name_update_match_type_index",
                   ],
     all_generic_definitions=["import_table"],
     all_definitions=["hashes", "hashes_str_index", "hash_key_index",
@@ -110,7 +113,10 @@ current_version = DBVersion(
                      "metadata", "metadata_key_index"
                      "import_tables",
                      "known_duplicates", "known_duplicates_key_index",
-                     "duplicates", "duplicates_key_index",
+                     "duplicates", "duplicates_key_index", "duplicates_delta_index",
+                     "presence_table", "presence_key_index",
+                     "hash_update_table", "hash_update_key_index",
+                     "name_update_table", "name_update_key_index", "name_update_match_type_index",
                      ],
     definitions={
         # All definitions for the main hash lookup table
