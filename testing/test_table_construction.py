@@ -7,6 +7,9 @@ from photo_lib.db_definitions import DBVersion, DBHistorySpec, StaticDeclaration
 
 class BuildDefTest(TestCase):
     def test_basic(self):
+        """
+        Test that the generic check functions. Static paths are correctly parsed.
+        """
         base_static = {
             "def_a": StaticDeclaration(
                 declaration_string="CREATE TABLE `%name%` (key INTEGER PRIMARY KEY, VALUE TEXT)",
@@ -29,6 +32,9 @@ class BuildDefTest(TestCase):
         self.assertEqual(generic, {})
 
     def test_with_generics(self):
+        """
+        Testing the basics if also a generic table works and the parent is correctly picked up.
+        """
         base_generic = {
             "list": GenericDeclaration(
                 declaration_string="CREATE TABLE `%name%` (key INTEGER PRIMARY KEY, VALUE TEXT)"
@@ -60,6 +66,9 @@ class BuildDefTest(TestCase):
         self.assertEqual(generic, base_generic)
 
     def test_history_basic(self):
+        """
+        Testing if the history is correctly read and the lookup works correctly.
+        """
         base_static = {
             "def_a": StaticDeclaration(
                 declaration_string="CREATE TABLE `%name%` (key INTEGER PRIMARY KEY, VALUE TEXT)",
