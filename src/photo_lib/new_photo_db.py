@@ -288,11 +288,23 @@ class PhotoDB(BaseSQliteDB):
         for key, value in current_version.generic_definitions.items():
             temp_generic[key] = value
 
-        history_index = 0
+        cv = current_version.current_version
+        ex_old = current_version.previous_version
 
         # check all values have been populated.
-        while not all(list(temp_static.values()) + list(temp_generic.values())):
-            db_declaration = history.history[history_index]
+        for i in range(len(history.history)):
+            if all(list(temp_static.values()) + list(temp_generic.values())):
+                break
+            db_declaration = history.history[i]
+
+            # First entry of history is current version
+            if db_declaration.current_version == cv:
+                continue
+
+            if ex_old is not None and db_declaration.current_version != ex_old:
+                raise ImplementationError("Didn't get expected previous version")
+
+            ex_old = db_declaration.previous_version
 
             empty_static = []
             empty_generic = []
