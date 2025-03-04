@@ -252,9 +252,10 @@ current_version = DBVersion(
             name="known_duplicates",
             declaration_string="CREATE TABLE `%name%` ("
                                "key_a INTEGER NOT NULL, "
-                               "key_b INTEGER NOT NULL,"
+                               "key_b INTEGER NOT NULL, "
+                               "delta REAL DEFAULT 0 CHECK (`%name%`.delta >= 0), "
                                "UNIQUE (key_a, key_b),"
-                               "CHECK ( key_a < key_b ),"
+                               "CHECK (key_a < key_b),"
                                "FOREIGN KEY (key_a) REFERENCES main (key),"
                                "FOREIGN KEY (key_b) REFERENCES main (key))"
         ),
