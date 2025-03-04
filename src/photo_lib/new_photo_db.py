@@ -259,15 +259,23 @@ class PhotoDB(BaseSQliteDB):
 
         self.logger.info("Initialization Complete")
 
-    def build_definition_lookup(self):
+    @staticmethod
+    def build_definition_lookup(version_override: DBVersion = None, history_override: DBHistorySpec = None) \
+            -> Tuple[Dict[str, StaticDeclaration], Dict[str, GenericDeclaration]]:
         """
         Get all defined versions and build lookup of the versions.
 
         Use a sorted list of the previous declarations of the versions and walk backwards until all declarations names
         have an associated value.
 
+        :param version_override: Version to build lookup for
+        :param history_override: History to build lookup for
+
         Populates the attr(static_decls) and attr(generic_decls)
         """
+        current_version = db_current_version if version_override is None else version_override
+        history = db_history if history_override is None else history_override
+
         temp_static: Dict[str, StaticDeclaration | None] = {key: None
                                                             for key in current_version.all_definitions}
         temp_generic: Dict[str, GenericDeclaration | None] = {key: None
