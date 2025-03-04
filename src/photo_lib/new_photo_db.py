@@ -175,7 +175,7 @@ class PhotoDB(BaseSQliteDB):
         if init_loggers:
             self.set_logging_defaults()
 
-        self.build_definition_lookup()
+        self.static_decls, self.generic_decls = self.build_definition_lookup()
         self.opt_integrity_check = opt_integrity_check
 
         # Prepping Config
