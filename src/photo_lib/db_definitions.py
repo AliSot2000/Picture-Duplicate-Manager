@@ -97,7 +97,7 @@ current_version = DBVersion(
                   "metadata", "metadata_key_index",
                   "db_dir", "db_dir_key_index",
                   "gps_location", "gps_location_key_index",
-                  "import_tables",
+                  "import_table",
                   "known_duplicates", "known_duplicates_key_index",
                   "duplicates", "duplicates_key_index","duplicates_delta_index",
                   "presence_table", "presence_key_index",
@@ -110,8 +110,8 @@ current_version = DBVersion(
                      "gps_location", "gps_location_key_index",
                      "main", "main_key_index", "main_datetime_index", "main_db_name_index", "main_flag_index",
                      "hash_assoz", "hash_assoz_key_index", "hash_assoz_datetime_index",
-                     "import_tables",
                      "metadata", "metadata_key_index",
+                     "import_table",
                      "known_duplicates", "known_duplicates_key_index",
                      "duplicates", "duplicates_key_index", "duplicates_delta_index",
                      "presence_table", "presence_key_index",
@@ -237,8 +237,8 @@ current_version = DBVersion(
         ),
 
         # List of import tables (so generic tables)
-        "import_tables": StaticDeclaration(
-            name="import_tables",
+        "import_table": StaticDeclaration(
+            name="import_table",
             declaration_string="CREATE TABLE `%name%` ("
                                "key INTEGER PRIMARY KEY AUTOINCREMENT, "
                                "root_path TEXT NOT NULL, "
