@@ -325,10 +325,8 @@ class PhotoDB(BaseSQliteDB):
             for key in empty_generic:
                 temp_generic[key] = db_declaration.generic_definitions.get(key)
 
-            # Update the Index after the current iteration.
-            history_index += 1
-
-        assert all(list(temp_static.values()) + list(temp_generic.values())), "All Declarations were filled."
+        if not all(list(temp_static.values()) + list(temp_generic.values())):
+            raise ImplementationError("Not all declarations were filled.")
 
         # Check that all generic decls have a table containing the list of the generic tables
         parent_tables = {key: False for key in current_version.all_generic_definitions}
@@ -336,11 +334,10 @@ class PhotoDB(BaseSQliteDB):
             if value.name in parent_tables.keys():
                 parent_tables[value.name] = True
 
-        if not all(list(parent_tables.values())): # pragma: no cover
+        if not all(list(parent_tables.values())):
             raise ImplementationError("Not all generic tables have a parent table. Error in Table Definitions.")
 
-        self.static_decls = temp_static
-        self.generic_decls = temp_generic
+        return temp_static, temp_generic
 
     # ==================================================================================================================
     # Table Integrity Checks
