@@ -225,6 +225,8 @@ current_version = DBVersion(
                                "gps_location INTEGER, "
                                "db_dir INTEGER, "
                                "datetime_source INTEGER CHECK (`%name%`.datetime_source IN (0, 1, 2, 3, 4, 5)), "
+                               # Row will be finally deleted with empty trash. Replaced needed for undo replaced.
+                               "replaced INTEGER DEFAULT 0 CHECK (`%name%`.replaced IN (0, 1, 2)), "  # MediaType
                                "FOREIGN KEY (main_key) REFERENCES main(key), "
                                "FOREIGN KEY (gps_location) REFERENCES gps_location(key), "
                                "FOREIGN KEY (db_dir) REFERENCES db_dir(key)) "
