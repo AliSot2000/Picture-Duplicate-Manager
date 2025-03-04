@@ -163,13 +163,13 @@ current_version = DBVersion(
         # Main Table Definitions
         "main": StaticDeclaration(
             name="main",
-            declaration_string="CREATE TABLE main ("
+            declaration_string="CREATE TABLE `%name%` ("
                                "key INTEGER PRIMARY KEY AUTOINCREMENT, "
                                "original_filename TEXT NOT NULL, "  
                                "metadata TEXT, "
                                "google_metadata TEXT, "
                                "datetime TEXT NOT NULL, "
-                               "db_name TEXT NOT NULL, "
+                               "db_name TEXT UNIQUE NOT NULL, "
                                "parent INTEGER, "
                                "timezone TEXT, " # is dependent on system defaults so retained here.
                                "flags INTEGER NOT NULL,"
