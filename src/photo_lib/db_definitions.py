@@ -94,9 +94,9 @@ current_version = DBVersion(
     new_elements=["hashes", "hashes_str_index", "hash_key_index",
                   "main", "main_key_index", "main_datetime_index", "main_db_name_index", "main_flag_index",
                   "hash_assoz", "hash_assoz_key_index", "hash_assoz_datetime_index",
+                  "metadata", "metadata_key_index"
                   "db_dir", "db_dir_key_index",
                   "gps_location", "gps_location_key_index",
-                  "replaced", "replaced_key_index",
                   "import_tables",
                   "known_duplicates", "known_duplicates_key_index",
                   "duplicates", "duplicates_key_index",
@@ -107,7 +107,7 @@ current_version = DBVersion(
                      "gps_location", "gps_location_key_index",
                      "main", "main_key_index", "main_datetime_index", "main_db_name_index", "main_flag_index",
                      "hash_assoz", "hash_assoz_key_index", "hash_assoz_datetime_index",
-                     "replaced", "replaced_key_index",
+                     "metadata", "metadata_key_index"
                      "import_tables",
                      "known_duplicates", "known_duplicates_key_index",
                      "duplicates", "duplicates_key_index",
