@@ -125,8 +125,6 @@ class RootWindow(QMainWindow):
         self.lower_page.setVisible(True)
         self.scrollbar.setVisible(True)
 
-
-
     def max_set(self, v: int):
         self.sc.setMaximum(v)
         self.sc.setValue(0)
