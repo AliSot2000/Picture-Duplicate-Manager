@@ -281,6 +281,54 @@ current_version = DBVersion(
         "duplicates_delta_index": StaticDeclaration(
             name="duplicates_delta_index",
             declaration_string="CREATE INDEX `%name%` ON duplicates (delta)"
+        ),
+        "presence_table": StaticDeclaration(
+            name="presence_table",
+            declaration_string="CREATE TABLE `%name%` ("
+                               "main_key INTEGER NOT NULL, "
+                               "message TEXT, "
+                               "FOREIGN KEY (main_key) REFERENCES main(key))"
+
+        ),
+        "presence_key_index": StaticDeclaration(
+            name="presence_key_index",
+            declaration_string="CREATE INDEX `%name%` ON presence_table (main_key)"
+        ),
+        "hash_update_table": StaticDeclaration(
+            name="hash_update_table",
+            declaration_string="CREATE TABLE `%name%` ("
+                               "main_key INTEGER UNIQUE , "
+                               "new_hash TEXT NOT NULL, "
+                               "file_size_bytes INTEGER NOT NULL, "
+                               "FOREIGN KEY (main_key) REFERENCES main(key))"
+        ),
+        "hash_update_key_index": StaticDeclaration(
+            name="hash_update_key_index",
+            declaration_string="CREATE INDEX `%name%` ON hash_update_table (main_key)"
+        ),
+        "name_update_table": StaticDeclaration(
+            name="name_update_table",
+            declaration_string="CREATE TABLE `%name%` ("
+                               "key INTEGER PRIMARY KEY AUTOINCREMENT, "
+                               "name TEXT not NULL,"
+                               "dir_name TEXT NOT NULL,"
+                               "file_size_bytes INTEGER NOT NULL,"
+                               "hash TEXT NOT NULL, "
+                               "matches TEXT, "
+                               "best_match INTEGER, "
+                               "match_type INTEGER DEFAULT 0 CHECK (`%name%`.match_type in (0,1,2,3,4,5,6)),"
+                               # 0 -> can be updated, 1, updated sucessfully, 2, update failed (cannot be reattempted)
+                               "updated INTEGER DEFAULT 0 CHECK (`%name%`.updated in (0,1,2)), "
+                               "message TEXT, "
+                               "FOREIGN KEY (best_match) REFERENCES main (key)) "
+        ),
+        "name_update_key_index": StaticDeclaration(
+            name="name_update_key_index",
+            declaration_string="CREATE INDEX `%name%` ON name_update_table (key)"
+        ),
+        "name_update_match_type_index": StaticDeclaration(
+            name="name_update_match_type_index",
+            declaration_string="CREATE INDEX `%name%` ON name_update_table (match_type)"
         )
     },
     generic_definitions={
