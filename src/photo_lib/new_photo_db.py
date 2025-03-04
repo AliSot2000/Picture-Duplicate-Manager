@@ -154,7 +154,7 @@ class PhotoDB(BaseSQliteDB):
         Database Initialization:
 
         - For initialization, you can provide the db with a custom config
-        - Both the config and the db_file mustn't exist.
+        - Both the config and the db_file must not exist.
 
         :param db_path: Root path of the database
         :param root_path: Root path of the database
