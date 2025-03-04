@@ -233,7 +233,7 @@ current_version = DBVersion(
         ),
         "metadata_key_index": StaticDeclaration(
             name="metadata_key_index",
-            declaration_string="CREATE INDEX `%name%` ON metadata (key)"
+            declaration_string="CREATE INDEX `%name%` ON metadata (main_key)"
         ),
 
         # List of import tables (so generic tables)
