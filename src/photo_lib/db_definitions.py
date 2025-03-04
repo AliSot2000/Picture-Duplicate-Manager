@@ -211,7 +211,7 @@ current_version = DBVersion(
         ),
         "hash_assoz_datetime_index": StaticDeclaration(
             name="hash_assoz_datetime_index",
-            declaration_string="CREATE INDEX `%name%` ON hash_assoz (datetime(datetime))"
+            declaration_string="CREATE INDEX `%name%` ON hash_assoz (datetime(hash_date))"
         ),
 
         # Metadata Table Definitions
