@@ -197,11 +197,14 @@ class PhotoDB(BaseSQliteDB):
             self.init_db()
         else:
             if verify:
-                self.verify_tables()
-                self.clear_filename_update_table()
-                self.clear_hash_update_table()
-                self.clear_presence_table()
-                self.basic_integrity_check()
+                self.__verified = True
+                self.__verified and self.verify_tables()
+                self.__verified and self.basic_integrity_check()
+
+                if self.verified:
+                    self.clear_filename_update_table()
+                    self.clear_hash_update_table()
+                    self.clear_presence_table()
 
     def reload_loggers(self):
         """
