@@ -437,7 +437,7 @@ class PhotoDB(BaseSQliteDB):
 
         # Add the table to the generic lookup table
         flags = GenericTableFlags(stale=False, internal=internal)
-        self.debug_execute(stmt="INSERT INTO import_tables (root_path, table_name, table_description, flags) "
+        self.debug_execute(stmt="INSERT INTO import_table (root_path, table_name, table_description, flags) "
                                 "VALUES (?, ?, ?, ?)",
                            args=(root_path, tbl_name, description, flags.to_int()))
 
@@ -452,7 +452,7 @@ class PhotoDB(BaseSQliteDB):
         Return the Flags of an Import Table.
 
         """
-        self.debug_execute("SELECT flags FROM import_tables WHERE table_name = ?", (tbl_name,))
+        self.debug_execute("SELECT flags FROM import_table WHERE table_name = ?", (tbl_name,))
         res = self.sq_cur.fetchone()
 
         if res is None:
@@ -464,7 +464,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Check if a given name with root_path and name exists already.
         """
-        self.debug_execute("SELECT key FROM import_tables WHERE  name = ?", (name,))
+        self.debug_execute("SELECT key FROM import_table WHERE  table_name = ?", (name,))
         return self.sq_cur.fetchone() is not None
 
     def remove_import_table(self, name: str = None) -> Tuple[bool, bool]:
@@ -480,10 +480,10 @@ class PhotoDB(BaseSQliteDB):
         # Drop the table with "if exists" just to be sure
         self.debug_execute(f"DROP TABLE IF EXISTS `{name}`")
 
-        self.debug_execute("SELECT key FROM import_tables WHERE table_name IS ?", (name,))
+        self.debug_execute("SELECT key FROM import_table WHERE table_name IS ?", (name,))
         del_row = self.sq_cur.fetchone() is not None
 
-        self.debug_execute("DELETE FROM import_tables WHERE table_name IS ?", (name,))
+        self.debug_execute("DELETE FROM import_table WHERE table_name IS ?", (name,))
         return del_table, del_row
 
     def mark_import_table_as_stale(self, key: int = None):
@@ -496,11 +496,11 @@ class PhotoDB(BaseSQliteDB):
         if key is None:
             # The stale flags is bit 1,
             # And we only update the flags by adding a +1 if that flag hasn't already been set mod(flags, 2) == 0
-            stmt = "UPDATE import_tables SET flags = flags + 1 WHERE key = ? AND mod(flags, 2) == 0"
+            stmt = "UPDATE import_table SET flags = flags + 1 WHERE key = ? AND mod(flags, 2) == 0"
             args = (key,)
         else:
             # Update all tables to be stale if they aren't already.
-            stmt = "UPDATE import_tables SET flags = flags + 1 WHERE mod(flags, 2) == 0"
+            stmt = "UPDATE import_table SET flags = flags + 1 WHERE mod(flags, 2) == 0"
             args = tuple()
 
         self.debug_execute(stmt, args)
@@ -511,7 +511,7 @@ class PhotoDB(BaseSQliteDB):
         Return List of all Import Tables
         """
         self.add_extra_cursor("list_import_tables")
-        self.debug_execute("SELECT key, root_path, table_name, table_name, flags FROM import_tables")
+        self.debug_execute("SELECT key, root_path, table_name, table_name, flags FROM import_table")
         for key, rp, tbl_name, tbl_desc, _flags in self.get_cursor("list_import_tables"):
             yield NewImportTableEntry(key, rp, tbl_name, tbl_desc, GenericTableFlags.from_int(_flags))
 
