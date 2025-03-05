@@ -608,7 +608,7 @@ class PhotoAPI:
                               original_dirname=ofd,
                               fdt=dt,
                               tgt_dir=dest_dir,
-                              key=import_key,
+                              key=insert_key,
                               add_tag=add_safety_exif_tags and default_flags.verify)
 
             # Finally update the import table
