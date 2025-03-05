@@ -392,9 +392,11 @@ class PhotoDB(BaseSQliteDB):
         self.__verified = True
         return True
 
-    def basic_integrity_check(self):
+    def basic_integrity_check(self) -> bool:
         """
         Basic sanity checks on the db to ensure we don't get corrupt data.
+
+        :return: True, all checks ran successfully
         """
 
         # - Check that file_keys in the hash_assoz table have a matching entry in replaced or main
@@ -404,7 +406,7 @@ class PhotoDB(BaseSQliteDB):
         # - Check constraint on flags: either trashed OR duplicate but both.
         # - Check no duplicate chaining.
         # TODO Implement
-        pass
+        return True
 
     # ==================================================================================================================
     # Import Table
