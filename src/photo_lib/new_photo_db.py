@@ -183,7 +183,7 @@ class PhotoDB(BaseSQliteDB):
         # Prepping Config
         if not init:
             if not os.path.exists(db_path):
-                raise FileNotFoundError("Config File Not Found")
+                raise FileNotFoundError("Database File Not Found")
 
         else:
             # Checking existence of db file
