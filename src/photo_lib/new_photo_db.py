@@ -193,6 +193,7 @@ class PhotoDB(BaseSQliteDB):
         super().__init__(db_path)
 
         if init:
+            self.__verified = True
             self.init_db()
         else:
             if verify:
