@@ -558,6 +558,8 @@ class PhotoAPI:
                 dest_dir = os.path.abspath(_dest_dir)
 
             self.verify_custom_target_dir(dest_dir)
+        else:
+            dest_dir = None
 
         if not self.db.import_table_exists(name=tbl_name):
             raise ValueError(f"Table {tbl_name} doesn't exist")
