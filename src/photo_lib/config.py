@@ -21,7 +21,7 @@ class Config(BaseModel):
     thumbnail: str
     temp_path: str
 
-    org_filename_append: bool = True
+    org_filename_append: bool = False
     thumbnail_target: int
     miniature_target: int
 
