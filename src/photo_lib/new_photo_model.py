@@ -349,14 +349,14 @@ class PhotoAPI:
         elif not append and purge:
             assert tbl_name is not None, "Table name needs to be specified for purge"
 
-            if self.db.import_table_exists(name=tbl_name):
+            if tbl_name is not None and self.db.import_table_exists(name=tbl_name):
                 self.main_logger.info(f"Purging {tbl_name}")
                 self.db.remove_import_table(name=tbl_name)
 
             tbl_name = self.db.add_import_table(root_path=source_dir, name=tbl_name, description=desc)
 
         elif not append and not purge:
-            if not self.db.import_table_exists(name=tbl_name):
+            if tbl_name is None or not self.db.import_table_exists(name=tbl_name):
                 tbl_name = self.db.add_import_table(root_path=source_dir, name=tbl_name, description=desc)
             else:
                 raise ValueError(f"Table with name {tbl_name} already exists")
