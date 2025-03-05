@@ -1416,7 +1416,7 @@ class PhotoDB(BaseSQliteDB):
         if res is None:
             return None, None, None
 
-        return res[0], res[1], res[2]
+        return res[0], res[1], datetime.datetime.fromisoformat(res[2])
 
     def get_initial_hash(self, key: int) -> Tuple[str, int, datetime.datetime] | Tuple[None, None, None]:
         """
