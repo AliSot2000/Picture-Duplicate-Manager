@@ -80,8 +80,13 @@ class GenericTableFlags:
 
     @classmethod
     def from_int(cls, group: int):
-        _present = bool(group & 0b1)
+        _stale = bool(group & 0b1)
         _internal = bool(group & 0b10)
+
+        return cls(
+            stale=_stale,
+            internal=_internal,
+        )
 
     def to_int(self):
         return (int(self.stale)
