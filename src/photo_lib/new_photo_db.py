@@ -198,8 +198,8 @@ class PhotoDB(BaseSQliteDB):
         else:
             if verify:
                 self.__verified = True
-                self.__verified and self.verify_tables()
-                self.__verified and self.basic_integrity_check()
+                self.__verified = self.__verified and self.verify_tables()
+                self.__verified = self.__verified and self.basic_integrity_check()
 
                 if self.verified:
                     self.clear_filename_update_table()
