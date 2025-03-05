@@ -250,7 +250,7 @@ class PhotoDB(BaseSQliteDB):
 
             self.basic_integrity_check()
 
-        self.cleanup()
+        super().cleanup()
 
     def init_db(self):
         """
