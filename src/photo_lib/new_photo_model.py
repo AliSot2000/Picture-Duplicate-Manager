@@ -217,6 +217,15 @@ class PhotoAPI:
             self.main_logger.info(f"Created Temp Directory")
             os.makedirs(self.db.get_temp_dir())
 
+    def write_config(self):
+        """
+        Write the config to the config file
+        """
+        cfg_path = os.path.join(self.root_path, defaults.config_path)
+
+        with open(cfg_path, "w") as f:
+            f.write(self.config.model_dump_json())
+
     # ==================================================================================================================
     # Metadata Aggregator calls
     # ==================================================================================================================
