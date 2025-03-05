@@ -1469,51 +1469,87 @@ class PhotoDB(BaseSQliteDB):
         :param file_hash: The hash of the file to check.
         :param file_size: The size of the file to check.
         :param file_key: The key of the file to check.
-        :param initial: If this the hash gotten when hashing in the source directory of the import.
+        :param initial: Only consider initial hashes of images Otherwise, consider all hashes
+            AND inserted hash isn't initial.
 
-        :return: True if the row exists, False if the row were added.
+        :return: True if the row exists, True, row existed but wasn't newest one, False if the row were added.
         """
-        # TODO rethink operation with initial and not initial. Maybe less optimized code but better readability
+        # INFO: CASE Initial
+        if initial:
+            self.debug_execute("SELECT h.hash, ha.hash_key, ha.file_key "
+                               "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+                               "WHERE h.hash = ? AND ha.file_key = ? AND ha.file_size_bytes = ? AND ha.initial = 1",
+                               (file_hash, file_key, file_size))
 
-        # Consider the hashes a set of all hashes the file had at a given point. The hash to check during import is
-        # the one marked with initial
-        self.debug_execute("SELECT h.hash, ha.hash_key, ha.file_key "
-                           "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
-                           "WHERE h.hash = ? AND ha.file_key = ? AND ha.file_size_bytes = ? AND ha.initial = ?",
-                           (file_hash, file_key, file_size, int(initial)))
+            res = self.sq_cur.fetchall()
 
-        res = self.sq_cur.fetchone()
+            if len(res) > 1:
+                raise CorruptDatabase("There's not supposed to be more than one initial hash per file.")
 
-        # Row not found, need to add a new one.
-        if res is None:
-            now = datetime.datetime.now(datetime.timezone.utc)
-            hash_key = self.insert_get_hash_key(file_hash=file_hash)
-            self.debug_execute("INSERT INTO hash_assoz (hash_key, file_key, file_size_bytes, hash_date, initial) "
-                               "VALUES (?, ?, ?, ?, ?)",
-                               (hash_key, file_key, file_size, now.isoformat(), int(initial)))
-            return False
+            if len(res) == 0:
+                now = datetime.datetime.now(datetime.timezone.utc)
+                hash_key = self.insert_get_hash_key(file_hash=file_hash)
+                self.debug_execute("INSERT INTO hash_assoz (hash_key, file_key, file_size_bytes, hash_date, initial) "
+                                   "VALUES (?, ?, ?, ?, 1)",
+                                   (hash_key, file_key, file_size, now.isoformat()))
+                return False
 
-        # Parse the row and get the newest hash
-        hash_str, hash_key, file_key = res
-        newest_hash, newest_size, fdht = self.get_newest_hash(res[1])
+            assert len(res) == 1, "POSTCONDITION Failed: Unexpected number of rows found."
 
-        if (newest_hash, newest_size, fdht) == (None, None, None):
-            raise CorruptDatabase("File without File hash found")
+            return True
 
-        # Check the given hash is the newest hash of the file.
-        if newest_hash != file_hash:
-            ndt = datetime.datetime.now(datetime.timezone.utc)
-            # Update the row to be the newest one.
-            self.debug_execute(stmt="UPDATE hash_assoz "
-                                    "SET hash_date = ? "
-                                    "WHERE hash_key = ? AND file_key = ? AND file_size_bytes = ? AND initial = 0",
-                               args=(ndt.isoformat(), hash_key, file_key, file_size))
+        # INFO: Case any hash
+        else:
+            # Get the necessary rows
+            self.debug_execute("SELECT ha.hash_key, ha.file_key, ha.file_size_bytes, ha.hash_date "
+                               "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+                               "WHERE h.hash = ? AND ha.file_key = ? AND ha.file_size_bytes = ?",
+                               (file_hash, file_key, file_size))
 
-        if newest_hash == file_hash and newest_size != file_size:
-            self.rare_occurrence_logger.info(f"Found matching hashes with different file sizes: "
-                                             f"{newest_hash}, {newest_size}")
+            # Hash doesn't exist, add it
+            res = self.sq_cur.fetchone()
+            if res is None:
+                now = datetime.datetime.now(datetime.timezone.utc)
+                hash_key = self.insert_get_hash_key(file_hash=file_hash)
+                self.debug_execute(
+                    "INSERT INTO hash_assoz (hash_key, file_key, file_size_bytes, hash_date, initial) "
+                    "VALUES (?, ?, ?, ?, 0)",
+                    (hash_key, file_key, file_size, now.isoformat()))
 
-        return True
+                return False
+
+            # Parse the row and get the newest hash
+            hash_key, file_key, file_size_db, _hash_date = res
+
+            hash_date = datetime.datetime.fromisoformat(_hash_date)
+
+            assert file_size == file_size_db, "Unexpected outcome, file size doesn't match"
+
+            newest_hash, newest_size, fhdt = self.get_newest_hash(res[1])
+
+            # A newest hash should exist, previouse result wasn't None
+            if (newest_hash, newest_size, fhdt) == (None, None, None):  # pragma: no cover
+                raise CorruptDatabase("File without File hash found")
+
+            assert hash_date <= fhdt, "PRECONDITION Failed: Newest datetime of hash is older than found hash"
+
+            # Check the given hash is the newest hash of the file and update otherwise.
+            if newest_hash != file_hash or newest_hash == file_hash and newest_size != file_size:
+                if newest_hash == file_hash and newest_size != file_size:
+                    self.rare_occurrence_logger.info(f"Found matching hashes with different file sizes: "
+                                                     f"{newest_hash}, {newest_size}")
+
+                ndt = datetime.datetime.now(datetime.timezone.utc)
+                # Update the row to be the newest one.
+                self.debug_execute(stmt="UPDATE hash_assoz "
+                                        "SET hash_date = ? "
+                                        "WHERE hash_key = ? AND file_key = ? AND file_size_bytes = ? AND hash_date = ?",
+                                   args=(ndt.isoformat(), hash_key, file_key, file_size, _hash_date))
+
+
+            return True
+
+        raise ImplementationError("Tertiem Non Datur")  # pragma: no cover
 
     def delete_file_association(self, file_key: int) -> int:
         """
