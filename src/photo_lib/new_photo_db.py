@@ -1401,7 +1401,7 @@ class PhotoDB(BaseSQliteDB):
 
     def get_newest_hash(self, key: int) -> Tuple[str, int, datetime.datetime] | Tuple[None, None, None]:
         """
-        Get the newest hash of a given file. If the newest hash doesn't match, we don't perform binary comparison.
+        Get the newest hash of a given file.
 
         :param key: File key to search for
         :returns: Tuple[None, None, None] -> key not found, Tuple[str, int, datetime] -> newest hash and
