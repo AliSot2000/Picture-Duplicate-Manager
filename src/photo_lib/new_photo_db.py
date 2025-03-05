@@ -384,6 +384,7 @@ class PhotoDB(BaseSQliteDB):
                                                   f"Deleting orphaned entry")
 
                     self.debug_execute(f"DELETE FROM `{name}` WHERE key = ?", (key,))
+                    continue
 
                 if not result[0].strip() == decl.declaration_string.replace(decl.name_placeholder, table).strip():
                     return False
