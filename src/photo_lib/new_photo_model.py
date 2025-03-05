@@ -97,7 +97,7 @@ class PhotoAPI:
 
         self.root_path = os.path.abspath(root_path)
 
-        cfg_path = defaults.config_path(self.root_path)
+        cfg_path = os.path.join(self.root_path, defaults.config_path)
 
         # Prepping Config
         if not init:
