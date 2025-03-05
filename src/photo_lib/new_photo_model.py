@@ -246,7 +246,7 @@ class PhotoAPI:
 
     def add_default_metadata_aggregator(self):
         """
-        Add a default metadata aggregator (user could provide a custom MDA if he so chooses)
+        Add a default metadata aggregator (user could provide a custom MDA if they so chooses)
         """
         if self.__mda is None:
             self.__mda = NewMetadataAggregator(
