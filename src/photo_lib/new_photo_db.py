@@ -78,15 +78,17 @@ class PhotoDB(BaseSQliteDB):
         Create a new instance from another instance. (needed for long_running_actions)
         """
         # Copy the verify state from the inst over to this instance
+        path = inst.db_path
+
         inst.cleanup(fast=True)
 
-        new_inst = cls(db_path=inst.db_path,
+        new_inst = cls(db_path=path,
                        root_path=inst.root_path,
                        config=inst.config,
                        init=False,
                        init_loggers=False,
                        verify=False,
-                       opt_integrity_check=False),
+                       opt_integrity_check=False)
 
         new_inst.__verified = inst.verified
         return new_inst
