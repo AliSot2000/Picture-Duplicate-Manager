@@ -585,7 +585,7 @@ class PhotoAPI:
                 continue
 
             # Sanity check
-            assert import_key is None, "File marked as not imported, shouldn't have a import_key set."
+            assert impk is None, "File marked as not imported, shouldn't have a import_key set."
 
             # Insert into main table and add
             self.db.insert_row_main_table(original_filename=ofn, db_name=self.db.reserved_temp_file_name, dt=dt,
