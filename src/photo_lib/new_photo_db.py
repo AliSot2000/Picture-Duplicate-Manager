@@ -365,7 +365,7 @@ class PhotoDB(BaseSQliteDB):
             if result is None:
                 return False
 
-            if not result[0] == decl.declaration_string.replace(decl.name_placeholder, decl.name):
+            if not result[0].strip() == decl.declaration_string.replace(decl.name_placeholder, decl.name).strip():
                 return False
 
         # INFO Poor convention: the key of the generic decls is also the name of a table which contains a list of all
@@ -385,7 +385,7 @@ class PhotoDB(BaseSQliteDB):
 
                     self.debug_execute(f"DELETE FROM `{name}` WHERE key = ?", (key,))
 
-                if not result[0] == decl.declaration_string.replace(decl.name_placeholder, table):
+                if not result[0].strip() == decl.declaration_string.replace(decl.name_placeholder, table).strip():
                     return False
 
         self.__verified = True
