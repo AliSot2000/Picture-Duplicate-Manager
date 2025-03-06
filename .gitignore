@@ -143,6 +143,7 @@ cython_debug/
 
 
 # Testing
-testing/test_db/
-testing/scratch/
-testing/test_file_out/
+/testing/test_db/
+/testing/scratch/
+/testing/test_file_out/
+/testing/shadow_db/
