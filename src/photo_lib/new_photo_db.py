@@ -595,7 +595,6 @@ class PhotoDB(BaseSQliteDB):
         :param parsing_result: Parsing result of metadata aggregator
         :param allowed_ext: Allowed file extensions, to compute allowed field.
 
-
         :raises ValueError: If not append and file in table.
         :raises sqlite3.OperationalError: If the Import Table doesn't exist
         :raises sqlite3.IntegrityError: If the file path already exists
