@@ -473,9 +473,14 @@ class PhotoAPI:
 
         :returns: <number of files now allowed>, <number of files now excluded>, <number of files unaffected>
         """
+        ex = []
         for ext in allowed_ext:
             if ext[0] != ".":
                 raise ValueError(f"Allowed Extensions must start with a '.' {ext}")
+
+            ex.append(ext.lower().strip())
+
+        allowed_ext = set(ex)
 
         self.main_logger.info(f"Updating allowed extensions in {tbl} with {allowed_ext}")
 
