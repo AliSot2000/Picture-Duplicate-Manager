@@ -1420,7 +1420,8 @@ class PhotoDB(BaseSQliteDB):
         - node list of directory relative to db_root
         """
         self.add_extra_cursor("prune_db_dir")
-        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN (SELECT db_dir FROM metadata)")
+        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN (SELECT db_dir FROM metadata)",
+                           cur="prune_db_dir")
 
         for row in self.get_cursor("prune_db_dir"):
             yield row[0], self.parse_db_local_dir(row[1])
