@@ -450,6 +450,22 @@ class PhotoDB(BaseSQliteDB):
         self.commit()
         return tbl_name
 
+    def get_import_tables_size(self, stale: bool = None) -> int:
+        """
+        Get the number of import tables present in the database
+
+        PRECONDITION: The Table exists
+        """
+        base_stmt = "SELECT COUNT(key) FROM import_table"
+        args = None
+
+        if stale is not None:
+            base_stmt += " WHERE mod(flags, 2) = ?"
+            args = (stale, )
+
+        self.debug_execute(base_stmt, args)
+        return self.sq_cur.fetchone()[0]
+
     def import_table_flags(self, tbl_name: str) -> GenericTableFlags | None:
         """
         Return the Flags of an Import Table.
@@ -711,6 +727,17 @@ class PhotoDB(BaseSQliteDB):
         else:  # pragma: no cover
             raise ImplementationError(f"Unknown ImportStatus {status.name}")
 
+    def get_update_allowed_iterator_size(self, tbl_name: str) -> int:
+        """
+        Get the number of rows in the update_allowed_iterator.
+
+        PRECONDITION: Table Exists
+
+        :param tbl_name: import table to query
+        """
+        self.debug_execute(stmt=f"SELECT COUNT(key) FROM `{tbl_name}` WHERE imported IN (0, 1)")
+        return self.sq_cur.fetchone()[0]
+
     def update_allowed_iterator(self, tbl_name: str) -> Iterator[Tuple[int, Allowed, str]]:
         """
         Creates an iterator to update the allowed state of the files in the import table.
@@ -721,6 +748,17 @@ class PhotoDB(BaseSQliteDB):
             yield key, Allowed(_allowed), org_fname
 
         self.remove_extra_cursor("update_allowed")
+
+    def get_perform_import_iterator_size(self, tbl_name: str):
+        """
+        Get the size of the perform_import_iterator. I.e. the number of rows ready to be imported.
+
+        PRECONDITION: Table Exists
+
+        :param tbl_name: import table to query
+        """
+        self.debug_execute(stmt=f"SELECT COUNT(key) FROM `{tbl_name}` WHERE imported = 1")
+        return self.sq_cur.fetchone()[0]
 
     def perform_import_iterator(self, tbl_name: str) -> Iterator[
         Tuple[int, str, str, str | None, str | None, str, int, datetime.datetime,
@@ -784,6 +822,26 @@ class PhotoDB(BaseSQliteDB):
             yield k, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, imp_key
 
         self.remove_extra_cursor("import_cursor")
+
+    def get_import_match_iterator_size(self, tbl_name: str, recompute: bool = False) -> int:
+        """
+        Get the number of rows to process in the find_import_match_iterator
+
+        PRECONDITION: The Table exists
+
+        :param tbl_name: import table to query
+        :param recompute: If the matches are to be recomputed
+        """
+        if recompute:
+            # Reset the match columns before recomputing.
+            self.debug_execute(f"UPDATE `{tbl_name}` SET highest_match= NULL, matches = NULL, match_type = 0 "
+                               f"WHERE allowed = 1, AND imported IN (0, 1)")
+
+            self.debug_execute(f"SELECT COUNT(key) FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1")
+        else:
+            self.debug_execute(f"SELECT COUNT(key) FROM `{tbl_name}` "
+                               f"WHERE imported IN (0, 1) AND allowed = 1 AND matches IS NULL")
+        return self.sq_cur.fetchone()[0]
 
     def find_import_match_iterator(self, tbl_name: str, recompute: bool = False) \
             -> Iterator[Tuple[int, str, str, int, str]]:
@@ -1126,6 +1184,14 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to update row in name_update_table"
 
+    def get_update_filename_from_hash_iterator_size(self) -> int:
+        """
+        Get the number of rows of name_update_table that need to be processed
+        """
+        self.debug_execute("SELECT COUNT(key) FROM name_update_table "
+                           "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2")
+        return self.sq_cur.fetchone()[0]
+
     def update_filename_from_hash_iterator(self) -> Iterator[Tuple[int, str, str, int]]:
         """
         Get an iterator to all rows of the name_update_table which can be used to update the file name of a file matched
@@ -1321,6 +1387,13 @@ class PhotoDB(BaseSQliteDB):
         assert len(pruned_keys) == self.sq_cur.rowcount, (f"Unexpected number of updated rows {self.sq_cur.rowcount}, "
                                                           f"given keys: {pruned_keys}")
 
+    def get_prune_db_dir_iterator_size(self) -> int:
+        """
+        Get the number of rows to process in the prune_db_dir_iterator
+        """
+        self.debug_execute("SELECT COUNT(key) FROM db_dir WHERE key NOT IN (SELECT db_dir FROM metadata)")
+        return self.sq_cur.fetchone()[0]
+
     def prune_db_dir_iterator(self) -> Iterator[Tuple[int, List[str]]]:
         """
         Get an iterator to all custom directories which are now empty.
@@ -1434,6 +1507,15 @@ class PhotoDB(BaseSQliteDB):
             return None, None, None
 
         return res[0], res[1], res[2]
+
+    def get_number_of_hashes_of_file(self, key: int) -> int:
+        """
+        Get the number of hashes associated with a file.
+
+        :param key: key in main table.
+        """
+        self.debug_execute("SELECT COUNT(*) FROM hash_assoz WHERE file_key = ?", (key,))
+        return self.sq_cur.fetchone()[0]
 
     def get_all_hashes_of_file(self, key: int) -> Iterator[Tuple[str, int, datetime.datetime, bool]]:
         """
@@ -2258,6 +2340,98 @@ class PhotoDB(BaseSQliteDB):
 
         return MainRow(key=k, original_filename=ofn, datetime=dt, db_name=dbn, parent=pr, timezone=tz, flags=flags,
                        metadata=md, google_metadata=gfmd)
+
+    def get_main_key_flags_iterator_size(self, allow_selection: bool, selection: Selection = None, **kwargs) -> int:
+        """
+        Get the number of rows covered in the main table by a given selection and kwargs.
+
+        :param selection: Selection object to constrain rows in iterator
+        :param allow_selection: Whether a selection object may be provided for this call.
+
+        All possible kwargs booleans, and their names are:
+
+        - present
+        - verify
+        - trashed
+        - org_google_metadata
+        - sel_a
+        - sel_b
+        - has_thumbnail
+        - has_miniature
+        - duplicate
+
+        ValueError:
+
+        - If a key is specified that's not supported
+        - If selection is provided in a location where none is allowed.
+        - If sel_a oro sel_b are specified in conjunction with SELECTION or SELECTION_B
+            respectively.
+        """
+        keys = list(kwargs.keys())
+        all_keys = {"present", "verify", "trashed", "org_google_metadata", "sel_a", "sel_b", "has_thumbnail",
+                    "has_miniature", "duplicate"}
+
+        stmt = "SELECT COUNT(key) FROM main "
+        constraints = []
+        const_args = []
+
+        if not set(keys).issubset(all_keys):
+            raise ValueError(f"{set(keys) - all_keys} keys aren't allowed")
+
+        if selection is not None:
+            if not allow_selection:
+                raise ValueError("Selection Provided in Call location without selection.")
+
+            if "sel_a" in keys and selection.selection_type == SelectionType.SELECTION_A:
+                raise ValueError("Cannot constrain keys with selection and kwarg, sel_a")
+
+            elif "sel_b" in kwargs and selection.selection_type == SelectionType.SELECTION_B:
+                raise ValueError("Cannot constrain keys with selection and kwarg, sel_b")
+
+            if selection.selection_type == SelectionType.SELECTION_A:
+                constraints += ["mod(flags >> 4, 2) = ?"]
+                const_args += [1]
+            elif selection.selection_type == SelectionType.SELECTION_B:
+                constraints += ["mod(flags >> 5, 2) = ?"]
+                const_args += [1]
+            elif selection.selection_type == SelectionType.TIME_RANGE:
+                constraints += ["datetime(?) <= datetime(datetime)", "datetime(datetime) <= datetime(?)"]
+                const_args += [selection.start.isoformat(), selection.end.isoformat()]
+
+        for key, value in kwargs.items():
+            # Add the argument
+            const_args += [1 if value else 0]
+            if key == "present":
+                constraints += ["mod(flags, 2) = ?"]
+            elif key == "verify":
+                constraints += ["mod(flags >> 1, 2) = ?"]
+            elif key == "trashed":
+                constraints += ["mod(flags >> 2, 2) = ?"]
+            elif key == "org_google_metadata":
+                constraints += ["mod(flags >> 3, 2) = ?"]
+            elif key == "sel_a":
+                constraints += ["mod(flags >> 4, 2) = ?"]
+            elif key == "sel_b":
+                constraints += ["mod(flags >> 5, 2) = ?"]
+            elif key == "has_thumbnail":
+                constraints += ["mod(flags >> 6, 2) = ?"]
+            elif key == "has_miniature":
+                constraints += ["mod(flags >> 7, 2) = ?"]
+            elif key == "duplicate":
+                constraints += ["mod(flags >> 8, 2) = ?"]
+            else:
+                raise ImplementationError("Uncovered key in main_key_flags_iterator")
+
+        # Execute the statement
+        if len(constraints) == 0:
+            self.debug_execute(stmt)
+
+        else:
+            stmt += " WHERE "
+            const_str = ", ".join(constraints)
+            self.debug_execute(stmt=stmt + const_str, args=tuple(const_args))
+
+        return self.sq_cur.fetchone()[0]
 
     def main_key_flags_iterator(self, allow_selection: bool, selection: Selection = None, **kwargs) \
             -> Iterator[Tuple[int, MainFlags]]:
