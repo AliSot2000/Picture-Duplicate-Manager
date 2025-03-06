@@ -490,16 +490,16 @@ class PhotoAPI:
 
         for row in self.db.update_allowed_iterator(tbl):
             key, _a, original_filename = row
-            allowed = bool(_a)
+            allowed = _a == Allowed.ALLOWED
 
             # INFO: Need to update mark_for_import to 0, to ensure we don't get any accidental imports of not allowed
             #  files.
-            if allowed and os.path.splitext(original_filename)[1] not in allowed_ext:
+            if allowed and os.path.splitext(original_filename)[1].lower() not in allowed_ext:
                 now_disallowed += 1
                 self.db.set_allowed(tbl_name=tbl, allowed=Allowed.NOT_ALLOWED_EXT, key=key)
                 self.main_logger.debug(f"{key} is now disallowed")
 
-            elif not allowed and os.path.splitext(original_filename)[1] in allowed_ext:
+            elif not allowed and os.path.splitext(original_filename)[1].lower() in allowed_ext:
                 now_allowed += 1
                 self.main_logger.debug(f"{key} is now allowed")
                 self.db.set_allowed(tbl_name=tbl, allowed=Allowed.ALLOWED, key=key)
