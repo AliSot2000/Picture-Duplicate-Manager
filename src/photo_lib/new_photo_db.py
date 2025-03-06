@@ -1231,7 +1231,8 @@ class PhotoDB(BaseSQliteDB):
         self.add_extra_cursor("name_update")
         self.debug_execute("SELECT key, name, dir_name, best_match FROM name_update_table "
                            # Ensure match is HASH_MATCH_MAIN
-                           "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2")
+                           "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2",
+                           cur="name_update")
 
         for key, name, dir_name, best_match in self.get_cursor("name_update"):
             yield key, name, dir_name, best_match
