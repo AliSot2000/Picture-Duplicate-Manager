@@ -52,7 +52,7 @@ def hello_world2():
 
 def hello_world():
     """
-    First Hello World Version to expxeriment with opencv
+    First Hello World Version to experiment with opencv
     """
     # blank image
     im = np.zeros((1080, 1920, 3), np.uint8)
