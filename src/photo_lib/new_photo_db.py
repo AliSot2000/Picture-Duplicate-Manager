@@ -664,7 +664,7 @@ class PhotoDB(BaseSQliteDB):
         """
         serializable_matches = {k: v.value for k, v in matches.items()}
         self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET match_type = ?, highest_match = ?, matches = ? "
-                                f"WHERE key = {key}",
+                                f"WHERE key = ?",
                            args=(best_match_type.value, best_match, json.dumps(serializable_matches), key))
 
         assert self.sq_cur.rowcount == 1, f"SQL Error, key not found in table {tbl_name}"
