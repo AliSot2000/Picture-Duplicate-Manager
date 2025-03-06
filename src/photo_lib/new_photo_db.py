@@ -579,7 +579,8 @@ class PhotoDB(BaseSQliteDB):
         :raises sqlite3.IntegrityError: If the file path already exists
         """
         # Compute complex rows
-        allowed = os.path.splitext(parsing_result.filename)[1] in allowed_ext
+        int_allowed_ext = [ext.lower() for ext in allowed_ext]
+        allowed = os.path.splitext(parsing_result.filename)[1].lower() in int_allowed_ext
         md_str = json.dumps(parsing_result.metadata) if parsing_result.metadata else None
         gfmd_str = json.dumps(parsing_result.google_photos_metadata) if parsing_result.google_photos_metadata else None
         tz_str = parsing_result.tz_name if isinstance(parsing_result.tz_name, str) else parsing_result.tz_name.key
