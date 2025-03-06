@@ -2538,12 +2538,12 @@ class PhotoDB(BaseSQliteDB):
 
         # Execute the statement
         if len(constraints) == 0:
-            self.debug_execute(stmt)
+            self.debug_execute(stmt, cur="main_key_flags_iterator")
 
         else:
             stmt += " WHERE "
             const_str = ", ".join(constraints)
-            self.debug_execute(stmt=stmt + const_str, args=tuple(const_args))
+            self.debug_execute(stmt=stmt + const_str, args=tuple(const_args), cur="main_key_flags_iterator")
 
         for key, _flags in self.get_cursor("main_key_flags_iterator"):
             yield key, MainFlags.from_int(_flags)
