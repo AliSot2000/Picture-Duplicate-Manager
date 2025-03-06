@@ -2226,6 +2226,16 @@ class PhotoDB(BaseSQliteDB):
         # PRECONDITION: number of results = 1
         return res[0][0]
 
+    def db_resolve_org_filename_to_keys(self, org_name: str) -> List[int]:
+        """
+        Resolve the Search for keys which have the matching original file name
+
+        :param org_name: org_name to match against
+        :return: (potentially empty) of keys which had this file name originally.
+        """
+        self.debug_execute("SELECT key FROM main WHERE original_filename = ?", (org_name,))
+        return [res[0] for res in self.sq_cur.fetchall()]
+
     def get_main_row(self, key: int) -> MainRow | None:
         """
         Get a row of main table given a key.
