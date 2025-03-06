@@ -452,7 +452,7 @@ class PhotoAPI:
                     path = self.db.db_resolve_key_to_abs_path(key)
 
                     if not path == os.path.join(root, file):
-                        self.file_system_logger.warning(f"File {file} found in db but path mismatch:"
+                        self.integrity_logger.warning(f"File {file} found in db but path mismatch:"
                                                         f"DB-Path: {path}, Discover Path: {os.path.join(root, file)}")
 
         if new_files == 0:
