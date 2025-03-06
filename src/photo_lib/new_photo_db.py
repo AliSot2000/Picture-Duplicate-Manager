@@ -541,6 +541,8 @@ class PhotoDB(BaseSQliteDB):
         Set the selection flag in the main table of all keys which were imported from this table. Only updates based on
         import, no setting selection based on best_match
 
+        PRECONDITION: The Table exists
+
         :param sel_a: Whether to set the selection_a flag or the selection_b flag
         :param tbl_name: Name of Import Table from which to generate a selection.
 
@@ -561,6 +563,8 @@ class PhotoDB(BaseSQliteDB):
     def get_import_table_key_from_path(self, tbl_name: str, path: str) -> int | None:
         """
         Check whether a given path is already present in the import table.
+
+        PRECONDITION: The Table exists
 
         :param tbl_name: Name of the table to search in
         :param path: Path of given file to search
@@ -584,6 +588,8 @@ class PhotoDB(BaseSQliteDB):
                                  allowed_ext: Set[str]):
         """
         Add file metadata to import table. Compute allowed state of file from filename
+
+        PRECONDITION: The Table exists
 
         :param tbl_name: Name of table to add the file to
         :param parsing_result: Parsing result of metadata aggregator
@@ -683,6 +689,8 @@ class PhotoDB(BaseSQliteDB):
         """
         Set the imported status of a given row of an import table.
 
+        PRECONDITION: The Table exists
+
         :param tbl_name: import table to update
         :param key: key in table to update
         :param status: status to set
@@ -741,6 +749,10 @@ class PhotoDB(BaseSQliteDB):
     def update_allowed_iterator(self, tbl_name: str) -> Iterator[Tuple[int, Allowed, str]]:
         """
         Creates an iterator to update the allowed state of the files in the import table.
+
+        PRECONDITION: The Table exists
+
+        :param tbl_name: import table to update
         """
         self.add_extra_cursor("update_allowed")
         self.debug_execute(stmt=f"SELECT key, allowed, original_filename FROM `{tbl_name}` WHERE imported IN (0, 1)")
@@ -765,6 +777,8 @@ class PhotoDB(BaseSQliteDB):
               str, str, float | None, float | None, DateTimeSource, Allowed, int | None]]:
         """
         Iterator to get all rows which can be imported from the import table.
+
+        PRECONDITION: The Table exists
 
         # INFO: Metadata isn't parsed to from json, becasue we do not need to interact with it.
 
@@ -847,6 +861,8 @@ class PhotoDB(BaseSQliteDB):
             -> Iterator[Tuple[int, str, str, int, str]]:
         """
         Get an iterator with the necessary information to check for matches in the main table.
+
+        PRECONDITION: The Table exists
 
         Tuple elements are in this sequence:
 
