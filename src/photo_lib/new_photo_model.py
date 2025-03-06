@@ -337,8 +337,7 @@ class PhotoAPI:
 
         :returns: import table name. Will be the tbl_name is you provide it, otherwise the generated table name
         """
-        if source_dir.startswith(self.root_path):
-            raise ValueError("Cannot import database into itself")
+        self.verify_external_dir(tgt_dir=source_dir)
 
         assert self.mda is not None, "MetadataAggregator needed for import preparation"
 
