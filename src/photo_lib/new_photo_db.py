@@ -1498,7 +1498,8 @@ class PhotoDB(BaseSQliteDB):
         elif mode.lower() == "initial":
             self.debug_execute("SELECT ha.file_key "
                                "FROM hashes AS h JOIN hash_assoz AS ha "
-                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.initial = 1")
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.initial = 1",
+                               (target_hash, file_size))
         else:  # pragma: no cover
             raise ImplementationError(f"Got unexpected mode {mode.lower()}")
 
