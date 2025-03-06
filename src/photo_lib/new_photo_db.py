@@ -1400,6 +1400,7 @@ class PhotoDB(BaseSQliteDB):
         pruned_keys = list(set(raw_key))
         self.debug_execute_many("DELETE FROM db_dir WHERE key = ?", args=[(k,) for k in pruned_keys])
 
+        # TODO test
         assert len(pruned_keys) == self.sq_cur.rowcount, (f"Unexpected number of updated rows {self.sq_cur.rowcount}, "
                                                           f"given keys: {pruned_keys}")
 
