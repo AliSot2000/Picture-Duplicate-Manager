@@ -536,6 +536,16 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("list_import_tables")
 
+    # INFO: Needed for testing
+    def get_size_of_single_import_table(self, tbl_name: str):
+        """
+        Get the number of rows (unfiltered) of an import table.
+
+        Needed for testing.
+        """
+        self.debug_execute(f"SELECT COUNT(key) FROM `{tbl_name}`")
+        return self.sq_cur.fetchone()[0]
+
     def set_selection_from_import_table(self, sel_a: bool, tbl_name: str) -> int:
         """
         Set the selection flag in the main table of all keys which were imported from this table. Only updates based on
