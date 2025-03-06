@@ -350,12 +350,15 @@ class PhotoAPI:
             raise ValueError("Cannot specify both append and purge at the same time")
 
         elif append and not purge:
-            assert tbl_name is not None, "Table name needs to be specified for append"
+            if tbl_name is None:
+                raise ValueError("Table name needs to be specified for append")
+
             if not self.db.import_table_exists(name=tbl_name):
                 raise ValueError("Table doesn't exist, cannot append")
 
         elif not append and purge:
-            assert tbl_name is not None, "Table name needs to be specified for purge"
+            if tbl_name is None:
+                raise ValueError("Table name needs to be specified for append")
 
             if tbl_name is not None and self.db.import_table_exists(name=tbl_name):
                 self.main_logger.info(f"Purging {tbl_name}")
