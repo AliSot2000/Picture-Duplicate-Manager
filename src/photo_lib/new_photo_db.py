@@ -762,9 +762,12 @@ class PhotoDB(BaseSQliteDB):
         PRECONDITION: The Table exists
 
         :param tbl_name: import table to update
+
+        :yields: key, Allowed, org_filename
         """
         self.add_extra_cursor("update_allowed")
-        self.debug_execute(stmt=f"SELECT key, allowed, original_filename FROM `{tbl_name}` WHERE imported IN (0, 1)")
+        self.debug_execute(stmt=f"SELECT key, allowed, original_filename FROM `{tbl_name}` WHERE imported IN (0, 1)",
+                           cur="update_allowed")
         for key, _allowed, org_fname in self.get_cursor("update_allowed"):
             yield key, Allowed(_allowed), org_fname
 
