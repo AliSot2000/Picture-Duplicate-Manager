@@ -65,10 +65,16 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         if os.path.exists(self.import_source):
             shutil.rmtree(self.import_source)
 
+        self.api = PhotoAPI(root_path=self.temp_db,
+                            init=False)
+
     def tearDown(self):
         """
         Remove the local instance of the db.
         """
+        self.api.cleanup(True)
+        self.api = None
+
         # Part of setup is teardown of the test db
         if os.path.exists(self.temp_db):
             shutil.rmtree(self.temp_db)
