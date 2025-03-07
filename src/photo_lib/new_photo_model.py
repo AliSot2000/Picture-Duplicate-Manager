@@ -1061,6 +1061,9 @@ class PhotoAPI:
         if not os.path.isabs(tgt_dir):
             raise TypeError("Destination must be an absolute path")
 
+        if not os.path.exists(tgt_dir):
+            raise FileNotFoundError("Source Directory for Import must exist")
+
         if not os.path.isdir(tgt_dir):
             raise TypeError("Destination must point to a directory")
 
