@@ -90,4 +90,4 @@ class GenericTableFlags:
 
     def to_int(self):
         return (int(self.stale)
-                + int(self.internal))
+                + int(self.internal) << 1)
