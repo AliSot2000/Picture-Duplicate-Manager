@@ -792,7 +792,7 @@ class PhotoDB(BaseSQliteDB):
 
         PRECONDITION: The Table exists
 
-        # INFO: Metadata isn't parsed to from json, becasue we do not need to interact with it.
+        # INFO: Metadata isn't parsed to from json, because we do not need to interact with it.
 
         Tuple elements are in this sequence:
 
