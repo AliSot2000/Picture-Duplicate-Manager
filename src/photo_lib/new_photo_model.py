@@ -630,6 +630,8 @@ class PhotoAPI:
                               fdt=dt,
                               tgt_dir=dest_dir,
                               key=insert_key,
+                              # INFO: 'and' is needed, bc we only want to set the flag in case there's a file with no
+                              #     info there.
                               add_tag=add_safety_exif_tags and default_flags.verify)
 
             # Finally update the import table
