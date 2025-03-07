@@ -1,11 +1,10 @@
 import os.path
 import shutil
-
-from coverage.context import should_start_context_test_function
+import unittest
+from typing import Optional
 
 from photo_lib.custom_enum import Allowed
 from photo_lib.new_photo_model import PhotoAPI
-import unittest
 
 
 class TestAPIPrepareDirectoryForImport(unittest.TestCase):
