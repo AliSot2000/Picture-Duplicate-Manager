@@ -595,7 +595,7 @@ class PhotoAPI:
             if dts == DateTimeSource.FILE_AWARE:
                 default_flags.verify = True
 
-            if allowed != Allowed.ALLOWED:
+            if allowed != Allowed.ALLOWED: # pragma: no cover
                 self.main_logger.warning(f"Found entry marked for import, that isn't allowed.")
                 assert False, "Invariant broken, found element marked for import with allowed = 0"
                 continue
