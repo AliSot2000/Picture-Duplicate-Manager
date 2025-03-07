@@ -9,6 +9,11 @@ from photo_lib.new_photo_model import PhotoAPI
 
 class TestAPIPrepareDirectoryForImport(unittest.TestCase):
     shadow_db: str
+    temp_db: str
+    media_source: str
+    import_source: str
+
+    api: Optional[PhotoAPI] = None
 
     @classmethod
     def setUpClass(cls):
