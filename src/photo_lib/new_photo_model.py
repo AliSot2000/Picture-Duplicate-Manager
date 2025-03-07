@@ -581,8 +581,12 @@ class PhotoAPI:
         if not self.db.import_table_exists(name=tbl_name):
             raise ValueError(f"Table {tbl_name} doesn't exist")
 
-        if self.db.import_table_flags(tbl_name).internal:
+        flags = self.db.import_table_flags(tbl_name)
+        if flags.internal:
             raise TypeError("cannot import internal import table with perform_import")
+
+        if flags.stale:
+            raise ValueError("cannot import stale table with perform_import")
 
         assert self.mda is not None, "Metadata aggregator needed for perform import"
 
