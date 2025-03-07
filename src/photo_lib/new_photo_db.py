@@ -820,7 +820,7 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute(stmt=f"SELECT key, original_filename, original_dirname, metadata, google_metadata, "
                                 f"file_hash, file_size_bytes, datetime, timezone, naming_tag, gps_latitude, "
                                 f"gps_longitude, datetime_source, allowed, import_key "
-                                f"FROM `{tbl_name}` WHERE imported = 1",
+                                f"FROM `{tbl_name}` WHERE imported = 1 ORDER BY original_dirname, original_filename",
                        cur="import_cursor")
 
         for row in self.get_cursor("import_cursor"):
