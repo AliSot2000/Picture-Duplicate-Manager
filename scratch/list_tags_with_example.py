@@ -5,6 +5,12 @@ import exiftool
 import os
 
 
+"""
+Create the database which contains the results of the exiftool. That way, we can run the test against the 
+database and don't have to mount the file system with all files.
+"""
+
+
 paths = ["/mnt/Aljoscha-Storage/trash/",
          "/mnt/Aljoscha-Storage/herbstball/",
 
