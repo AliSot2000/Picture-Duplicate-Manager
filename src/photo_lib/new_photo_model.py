@@ -271,7 +271,9 @@ class PhotoAPI:
         :param target_datetime: New datetime to set
         """
         # Add the tag
-        self.mda.eth.set_tags(files=[file_path], tags=self.exif_tag_creator(target_datetime))
+        self.mda.eth.set_tags(files=file_path,
+                              tags=self.exif_tag_creator(target_datetime),
+                              params=["-overwrite_original"])
 
         # Get Size of File and new File Hash
         new_hash = self.mda.hash_file(file_path)
