@@ -61,6 +61,11 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         """
         Setup function creates a fresh instance of the db to run the tests against
         """
+        # Need to clear api if not done so already
+        if self.api is not None:
+            self.api.cleanup(True)
+            self.api = None
+
         # Part of setup is teardown of the test db
         if os.path.exists(self.temp_db):
             shutil.rmtree(self.temp_db)
