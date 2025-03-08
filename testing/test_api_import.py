@@ -682,6 +682,156 @@ class TestAPIPerformImport(unittest.TestCase):
         self.assertIsNotNone(row.gps_lat)
         self.assertIsNotNone(row.gps_long)
 
+    # ==================================================================================================================
+    #  Perform some checks against the used db functions
+    # ==================================================================================================================
+
+    def test_insert_row_main_errors(self):
+        """
+        Check the correct errors are raised by the function
+        """
+        tz = ZoneInfo("CET")
+        dt = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=0, tzinfo=tz)
+
+        # Check Error raised for metadata
+        self.assertRaises(TypeError, lambda : self.api.db.insert_row_main_table(
+            original_filename="test_file_1.png",
+            db_name="test_file_1.png",
+            dt=dt,
+            timezone="CET",
+            flags=MainFlags.default(),
+            metadata=0,
+            google_metadata=None))
+
+        self.assertRaises(TypeError, lambda : self.api.db.insert_row_main_table(
+            original_filename="test_file_1.png",
+            db_name="test_file_1.png",
+            dt=dt,
+            timezone="CET",
+            flags=MainFlags.default(),
+            metadata=None,
+            google_metadata=0))
+
+    def test_working_row_main(self):
+        """
+        Check that different types of metadata and google_fotos_metadata works correctly
+        """
+        tz = ZoneInfo("CET")
+        dt1 = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=0, tzinfo=tz)
+        dt2 = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=1, tzinfo=tz)
+        dt3 = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=2, tzinfo=tz)
+        dt4 = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=3, tzinfo=tz)
+        dt5 = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=4, tzinfo=tz)
+        dt6 = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=5, tzinfo=tz)
+
+        md1 = "some_metadata_string"
+        md2 = ["value_1", "value_2"]
+        md3 = {"key_1": "value_1", "key_2": "value_2"}
+
+        # Insert metadata rows
+        # Inserted as 1
+        self.api.db.insert_row_main_table(
+            original_filename="test_file_1.png",
+            db_name="test_file_1.png",
+            dt=dt1,
+            timezone="CET",
+            flags=MainFlags.default(),
+            metadata=md1,
+            google_metadata=None)
+
+        # Inserted as 2
+        self.api.db.insert_row_main_table(
+            original_filename="test_file_2.png",
+            db_name="test_file_2.png",
+            dt=dt2,
+            timezone="CET",
+            flags=MainFlags.default(),
+            metadata=md2,
+            google_metadata=None)
+
+        # Inserted as 3
+        self.api.db.insert_row_main_table(
+            original_filename="test_file_3.png",
+            db_name="test_file_3.png",
+            dt=dt3,
+            timezone="CET",
+            flags=MainFlags.default(),
+            metadata=md3,
+            google_metadata=None)
+
+        # Check the functionality of serialization of metadata
+        r1 = self.api.db.get_main_row(1)
+        self.assertEqual(r1.db_name, "test_file_1.png")
+        self.assertEqual(md1, r1.metadata)
+        self.assertIsNone(r1.google_metadata)
+        self.assertEqual(dt1, r1.datetime)
+
+        r2 = self.api.db.get_main_row(2)
+        self.assertEqual(r2.db_name, "test_file_2.png")
+        self.assertEqual(json.dumps(md2), r2.metadata)
+        self.assertIsNone(r2.google_metadata)
+        self.assertEqual(dt2, r2.datetime)
+
+        r3 = self.api.db.get_main_row(3)
+        self.assertEqual(r3.db_name, "test_file_3.png")
+        self.assertEqual(json.dumps(md3), r3.metadata)
+        self.assertIsNone(r3.google_metadata)
+        self.assertEqual(dt3, r3.datetime)
+
+        # Insert google_metadata rows
+        # Inserted as 4
+        self.api.db.insert_row_main_table(
+            original_filename="test_file_4.png",
+            db_name="test_file_4.png",
+            dt=dt4,
+            timezone="CET",
+            flags=MainFlags.default(),
+            metadata=None,
+            google_metadata=md1)
+
+        # Inserted as 5
+        self.api.db.insert_row_main_table(
+            original_filename="test_file_5.png",
+            db_name="test_file_5.png",
+            dt=dt5,
+            timezone="CET",
+            flags=MainFlags.default(),
+            metadata=None,
+            google_metadata=md2)
+
+        # Inserted as 6
+        self.api.db.insert_row_main_table(
+            original_filename="test_file_6.png",
+            db_name="test_file_6.png",
+            dt=dt6,
+            timezone="CET",
+            flags=MainFlags.default(),
+            metadata=None,
+            google_metadata=md3)
+
+        # Check the functionality of serialization of google_metadata
+        r4 = self.api.db.get_main_row(4)
+        self.assertEqual(r4.db_name, "test_file_4.png")
+        self.assertEqual(md1, r4.google_metadata)
+        self.assertIsNone(r4.metadata)
+        self.assertEqual(dt4, r4.datetime)
+
+        r5 = self.api.db.get_main_row(5)
+        self.assertEqual(r5.db_name, "test_file_5.png")
+        self.assertEqual(json.dumps(md2), r5.google_metadata)
+        self.assertIsNone(r5.metadata)
+        self.assertEqual(dt5, r5.datetime)
+
+        r6 = self.api.db.get_main_row(6)
+        self.assertEqual(r6.db_name, "test_file_6.png")
+        self.assertEqual(json.dumps(md3), r6.google_metadata)
+        self.assertIsNone(r6.metadata)
+        self.assertEqual(dt6, r6.datetime)
+
+    # ==================================================================================================================
+    # Check paths
+    # ==================================================================================================================
+
     def check_dynamic_dirs(self, rel_paths: List[str]):
         """
         Check the paths given
