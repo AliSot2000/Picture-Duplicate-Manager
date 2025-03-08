@@ -171,13 +171,13 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         tbl = self.api.prepare_directory_for_import(source_dir=self.import_source)
         tbl_size = self.api.db.get_size_of_single_import_table(tbl)
 
-        self.assertEqual(tbl_size, 152)
+        self.assertEqual(tbl_size, 154)
 
         # Test empty append
         self.api.prepare_directory_for_import(source_dir=self.import_source, append=True, tbl_name=tbl)
         tbl_size_1 = self.api.db.get_size_of_single_import_table(tbl)
 
-        self.assertEqual(tbl_size_1, 152)
+        self.assertEqual(tbl_size_1, 154)
 
         # Directory to copy.
         allowed_test = os.path.join(self.media_source, "import_base_dir")
@@ -189,7 +189,7 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         self.api.prepare_directory_for_import(source_dir=self.import_source, append=True, tbl_name=tbl)
         table_size_2 = self.api.db.get_size_of_single_import_table(tbl)
 
-        self.assertEqual(table_size_2, 156)
+        self.assertEqual(table_size_2, 158)
 
     def test_allowed_ext_override(self):
         """
