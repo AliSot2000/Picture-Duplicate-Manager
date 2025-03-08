@@ -38,12 +38,12 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         if os.path.exists(cls.shadow_db):
             shutil.rmtree(cls.shadow_db)
 
-        # Create a fresh instaance
+        # Create a fresh instance
         db = PhotoAPI(root_path=cls.shadow_db,
                       init=True,
                       opt_integrity_check=True)
 
-        db.cleanup()
+        db.cleanup(fast=True)
 
     @classmethod
     def tearDownClass(cls):
