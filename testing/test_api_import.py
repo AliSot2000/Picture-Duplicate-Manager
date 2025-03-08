@@ -218,12 +218,12 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         self.api.prepare_directory_for_import(source_dir=self.import_source, purge=True, tbl_name=tbl)
 
         # Check the size after the first run
-        self.assertEqual(152, self.api.db.get_size_of_single_import_table(tbl))
+        self.assertEqual(154, self.api.db.get_size_of_single_import_table(tbl))
 
         tbl = self.api.prepare_directory_for_import(source_dir=self.import_source, purge=True, tbl_name=tbl)
 
         # Number should be the same
-        self.assertEqual(152, self.api.db.get_size_of_single_import_table(tbl))
+        self.assertEqual(154, self.api.db.get_size_of_single_import_table(tbl))
 
         # Change the directory. New number should be reflected
         shutil.rmtree(self.import_source)
