@@ -83,7 +83,7 @@ def hello_world():
     cv2.waitKey(0)
 
 
-def create_media(text: str, created: dt, dst: str, height: int = 1080, width: int = 1920):
+def create_media(text: str, created: dt, dst: str, height: int = 1080, width: int = 1920, tag_override: Dict = None):
     """
     Create a file with the following text written onto it.
 
@@ -92,6 +92,7 @@ def create_media(text: str, created: dt, dst: str, height: int = 1080, width: in
     :param height: Height of the file
     :param width: Width of the file
     :param dst: Destination where to write the file to.
+    :param tag_override: Dictionary of tags to override
     """
     print(f"Creating File: {os.path.basename(dst)}")
     assert height > 0, "Height must be greater than 0"
@@ -106,10 +107,15 @@ def create_media(text: str, created: dt, dst: str, height: int = 1080, width: in
 
     cv2.imwrite(dst, text_mat)
 
-    with exiftool.ExifToolHelper() as eh:
-        eh.set_tags(files=dst, tags={"EXIF:ModifyDate": created.strftime("%Y:%m:%d %H:%M:%S"),
-                                       "EXIF:OffsetTime": created.strftime("%z")}, params=["-overwrite_original"])
+    if tag_override is None:
+        tag_override = {"EXIF:ModifyDate": created.strftime("%Y:%m:%d %H:%M:%S"),
+                        "EXIF:OffsetTime": created.strftime("%z")}
 
+    if len(tag_override) > 0:
+        with exiftool.ExifToolHelper() as eh:
+            eh.set_tags(files=dst, tags=tag_override, params=["-overwrite_original"])
+
+    os.utime(dst, times=(created.timestamp(), created.timestamp()))
 
 def create_files_from_dict(arg_dict: dict, tgt_dir: str):
     """
