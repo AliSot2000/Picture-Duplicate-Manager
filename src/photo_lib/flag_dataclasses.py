@@ -60,14 +60,14 @@ class MainFlags:
 
     def to_int(self):
         return (int(self.present)
-                + int(self.verify) << 1
-                + int(self.trashed) << 2
-                + int(self.org_google_metadata) << 3
-                + int(self.sel_a) << 4
-                + int(self.sel_b) << 5
-                + int(self.has_thumbnail) << 6
-                + int(self.has_miniature) << 7
-                + int(self.duplicate) << 8)
+                + (int(self.verify) << 1)
+                + (int(self.trashed) << 2)
+                + (int(self.org_google_metadata) << 3)
+                + (int(self.sel_a) << 4)
+                + (int(self.sel_b) << 5)
+                + (int(self.has_thumbnail) << 6)
+                + (int(self.has_miniature) << 7)
+                + (int(self.duplicate) << 8))
 
 
 @dataclass
@@ -90,4 +90,4 @@ class GenericTableFlags:
 
     def to_int(self):
         return (int(self.stale)
-                + int(self.internal) << 1)
+                + (int(self.internal) << 1))
