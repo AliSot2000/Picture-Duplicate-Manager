@@ -72,7 +72,7 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
             shutil.rmtree(self.import_source)
 
         self.api = PhotoAPI(root_path=self.temp_db,
-                            init=False)
+                            init=False, init_loggers=False)
 
     def tearDown(self):
         """
