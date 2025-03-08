@@ -392,6 +392,28 @@ if __name__ == '__main__':
     hash_c1_base = os.path.join(target_dir, "hash_change_3")
     create_files_from_dict(arg_dict=hash_test_change_3, tgt_dir=hash_c1_base)
 
+    import_test_dir = os.path.join(target_dir, "db", "import_aux_test")
+    os.makedirs(import_test_dir, exist_ok=True)
+
+    cd1 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=0, tzinfo=cet)
+    cd2 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=1, tzinfo=cet)
+
+    create_media("Test File without any metadata",
+                 created=cd1,
+                 dst=os.path.join(import_test_dir, "10_no_metadata.jpg"),
+                 tag_override={})
+
+    create_media("Test File without any metadata",
+                 created=cd2,
+                 dst=os.path.join(import_test_dir, "20_gps_metadata.jpg"),
+                 tag_override={"EXIF:GPSLatitude": 47.368650,
+                               "EXIF:GPSLatitudeRef": "N",
+                               "EXIF:GPSLongitude": 8.539183,
+                               "EXIF:GPSLongitudeRef": "E",
+                               "EXIF:GPSAltitude": 405,
+                               "EXIF:GPSAltitudeRef": 0,
+                               "EXIF:ModifyDate": cd2.strftime("%Y:%m:%d %H:%M:%S")})
+
 
 
 
