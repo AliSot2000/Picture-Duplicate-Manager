@@ -828,9 +828,19 @@ class TestAPIPerformImport(unittest.TestCase):
         self.assertIsNone(r6.metadata)
         self.assertEqual(dt6, r6.datetime)
 
+    # INFO: insert_row_metadata_table has no validation, no extra tests needed
+
+    # TODO test import status
+    #   update_row_main_table
+    #   update_row_metadata_table
+
     # ==================================================================================================================
     # Check paths
     # ==================================================================================================================
+
+    # TODO FIRST: Add the three extra GPS files
+    # TODO dump tables and verify
+
 
     def check_dynamic_dirs(self, rel_paths: List[str]):
         """
