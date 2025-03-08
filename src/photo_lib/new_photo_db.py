@@ -425,7 +425,7 @@ class PhotoDB(BaseSQliteDB):
         """
         # Default Name
         if name is None:
-            tbl_name = (os.path.dirname(os.path.abspath(root_path))
+            tbl_name = (os.path.basename(os.path.abspath(root_path))
                         + str(hash(datetime.datetime.now(datetime.timezone.utc))))
         else:
             tbl_name = name
