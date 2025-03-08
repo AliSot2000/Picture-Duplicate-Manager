@@ -1003,7 +1003,9 @@ class PhotoAPI:
             self._add_update_exif_tag(key=key, file_path=os.path.join(tgt_dir, db_name), target_datetime=fdt)
 
         self.db.update_row_main_table(key=key, db_name=db_name)
-        self.db.update_row_metadata_table(key=key, db_dir=dir_key)
+
+        if dir_key is not None:
+            self.db.update_row_metadata_table(key=key, db_dir=dir_key)
 
     def _insert_get_dir(self, dir_name: str) -> int:
         """
