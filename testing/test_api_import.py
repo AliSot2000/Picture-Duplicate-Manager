@@ -101,7 +101,11 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         rel_root = "foo/bar/baz"
         root_file = "/foo/bar/baz.txt"
         child_of_root = os.path.join(self.temp_db, "some_dir")
+        child_file = os.path.join(self.temp_db, "baz.txt")
+
         os.makedirs(child_of_root, exist_ok=True)
+        with open(child_file, "w") as f:
+            f.write("Content")
 
         child_of_temp = os.path.join(self.api.db.get_temp_dir(), "some_dir")
         child_of_thumb = os.path.join(self.api.db.get_thumb_dir(), "some_dir")
@@ -113,8 +117,9 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
 
         # Check the default problems
         self.assertRaises(TypeError, lambda: self.api.prepare_directory_for_import(source_dir=rel_root))
-        self.assertRaises(TypeError, lambda: self.api.prepare_directory_for_import(source_dir=root_file))
+        self.assertRaises(FileNotFoundError, lambda: self.api.prepare_directory_for_import(source_dir=root_file))
         self.assertRaises(ValueError, lambda: self.api.prepare_directory_for_import(source_dir=child_of_root))
+        self.assertRaises(TypeError, lambda : self.api.prepare_directory_for_import(source_dir=child_file))
 
         # Check the db directories
         self.assertRaises(ValueError, lambda: self.api.prepare_directory_for_import(source_dir=child_of_temp))
