@@ -2065,14 +2065,14 @@ class PhotoDB(BaseSQliteDB):
         kwargs. If a kwargs is None, the column of that row will be set to NULL!!!
         All possible kwargs are:
 
-        original_filename: str
-        metadata: str | dict | list | None
-        google_metadata: str | dict | list | None
-        datetime: datetime.datetime (timezone aware object)
-        db_name: str
-        parent: int
-        timezone: str
-        flags: MainFlags
+        - original_filename: str
+        - metadata: str | dict | list | None
+        - google_metadata: str | dict | list | None
+        - datetime: datetime.datetime (timezone aware object)
+        - db_name: str
+        - parent: int
+        - timezone: str
+        - flags: MainFlags
         """
         given = set(kwargs.keys())
         all_cols = {"original_filename",
