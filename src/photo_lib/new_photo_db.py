@@ -2124,6 +2124,7 @@ class PhotoDB(BaseSQliteDB):
 
             kwargs["datetime"] = dt.isoformat()
 
+        # Convert flags
         if "flags" in given:
             flags = kwargs["flags"]
 
