@@ -830,8 +830,141 @@ class TestAPIPerformImport(unittest.TestCase):
 
     # INFO: insert_row_metadata_table has no validation, no extra tests needed
 
+    def test_update_row_main_table_errors(self):
+        """
+        Test all errors update_row_main_table
+        """
+        tz = ZoneInfo("CET")
+        dt = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=0, tzinfo=tz)
+        dt_naive = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=0)
+
+        self.api.db.insert_row_main_table(
+            original_filename="test_file_1.png",
+            db_name="test_file_1.png",
+            dt=dt,
+            timezone="CET",
+            flags=MainFlags.default(),
+            metadata=None,
+            google_metadata=None)
+
+        # Type Errors for Metadata
+        self.assertRaises(TypeError, lambda : self.api.db.update_row_main_table(key=1, metadata=0))
+        self.assertRaises(TypeError, lambda: self.api.db.update_row_main_table(key=1, google_metadata=0))
+
+        # Check superfluous row detected
+        self.assertRaises(ValueError, lambda : self.api.db.update_row_main_table(key=1, some_string="Hello World"))
+
+        # Test Datetime
+        self.assertRaises(TypeError, lambda : self.api.db.update_row_main_table(key=1, datetime=dt_naive))
+
+        # Test Flags
+        self.assertRaises(TypeError, lambda : self.api.db.update_row_main_table(key=1, flags="Hello World"))
+
+    def test_update_row_main_table_sanitization(self):
+        """
+        Test correct update with sanitization of types
+        """
+        tz = ZoneInfo("CET")
+        dt = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=0, tzinfo=tz)
+        dt_change = datetime.datetime(year=1990, month=1, day=1, hour=12, minute=0, second=1, tzinfo=tz)
+
+        md1 = "some_metadata_string"
+        md2 = ["value_1", "value_2"]
+        md3 = {"key_1": "value_1", "key_2": "value_2"}
+
+        new_flags = MainFlags.default()
+        new_flags.verify = True
+
+        self.api.db.insert_row_main_table(
+            original_filename="test_file_1.png",
+            db_name="test_file_1.png",
+            dt=dt,
+            timezone="CET",
+            flags=MainFlags.default(),
+            metadata=None,
+            google_metadata=None)
+
+        # Check string metadata
+        self.api.db.update_row_main_table(key=1, metadata=md1)
+
+        # Check the row after update
+        r = self.api.db.get_main_row(1)
+        self.assertEqual(r.flags, MainFlags.default())
+        self.assertEqual(r.metadata, md1)
+        self.assertIsNone(r.google_metadata)
+        self.assertEqual(r.datetime, dt)
+
+        # Check list metadata
+        self.api.db.update_row_main_table(key=1, metadata=md2)
+
+        # Check the row after update
+        r = self.api.db.get_main_row(1)
+        self.assertEqual(r.flags, MainFlags.default())
+        self.assertEqual(r.metadata, json.dumps(md2))
+        self.assertIsNone(r.google_metadata)
+        self.assertEqual(r.datetime, dt)
+
+        # Check dict metadata
+        self.api.db.update_row_main_table(key=1, metadata=md3)
+
+        # Check the row after update
+        r = self.api.db.get_main_row(1)
+        self.assertEqual(r.flags, MainFlags.default())
+        self.assertEqual(r.metadata, json.dumps(md3))
+        self.assertIsNone(r.google_metadata)
+        self.assertEqual(r.datetime, dt)
+
+        # Check string google metadata
+        self.api.db.update_row_main_table(key=1, metadata=None, google_metadata=md1)
+
+        # Check the row after update
+        r = self.api.db.get_main_row(1)
+        self.assertEqual(r.flags, MainFlags.default())
+        self.assertEqual(r.google_metadata, md1)
+        self.assertIsNone(r.metadata)
+        self.assertEqual(r.datetime, dt)
+
+        # Check list google metadata
+        self.api.db.update_row_main_table(key=1, google_metadata=md2)
+
+        # Check the row after update
+        r = self.api.db.get_main_row(1)
+        self.assertEqual(r.flags, MainFlags.default())
+        self.assertEqual(r.google_metadata, json.dumps(md2))
+        self.assertIsNone(r.metadata)
+        self.assertEqual(r.datetime, dt)
+
+        # Check dict google metadata
+        self.api.db.update_row_main_table(key=1, google_metadata=md3)
+
+        # Check the row after update
+        r = self.api.db.get_main_row(1)
+        self.assertEqual(r.flags, MainFlags.default())
+        self.assertEqual(r.google_metadata, json.dumps(md3))
+        self.assertIsNone(r.metadata)
+        self.assertEqual(r.datetime, dt)
+
+        # Check datetime
+        self.api.db.update_row_main_table(key=1, google_metadata=None, datetime=dt_change)
+
+        # Check the row after update
+        r = self.api.db.get_main_row(1)
+        self.assertEqual(r.flags, MainFlags.default())
+        self.assertIsNone(r.google_metadata)
+        self.assertIsNone(r.metadata)
+        self.assertEqual(r.datetime, dt_change)
+
+        # Check flags
+        self.api.db.update_row_main_table(key=1, datetime=dt, flags=new_flags)
+
+        # Check the row after update
+        r = self.api.db.get_main_row(1)
+        self.assertEqual(r.flags, new_flags)
+        self.assertIsNone(r.google_metadata)
+        self.assertIsNone(r.metadata)
+        self.assertEqual(r.datetime, dt)
+
     # TODO test import status
-    #   update_row_main_table
     #   update_row_metadata_table
 
     # ==================================================================================================================
