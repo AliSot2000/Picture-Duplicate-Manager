@@ -1907,12 +1907,12 @@ class PhotoDB(BaseSQliteDB):
         kwargs. If a kwargs is None, the column of that row will be set to NULL!!!
         All possible kwargs are:
 
-        original_dirname: str
-        naming_tag: str
-        datetime_source: DateTimeSource
-        gps_location: int
-        db_dir: int
-        replaced: MediaType
+        - original_dirname: str
+        - naming_tag: str
+        - datetime_source: DateTimeSource
+        - gps_location: int
+        - db_dir: int
+        - replaced: MediaType
         """
         given = set(kwargs.keys())
         all_cols = {"original_dirname", "naming_tag", "datetime_source", "gps_location", "db_dir", "replaced"}
