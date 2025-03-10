@@ -2900,3 +2900,7 @@ class PhotoDB(BaseSQliteDB):
         Convert a list of dir names into a json list which can be inserted into the database.
         """
         return json.dumps(dir_names).replace("'", "''")
+
+    # ==================================================================================================================
+    # Debug and Testing functions
+    # ==================================================================================================================
