@@ -1976,8 +1976,9 @@ class PhotoDB(BaseSQliteDB):
         if res is None:
             return None
 
-        mk, ofd, nt, _dts, rep, db_ld, gps_lat, gps_long = res
+        mk, ofd, nt, _dts, _rep, db_ld, gps_lat, gps_long = res
         dts = DateTimeSource(_dts)
+        rep= MediaType(_rep)
         return MetadataRow(main_key=mk, original_dirname=ofd, naming_tag=nt, datetime_source=dts,
                            replaced=rep, db_local_dir=db_ld, gps_lat=gps_lat, gps_long=gps_long)
 
