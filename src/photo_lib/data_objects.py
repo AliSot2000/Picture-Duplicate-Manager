@@ -165,7 +165,7 @@ class MetadataRow:
     original_dirname: str
     naming_tag: str
     datetime_source: DateTimeSource
-    replaced: int # can be  0, 1, 2
+    replaced: MediaType # can be  0, 1, 2
 
     db_local_dir: Optional[str] = None
     gps_lat: Optional[float] = None
