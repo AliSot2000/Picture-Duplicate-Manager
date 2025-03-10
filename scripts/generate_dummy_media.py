@@ -439,7 +439,7 @@ if __name__ == '__main__':
                                "EXIF:GPSAltitudeRef": 0,
                                "EXIF:ModifyDate": cd4.strftime("%Y:%m:%d %H:%M:%S")})
 
-    create_media("Test File with GPS 4",
+    create_media("Test File with GPS 4, Johannesburg",
                  created=cd5,
                  dst=os.path.join(import_test_dir, "23_gps_metadata.jpg"),
                  tag_override={"EXIF:GPSLatitude": 28.4792625,
