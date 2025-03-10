@@ -964,8 +964,81 @@ class TestAPIPerformImport(unittest.TestCase):
         self.assertIsNone(r.metadata)
         self.assertEqual(r.datetime, dt)
 
-    # TODO test import status
-    #   update_row_metadata_table
+    def test_update_row_metadata_table_errors(self):
+        """
+        Check the correct errors are raised during the call of update_row_metadata_table
+        """
+        self.api.db.insert_row_metadata_table(key=1,
+                                              original_dirname="/foo/bar/baz",
+                                              naming_tag="File:AccessDate",
+                                              datetime_source=DateTimeSource.FILE_AWARE)
+
+        # Check not supported tag
+        self.assertRaises(ValueError, lambda : self.api.db.update_row_metadata_table(key=1, some_tag="Value"))
+
+        # check not supported type
+        self.assertRaises(TypeError, lambda : self.api.db.update_row_metadata_table(key=1,
+                                                                                    datetime_source="FILE_AWARE"))
+
+        self.assertRaises(TypeError, lambda : self.api.db.update_row_metadata_table(key=1,
+                                                                                    replaced="MAIN"))
+        self.assertRaises(ValueError, lambda : self.api.db.update_row_metadata_table(key=1,
+                                                                                     original_dirname="/foo/bar/baz"))
+
+    def test_update_row_metadata_table_success(self):
+        """
+        Check the updating process is working correctly.
+        """
+        self.api.db.insert_row_metadata_table(key=1,
+                                              original_dirname="/foo/bar/baz",
+                                              naming_tag="File:AccessDate",
+                                              datetime_source=DateTimeSource.FILE_AWARE)
+
+        # Check everything is the way we expect
+        mdr = self.api.db.get_metadata_row(key=1)
+        self.assertEqual(mdr.replaced, MediaType.MAIN)
+        self.assertEqual(mdr.main_key, 1)
+        self.assertEqual(mdr.datetime_source, DateTimeSource.FILE_AWARE)
+        self.assertEqual(mdr.naming_tag, "File:AccessDate")
+        self.assertEqual(mdr.original_dirname, "/foo/bar/baz")
+
+        self.assertIsNone(mdr.gps_lat)
+        self.assertIsNone(mdr.gps_long)
+        self.assertIsNone(mdr.db_local_dir)
+
+        gps_key = self.api.db.insert_get_gps_loc(9.876543, 1.234567)
+        dir_key = self.api._insert_get_dir("insert/second/dir")
+
+        self.api.db.update_row_metadata_table(key=1, gps_location=gps_key, db_dir=dir_key)
+
+        # Check that everything was set correctly
+        mdr = self.api.db.get_metadata_row(key=1)
+        self.assertEqual(mdr.replaced, MediaType.MAIN)
+        self.assertEqual(mdr.main_key, 1)
+        self.assertEqual(mdr.datetime_source, DateTimeSource.FILE_AWARE)
+        self.assertEqual(mdr.naming_tag, "File:AccessDate")
+        self.assertEqual(mdr.original_dirname, "/foo/bar/baz")
+
+        self.assertEqual(mdr.gps_lat, 9.876543)
+        self.assertEqual(mdr.gps_long, 1.234567)
+
+        self.assertEqual(mdr.db_local_dir, "insert/second/dir".split(os.sep))
+        # Update everything else and that works
+        self.api.db.update_row_metadata_table(1,
+                                              naming_tag="CUSTOM",
+                                              datetime_source=DateTimeSource.CUSTOM,
+                                              replaced=MediaType.TRASH)
+
+        mdr = self.api.db.get_metadata_row(key=1)
+        self.assertEqual(mdr.replaced, MediaType.TRASH)
+        self.assertEqual(mdr.main_key, 1)
+        self.assertEqual(mdr.datetime_source, DateTimeSource.CUSTOM)
+        self.assertEqual(mdr.naming_tag, "CUSTOM")
+        self.assertEqual(mdr.original_dirname, "/foo/bar/baz")
+
+        self.assertEqual(mdr.gps_lat, 9.876543)
+        self.assertEqual(mdr.gps_long, 1.234567)
+        self.assertEqual(mdr.db_local_dir, "insert/second/dir".split(os.sep))
 
     # ==================================================================================================================
     # Check paths
