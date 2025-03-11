@@ -173,13 +173,13 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         tbl = self.api.prepare_directory_for_import(source_dir=self.import_source)
         tbl_size = self.api.db.get_size_of_single_import_table(tbl)
 
-        self.assertEqual(tbl_size, 154)
+        self.assertEqual(tbl_size, 157)
 
         # Test empty append
         self.api.prepare_directory_for_import(source_dir=self.import_source, append=True, tbl_name=tbl)
         tbl_size_1 = self.api.db.get_size_of_single_import_table(tbl)
 
-        self.assertEqual(tbl_size_1, 154)
+        self.assertEqual(tbl_size_1, 157)
 
         # Directory to copy.
         allowed_test = os.path.join(self.media_source, "import_base_dir")
@@ -191,7 +191,7 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         self.api.prepare_directory_for_import(source_dir=self.import_source, append=True, tbl_name=tbl)
         table_size_2 = self.api.db.get_size_of_single_import_table(tbl)
 
-        self.assertEqual(table_size_2, 158)
+        self.assertEqual(table_size_2, 161)
 
     def test_allowed_ext_override(self):
         """
@@ -220,12 +220,12 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         self.api.prepare_directory_for_import(source_dir=self.import_source, purge=True, tbl_name=tbl)
 
         # Check the size after the first run
-        self.assertEqual(154, self.api.db.get_size_of_single_import_table(tbl))
+        self.assertEqual(157, self.api.db.get_size_of_single_import_table(tbl))
 
         tbl = self.api.prepare_directory_for_import(source_dir=self.import_source, purge=True, tbl_name=tbl)
 
         # Number should be the same
-        self.assertEqual(154, self.api.db.get_size_of_single_import_table(tbl))
+        self.assertEqual(157, self.api.db.get_size_of_single_import_table(tbl))
 
         # Change the directory. New number should be reflected
         shutil.rmtree(self.import_source)
