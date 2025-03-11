@@ -1549,33 +1549,36 @@ class TestAPIPerformImport(unittest.TestCase):
             "1990-07-01T12-01-01_0122_7_62.png",
             "1990-07-01T12-01-02_0123_7_63.png",
             "1990-07-01T12-01-03_0124_7_64.png",
-            "1990-09-01T12-00-00_0128_01_match_a.png",                      # Needed for hash based matching (change filename)
-            "1990-09-01T13-01-00_0129_02_match_a.png",                      # Needed for hash based matching (change filename)
-            "1990-09-01T14-01-00_0130_03_match_a.png",                      # Needed for hash based matching (change filename)
-            "1990-10-01T12-00-00_0134_01_Binary_Match_Main.png",            # Needed for matching algo during import
-            "1990-10-01T12-00-01_0137_01_Hash_Match_Main.png",              # Needed for matching algo during import
-            "1990-10-01T12-00-02_0135_01_Binary_Match_Trash.png",           # Needed for matching algo during import
-            "1990-10-01T12-00-03_0138_01_Hash_Match_Trash.png",             # Needed for matching algo during import
-            "1990-10-01T12-00-04_0133_01_Binary_Match_Duplicates.png",      # Needed for matching algo during import
-            "1990-10-01T12-00-05_0136_01_Hash_Match_Duplicates.png",        # Needed for matching algo during import
-            "1990-10-02T12-00-01_0142_02_Hash_Match_Main.png",              # Needed for matching algo during import
-            "1990-10-02T12-00-02_0140_02_Binary_Match_Trash.png",           # Needed for matching algo during import
-            "1990-10-02T12-00-03_0143_02_Hash_Match_Trash.png",             # Needed for matching algo during import
-            "1990-10-02T12-00-04_0139_02_Binary_Match_Duplicates.png",      # Needed for matching algo during import
-            "1990-10-02T12-00-05_0141_02_Hash_Match_Duplicates.png",        # Needed for matching algo during import
-            "1990-10-03T12-00-02_0145_03_Binary_Match_Trash.png",           # Needed for matching algo during import
-            "1990-10-03T12-00-03_0147_03_Hash_Match_Trash.png",             # Needed for matching algo during import
-            "1990-10-03T12-00-04_0144_03_Binary_Match_Duplicates.png",      # Needed for matching algo during import
-            "1990-10-03T12-00-05_0146_03_Hash_Match_Duplicates.png",        # Needed for matching algo during import
-            "1990-10-04T12-00-03_0150_04_Hash_Match_Trash.png",             # Needed for matching algo during import
-            "1990-10-04T12-00-04_0148_04_Binary_Match_Duplicates.png",      # Needed for matching algo during import
-            "1990-10-04T12-00-05_0149_04_Hash_Match_Duplicates.png",        # Needed for matching algo during import
-            "1990-10-05T12-00-04_0151_05_Binary_Match_Duplicates.png",      # Needed for matching algo during import
-            "1990-10-05T12-00-05_0152_05_Hash_Match_Duplicates.png",        # Needed for matching algo during import
-            "1990-10-06T12-00-05_0153_06_Hash_Match_Duplicates.png",        # Needed for matching algo during import
-            "1990-10-07T12-00-00_0154_07_Duplicate_Target.png",             # Needed for matching algo during import
-            "1990-11-01T12-00-00_0131_10_no_metadata.jpg",                  # Needed to test add exif tag
-            "1990-11-01T12-00-01_0132_20_gps_metadata.jpg"                  # Needed to test gps parsing
+            "1990-09-01T12-00-00_0128_01_match_a.png",                  # Needed for hash based matching (change filename)
+            "1990-09-01T13-01-00_0129_02_match_a.png",                  # Needed for hash based matching (change filename)
+            "1990-09-01T14-01-00_0130_03_match_a.png",                  # Needed for hash based matching (change filename)
+            "1990-10-01T12-00-00_0137_01_Binary_Match_Main.png",        # Needed for matching algo during import
+            "1990-10-01T12-00-01_0140_01_Hash_Match_Main.png",          # Needed for matching algo during import
+            "1990-10-01T12-00-02_0138_01_Binary_Match_Trash.png",       # Needed for matching algo during import
+            "1990-10-01T12-00-03_0141_01_Hash_Match_Trash.png",         # Needed for matching algo during import
+            "1990-10-01T12-00-04_0136_01_Binary_Match_Duplicates.png",  # Needed for matching algo during import
+            "1990-10-01T12-00-05_0139_01_Hash_Match_Duplicates.png",    # Needed for matching algo during import
+            "1990-10-02T12-00-01_0145_02_Hash_Match_Main.png",          # Needed for matching algo during import
+            "1990-10-02T12-00-02_0143_02_Binary_Match_Trash.png",       # Needed for matching algo during import
+            "1990-10-02T12-00-03_0146_02_Hash_Match_Trash.png",         # Needed for matching algo during import
+            "1990-10-02T12-00-04_0142_02_Binary_Match_Duplicates.png",  # Needed for matching algo during import
+            "1990-10-02T12-00-05_0144_02_Hash_Match_Duplicates.png",    # Needed for matching algo during import
+            "1990-10-03T12-00-02_0148_03_Binary_Match_Trash.png",       # Needed for matching algo during import
+            "1990-10-03T12-00-03_0150_03_Hash_Match_Trash.png",         # Needed for matching algo during import
+            "1990-10-03T12-00-04_0147_03_Binary_Match_Duplicates.png",  # Needed for matching algo during import
+            "1990-10-03T12-00-05_0149_03_Hash_Match_Duplicates.png",    # Needed for matching algo during import
+            "1990-10-04T12-00-03_0153_04_Hash_Match_Trash.png",         # Needed for matching algo during import
+            "1990-10-04T12-00-04_0151_04_Binary_Match_Duplicates.png",  # Needed for matching algo during import
+            "1990-10-04T12-00-05_0152_04_Hash_Match_Duplicates.png",    # Needed for matching algo during import
+            "1990-10-05T12-00-04_0154_05_Binary_Match_Duplicates.png",  # Needed for matching algo during import
+            "1990-10-05T12-00-05_0155_05_Hash_Match_Duplicates.png",    # Needed for matching algo during import
+            "1990-10-06T12-00-05_0156_06_Hash_Match_Duplicates.png",    # Needed for matching algo during import
+            "1990-10-07T12-00-00_0157_07_Duplicate_Target.png",         # Needed for matching algo during import
+            "1990-11-01T12-00-00_0131_10_no_metadata.jpg",              # Needed to test add exif tag
+            "1990-11-01T12-00-01_0132_20_gps_metadata.jpg",             # Needed to test gps parsing
+            "1990-11-01T12-00-02_0133_21_gps_metadata.jpg",             # Needed to test gps parsing
+            "1990-11-01T12-00-03_0134_22_gps_metadata.jpg",             # Needed to test gps parsing
+            "1990-11-01T12-00-04_0135_23_gps_metadata.jpg",             # Needed to test gps parsing
         ]
 
         for file in files:
