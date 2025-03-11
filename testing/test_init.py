@@ -16,7 +16,7 @@ test_scratch = os.path.join(os.path.dirname(__file__), "scratch")
 
 
 class BaseInit(unittest.TestCase):
-    def setUp(self):
+    def setUp(self):  # pragma: no cover
         """
         Clear out the scratch directory for testing and create a new one
         """
@@ -29,7 +29,7 @@ class BaseInit(unittest.TestCase):
             print(f"Making Test Directory")
             os.makedirs(test_scratch)
 
-    def tearDown(self):
+    def tearDown(self):  # pragma: no cover
         """
         Remove the scratch directory for testing
         """
