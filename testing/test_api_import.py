@@ -24,7 +24,7 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
     api: Optional[PhotoAPI] = None
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # pragma: no cover
         cls.shadow_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "shadow_db"))
         cls.temp_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "test_db"))
         cls.media_source = os.path.join(os.path.dirname(__file__), "test_file_out")
@@ -48,7 +48,7 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         db.cleanup(fast=True)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls):  # pragma: no cover
         # Class teardown is the removing of the shadow db
         path = cls.shadow_db
 
@@ -59,7 +59,7 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         delattr(cls, "media_source")
         delattr(cls, "import_source")
 
-    def setUp(self):
+    def setUp(self):  # pragma: no cover
         """
         Setup function creates a fresh instance of the db to run the tests against
         """
@@ -81,7 +81,7 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         self.api = PhotoAPI(root_path=self.temp_db,
                             init=False, init_loggers=False)
 
-    def tearDown(self):
+    def tearDown(self):  # pragma: no cover
         """
         Remove the local instance of the db.
         """
@@ -350,7 +350,7 @@ class TestAPIPerformImport(unittest.TestCase):
     tgt_table: Optional[str] = None
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # pragma: no cover
         cls.shadow_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "shadow_db"))
         cls.temp_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "test_db"))
         cls.media_source = os.path.join(os.path.dirname(__file__), "test_file_out")
@@ -378,7 +378,7 @@ class TestAPIPerformImport(unittest.TestCase):
         db.cleanup()
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls):  # pragma: no cover
         # Class teardown is the removing of the shadow db
         path = cls.shadow_db
 
@@ -390,7 +390,7 @@ class TestAPIPerformImport(unittest.TestCase):
         delattr(cls, "import_source")
         delattr(cls, "tbl_dump_dir")
 
-    def setUp(self):
+    def setUp(self):  # pragma: no cover
         """
         Setup function creates a fresh instance of the db to run the tests against
         """
@@ -408,7 +408,7 @@ class TestAPIPerformImport(unittest.TestCase):
                             init_loggers=False,
                             init=False)
 
-    def tearDown(self):
+    def tearDown(self):  # pragma: no cover
         """
         Remove the local instance of the db.
         """
