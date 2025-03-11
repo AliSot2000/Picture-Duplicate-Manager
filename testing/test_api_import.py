@@ -477,6 +477,7 @@ class TestAPIPerformImport(unittest.TestCase):
         paths = rec_list_all(self.temp_db)
         rel_paths = [p.removeprefix(self.api.root_path).removeprefix(os.sep) for p in paths]
 
+        self.check_custom_dir_table_dump()
         self.check_rel_custom_dir(rel_paths=rel_paths, custom_target_dir=rel_path)
 
     def test_correct_paths_abs(self):
@@ -500,6 +501,7 @@ class TestAPIPerformImport(unittest.TestCase):
         rel_paths = [p.removeprefix(self.api.root_path).removeprefix(os.sep) for p in paths]
 
         self.check_rel_custom_dir(rel_paths=rel_paths, custom_target_dir=rel_path)
+        self.check_custom_dir_table_dump()
         self.assertEqual(self.api.db.get_db_dir_count(), 1)
 
     def test_correct_paths_abs_append_file_name(self):
@@ -525,6 +527,7 @@ class TestAPIPerformImport(unittest.TestCase):
         rel_paths = [p.removeprefix(self.api.root_path).removeprefix(os.sep) for p in paths]
 
         self.check_append_filename(rel_paths=rel_paths, custom_target_dir=rel_path)
+        self.check_custom_dir_append_fname_dump()
 
         # Check the db_dirs contains one entry
         self.assertEqual(self.api.db.get_db_dir_count(), 1)
@@ -563,6 +566,7 @@ class TestAPIPerformImport(unittest.TestCase):
         rel_paths = [p.removeprefix(self.api.root_path).removeprefix(os.sep) for p in paths]
 
         self.check_dynamic_dirs(rel_paths)
+        self.check_dyn_table_dump()
 
     def test_adding_exif_metadata(self):
         """
