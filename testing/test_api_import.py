@@ -3,7 +3,7 @@ import json
 import os.path
 import shutil
 import unittest
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from zoneinfo import ZoneInfo
 
 from photo_lib.custom_enum import Allowed, MediaType
