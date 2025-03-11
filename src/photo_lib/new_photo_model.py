@@ -1689,11 +1689,12 @@ class PhotoAPI:
 
         self.db.commit()
 
-    # TODO params if selected from exif_parsing_results
     def change_datetime(self,
                         key: int,
                         tag: str | List[Union[str, int]] | DoubleKey,
                         dts: DateTimeSource,
+                        gps_lat: float = None,
+                        gps_long: float = None,
                         new_dt: datetime.datetime = None,
                         rename: bool = True,
                         add_exif_tag: bool = None):
@@ -1707,6 +1708,8 @@ class PhotoAPI:
         :param new_dt: new datetime object. (should have an utc offset)
         :param tag: tag of image to use for update.
         :param dts: date time source (where the new datetime is coming from)
+        :param gps_lat: GPS Latitude in decimal format
+        :param gps_long: GPS Longitude in decimal format
         :param rename: Rename image if True.
         :param add_exif_tag: If true, will add exif_tag to the file. If None, default taken from config.
         """
@@ -1736,6 +1739,8 @@ class PhotoAPI:
         else:
             # INFO: Updates the key_to_filepath_cache
             self._internal_move_file(new_datetime=new_dt, key=key, flags=flags, dt=dt, db_local_dir=db_local_dir, dbn=db_name)
+
+        self._handle_gps_import(gps_lat=gps_lat, gps_long=gps_long, main_key=key)
 
         self.db.update_row_main_table(key=key, datetime=new_dt, db_name=new_name, timezone=timezone)
 
