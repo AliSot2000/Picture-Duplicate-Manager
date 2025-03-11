@@ -1,0 +1,22 @@
+[
+    {
+        "key": 1,
+        "gps_latitude": 47.36865,
+        "gps_longitude": 8.539183
+    },
+    {
+        "key": 2,
+        "gps_latitude": 40.73061,
+        "gps_longitude": -73.935242
+    },
+    {
+        "key": 3,
+        "gps_latitude": -29.90453,
+        "gps_longitude": -71.24894
+    },
+    {
+        "key": 4,
+        "gps_latitude": -28.4792625,
+        "gps_longitude": 24.6727134999667
+    }
+]
