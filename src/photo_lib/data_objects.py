@@ -157,7 +157,7 @@ class Selection:
                 self.start = start
                 self.end = _end
 
-        else:
+        else:  # pragma: no cover
             raise ImplementationError("Unhandled Enum Case of SelectionType")
 
 
