@@ -2549,7 +2549,7 @@ class PhotoAPI:
         except cv2.error as e:
             self.main_logger.exception(f"OpenCV encountered an error while generating the thumbnail for {in_path}",
                                        exc_info=e)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             self.main_logger.exception(f"Unexpected Exception while generating thumbnail: {e}", exc_info=e)
 
         return False
@@ -2579,7 +2579,7 @@ class PhotoAPI:
                                   f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
             return False
 
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             self.main_logger.exception(f"Unexpected Exception while Probing File: {in_path}", exc_info=e)
             return False
 
