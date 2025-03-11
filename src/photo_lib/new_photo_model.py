@@ -1542,6 +1542,7 @@ class PhotoAPI:
 
         return count
 
+    # TODO may not delete directory that is in the dir_table
     def _internal_prune_fs_dir(self) -> int:
         """
         Internal function to prune file system directories. Needs to be called recursively to check
