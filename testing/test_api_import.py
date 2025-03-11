@@ -355,6 +355,7 @@ class TestAPIPerformImport(unittest.TestCase):
         cls.temp_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "test_db"))
         cls.media_source = os.path.join(os.path.dirname(__file__), "test_file_out")
         cls.import_source = os.path.join(os.path.dirname(__file__), "scratch")
+        cls.tbl_dump_dir = os.path.join(os.path.dirname(__file__), "db_dump", "import")
 
         # Check the input files are present
         if not os.path.exists(os.path.join(os.path.dirname(__file__), "test_file_out")):
@@ -387,6 +388,7 @@ class TestAPIPerformImport(unittest.TestCase):
         delattr(cls, "temp_db")
         delattr(cls, "media_source")
         delattr(cls, "import_source")
+        delattr(cls, "tbl_dump_dir")
 
     def setUp(self):
         """
