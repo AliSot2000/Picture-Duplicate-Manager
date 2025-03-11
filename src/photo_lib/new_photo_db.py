@@ -2905,3 +2905,147 @@ class PhotoDB(BaseSQliteDB):
     # ==================================================================================================================
     # Debug and Testing functions
     # ==================================================================================================================
+
+    def dump_hashes_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute("SELECT key, hash FROM hashes ORDER BY key")
+        return [{"key": row[0], "hash": row[1]} for row in self.sq_cur]
+
+    def dump_db_dir_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute("SELECT key, db_local_dir FROM db_dir ORDER BY key")
+        return [{"key": row[0], "db_local_dir": row[1]} for row in self.sq_cur]
+
+    def dump_gps_location_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute("SELECT key, gps_latitude, gps_longitude FROM gps_location ORDER BY key")
+        return [{"key": row[0], "gps_latitude": row[1], "gps_longitude": row[2]} for row in self.sq_cur]
+
+    def dump_main_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute(
+            "SELECT key, original_filename, metadata, google_metadata, datetime, db_name, parent, timezone, flags "
+            "FROM main ORDER BY key")
+        return [{"key": row[0],
+                 "original_filename": row[1],
+                 "metadata": row[2],
+                 "google_metadata": row[3],
+                 "datetime": row[4],
+                 "db_name": row[5],
+                 "parent": row[6],
+                 "timezone": row[7],
+                 "flags": row[8]
+                 } for row in self.sq_cur]
+
+    def dump_hash_assoz_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute(
+            "SELECT hash_key, file_key, file_size_bytes, hash_date, initial FROM hash_assoz "
+            "ORDER BY hash_key, file_key, hash_date")
+        return [{"hash_key": row[0],
+                 "file_key": row[1],
+                 "file_size_bytes": row[2],
+                 "hash_date": row[3],
+                 "initial": row[4],
+                 } for row in self.sq_cur]
+
+    def dump_metadata_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute(
+            "SELECT main_key, original_dirname, naming_tag, gps_location, db_dir, datetime_source, replaced "
+            "FROM metadata ORDER BY main_key")
+        return [{"main_key": row[0],
+                 "original_dirname": row[1],
+                 "naming_tag": row[2],
+                 "gps_location": row[3],
+                 "db_dir": row[4],
+                 "datetime_source": row[5],
+                 "replaced": row[6]
+                 } for row in self.sq_cur]
+
+    def dump_known_duplicates_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute(
+            "SELECT key_a, key_b, delta FROM known_duplicates ORDER BY main_key")
+        return [{"key_a": row[0],
+                 "key_b": row[1],
+                 "delta": row[2],
+                 } for row in self.sq_cur]
+
+    def dump_duplicates_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute(
+            "SELECT key_a, key_b, delta FROM known_duplicates ORDER BY main_key")
+        return [{"key_a": row[0],
+                 "key_b": row[1],
+                 "delta": row[2],
+                 } for row in self.sq_cur]
+
+    def dump_presence_table_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute(
+            "SELECT main_key, message FROM presence_table ORDER BY main_key")
+        return [{"main_key": row[0],
+                 "message": row[1],
+                 } for row in self.sq_cur]
+
+    def dump_hash_update_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute(
+            "SELECT main_key, new_hash, file_size_bytes FROM hash_update_table ORDER BY main_key")
+        return [{"main_key": row[0],
+                 "new_hash": row[1],
+                 "file_size_bytes": row[2],
+                 } for row in self.sq_cur]
+
+    def dump_name_update_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute(
+            "SELECT key, name, dir_name, file_size_bytes, hash, matches, best_match, match_type, updated, message "
+            "FROM name_update_table ORDER BY key")
+        return [{"key": row[0],
+                 "name": row[1],
+                 "dir_name": row[2],
+                 "file_size_bytes": row[3],
+                 "hash": row[4],
+                 "matches": row[5],
+                 "best_match": row[6],
+                 "match_type": row[7],
+                 "updated": row[8],
+                 "message": row[9]
+                 } for row in self.sq_cur]
+
+    def dump_import_table(self) -> List[Dict[str, Any]]:
+        """
+        Dumps the entire table to a list of dicts
+        """
+        self.debug_execute(
+            "SELECT key, root_path, table_name, table_description, flags FROM import_table ORDER BY key")
+        return [{"key": row[0],
+                 "root_path": row[1],
+                 "table_name": row[2],
+                 "table_description": row[3],
+                 "flags": row[4]
+                 } for row in self.sq_cur]
