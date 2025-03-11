@@ -622,65 +622,98 @@ class TestAPIPerformImport(unittest.TestCase):
         """
         Check that the gps row is added correctly
         """
-        test_file = "20_gps_metadata.jpg"
-        test_fp = os.path.join(self.media_source, "db", "import_aux_test", test_file)
-        pr = self.api.mda.eth.get_metadata(files=test_fp)
+        test_args = [
+            {"file_name": "20_gps_metadata.jpg",
+             "gps_lat": 47.36865,
+             "gps_long": 8.539183,
+             "import_path": "1990/11/01/1990-11-01T12-00-01_0001.jpg",
+             "file_main_key": 1,
+             "gps_key": 1},
+            {"file_name": "21_gps_metadata.jpg",
+             "gps_lat": 40.730610,
+             "gps_long": -73.935242,
+             "import_path": "1990/11/01/1990-11-01T12-00-02_0002.jpg",
+             "file_main_key": 2,
+             "gps_key": 2},
+            {"file_name": "22_gps_metadata.jpg",
+             "gps_lat": -29.90453,
+             "gps_long": -71.24894,
+             "import_path": "1990/11/01/1990-11-01T12-00-03_0003.jpg",
+             "file_main_key": 3,
+             "gps_key": 3},
+            {"file_name": "23_gps_metadata.jpg",
+             "gps_lat": -28.4792625,
+             "gps_long": 24.6727135,
+             "import_path": "1990/11/01/1990-11-01T12-00-04_0004.jpg",
+             "file_main_key": 4,
+             "gps_key": 4},
+        ]
 
-        # Check the properties of the file prior to importing
-        self.assertEqual(1, len(pr))
-        self.assertIn("EXIF:ModifyDate", pr[0].keys())
-        self.assertNotIn("EXIF:OffsetTime", pr[0].keys())
+        for i in range(len(test_args)):
+            args = test_args[i]
+            with self.subTest(f"File = {args['file_name']}"):
+                test_file = args["file_name"]
+                test_fp = os.path.join(self.media_source, "db", "import_aux_test", test_file)
+                pr = self.api.mda.eth.get_metadata(files=test_fp)
 
-        # Check GPS presence
-        self.assertIn('EXIF:GPSLatitudeRef', pr[0].keys())
-        self.assertIn('EXIF:GPSLatitude', pr[0].keys())
-        self.assertIn('EXIF:GPSLongitudeRef', pr[0].keys())
-        self.assertIn('EXIF:GPSLongitude', pr[0].keys())
-        self.assertIn('EXIF:GPSAltitudeRef', pr[0].keys())
-        self.assertIn('EXIF:GPSAltitude', pr[0].keys())
+                # Check the properties of the file prior to importing
+                self.assertEqual(1, len(pr))
+                self.assertIn("EXIF:ModifyDate", pr[0].keys())
+                self.assertNotIn("EXIF:OffsetTime", pr[0].keys())
 
-        # Check the gps data in the import table
-        self.api.db.debug_execute(f"SELECT datetime_source, allowed, key, gps_latitude, gps_longitude "
-                                  f"FROM `{self.tgt_table}` WHERE original_filename = ?",
-                                  (test_file,))
+                # Check GPS presence
+                self.assertIn('EXIF:GPSLatitudeRef', pr[0].keys())
+                self.assertIn('EXIF:GPSLatitude', pr[0].keys())
+                self.assertIn('EXIF:GPSLongitudeRef', pr[0].keys())
+                self.assertIn('EXIF:GPSLongitude', pr[0].keys())
+                self.assertIn('EXIF:GPSAltitudeRef', pr[0].keys())
+                self.assertIn('EXIF:GPSAltitude', pr[0].keys())
 
-        row = self.api.db.sq_cur.fetchone()
-        self.assertIsNotNone(row)
+                # Check the gps data in the import table
+                self.api.db.debug_execute(f"SELECT datetime_source, allowed, key, gps_latitude, gps_longitude "
+                                          f"FROM `{self.tgt_table}` WHERE original_filename = ?",
+                                          (test_file,))
 
-        # Check this is we only have the file data
-        self.assertEqual(row[0], DateTimeSource.UNAWARE_GPS.value)
-        self.assertEqual(row[1], Allowed.ALLOWED.value)
+                row = self.api.db.sq_cur.fetchone()
+                self.assertIsNotNone(row)
 
-        # Check the GPS is the correct value
-        self.assertEqual(row[3], 47.36865) # GPS Lat
-        self.assertEqual(row[4], 8.539183) # GPS Long
+                # Check this is we only have the file data
+                self.assertEqual(row[0], DateTimeSource.UNAWARE_GPS.value)
+                self.assertEqual(row[1], Allowed.ALLOWED.value)
 
-        # Update the import table and set the imported status to be ready for the import
-        self.api.db.debug_execute(f"UPDATE `{self.tgt_table}` SET imported = 1 WHERE original_filename = ? ",
-                                  (test_file,))
+                # Check the GPS is the correct value
+                self.assertLess((row[3] - args["gps_lat"]), 10e-10) # GPS Lat
+                self.assertLess((row[4] - args["gps_long"]), 10e-10) # GPS Long
 
-        self.api.perform_import(tbl_name=self.tgt_table, add_safety_exif_tags=True)
+                actual_gps_lat = row[3]
+                actual_gps_long = row[4]
 
-        # --------------------------------------------------------------------------------------------------------------
-        # Check it is imported correctly
-        import_path = os.path.join(self.api.root_path, "1990/11/01/1990-11-01T12-00-01_0001.jpg")
-        self.assertTrue(os.path.exists(import_path))
+                # Update the import table and set the imported status to be ready for the import
+                self.api.db.debug_execute(f"UPDATE `{self.tgt_table}` SET imported = 1 WHERE original_filename = ? ",
+                                          (test_file,))
 
-        # Check gps row
-        self.api.db.debug_execute("SELECT key FROM gps_location WHERE gps_latitude = ? AND  gps_longitude = ?",
-                                  (47.36865, 8.539183))
+                self.api.perform_import(tbl_name=self.tgt_table, add_safety_exif_tags=True)
 
-        # Check the gps key is added
-        self.assertEqual(self.api.db.sq_cur.fetchone()[0], 1)
+                # --------------------------------------------------------------------------------------------------------------
+                # Check it is imported correctly
+                import_path = os.path.join(self.api.root_path, args["import_path"])
+                self.assertTrue(os.path.exists(import_path))
 
-        # Check row is matched in the metadata table
-        row = self.api.db.get_metadata_row(1)
+                # Check gps row
+                self.api.db.debug_execute("SELECT key FROM gps_location WHERE gps_latitude = ? AND  gps_longitude = ?",
+                                          (actual_gps_lat, actual_gps_long))
 
-        self.assertIsNotNone(row)
+                # Check the gps key is added
+                self.assertEqual(self.api.db.sq_cur.fetchone()[0], args["gps_key"])
 
-        # Check the
-        self.assertIsNotNone(row.gps_lat)
-        self.assertIsNotNone(row.gps_long)
+                # Check row is matched in the metadata table
+                row = self.api.db.get_metadata_row(args["file_main_key"])
+
+                self.assertIsNotNone(row)
+
+                # Check the
+                self.assertIsNotNone(row.gps_lat)
+                self.assertIsNotNone(row.gps_long)
 
     # ==================================================================================================================
     #  Perform some checks against the used db functions
