@@ -1617,12 +1617,13 @@ class PhotoAPI:
     # UI Functions
     # ==================================================================================================================
 
-    # TODO add gps option
     def modify_timezone(self,
                         key: int,
                         _target_tz: ZoneInfo | str | datetime.timedelta,
                         rename: bool = True,
                         replace: bool = False,
+                        gps_lat: float = None,
+                        gps_long: float = None,
                         add_exif_tag: bool = None):
         """
         If a custom directory is set, the file isn't moved, if the file is in the default directory, the file is moved.
@@ -1636,6 +1637,8 @@ class PhotoAPI:
         :param _target_tz: Target timezone of the file.
         :param rename: If true, will rename the file in the main table.
         :param replace: If true, will replace the file in the main table.
+        :param gps_lat: GPS Latitude in decimal format
+        :param gps_long: GPS Longitude in decimal format
         :param add_exif_tag: If true, will add exif_tag to the file. If None, default taken from config.
         """
         if isinstance(_target_tz, ZoneInfo):
@@ -1683,6 +1686,8 @@ class PhotoAPI:
         if add_exif_tag or (add_exif_tag is None and self.config.add_safety_exif_tags):
             if dt != new_dt:
                 self._add_update_exif_tag(key=key, target_datetime=new_dt, file_path=self.resolve_key_to_path(key))
+
+        self._handle_gps_import(gps_lat=gps_lat, gps_long=gps_long, main_key=key)
 
         # Evicting lookup of old name to key
         if self.filename_to_key_cache.evict(arg=db_name):
