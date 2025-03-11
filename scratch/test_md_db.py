@@ -8,6 +8,11 @@ import sys
 from photo_lib.metadata_aggregator.new_metadata_aggregator import NewMetadataAggregator
 from photo_lib.sqlite_wrapper import BaseSQliteDB
 
+"""
+We use the two databases. The one which contains all google fotos metadata we got from the file system and the one we
+got from parsing all files with the exiftool and storing the parsing result.  
+"""
+
 logging_queue = mp.Queue()
 
 listener = handlers.QueueListener(logging_queue, logging.StreamHandler(sys.stderr))
