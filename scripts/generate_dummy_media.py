@@ -397,9 +397,9 @@ if __name__ == '__main__':
 
     cd1 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=0, tzinfo=cet)
     cd2 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=1, tzinfo=cet)
-    cd3 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=1, tzinfo=cet)
-    cd4 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=1, tzinfo=cet)
-    cd5 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=1, tzinfo=cet)
+    cd3 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=2, tzinfo=cet)
+    cd4 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=3, tzinfo=cet)
+    cd5 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=4, tzinfo=cet)
 
     create_media("Test File without any metadata",
                  created=cd1,
