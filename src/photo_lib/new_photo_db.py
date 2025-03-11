@@ -3,7 +3,7 @@ import json
 import logging
 import os.path
 import sys
-from typing import Set, Dict, List, Union, Tuple, Iterator
+from typing import Set, Dict, List, Union, Tuple, Iterator, Any
 
 from photo_lib.config import Config
 from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus, NameUpdateStatus, \
