@@ -1060,7 +1060,8 @@ class TestAPIPerformImport(unittest.TestCase):
         rel_paths.remove(".photos.db")
 
         if wip:
-            print(json.dumps(rel_paths.sort(), indent=4))
+            rel_paths.sort()
+            print(json.dumps(rel_paths, indent=4))
 
         db_paths = [
             "1990/01/01/1990-01-01T12-00-00_0001.png",
@@ -1237,7 +1238,8 @@ class TestAPIPerformImport(unittest.TestCase):
         files = [p.removeprefix(custom_target_dir).removeprefix(os.sep) for p in rel_paths]
 
         if wip:
-            print(json.dumps(files.sort(), indent=4))
+            files.sort()
+            print(json.dumps(files, indent=4))
 
         db_files = [
             "1990-01-01T12-00-00_0001.png",
@@ -1413,7 +1415,8 @@ class TestAPIPerformImport(unittest.TestCase):
         files = [p.removeprefix(custom_target_dir).removeprefix(os.sep) for p in rel_paths]
 
         if wip:
-            print(json.dumps(files.sort(), indent=4))
+            files.sort()
+            print(json.dumps(files, indent=4))
 
         db_files = [
             "1990-01-01T12-00-00_0001_1_1.png",
