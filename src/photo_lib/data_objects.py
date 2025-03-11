@@ -148,11 +148,11 @@ class Selection:
                 assert end is None or duration is None, "Unexpected state"
 
                 if start.tzinfo is None:
-                    raise ValueError("timezone aware start required")
+                    raise TypeError("timezone aware start required")
 
                 _end = start + duration if duration is not None else end
                 if _end.tzinfo is None:
-                    raise ValueError("timezone aware end required")
+                    raise TypeError("timezone aware end required")
 
                 self.start = start
                 self.end = _end
