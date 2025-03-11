@@ -1623,3 +1623,129 @@ class TestAPIPerformImport(unittest.TestCase):
 
         for file in files:
             self.assertIn(file, db_files)
+
+    def load_dump_from_file(self, file: str) -> List[Dict[str, Any]]:
+        """
+        Load dump from file and return object
+
+        :param file: filename of dump in the tbl_dump_dir
+
+        :returns:
+        """
+        fp = os.path.join(self.tbl_dump_dir, file)
+        with open(fp, 'r') as f:
+            return json.load(f)
+
+    @staticmethod
+    def drop_unpredictable_col(tgt: List[Dict[str, Any]], col_name: List[str]):
+        """
+        Drop a given column from a table dump
+
+        :param tgt: Table dump to clean
+        :param col_name: Name of column to drop
+        """
+        for row in tgt:
+            for col in col_name:
+                row.pop(col)
+
+        return tgt
+
+    def check_dyn_table_dump(self):
+        """
+        Go through all tables that were modified during the operation and assert that they are correct.
+        """
+        # Main Table
+        cur_main_table = self.api.db.dump_main_table()
+        main_tbl = self.load_dump_from_file("main_table.json")
+
+        self.assertListEqual(self.drop_unpredictable_col(main_tbl, ["metadata", "google_metadata"]),
+                             self.drop_unpredictable_col(cur_main_table, ["metadata", "google_metadata"]))
+
+        # Metadata Table
+        cur_metadata_table = self.api.db.dump_metadata_table()
+        metadata_tbl = self.load_dump_from_file("dynamic_metadata_table.json")
+
+        self.assertListEqual(self.drop_unpredictable_col(metadata_tbl, ["original_dirname"]),
+                             self.drop_unpredictable_col(cur_metadata_table, ["original_dirname"]))
+
+        # Dir Table
+        cur_dir_table = self.api.db.dump_db_dir_table()
+        dir_table = []
+        self.assertListEqual(dir_table, cur_dir_table)
+
+        self.check_table_dump_common()
+
+    def check_custom_dir_table_dump(self):
+        """
+        Go through all tables that were modified during the operation and assert that they are correct.
+        """
+        # Main Table
+        cur_main_table = self.api.db.dump_main_table()
+        main_tbl = self.load_dump_from_file("main_table.json")
+
+        self.assertListEqual(self.drop_unpredictable_col(main_tbl, ["metadata", "google_metadata"]),
+                             self.drop_unpredictable_col(cur_main_table, ["metadata", "google_metadata"]))
+
+        # Metadata Table
+        cur_metadata_table = self.api.db.dump_metadata_table()
+        metadata_tbl = self.load_dump_from_file("custom_dir_metadata_table.json")
+
+        self.assertListEqual(self.drop_unpredictable_col(metadata_tbl, ["original_dirname"]),
+                             self.drop_unpredictable_col(cur_metadata_table, ["original_dirname"]))
+
+        # Dir Table
+        cur_dir_table = self.api.db.dump_db_dir_table()
+        dir_table = self.load_dump_from_file("custom_dir_dir_table.json")
+        self.assertListEqual(dir_table, cur_dir_table)
+
+        self.check_table_dump_common()
+
+    def check_custom_dir_append_fname_dump(self):
+        """
+        Go through all tables that were modified during the operation and assert that they are correct.
+        """
+        # Main Table
+        cur_main_table = self.api.db.dump_main_table()
+        main_tbl = self.load_dump_from_file("main_table_append_fname.json")
+
+        self.assertListEqual(self.drop_unpredictable_col(main_tbl, ["metadata", "google_metadata"]),
+                             self.drop_unpredictable_col(cur_main_table, ["metadata", "google_metadata"]))
+
+        # Metadata Table
+        cur_metadata_table = self.api.db.dump_metadata_table()
+        metadata_tbl = self.load_dump_from_file("custom_dir_metadata_table.json")
+
+        self.assertListEqual(self.drop_unpredictable_col(metadata_tbl, ["original_dirname"]),
+                             self.drop_unpredictable_col(cur_metadata_table, ["original_dirname"]))
+
+        # Dir Table
+        cur_dir_table = self.api.db.dump_db_dir_table()
+        dir_table = self.load_dump_from_file("custom_dir_dir_table.json")
+        self.assertListEqual(dir_table, cur_dir_table)
+
+        self.assertListEqual(dir_table, cur_dir_table)
+
+        self.check_table_dump_common()
+
+    def check_table_dump_common(self):
+        """
+        Go through all tables that were modified during the operation and assert that they are correct.
+        """
+        # GPS Table
+        cur_gps_table = self.api.db.dump_gps_location_table()
+        gps_table = self.load_dump_from_file("gps_table.json")
+
+        self.assertListEqual(gps_table, cur_gps_table)
+
+        # Hash Table
+        cur_hash_table = self.api.db.dump_hashes_table()
+        hash_table = self.load_dump_from_file("hash_table.json")
+
+        self.assertListEqual(hash_table, cur_hash_table)
+
+        # Hash assoz Table
+        cur_hash_assoz_table = self.api.db.dump_hash_assoz_table()
+        hash_assoz_table = self.load_dump_from_file("hash_assoz_table.json")
+
+        self.assertListEqual(self.drop_unpredictable_col(hash_assoz_table, ["hash_date"]),
+                             self.drop_unpredictable_col(cur_hash_assoz_table, ["hash_date"]))
