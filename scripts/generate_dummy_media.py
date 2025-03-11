@@ -158,109 +158,109 @@ if __name__ == '__main__':
             }
 
     import_matches = {
-        "01_Binary_Match_Main.png": {
+        "11_Binary_Match_Main.png": {
             "text": "Match Test, \nBinary Match Main",
             "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "01_Hash_Match_Main.png": {
+        "12_Hash_Match_Main.png": {
             "text": "Match Test, \nBinary Match Main",
-            "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=1, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "01_Binary_Match_Trash.png": {
+        "13_Binary_Match_Trash.png": {
             "text": "Match Test, \nBinary Match Main",
-            "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=2, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "01_Hash_Match_Trash.png": {
+        "14_Hash_Match_Trash.png": {
             "text": "Match Test, \nBinary Match Main",
-            "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=3, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "01_Binary_Match_Duplicates.png": {
+        "15_Binary_Match_Duplicates.png": {
             "text": "Match Test, \nBinary Match Main",
-            "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=4, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "01_Hash_Match_Duplicates.png": {
+        "16_Hash_Match_Duplicates.png": {
             "text": "Match Test, \nBinary Match Main",
-            "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=5, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=1, hour=12, minute=0, second=0, tzinfo=cet)
         },
 
-        "02_Hash_Match_Main.png": {
+        "21_Hash_Match_Main.png": {
             "text": "Match Test, \nHash Match Main",
-            "created": dt(year=1990, month=10, day=2, hour=12, minute=0, second=1, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=2, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "02_Binary_Match_Trash.png": {
+        "22_Binary_Match_Trash.png": {
             "text": "Match Test, \nHash Match Main",
-            "created": dt(year=1990, month=10, day=2, hour=12, minute=0, second=2, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=2, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "02_Hash_Match_Trash.png": {
+        "23_Hash_Match_Trash.png": {
             "text": "Match Test, \nHash Match Main",
-            "created": dt(year=1990, month=10, day=2, hour=12, minute=0, second=3, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=2, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "02_Binary_Match_Duplicates.png": {
+        "24_Binary_Match_Duplicates.png": {
             "text": "Match Test, \nHash Match Main",
-            "created": dt(year=1990, month=10, day=2, hour=12, minute=0, second=4, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=2, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "02_Hash_Match_Duplicates.png": {
+        "25_Hash_Match_Duplicates.png": {
             "text": "Match Test, \nHash Match Main",
-            "created": dt(year=1990, month=10, day=2, hour=12, minute=0, second=5, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=2, hour=12, minute=0, second=0, tzinfo=cet)
         },
 
-        "03_Binary_Match_Trash.png": {
+        "31_Binary_Match_Trash.png": {
             "text": "Match Test, \nBinary Match Trash",
-            "created": dt(year=1990, month=10, day=3, hour=12, minute=0, second=2, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=3, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "03_Hash_Match_Trash.png": {
+        "32_Hash_Match_Trash.png": {
             "text": "Match Test, \nBinary Match Trash",
-            "created": dt(year=1990, month=10, day=3, hour=12, minute=0, second=3, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=3, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "03_Binary_Match_Duplicates.png": {
+        "33_Binary_Match_Duplicates.png": {
             "text": "Match Test, \nBinary Match Trash",
-            "created": dt(year=1990, month=10, day=3, hour=12, minute=0, second=4, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=3, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "03_Hash_Match_Duplicates.png": {
+        "34_Hash_Match_Duplicates.png": {
             "text": "Match Test, \nBinary Match Trash",
-            "created": dt(year=1990, month=10, day=3, hour=12, minute=0, second=5, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=3, hour=12, minute=0, second=0, tzinfo=cet)
         },
 
-        "04_Hash_Match_Trash.png": {
+        "41_Hash_Match_Trash.png": {
             "text": "Match Test, \nHash Match Trash",
-            "created": dt(year=1990, month=10, day=4, hour=12, minute=0, second=3, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=4, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "04_Binary_Match_Duplicates.png": {
+        "42_Binary_Match_Duplicates.png": {
             "text": "Match Test, \nHash Match Trash",
-            "created": dt(year=1990, month=10, day=4, hour=12, minute=0, second=4, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=4, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "04_Hash_Match_Duplicates.png": {
+        "43_Hash_Match_Duplicates.png": {
             "text": "Match Test, \nHash Match Trash",
-            "created": dt(year=1990, month=10, day=4, hour=12, minute=0, second=5, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=4, hour=12, minute=0, second=0, tzinfo=cet)
         },
 
-        "05_Binary_Match_Duplicates.png": {
+        "51_Binary_Match_Duplicates.png": {
             "text": "Match Test, \nBinary Match Duplicates",
-            "created": dt(year=1990, month=10, day=5, hour=12, minute=0, second=4, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=5, hour=12, minute=0, second=0, tzinfo=cet)
         },
-        "05_Hash_Match_Duplicates.png": {
+        "52_Hash_Match_Duplicates.png": {
             "text": "Match Test, \nBinary Match Duplicates",
-            "created": dt(year=1990, month=10, day=5, hour=12, minute=0, second=5, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=5, hour=12, minute=0, second=0, tzinfo=cet)
         },
 
-        "06_Hash_Match_Duplicates.png": {
+        "61_Hash_Match_Duplicates.png": {
             "text": "Match Test, \nHash Match Duplicates",
-            "created": dt(year=1990, month=10, day=6, hour=12, minute=0, second=5, tzinfo=cet)
+            "created": dt(year=1990, month=10, day=6, hour=12, minute=0, second=0, tzinfo=cet)
         },
 
-        "07_Duplicate_Target.png" : {
+        "71_Duplicate_Target.png" : {
             "text": "Target for all files marked as duplicates",
             "created": dt(year=1990, month=10, day=7, hour=12, minute=0, second=0, tzinfo=cet)
         }
     }
 
     import_match_input = {
-        "01_Matching_Source.png": import_matches["01_Binary_Match_Main.png"],
-        "02_Matching_Source.png": import_matches["02_Hash_Match_Main.png"],
-        "03_Matching_Source.png": import_matches["03_Binary_Match_Trash.png"],
-        "04_Matching_Source.png": import_matches["04_Hash_Match_Trash.png"],
-        "05_Matching_Source.png": import_matches["05_Binary_Match_Duplicates.png"],
-        "06_Matching_Source.png": import_matches["06_Hash_Match_Duplicates.png"],
+        "01_Matching_Source.png": import_matches["11_Binary_Match_Main.png"],
+        "02_Matching_Source.png": import_matches["21_Hash_Match_Main.png"],
+        "03_Matching_Source.png": import_matches["31_Binary_Match_Trash.png"],
+        "04_Matching_Source.png": import_matches["41_Hash_Match_Trash.png"],
+        "05_Matching_Source.png": import_matches["51_Binary_Match_Duplicates.png"],
+        "06_Matching_Source.png": import_matches["61_Hash_Match_Duplicates.png"],
     }
 
     allowed_ext_test = {
