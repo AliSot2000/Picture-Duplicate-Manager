@@ -1372,30 +1372,33 @@ class TestAPIPerformImport(unittest.TestCase):
             "1990-09-01T12-00-00_0128.png",     # Needed for hash based matching (change filename)
             "1990-09-01T13-01-00_0129.png",     # Needed for hash based matching (change filename)
             "1990-09-01T14-01-00_0130.png",     # Needed for hash based matching (change filename)
-            "1990-10-01T12-00-00_0134.png",     # Needed for matching algo during import
-            "1990-10-01T12-00-01_0137.png",     # Needed for matching algo during import
-            "1990-10-01T12-00-02_0135.png",     # Needed for matching algo during import
-            "1990-10-01T12-00-03_0138.png",     # Needed for matching algo during import
-            "1990-10-01T12-00-04_0133.png",     # Needed for matching algo during import
-            "1990-10-01T12-00-05_0136.png",     # Needed for matching algo during import
-            "1990-10-02T12-00-01_0142.png",     # Needed for matching algo during import
-            "1990-10-02T12-00-02_0140.png",     # Needed for matching algo during import
-            "1990-10-02T12-00-03_0143.png",     # Needed for matching algo during import
-            "1990-10-02T12-00-04_0139.png",     # Needed for matching algo during import
-            "1990-10-02T12-00-05_0141.png",     # Needed for matching algo during import
-            "1990-10-03T12-00-02_0145.png",     # Needed for matching algo during import
-            "1990-10-03T12-00-03_0147.png",     # Needed for matching algo during import
-            "1990-10-03T12-00-04_0144.png",     # Needed for matching algo during import
-            "1990-10-03T12-00-05_0146.png",     # Needed for matching algo during import
-            "1990-10-04T12-00-03_0150.png",     # Needed for matching algo during import
-            "1990-10-04T12-00-04_0148.png",     # Needed for matching algo during import
-            "1990-10-04T12-00-05_0149.png",     # Needed for matching algo during import
-            "1990-10-05T12-00-04_0151.png",     # Needed for matching algo during import
-            "1990-10-05T12-00-05_0152.png",     # Needed for matching algo during import
-            "1990-10-06T12-00-05_0153.png",     # Needed for matching algo during import
-            "1990-10-07T12-00-00_0154.png",     # Needed for matching algo during import
+            "1990-10-01T12-00-00_0137.png",     # Needed for matching algo during import
+            "1990-10-01T12-00-01_0140.png",     # Needed for matching algo during import
+            "1990-10-01T12-00-02_0138.png",     # Needed for matching algo during import
+            "1990-10-01T12-00-03_0141.png",     # Needed for matching algo during import
+            "1990-10-01T12-00-04_0136.png",     # Needed for matching algo during import
+            "1990-10-01T12-00-05_0139.png",     # Needed for matching algo during import
+            "1990-10-02T12-00-01_0145.png",     # Needed for matching algo during import
+            "1990-10-02T12-00-02_0143.png",     # Needed for matching algo during import
+            "1990-10-02T12-00-03_0146.png",     # Needed for matching algo during import
+            "1990-10-02T12-00-04_0142.png",     # Needed for matching algo during import
+            "1990-10-02T12-00-05_0144.png",     # Needed for matching algo during import
+            "1990-10-03T12-00-02_0148.png",     # Needed for matching algo during import
+            "1990-10-03T12-00-03_0150.png",     # Needed for matching algo during import
+            "1990-10-03T12-00-04_0147.png",     # Needed for matching algo during import
+            "1990-10-03T12-00-05_0149.png",     # Needed for matching algo during import
+            "1990-10-04T12-00-03_0153.png",     # Needed for matching algo during import
+            "1990-10-04T12-00-04_0151.png",     # Needed for matching algo during import
+            "1990-10-04T12-00-05_0152.png",     # Needed for matching algo during import
+            "1990-10-05T12-00-04_0154.png",     # Needed for matching algo during import
+            "1990-10-05T12-00-05_0155.png",     # Needed for matching algo during import
+            "1990-10-06T12-00-05_0156.png",     # Needed for matching algo during import
+            "1990-10-07T12-00-00_0157.png",     # Needed for matching algo during import
             "1990-11-01T12-00-00_0131.jpg",     # Needed to test add exif tag
-            "1990-11-01T12-00-01_0132.jpg"      # Needed to test gps parsing
+            "1990-11-01T12-00-01_0132.jpg",     # Needed to test gps parsing
+            "1990-11-01T12-00-02_0133.jpg",     # Needed to test gps parsing
+            "1990-11-01T12-00-03_0134.jpg",     # Needed to test gps parsing
+            "1990-11-01T12-00-04_0135.jpg",     # Needed to test gps parsing
         ]
 
         for file in files:
