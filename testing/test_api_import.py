@@ -1096,7 +1096,7 @@ class TestAPIPerformImport(unittest.TestCase):
         rel_paths.remove(".config.json")
         rel_paths.remove(".photos.db")
 
-        if wip:
+        if wip:  # pragma: no cover
             rel_paths.sort()
             print(json.dumps(rel_paths, indent=4))
 
@@ -1277,7 +1277,7 @@ class TestAPIPerformImport(unittest.TestCase):
 
         files = [p.removeprefix(custom_target_dir).removeprefix(os.sep) for p in rel_paths]
 
-        if wip:
+        if wip:  # pragma: no cover
             files.sort()
             print(json.dumps(files, indent=4))
 
@@ -1457,7 +1457,7 @@ class TestAPIPerformImport(unittest.TestCase):
 
         files = [p.removeprefix(custom_target_dir).removeprefix(os.sep) for p in rel_paths]
 
-        if wip:
+        if wip:  # pragma: no cover
             files.sort()
             print(json.dumps(files, indent=4))
 
