@@ -622,8 +622,6 @@ class TestAPIPerformImport(unittest.TestCase):
         # Check that there are two hashes
         self.assertEqual(2, self.api.db.get_number_of_hashes_of_file(main_key))
 
-    # TODO full test should check all directions of the world. But I'm confident enough in the code that it will get
-    #   correctly.
     def test_add_gps(self):
         """
         Check that the gps row is added correctly
