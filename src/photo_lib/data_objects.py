@@ -130,6 +130,8 @@ class Selection:
         """
         Creates a selection object.
         """
+        self.selection_type = selection_type
+
         if selection_type == SelectionType.SELECTION_A or selection_type == SelectionType.SELECTION_B:
             if start is not None or end is not None or duration is not None:
                 raise ValueError("SELECTION_A and SELECTION_B don't need any other arguments.")
