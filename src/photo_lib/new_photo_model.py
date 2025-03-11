@@ -1070,13 +1070,13 @@ class PhotoAPI:
         if not os.path.isdir(tgt_dir):
             raise TypeError("Destination must point to a directory")
 
-        if tgt_dir.startswith(self.root_path):
-            raise ValueError("Destination may not be in database_root")
-
         if tgt_dir.startswith(self.db.get_thumb_dir()) \
                 or tgt_dir.startswith(self.db.get_temp_dir()) \
                 or tgt_dir.startswith(self.db.get_trash_dir()):
             raise ValueError("Trash, Temp and Thumbnail Directory aren't valid destinations.")
+
+        if tgt_dir.startswith(self.root_path):
+            raise ValueError("Destination may not be in database_root")
 
     def _handle_file_internal_import(self, rename: bool, move: bool,
                                      main_key: int, dt: datetime.datetime, ofn: str, ofd: str) -> str:
