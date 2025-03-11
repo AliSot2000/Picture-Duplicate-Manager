@@ -10,6 +10,11 @@ import exiftool
 import numpy as np
 
 
+"""
+Call this file to generate the dummy media for the unit tests of the database
+"""
+
+
 def add_text(text: str, pos: Tuple[int, int], mat: np.ndarray, scale: int = 3):
     """
     Add Text to an image.
