@@ -1987,266 +1987,6 @@ class PhotoAPI:
         self.key_to_filepath_cache.update(arg=key, value=new_path)
         self.prune_fs_dir = True
 
-    def get_media(self, key: int, strict: bool = False):
-        """
-        Returns a Dataclass which contains the thumbnail path, miniature path and original path.
-        """
-        # TODO cache
-        # TODO implement
-
-    def get_metadata(self, key: int):
-        """
-        Returns all metadata of a given key in a dataclass
-        """
-        # TODO cache
-        # TODO implement
-
-    def get_compare_data(self, key: int | List[int]):
-        """
-        Get all necessary information to compare images.
-        """
-        # TODO cache
-        # TODO implement
-
-    # ==================================================================================================================
-    # Utility
-    # ==================================================================================================================
-
-    # INFO: long-running action
-    def create_display_files(self,
-                             miniature: bool = True,
-                             thumbnail: bool = True,
-                             overwrite: bool = False) \
-            -> Tuple[int, int]:
-        """
-        Create thumbnails for all elements in the database.
-
-        :param miniature: If true, create miniature images
-        :param thumbnail: If true, create thumbnails images
-        :param overwrite: If true, overwrite existing files.
-
-        returns: <number of new files created> and <number of undetected missing files>
-        """
-        missing: int = 0
-        created: int = 0
-        for key, flags in self.db.main_key_flags_iterator(
-                allow_selection=False, present=True, trashed=False, duplicate=False):
-
-            # skip missing images or images in trash
-            if not flags.present or flags.trashed or flags.duplicate:  # pragma: no cover
-                if __debug__:
-                    raise ImplementationError("Error in SQL Statement, should not find trash or not present files")
-                continue
-
-            fp = self.db.db_resolve_key_to_abs_path(key)
-
-            # checking for missing file
-            if not os.path.exists(fp):
-                # INFO we're not updating the presence in the db because it doesn't fit the scope of this function.
-                self.main_logger.warning(f"File from DB is missing: {os.path.basename(fp)}, "
-                                         f"in {os.path.dirname(fp)}")
-                missing += 1
-                continue
-
-            # Thumbnail: write if not exists or exists + overwrite
-            if thumbnail:
-                if (not os.path.exists(self.db.full_thumbnail_path(key))
-                        or (os.path.exists(self.db.full_thumbnail_path(key)) and overwrite)):
-
-                    flags.has_thumbnail = self._create_display_file(
-                        in_path=fp, out_path=self.db.full_thumbnail_path(key), major_size=self.config.thumbnail_target)
-                    created += 1
-
-                else:
-                    self.main_logger.debug(f"Thumbnail already exists for key: {key}")
-                    flags.has_thumbnail = True
-
-            # Miniature: write if not exists or exists + overwrite
-            if miniature:
-                if (not os.path.exists(self.db.full_miniature_path(key))
-                        or (os.path.exists(self.db.full_miniature_path(key)) and overwrite)):
-
-                    flags.has_miniature = self._create_display_file(
-                        in_path=fp, out_path=self.db.full_miniature_path(key), major_size=self.config.thumbnail_target)
-                    created += 1
-
-                else:
-                    self.main_logger.debug(f"Miniature already exists for key: {key}")
-                    flags.has_miniature = True
-
-            # Update the flags of the given key.
-            self.db.update_row_main_table(key=key, flags=flags)
-
-        self.db.commit()
-        self.main_logger.info(f"Created: {created} Display Files, found {missing} newly missing")
-
-        missing: int
-        created: int
-        return created, missing
-
-    def _create_display_file(self, in_path: str, out_path: str, major_size: int) -> bool:
-        """
-        Create the display file for a given file.
-
-        INFO: File Extensions are treated as final. We do not attempt to cors-parse. We do attempt to generate
-            thumbnails for unknown files tho
-
-        :param in_path: Path to input file
-        :param out_path: Path to output file
-        :major_size: size in px of the larger side of the image.
-
-        :return True if file was successfully created
-        """
-        # Handle Videos
-        if os.path.splitext(in_path)[1] in self.config.video_extensions:
-            extract_success = self._create_vid_thumbnails(in_path=in_path, out_path=self.db.temp_video_path())
-
-            # No need for larger logging info, handled within the internal functions
-            if not extract_success:
-                return False
-
-            # No need for larger logging info, handled within the internal functions
-            suc = self._create_img_thumbnails(
-                in_path=self.db.temp_video_path(), out_path=out_path, major_size=major_size)
-            assert os.path.exists(self.db.temp_video_path()), "Video file missing despite successfully creating it?"
-            os.remove(self.db.temp_video_path())
-            return suc
-
-        # Handle Images
-        elif os.path.splitext(in_path)[1] in self.config.image_extensions:
-            return self._create_img_thumbnails(in_path=in_path, out_path=out_path, major_size=major_size)
-
-        # Haily Marry Handler
-        else:
-            self.main_logger.warning(f"Unknown extension: {in_path}. Attempting to to create display file anyway")
-
-            extract_success = self._create_vid_thumbnails(in_path=in_path, out_path=self.db.temp_video_path())
-
-            new_in_path = self.db.temp_video_path() if extract_success else in_path
-
-            # No need for larger logging info, handled within the internal functions
-            suc = self._create_img_thumbnails(in_path=new_in_path, out_path=out_path, major_size=major_size)
-
-            if extract_success:
-                assert os.path.exists(self.db.temp_video_path()), "Video file missing despite successfully creating it?"
-                os.remove(self.db.temp_video_path())
-
-            return suc
-
-    def _create_img_thumbnails(self, in_path: str, out_path: str, major_size: int) -> bool:
-        """
-        Create thumbnails for images in the database.
-
-        PRECONDITION: in_path exists
-        PRECONDITION: in_path extension is correct.
-
-        :param in_path: Path to the input file
-        :param out_path: Path to the output file
-        """
-        assert os.path.exists(in_path), "Input Path doesnt' exist"
-
-        try:
-            # load image from disk, 1 means cv::IMREAD_COLOR
-            img = cv2.imread(in_path, cv2.IMREAD_COLOR)
-
-            # determine which axis is larger
-            max_pix = max(img.shape[0], img.shape[1])
-
-            # calculate new size
-            if max_pix == img.shape[0]:
-                py = major_size
-                px = max(1, int(major_size / max_pix * img.shape[1]))
-            else:
-                px = major_size
-                py = max(1, int(major_size / max_pix * img.shape[0]))
-
-            img_reduced = cv2.resize(img, (py, px), interpolation=cv2.INTER_AREA)
-
-            cv2.imwrite(out_path, img_reduced)
-
-            return True
-
-        except cv2.error as e:
-            self.main_logger.exception(f"OpenCV encountered an error while generating the thumbnail for {in_path}",
-                                       exc_info=e)
-        except Exception as e:
-            self.main_logger.exception(f"Unexpected Exception while generating thumbnail: {e}", exc_info=e)
-
-        return False
-
-    def _create_vid_thumbnails(self, in_path: str, out_path: str, target_time: int = 5):
-        """
-        Create thumbnails for the videos in the database.
-
-        PRECONDITION: in_path exists
-        PRECONDITION: in_path extension is correct.
-
-        :param in_path: Path to the input file
-        :param out_path: Path to the output file
-        :param target_time: Target time when to take the thumbnail
-
-        :returns: True -> if image was created successfully.
-        """
-        assert os.path.exists(in_path), "Input Path doesn't exist"
-        width = None
-
-        # Probe the file
-        try:
-            probe_res = ffmpeg.probe(in_path)
-        except ffmpeg.Error as e:
-            self.main_logger.exception(f"Error Probing File with FFMPEG: {in_path}, "
-                                  f"stderr: {e.stderr.decode('utf-8')}, "
-                                  f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
-            return False
-
-        except Exception as e:
-            self.main_logger.exception(f"Unexpected Exception while Probing File: {in_path}", exc_info=e)
-            return False
-
-        # Get target time for the image.
-        try:
-            if probe_res["streams"][0]["duration"] < target_time:
-                self.main_logger.warning("Video to short for default time point where to take thumbnail")
-                target_time = probe_res["streams"][0]["duration"] // 2
-
-            # Try to get the width of the stream
-            for stream in probe_res["streams"]:
-                width = stream.get("width")
-
-                if width is not None:
-                    break
-
-        except KeyError:
-            self.main_logger.error(f"KeyError: Failed to get time data from probe result of ffmpeg: {in_path}")
-        except IndexError:
-            self.main_logger.error(f"IndexError: Failed to get time data from probe result of ffmpeg: {in_path}")
-        except Exception as e:
-            self.main_logger.exception(f"Unexpected error {type(e).__name__}", exc_info=e)
-
-        if width is None:
-            self.main_logger.info(f"Failed to retrieve width of the input file: {in_path}, aborting")
-            return False
-
-        try:
-            (
-                ffmpeg
-                .input(in_path, ss=target_time)
-                .filter('scale', width, -1)
-                .output(out_path, vframes=1)
-                .overwrite_output()
-                .run(capture_stdout=True, capture_stderr=True)
-            )
-        except ffmpeg.Error as e:
-            self.main_logger.exception(f"Error Exporting Thumbnail from video: {in_path}, "
-                                  f"stderr: {e.stderr.decode('utf-8')}, "
-                                  f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
-            return False
-        except Exception as e:
-            self.main_logger.exception(f"Unexpected Exception while writing thumbnail: {type(e).__name__}", exc_info=e)
-            return False
-
-        return True
-
     def move_to_duplicates(self, child_key: int, parent_key: int, copy_google_metadata: bool = True):
         """
         Move a duplicate into the replaced table.
@@ -2507,6 +2247,381 @@ class PhotoAPI:
         self.key_to_filepath_cache.update(arg=key, value=db_path)
         self.db.commit()
 
+    def forget_file(self, key: int):
+        """
+        Forgets a given file.
+
+        Removes it from all tables and removes all children. Images which are forgotten, will be not be detected
+        upon import and will be reimported if the given image shows up again.
+
+        Removes Hash association to duplicate children.
+        Removes Hash association in parent in main table
+        Removes GPS to main entry
+        Removes thumbnails of main entry and children
+        Removes miniatures of main entry and children
+        Removes original of the main entry
+        Removes entries from duplicates and known duplicates table
+        Prunes empty hashes
+        Prunes empty gps_locs
+        Prunes empty db_dirs
+        """
+        self._internal_forget(key=key)
+
+    def _internal_forget(self, key: int, rec: bool = False):
+        """
+        Forgets the image in main table:
+
+        Removes it from all tables and removes all children. Images which are forgotten, will be not be detected
+        upon import and will be reimported if the given image shows up again.
+
+        Removes Hash association to children in replaced table
+        Removes Hash association in parent in main table
+        Removes GPS to main entry
+        Removes thumbnails to main or replaced
+        Removes miniatures to main or replaced
+        Removes original from main or replaced
+        Removes entries from duplicates and known duplicates table
+        Prunes empty hashes
+        Prunes empty gps_locs
+        Prunes empty db_dirs
+        """
+        flags = self.db.get_main_flags(key)
+        if flags is None:
+            raise ValueError("Key not found in main table")
+
+        # Removing all children in replaced
+        children = self.db.list_children(key)
+        if rec and len(children) > 0:
+            raise CorruptDatabase("Got Entry where the children have children.")
+
+        # Remove children
+        for k in children:
+            self._internal_forget(key=k, rec=True)
+
+        # TODO darktable
+        # Remove files
+        fp = self.resolve_key_to_path(key)
+        self.db.check_flags(key=key, flags=flags, miniature=True, thumbnail=True, org_path=fp)
+
+        if rec and not flags.duplicate:
+            self.main_logger.warning("Child found who's duplicate flag wasn't set.")
+
+        if os.path.exists(fp):
+            # Logging message
+            if flags.trashed or flags.duplicate:
+                self.main_logger.debug(f"Deleting {os.path.basename(fp)} from trash directory")
+            else:
+                self.main_logger.debug(f"Deleting {os.path.basename(fp)} from main database")
+
+            # Actually removing the file
+            os.remove(fp)
+
+        # PRECONDITION: The original has been deleted.
+        # Deleting thumbnail and miniature if they exist.
+        if os.path.exists(self.db.full_miniature_path(key)):
+            self.main_logger.debug(f"Deleting {self.db.miniature_name(key)} from thumbnails")
+            os.remove(self.db.full_miniature_path(key))
+
+        if os.path.exists(self.db.full_thumbnail_path(key)):
+            self.main_logger.debug(f"Deleting {self.db.thumbnail_name(key)} from thumbnails")
+            os.remove(self.db.full_thumbnail_path(key))
+
+        # Remove hashes of parent
+        self.db.delete_file_association(key)
+
+        # Remove row from metadata
+        self.db.delete_row_metadata_table(key=key)
+
+        # Removing files from the duplicates table
+        c_known = self.db.remove_all_tuples_with_key(key=key, known=True)
+        self.main_logger.debug(f"Deleted {c_known} tuples from known_duplicates table")
+        c_default = self.db.remove_all_tuples_with_key(key=key, known=False)
+        self.main_logger.debug(f"Deleted {c_default} tuples from duplicates table")
+
+        # Finally deleting the main row
+        self.db.delete_row_main_table(key)
+
+        # Doesn't make sense to call the same clean-up after every child.
+        if not rec:
+            # Prune dir, hash, gps
+            self.db.mark_import_table_as_stale()
+            self.prune_fs_dir = True
+            self.db.commit()
+
+        # Clearing Cache
+        self.key_to_filepath_cache.evict(key)
+        self.filename_to_key_cache.evict(os.path.basename(fp))
+
+        # Print info
+        if not rec:
+            self.main_logger.info(f"Forgot {key} and children successfully")
+        else:
+            self.main_logger.info(f"Forgot duplicate {key} successfully")
+
+    # ==================================================================================================================
+    # UI Getters
+    # ==================================================================================================================
+
+    def get_media(self, key: int, strict: bool = False):
+        """
+        Returns a Dataclass which contains the thumbnail path, miniature path and original path.
+        """
+        # TODO cache
+        # TODO implement
+
+    def get_metadata(self, key: int):
+        """
+        Returns all metadata of a given key in a dataclass
+        """
+        # TODO cache
+        # TODO implement
+
+    def get_compare_data(self, key: int | List[int]):
+        """
+        Get all necessary information to compare images.
+        """
+        # TODO cache
+        # TODO implement
+
+    # ==================================================================================================================
+    # Utility
+    # ==================================================================================================================
+
+    # INFO: long-running action
+    def create_display_files(self,
+                             miniature: bool = True,
+                             thumbnail: bool = True,
+                             overwrite: bool = False) \
+            -> Tuple[int, int]:
+        """
+        Create thumbnails for all elements in the database.
+
+        :param miniature: If true, create miniature images
+        :param thumbnail: If true, create thumbnails images
+        :param overwrite: If true, overwrite existing files.
+
+        returns: <number of new files created> and <number of undetected missing files>
+        """
+        missing: int = 0
+        created: int = 0
+        for key, flags in self.db.main_key_flags_iterator(
+                allow_selection=False, present=True, trashed=False, duplicate=False):
+
+            # skip missing images or images in trash
+            if not flags.present or flags.trashed or flags.duplicate:  # pragma: no cover
+                if __debug__:
+                    raise ImplementationError("Error in SQL Statement, should not find trash or not present files")
+                continue
+
+            fp = self.db.db_resolve_key_to_abs_path(key)
+
+            # checking for missing file
+            if not os.path.exists(fp):
+                # INFO we're not updating the presence in the db because it doesn't fit the scope of this function.
+                self.main_logger.warning(f"File from DB is missing: {os.path.basename(fp)}, "
+                                         f"in {os.path.dirname(fp)}")
+                missing += 1
+                continue
+
+            # Thumbnail: write if not exists or exists + overwrite
+            if thumbnail:
+                if (not os.path.exists(self.db.full_thumbnail_path(key))
+                        or (os.path.exists(self.db.full_thumbnail_path(key)) and overwrite)):
+
+                    flags.has_thumbnail = self._create_display_file(
+                        in_path=fp, out_path=self.db.full_thumbnail_path(key), major_size=self.config.thumbnail_target)
+                    created += 1
+
+                else:
+                    self.main_logger.debug(f"Thumbnail already exists for key: {key}")
+                    flags.has_thumbnail = True
+
+            # Miniature: write if not exists or exists + overwrite
+            if miniature:
+                if (not os.path.exists(self.db.full_miniature_path(key))
+                        or (os.path.exists(self.db.full_miniature_path(key)) and overwrite)):
+
+                    flags.has_miniature = self._create_display_file(
+                        in_path=fp, out_path=self.db.full_miniature_path(key), major_size=self.config.thumbnail_target)
+                    created += 1
+
+                else:
+                    self.main_logger.debug(f"Miniature already exists for key: {key}")
+                    flags.has_miniature = True
+
+            # Update the flags of the given key.
+            self.db.update_row_main_table(key=key, flags=flags)
+
+        self.db.commit()
+        self.main_logger.info(f"Created: {created} Display Files, found {missing} newly missing")
+
+        missing: int
+        created: int
+        return created, missing
+
+    def _create_display_file(self, in_path: str, out_path: str, major_size: int) -> bool:
+        """
+        Create the display file for a given file.
+
+        INFO: File Extensions are treated as final. We do not attempt to cors-parse. We do attempt to generate
+            thumbnails for unknown files tho
+
+        :param in_path: Path to input file
+        :param out_path: Path to output file
+        :major_size: size in px of the larger side of the image.
+
+        :return True if file was successfully created
+        """
+        # Handle Videos
+        if os.path.splitext(in_path)[1] in self.config.video_extensions:
+            extract_success = self._create_vid_thumbnails(in_path=in_path, out_path=self.db.temp_video_path())
+
+            # No need for larger logging info, handled within the internal functions
+            if not extract_success:
+                return False
+
+            # No need for larger logging info, handled within the internal functions
+            suc = self._create_img_thumbnails(
+                in_path=self.db.temp_video_path(), out_path=out_path, major_size=major_size)
+            assert os.path.exists(self.db.temp_video_path()), "Video file missing despite successfully creating it?"
+            os.remove(self.db.temp_video_path())
+            return suc
+
+        # Handle Images
+        elif os.path.splitext(in_path)[1] in self.config.image_extensions:
+            return self._create_img_thumbnails(in_path=in_path, out_path=out_path, major_size=major_size)
+
+        # Haily Marry Handler
+        else:
+            self.main_logger.warning(f"Unknown extension: {in_path}. Attempting to to create display file anyway")
+
+            extract_success = self._create_vid_thumbnails(in_path=in_path, out_path=self.db.temp_video_path())
+
+            new_in_path = self.db.temp_video_path() if extract_success else in_path
+
+            # No need for larger logging info, handled within the internal functions
+            suc = self._create_img_thumbnails(in_path=new_in_path, out_path=out_path, major_size=major_size)
+
+            if extract_success:
+                assert os.path.exists(self.db.temp_video_path()), "Video file missing despite successfully creating it?"
+                os.remove(self.db.temp_video_path())
+
+            return suc
+
+    def _create_img_thumbnails(self, in_path: str, out_path: str, major_size: int) -> bool:
+        """
+        Create thumbnails for images in the database.
+
+        PRECONDITION: in_path exists
+        PRECONDITION: in_path extension is correct.
+
+        :param in_path: Path to the input file
+        :param out_path: Path to the output file
+        """
+        assert os.path.exists(in_path), "Input Path doesnt' exist"
+
+        try:
+            # load image from disk, 1 means cv::IMREAD_COLOR
+            img = cv2.imread(in_path, cv2.IMREAD_COLOR)
+
+            # determine which axis is larger
+            max_pix = max(img.shape[0], img.shape[1])
+
+            # calculate new size
+            if max_pix == img.shape[0]:
+                py = major_size
+                px = max(1, int(major_size / max_pix * img.shape[1]))
+            else:
+                px = major_size
+                py = max(1, int(major_size / max_pix * img.shape[0]))
+
+            img_reduced = cv2.resize(img, (py, px), interpolation=cv2.INTER_AREA)
+
+            cv2.imwrite(out_path, img_reduced)
+
+            return True
+
+        except cv2.error as e:
+            self.main_logger.exception(f"OpenCV encountered an error while generating the thumbnail for {in_path}",
+                                       exc_info=e)
+        except Exception as e:
+            self.main_logger.exception(f"Unexpected Exception while generating thumbnail: {e}", exc_info=e)
+
+        return False
+
+    def _create_vid_thumbnails(self, in_path: str, out_path: str, target_time: int = 5):
+        """
+        Create thumbnails for the videos in the database.
+
+        PRECONDITION: in_path exists
+        PRECONDITION: in_path extension is correct.
+
+        :param in_path: Path to the input file
+        :param out_path: Path to the output file
+        :param target_time: Target time when to take the thumbnail
+
+        :returns: True -> if image was created successfully.
+        """
+        assert os.path.exists(in_path), "Input Path doesn't exist"
+        width = None
+
+        # Probe the file
+        try:
+            probe_res = ffmpeg.probe(in_path)
+        except ffmpeg.Error as e:
+            self.main_logger.exception(f"Error Probing File with FFMPEG: {in_path}, "
+                                  f"stderr: {e.stderr.decode('utf-8')}, "
+                                  f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
+            return False
+
+        except Exception as e:
+            self.main_logger.exception(f"Unexpected Exception while Probing File: {in_path}", exc_info=e)
+            return False
+
+        # Get target time for the image.
+        try:
+            if probe_res["streams"][0]["duration"] < target_time:
+                self.main_logger.warning("Video to short for default time point where to take thumbnail")
+                target_time = probe_res["streams"][0]["duration"] // 2
+
+            # Try to get the width of the stream
+            for stream in probe_res["streams"]:
+                width = stream.get("width")
+
+                if width is not None:
+                    break
+
+        except KeyError:
+            self.main_logger.error(f"KeyError: Failed to get time data from probe result of ffmpeg: {in_path}")
+        except IndexError:
+            self.main_logger.error(f"IndexError: Failed to get time data from probe result of ffmpeg: {in_path}")
+        except Exception as e:
+            self.main_logger.exception(f"Unexpected error {type(e).__name__}", exc_info=e)
+
+        if width is None:
+            self.main_logger.info(f"Failed to retrieve width of the input file: {in_path}, aborting")
+            return False
+
+        try:
+            (
+                ffmpeg
+                .input(in_path, ss=target_time)
+                .filter('scale', width, -1)
+                .output(out_path, vframes=1)
+                .overwrite_output()
+                .run(capture_stdout=True, capture_stderr=True)
+            )
+        except ffmpeg.Error as e:
+            self.main_logger.exception(f"Error Exporting Thumbnail from video: {in_path}, "
+                                  f"stderr: {e.stderr.decode('utf-8')}, "
+                                  f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
+            return False
+        except Exception as e:
+            self.main_logger.exception(f"Unexpected Exception while writing thumbnail: {type(e).__name__}", exc_info=e)
+            return False
+
+        return True
+
     def delete_trash_thumb(self, key: Union[int, None]) -> int:
         """
         Delete the remaining thumbnail of an image in the trash. For recognition purposes, the thumbnails of the
@@ -2649,117 +2764,6 @@ class PhotoAPI:
         self.db.commit()
         # INFO: Don't need to update the caches, the path isn't modified.
         return count
-
-    def forget_file(self, key: int):
-        """
-        Forgets a given file.
-
-        Removes it from all tables and removes all children. Images which are forgotten, will be not be detected
-        upon import and will be reimported if the given image shows up again.
-
-        Removes Hash association to duplicate children.
-        Removes Hash association in parent in main table
-        Removes GPS to main entry
-        Removes thumbnails of main entry and children
-        Removes miniatures of main entry and children
-        Removes original of the main entry
-        Removes entries from duplicates and known duplicates table
-        Prunes empty hashes
-        Prunes empty gps_locs
-        Prunes empty db_dirs
-        """
-        self._internal_forget(key=key)
-
-    def _internal_forget(self, key: int, rec: bool = False):
-        """
-        Forgets the image in main table:
-
-        Removes it from all tables and removes all children. Images which are forgotten, will be not be detected
-        upon import and will be reimported if the given image shows up again.
-
-        Removes Hash association to children in replaced table
-        Removes Hash association in parent in main table
-        Removes GPS to main entry
-        Removes thumbnails to main or replaced
-        Removes miniatures to main or replaced
-        Removes original from main or replaced
-        Removes entries from duplicates and known duplicates table
-        Prunes empty hashes
-        Prunes empty gps_locs
-        Prunes empty db_dirs
-        """
-        flags = self.db.get_main_flags(key)
-        if flags is None:
-            raise ValueError("Key not found in main table")
-
-        # Removing all children in replaced
-        children = self.db.list_children(key)
-        if rec and len(children) > 0:
-            raise CorruptDatabase("Got Entry where the children have children.")
-
-        # Remove children
-        for k in children:
-            self._internal_forget(key=k, rec=True)
-
-        # TODO darktable
-        # Remove files
-        fp = self.resolve_key_to_path(key)
-        self.db.check_flags(key=key, flags=flags, miniature=True, thumbnail=True, org_path=fp)
-
-        if rec and not flags.duplicate:
-            self.main_logger.warning("Child found who's duplicate flag wasn't set.")
-
-        if os.path.exists(fp):
-            # Logging message
-            if flags.trashed or flags.duplicate:
-                self.main_logger.debug(f"Deleting {os.path.basename(fp)} from trash directory")
-            else:
-                self.main_logger.debug(f"Deleting {os.path.basename(fp)} from main database")
-
-            # Actually removing the file
-            os.remove(fp)
-
-        # PRECONDITION: The original has been deleted.
-        # Deleting thumbnail and miniature if they exist.
-        if os.path.exists(self.db.full_miniature_path(key)):
-            self.main_logger.debug(f"Deleting {self.db.miniature_name(key)} from thumbnails")
-            os.remove(self.db.full_miniature_path(key))
-
-        if os.path.exists(self.db.full_thumbnail_path(key)):
-            self.main_logger.debug(f"Deleting {self.db.thumbnail_name(key)} from thumbnails")
-            os.remove(self.db.full_thumbnail_path(key))
-
-        # Remove hashes of parent
-        self.db.delete_file_association(key)
-
-        # Remove row from metadata
-        self.db.delete_row_metadata_table(key=key)
-
-        # Removing files from the duplicates table
-        c_known = self.db.remove_all_tuples_with_key(key=key, known=True)
-        self.main_logger.debug(f"Deleted {c_known} tuples from known_duplicates table")
-        c_default = self.db.remove_all_tuples_with_key(key=key, known=False)
-        self.main_logger.debug(f"Deleted {c_default} tuples from duplicates table")
-
-        # Finally deleting the main row
-        self.db.delete_row_main_table(key)
-
-        # Doesn't make sense to call the same clean-up after every child.
-        if not rec:
-            # Prune dir, hash, gps
-            self.db.mark_import_table_as_stale()
-            self.prune_fs_dir = True
-            self.db.commit()
-
-        # Clearing Cache
-        self.key_to_filepath_cache.evict(key)
-        self.filename_to_key_cache.evict(os.path.basename(fp))
-
-        # Print info
-        if not rec:
-            self.main_logger.info(f"Forgot {key} and children successfully")
-        else:
-            self.main_logger.info(f"Forgot duplicate {key} successfully")
 
     def prune_all(self) -> int:
         """
