@@ -367,7 +367,7 @@ class TestAPIPerformImport(unittest.TestCase):
         if os.path.exists(cls.shadow_db):
             shutil.rmtree(cls.shadow_db)
 
-        # Create a fresh instaance
+        # Create a fresh instance
         db = PhotoAPI(root_path=cls.shadow_db,
                       init=True,
                       init_loggers=True,
