@@ -217,6 +217,7 @@ if __name__ == '__main__':
 
             }
 
+    # Make the test files for the import test
     import_matches = {
         "11_Binary_Match_Main.png": {
             "text": "Match Test, \nBinary Match Main",
@@ -314,6 +315,7 @@ if __name__ == '__main__':
         }
     }
 
+    # Make the test files for match test
     import_match_input = {
         "01_Matching_Source.png": import_matches["11_Binary_Match_Main.png"],
         "02_Matching_Source.png": import_matches["21_Hash_Match_Main.png"],
@@ -323,6 +325,7 @@ if __name__ == '__main__':
         "06_Matching_Source.png": import_matches["61_Hash_Match_Duplicates.png"],
     }
 
+    # Make the files for the allowed ext test
     allowed_ext_test = {
         "01_format.png": {
             "text": "Test Format png",
@@ -342,6 +345,7 @@ if __name__ == '__main__':
         }
     }
 
+    # Create all files for the multi hash matching
     hash_matching_test = {
         "01_match_a.png": {
             "text": "Multi Hash Test, \nHash Match A",
