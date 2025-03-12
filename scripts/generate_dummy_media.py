@@ -516,3 +516,27 @@ if __name__ == '__main__':
                                "EXIF:ModifyDate": cd5.strftime("%Y:%m:%d %H:%M:%S")})
 
 
+    # Create directory with example images to test create_media functions
+    test_thumbnail_dir = os.path.join(target_dir, "test_thumbnails")
+    os.makedirs(test_thumbnail_dir, exist_ok=True)
+
+    cd10 = datetime.datetime(year=1990, month=11, day=2, hour=12, minute=0, second=0, tzinfo=cet)
+    cd11 = datetime.datetime(year=1990, month=11, day=2, hour=12, minute=0, second=0, tzinfo=cet)
+    cd12 = datetime.datetime(year=1990, month=11, day=2, hour=12, minute=0, second=0, tzinfo=cet)
+    cd13 = datetime.datetime(year=1990, month=11, day=2, hour=12, minute=0, second=0, tzinfo=cet)
+
+
+    create_image(text="Horizontal Image",
+                 created=cd10,
+                 dst=os.path.join(test_thumbnail_dir, "test_horizontal_thumbnail.png"),
+                 height=1080, width=1920)
+
+    create_image(text="Vertical Image",
+                 created=cd11,
+                 dst=os.path.join(test_thumbnail_dir, "test_vertical_thumbnail.png"),
+                 height=1920, width=1080)
+
+    create_video(text="Short Video", duration=4, created=cd12,
+                 dst=os.path.join(test_thumbnail_dir, "test_short_video.mp4"))
+    create_video(text="Long Video", duration=10, created=cd12,
+                 dst=os.path.join(test_thumbnail_dir, "test_long_video.mp4"))
