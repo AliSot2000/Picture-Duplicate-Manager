@@ -2550,7 +2550,10 @@ class PhotoAPI:
         except cv2.error as e:
             self.main_logger.exception(f"OpenCV encountered an error while generating the thumbnail for {in_path}",
                                        exc_info=e)
-        except Exception as e:  # pragma: no cover
+        except AttributeError as e:
+            self.main_logger.exception(f"Failed to load image: {in_path} with opencv, None returned.", exc_info=e)
+
+        except Exception as e:
             self.main_logger.exception(f"Unexpected Exception while generating thumbnail: {e}", exc_info=e)
 
         return False
