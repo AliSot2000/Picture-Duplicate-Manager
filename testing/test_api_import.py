@@ -310,8 +310,8 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         allowed_sum = 0
         for row in self.api.db.update_allowed_iterator(tbl):
             key, allowed, org_fname = row
-            if allowed == Allowed.ALLOWED:
-                allowed_sum += 1
+            assert allowed == Allowed.ALLOWED
+            allowed_sum += 1
 
         self.assertEqual(4, allowed_sum)
 
