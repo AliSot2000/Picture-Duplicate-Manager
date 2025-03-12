@@ -186,7 +186,7 @@ def create_files_from_dict(arg_dict: dict, tgt_dir: str):
         os.makedirs(tgt_dir)
 
     for file_name, file_args in arg_dict.items():
-        create_media(text=file_args["text"], created=file_args["created"], dst=os.path.join(tgt_dir, file_name))
+        create_image(text=file_args["text"], created=file_args["created"], dst=os.path.join(tgt_dir, file_name))
 
 
 
