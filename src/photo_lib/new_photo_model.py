@@ -789,7 +789,7 @@ class PhotoAPI:
         Add and or get the key of the gps entry in the gps table, and add the gps key to the metadata row of the
         given key.
 
-        :param gps_lat: GPS Latitutde in Degrees.decimal
+        :param gps_lat: GPS Latitude in Degrees.decimal
         :param gps_long: GPS Longitude in Degrees.decimal
         :param main_key: Main key of the gps entry.
         """
