@@ -106,7 +106,7 @@ def add_exif_data(dst: str, created: dt, tag_override: Dict = None):
 
     os.utime(dst, times=(created.timestamp(), created.timestamp()))
 
-    
+
 def create_image(text: str, created: dt, dst: str, height: int = 1080, width: int = 1920, tag_override: Dict = None):
     """
     Create a file with the following text written onto it.
