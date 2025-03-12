@@ -2583,7 +2583,7 @@ class PhotoAPI:
                                   f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
             return False
 
-        except Exception as e:  # pragma: no cover
+        except Exception as e:
             self.main_logger.exception(f"Unexpected Exception while Probing File: {in_path}", exc_info=e)
             return False
 
@@ -2604,7 +2604,7 @@ class PhotoAPI:
             self.main_logger.error(f"KeyError: Failed to get time data from probe result of ffmpeg: {in_path}")
         except IndexError:
             self.main_logger.error(f"IndexError: Failed to get time data from probe result of ffmpeg: {in_path}")
-        except Exception as e:  # pragma: no cover
+        except Exception as e:
             self.main_logger.exception(f"Unexpected error {type(e).__name__}", exc_info=e)
 
         if width is None:
