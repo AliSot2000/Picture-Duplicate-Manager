@@ -152,3 +152,11 @@ class BaseImage(QFrame):
         # Attempt to reload the image.
         if self.file_path is not None:
             self.load_image()
+
+    def resizeEvent(self, a0):
+        """
+        Handle Resize Event differently:
+        - If we're scaling down i.e. smaller, compute pixmap as a scaled down version of the current one
+        - If we're scaling up, load the file again and recompute the smaller version.
+        """
+        ...
