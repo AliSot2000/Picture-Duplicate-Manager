@@ -88,7 +88,26 @@ def hello_world():
     cv2.waitKey(0)
 
 
-def create_media(text: str, created: dt, dst: str, height: int = 1080, width: int = 1920, tag_override: Dict = None):
+def add_exif_data(dst: str, created: dt, tag_override: Dict = None):
+    """
+    Add exif data to an image or video, if specified.
+
+    :param dst: Destination path
+    :param created: Date of creation
+    :param tag_override: Tag override
+    """
+    if tag_override is None:
+        tag_override = {"EXIF:ModifyDate": created.strftime("%Y:%m:%d %H:%M:%S"),
+                        "EXIF:OffsetTime": created.strftime("%z")}
+
+    if len(tag_override) > 0:
+        with exiftool.ExifToolHelper() as eh:
+            eh.set_tags(files=dst, tags=tag_override, params=["-overwrite_original"])
+
+    os.utime(dst, times=(created.timestamp(), created.timestamp()))
+
+    
+def create_image(text: str, created: dt, dst: str, height: int = 1080, width: int = 1920, tag_override: Dict = None):
     """
     Create a file with the following text written onto it.
 
