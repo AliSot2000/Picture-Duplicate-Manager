@@ -456,6 +456,7 @@ if __name__ == '__main__':
     hash_c1_base = os.path.join(target_dir, "hash_change_3")
     create_files_from_dict(arg_dict=hash_test_change_3, tgt_dir=hash_c1_base)
 
+    # Create directory for testing gps input and correct detection of file aware attribute
     import_test_dir = os.path.join(target_dir, "db", "import_aux_test")
     os.makedirs(import_test_dir, exist_ok=True)
 
