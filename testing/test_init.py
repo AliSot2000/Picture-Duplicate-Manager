@@ -306,6 +306,37 @@ class TestDBInit(BaseInit):
 
         db.cleanup(fast=True)
 
+    def test_paths(self):
+        """
+        Check that path generation works correctly.
+        """
+        db_path = os.path.join(test_scratch, "test.db")
+
+        db = PhotoDB(root_path=test_scratch,
+                     db_path=db_path,
+                     init=True,
+                     init_loggers=True,
+                     config=PhotoAPI.build_default_config())
+
+        self.assertIsInstance(db, PhotoDB)
+        self.assertTrue(db.verified)
+
+        # Check the paths like this
+        self.assertEqual(db.get_temp_dir(), os.path.join(test_scratch, ".temp"))
+        self.assertEqual(db.get_thumb_dir(), os.path.join(test_scratch, ".thumbnails"))
+        self.assertEqual(db.get_trash_dir(), os.path.join(test_scratch, ".trash"))
+
+        # Set abs paths
+        db.config.temp_path = temp = os.path.join(test_scratch, "foo")
+        db.config.trash = trash = os.path.join(test_scratch, "bar")
+        db.config.thumbnail = thumbnail = os.path.join(test_scratch, "baz")
+
+        self.assertEqual(db.get_temp_dir(), temp)
+        self.assertEqual(db.get_thumb_dir(), thumbnail)
+        self.assertEqual(db.get_trash_dir(), trash)
+
+        db.cleanup(fast=True)
+
 
 class TestAPIInit(BaseInit):
     def test_base_init(self):
