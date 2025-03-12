@@ -384,6 +384,7 @@ class TestAPIPerformImport(unittest.TestCase):
 
         shutil.rmtree(path)
 
+        delattr(cls, "tgt_table")
         delattr(cls, "shadow_db")
         delattr(cls, "temp_db")
         delattr(cls, "media_source")
