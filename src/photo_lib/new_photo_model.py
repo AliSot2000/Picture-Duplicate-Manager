@@ -441,7 +441,6 @@ class PhotoAPI:
 
                 # Name not in db, importing file
                 if key is None:
-                    # USE self.add_file_to_import_table()
                     self._prepare_file_import(file_path=os.path.join(root, file),
                                               tbl_name=tbl_name,
                                               allowed_ext=allowed_ext,
