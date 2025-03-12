@@ -750,8 +750,8 @@ class PhotoAPI:
         if not delete:
             self.verify_external_dir(target_dir)
 
-            if not self.db.import_table_exists(tbl):
-                raise ValueError(f"Tabl {tbl} does not exist")
+        if not self.db.import_table_exists(tbl):
+            raise ValueError(f"Tabl {tbl} does not exist")
 
         if not self.db.import_table_flags(tbl).internal:
             raise ValueError("Cannot use this function with non-internal import table")
