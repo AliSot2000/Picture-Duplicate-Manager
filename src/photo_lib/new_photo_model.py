@@ -2625,7 +2625,7 @@ class PhotoAPI:
                                   f"stderr: {e.stderr.decode('utf-8')}, "
                                   f"stdout: {e.stdout.decode('utf-8')}", exc_info=e)
             return False
-        except Exception as e:  # pragma: no cover
+        except Exception as e:
             self.main_logger.exception(f"Unexpected Exception while writing thumbnail: {type(e).__name__}", exc_info=e)
             return False
 
