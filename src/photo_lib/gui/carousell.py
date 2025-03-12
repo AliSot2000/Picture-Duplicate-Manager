@@ -540,7 +540,7 @@ class BaseCycleCarousel(QFrame):
         :return:
         """
         if index < 0 or index > self.number_of_elements:
-            raise ValueError(f"Index out of bounds [0, {self.number_of_elements}]")
+            raise IndexError(f"Index out of bounds [0, {self.number_of_elements}]")
 
         if self.widgets[self.center_widget].index == index:
             return
