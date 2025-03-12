@@ -540,3 +540,14 @@ if __name__ == '__main__':
                  dst=os.path.join(test_thumbnail_dir, "test_short_video.mp4"))
     create_video(text="Long Video", duration=10, created=cd12,
                  dst=os.path.join(test_thumbnail_dir, "test_long_video.mp4"))
+
+    # Create two test files based on weird file extensions
+    shutil.copy2(os.path.join(test_thumbnail_dir, "test_vertical_thumbnail.png"),
+                 os.path.join(test_thumbnail_dir, "test_vertical_thumbnail.md"))
+
+    shutil.copy2(os.path.join(test_thumbnail_dir, "test_short_video.mp4"),
+                 os.path.join(test_thumbnail_dir, "test_short_video.pdf"))
+
+    # Empty file for failure testing
+    with open(os.path.join(test_thumbnail_dir, "corrupt.mp4"), "w") as f:
+        f.write("Broken")
