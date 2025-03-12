@@ -317,12 +317,12 @@ if __name__ == '__main__':
 
     # Make the test files for match test
     import_match_input = {
-        "01_Matching_Source.png": import_matches["11_Binary_Match_Main.png"],
-        "02_Matching_Source.png": import_matches["21_Hash_Match_Main.png"],
-        "03_Matching_Source.png": import_matches["31_Binary_Match_Trash.png"],
-        "04_Matching_Source.png": import_matches["41_Hash_Match_Trash.png"],
-        "05_Matching_Source.png": import_matches["51_Binary_Match_Duplicates.png"],
-        "06_Matching_Source.png": import_matches["61_Hash_Match_Duplicates.png"],
+        "10_Matching_Source.png": import_matches["11_Binary_Match_Main.png"],
+        "20_Matching_Source.png": import_matches["21_Hash_Match_Main.png"],
+        "30_Matching_Source.png": import_matches["31_Binary_Match_Trash.png"],
+        "40_Matching_Source.png": import_matches["41_Hash_Match_Trash.png"],
+        "50_Matching_Source.png": import_matches["51_Binary_Match_Duplicates.png"],
+        "60_Matching_Source.png": import_matches["61_Hash_Match_Duplicates.png"],
     }
 
     # Make the files for the allowed ext test
