@@ -162,7 +162,7 @@ def create_video(text: str, duration: int, created: dt, dst: str, height: int = 
         assert writer.isOpened(), "Writer needs to be open"
 
         img = np.zeros((height, width, 3), np.uint8)
-        new_mat = add_text(f"{text} {i // 24:02}:{i % 24:02}", mat=img, pos=(50, 50))
+        new_mat = add_text(f"{text}\n{i // 24:02}:{i % 24:02}", mat=img, pos=(50, 50))
 
         org = (50, 520)
 
