@@ -2589,9 +2589,9 @@ class PhotoAPI:
 
         # Get target time for the image.
         try:
-            if probe_res["streams"][0]["duration"] < target_time:
+            if float(probe_res["streams"][0]["duration"]) < target_time:
                 self.main_logger.warning("Video to short for default time point where to take thumbnail")
-                target_time = probe_res["streams"][0]["duration"] // 2
+                target_time = float(probe_res["streams"][0]["duration"]) // 2
 
             # Try to get the width of the stream
             for stream in probe_res["streams"]:
