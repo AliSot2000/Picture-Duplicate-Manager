@@ -466,12 +466,12 @@ if __name__ == '__main__':
     cd4 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=3, tzinfo=cet)
     cd5 = datetime.datetime(year=1990, month=11, day=1, hour=12, minute=0, second=4, tzinfo=cet)
 
-    create_media("Test File without any metadata",
+    create_image("Test File without any metadata",
                  created=cd1,
                  dst=os.path.join(import_test_dir, "10_no_metadata.jpg"),
                  tag_override={})
 
-    create_media("Test File without any metadata",
+    create_image("Test File without any metadata",
                  created=cd2,
                  dst=os.path.join(import_test_dir, "20_gps_metadata.jpg"),
                  tag_override={"EXIF:GPSLatitude": 47.368650,
@@ -482,7 +482,7 @@ if __name__ == '__main__':
                                "EXIF:GPSAltitudeRef": 0,
                                "EXIF:ModifyDate": cd2.strftime("%Y:%m:%d %H:%M:%S")})
 
-    create_media("Test File with GPS 2, New York USA",
+    create_image("Test File with GPS 2, New York USA",
                  created=cd3,
                  dst=os.path.join(import_test_dir, "21_gps_metadata.jpg"),
                  tag_override={"EXIF:GPSLatitude": 40.730610,
@@ -493,7 +493,7 @@ if __name__ == '__main__':
                                "EXIF:GPSAltitudeRef": 0,
                                "EXIF:ModifyDate": cd3.strftime("%Y:%m:%d %H:%M:%S")})
 
-    create_media("Test File with GPS 3, La Serena Chile",
+    create_image("Test File with GPS 3, La Serena Chile",
                  created=cd4,
                  dst=os.path.join(import_test_dir, "22_gps_metadata.jpg"),
                  tag_override={"EXIF:GPSLatitude": 29.90453,
@@ -504,7 +504,7 @@ if __name__ == '__main__':
                                "EXIF:GPSAltitudeRef": 0,
                                "EXIF:ModifyDate": cd4.strftime("%Y:%m:%d %H:%M:%S")})
 
-    create_media("Test File with GPS 4, Johannesburg",
+    create_image("Test File with GPS 4, Johannesburg",
                  created=cd5,
                  dst=os.path.join(import_test_dir, "23_gps_metadata.jpg"),
                  tag_override={"EXIF:GPSLatitude": 28.4792625,
