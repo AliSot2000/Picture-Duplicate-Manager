@@ -428,15 +428,15 @@ if __name__ == '__main__':
         base_dir = os.path.join(target_dir, "db", group_dir)
         create_files_from_dict(f_dicts, base_dir)
 
-    # Create the directory for testing allowed imports.
+    # Create the directory for testing **allowed** imports.
     all_ext_base_dir = os.path.join(target_dir, "import_base_dir")
     create_files_from_dict(allowed_ext_test, all_ext_base_dir)
 
-    # Create a file for the files in the db directory
+    # Create a files to test import matching
     import_match_dir = os.path.join(target_dir, "db", "import_matches")
     create_files_from_dict(import_matches, import_match_dir)
 
-    # Create the directory for the source
+    # Create the directory for the source which should be matched against the db
     import_input_dir = os.path.join(target_dir, "import_match_source")
     create_files_from_dict(import_match_input, import_input_dir)
 
