@@ -131,15 +131,51 @@ def create_image(text: str, created: dt, dst: str, height: int = 1080, width: in
 
     cv2.imwrite(dst, text_mat)
 
-    if tag_override is None:
-        tag_override = {"EXIF:ModifyDate": created.strftime("%Y:%m:%d %H:%M:%S"),
-                        "EXIF:OffsetTime": created.strftime("%z")}
+    add_exif_data(dst, created, tag_override)
 
-    if len(tag_override) > 0:
-        with exiftool.ExifToolHelper() as eh:
-            eh.set_tags(files=dst, tags=tag_override, params=["-overwrite_original"])
 
-    os.utime(dst, times=(created.timestamp(), created.timestamp()))
+def create_video(text: str, duration: int, created: dt, dst: str, height: int = 1080, width: int = 1920,
+                 tag_override: Dict = None):
+    """
+    Create a video file for testing.
+
+    :param text: Base Text to put into video.
+    :param duration: length of video in seconds
+    :param created: Date the file was created
+    :param height: Height of the file
+    :param width: Width of the file
+    :param dst: Destination where to write the file to.
+    :param tag_override: Dictionary of tags to override
+    """
+    print(f"Creating File: {os.path.basename(dst)}")
+    assert height > 0, "Height must be greater than 0"
+    assert width > 0, "Width must be greater than 0"
+    assert created.tzinfo is not None, "Creation date must be timezone aware"
+
+    fmt_str = "mp4v"
+    fmt = cv2.VideoWriter.fourcc(*fmt_str)
+    writer = cv2.VideoWriter(dst, fmt, 24, (1920, 1080))
+
+    end = duration * 24
+
+    for i in range(end):
+        assert writer.isOpened(), "Writer needs to be open"
+
+        img = np.zeros((height, width, 3), np.uint8)
+        new_mat = add_text(f"{text} {i // 24:02}:{i % 24:02}", mat=img, pos=(50, 50))
+
+        org = (50, 520)
+
+        width = int((i + 1) / end * 1820)
+        col = (255, 255, 255)
+        cv2.rectangle(img, org, (org[0] + width, org[1] + 40), col, 1, cv2.LINE_AA)
+
+        writer.write(new_mat)
+
+    writer.release()
+
+    add_exif_data(dst, created, tag_override)
+
 
 def create_files_from_dict(arg_dict: dict, tgt_dir: str):
     """
