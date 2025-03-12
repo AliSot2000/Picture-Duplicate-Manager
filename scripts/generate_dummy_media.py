@@ -166,9 +166,9 @@ def create_video(text: str, duration: int, created: dt, dst: str, height: int = 
 
         org = (50, 520)
 
-        width = int((i + 1) / end * 1820)
+        rect_width = int((i + 1) / end * 1820)
         col = (255, 255, 255)
-        cv2.rectangle(img, org, (org[0] + width, org[1] + 40), col, 1, cv2.LINE_AA)
+        cv2.rectangle(new_mat, org, (org[0] + rect_width, org[1] + 40), col, 1, cv2.LINE_AA)
 
         writer.write(new_mat)
 
