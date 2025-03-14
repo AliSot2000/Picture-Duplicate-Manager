@@ -769,7 +769,10 @@ class PhotoDB(BaseSQliteDB):
         base_statement = f"SELECT key, allowed, original_filename FROM `{tbl_name}` WHERE imported IN (0, 1)"
         step_statement = base_statement + " AND key > ?"
 
-        self.debug_execute(stmt=base_statement, cur="update_allowed")
+        ordered_base_stmt = base_statement + " ORDER BY key"
+        ordered_step_stmt = step_statement + " ORDER BY key"
+
+        self.debug_execute(stmt=ordered_base_stmt, cur="update_allowed")
 
         while True:
             results = self.get_cursor("update_allowed").fetchmany(self.config.batch_size)
@@ -782,7 +785,7 @@ class PhotoDB(BaseSQliteDB):
                 yield key, Allowed(_allowed), org_fname
 
             # Get next batch
-            self.debug_execute(stmt=step_statement, args=(results[-1][0],), cur="update_allowed")
+            self.debug_execute(stmt=ordered_step_stmt, args=(results[-1][0],), cur="update_allowed")
 
         self.remove_extra_cursor("update_allowed")
 
