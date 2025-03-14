@@ -1146,10 +1146,23 @@ class PhotoDB(BaseSQliteDB):
         - file_size_bytes (new) file size of the given file.
         """
         self.add_extra_cursor("hash_update")
-        self.debug_execute("SELECT main_key, new_hash, file_size_bytes FROM hash_update_table")
 
-        for main_key, hash_str, file_size in self.get_cursor("hash_update"):
-            yield main_key, hash_str, file_size
+        base_stmt = "SELECT main_key, new_hash, file_size_bytes FROM hash_update_table"
+        step_stmt = base_stmt + " WHERE main_key > ?"
+
+        self.debug_execute(base_stmt, cur="hash_update")
+
+        while True:
+            results = self.get_cursor("hash_update").fetchmany(self.config.batch_size)
+
+            # Exit on empty result
+            if len(results) == 0:
+                break
+
+            for main_key, hash_str, file_size in results:
+                yield main_key, hash_str, file_size
+
+            self.debug_execute(step_stmt, args=(results[-1][0],), cur="hash_update")
 
         self.remove_extra_cursor("hash_update")
 
