@@ -830,35 +830,47 @@ class PhotoDB(BaseSQliteDB):
         :raises sqlite3.OperationalError: If the Import Table doesn't exist
         """
         self.add_extra_cursor("import_cursor")
-        self.debug_execute(stmt=f"SELECT key, original_filename, original_dirname, metadata, google_metadata, "
-                                f"file_hash, file_size_bytes, datetime, timezone, naming_tag, gps_latitude, "
-                                f"gps_longitude, datetime_source, allowed, import_key "
-                                f"FROM `{tbl_name}` WHERE imported = 1 ORDER BY original_dirname, original_filename",
-                       cur="import_cursor")
+        base_stmt = (f"SELECT key, original_filename, original_dirname, metadata, google_metadata, "
+                     f"file_hash, file_size_bytes, datetime, timezone, naming_tag, gps_latitude, "
+                     f"gps_longitude, datetime_source, allowed, import_key "
+                     f"FROM `{tbl_name}` WHERE imported = 1")
+        ordered_base_statement = base_stmt + " ORDER BY original_dirname, original_filename"
 
-        for row in self.get_cursor("import_cursor"):
-            k, ofn, ofd, md, gfmd, fh, fsb, _dt, tz, nt, gps_lat, gps_long, _dts, _allowed, imp_key = row
+        ordered_step_statement = base_stmt + " AND key > ? ORDER BY original_dirname, original_filename"
+        self.debug_execute(stmt=ordered_base_statement, cur="import_cursor")
 
-            k: int
-            ofn: str
-            ofd: str
-            md: str | None
-            gfmd: str | None
-            fh: str
-            fsb: int
-            tz: str
-            nt: str
-            gps_lat: float | None
-            gps_long: float | None
-            imp_key: int | None
+        while True:
+            results = self.get_cursor("import_cursor").fetchmany(self.config.batch_size)
 
-            dt = datetime.datetime.fromisoformat(_dt)
-            allowed = Allowed(_allowed)
-            dts = DateTimeSource(_dts)
+            # Exit the loop if we don't have any more results
+            if len(results) == 0:
+                break
 
-            assert dt.tzinfo is not None, "Timezone needed for import"
+            for row in results:
+                k, ofn, ofd, md, gfmd, fh, fsb, _dt, tz, nt, gps_lat, gps_long, _dts, _allowed, imp_key = row
 
-            yield k, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, imp_key
+                k: int
+                ofn: str
+                ofd: str
+                md: str | None
+                gfmd: str | None
+                fh: str
+                fsb: int
+                tz: str
+                nt: str
+                gps_lat: float | None
+                gps_long: float | None
+                imp_key: int | None
+
+                dt = datetime.datetime.fromisoformat(_dt)
+                allowed = Allowed(_allowed)
+                dts = DateTimeSource(_dts)
+
+                assert dt.tzinfo is not None, "Timezone needed for import"
+
+                yield k, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, imp_key
+
+            self.debug_execute(stmt=ordered_step_statement, args=(results[-1][0],), cur="import_cursor")
 
         self.remove_extra_cursor("import_cursor")
 
