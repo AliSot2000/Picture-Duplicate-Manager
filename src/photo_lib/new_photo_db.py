@@ -1292,17 +1292,27 @@ class PhotoDB(BaseSQliteDB):
 
         """
         self.add_extra_cursor("name_update")
-        self.debug_execute("SELECT key, name, dir_name, best_match FROM name_update_table "
-                           # Ensure match is HASH_MATCH_MAIN
-                           "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2",
-                           cur="name_update")
+        base_stmt = ("SELECT key, name, dir_name, best_match FROM name_update_table "
+                      # Ensure match is HASH_MATCH_MAIN
+                      "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2")
+        step_stmt = base_stmt + " AND key > ?"
+        self.debug_execute(base_stmt, cur="name_update")
 
-        for key, name, dir_name, best_match in self.get_cursor("name_update"):
-            yield key, name, dir_name, best_match
+        while True:
+            results = self.get_cursor("name_update").fetchmany(self.config.batch_size)
+
+            # Leave loop on empty result
+            if len(results) == 0:
+                break
+
+            for key, name, dir_name, best_match in results:
+                yield key, name, dir_name, best_match
+
+            self.debug_execute(step_stmt, args=(results[-1][0],), cur="name_update")
 
         self.remove_extra_cursor("name_update")
 
-    def find_hash_match_iterator(self) -> Iterator[Tuple[int, str, str, int, str]]:
+    def find_hash_match_name_update_iterator(self) -> Iterator[Tuple[int, str, str, int, str]]:
         """
         Get an iterator for all rows in the name_update_table to find matches based on the file hash and file size.
 
