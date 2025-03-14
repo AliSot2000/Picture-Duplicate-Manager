@@ -4,6 +4,11 @@ from unittest import TestCase
 from photo_lib.data_objects import Selection, SelectionType
 
 
+"""
+Test the Selection Object and it's constructor
+"""
+
+
 class TestSelection(TestCase):
     def test_sel_a_or_sel_b(self):
         """
