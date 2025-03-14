@@ -301,6 +301,7 @@ class PhotoAPI:
             db_file=defaults.db_file,
             thumbnail_target=defaults.thumbnail_size,
             miniature_target=defaults.miniature_size,
+            batch_size=defaults.batch_size,
         )
 
     # ==================================================================================================================
