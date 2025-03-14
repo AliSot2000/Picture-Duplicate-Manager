@@ -2593,12 +2593,10 @@ class PhotoAPI:
                 self.main_logger.warning("Video to short for default time point where to take thumbnail")
                 target_time = float(probe_res["streams"][0]["duration"]) // 2
 
-            # Try to get the width of the stream
-            for stream in probe_res["streams"]:
-                width = stream.get("width")
-
-                if width is not None:
-                    break
+            # Using this code style to prevent dangling branches that aren't
+            widths = [stream.get("width") for stream in probe_res["streams"]]
+            val_widths = filter(lambda x: x is not None, widths)
+            width = max(val_widths)
 
         except KeyError:
             self.main_logger.error(f"KeyError: Failed to get time data from probe result of ffmpeg: {in_path}")
