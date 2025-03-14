@@ -30,6 +30,8 @@ class Config(BaseModel):
     datetime_fmt: Union[DateTimeParser, None] = None
     fallback_tz: Union[str, None] = None
 
+    batch_size: int
+
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
