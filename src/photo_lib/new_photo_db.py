@@ -1325,11 +1325,23 @@ class PhotoDB(BaseSQliteDB):
         - hash (of file indicated by name and dir_name)
         """
         self.add_extra_cursor("name_update_hash_match")
-        self.debug_execute(stmt="SELECT key, name, dir_name, file_size_bytes, hash FROM name_update_table",
+
+        base_stmt = "SELECT key, name, dir_name, file_size_bytes, hash FROM name_update_table"
+        step_stmt = base_stmt + " WHERE key > ?"
+        self.debug_execute(stmt=base_stmt,
                            cur="name_update_hash_match")
 
-        for key, name, dir_name, file_size_bytes, hash in self.get_cursor("name_update_hash_match"):
-            yield key, name, dir_name, file_size_bytes, hash
+        while True:
+            results = self.get_cursor("name_update_hash_match").fetchmany(self.config.batch_size)
+
+            # Leave loop on empty result
+            if len(results) == 0:
+                break
+
+            for key, name, dir_name, file_size_bytes, hash in results:
+                yield key, name, dir_name, file_size_bytes, hash
+
+            self.debug_execute(step_stmt, args=(results[-1][0],), cur="name_update_hash_match")
 
         self.remove_extra_cursor("name_update_hash_match")
 
