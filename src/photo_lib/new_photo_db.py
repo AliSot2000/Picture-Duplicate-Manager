@@ -2625,15 +2625,32 @@ class PhotoDB(BaseSQliteDB):
 
         # Execute the statement
         if len(constraints) == 0:
+            base_stmt = stmt
+            step_stmt = base_stmt + " WHERE key > ?"
             self.debug_execute(stmt, cur="main_key_flags_iterator")
 
         else:
             stmt += " WHERE "
-            const_str = ", ".join(constraints)
-            self.debug_execute(stmt=stmt + const_str, args=tuple(const_args), cur="main_key_flags_iterator")
+            const_str = " AND ".join(constraints)
+            base_stmt = stmt + const_str
+            step_stmt = base_stmt + " AND key > ?"
+            self.debug_execute(stmt=base_stmt, args=tuple(const_args), cur="main_key_flags_iterator")
 
-        for key, _flags in self.get_cursor("main_key_flags_iterator"):
-            yield key, MainFlags.from_int(_flags)
+        while True:
+            results = self.get_cursor("main_key_flags_iterator").fetchmany(self.config.batch_size)
+
+            # Leave loop on empty results
+            if len(results) == 0:
+                break
+
+            for key, _flags in results:
+                yield key, MainFlags.from_int(_flags)
+
+            # Get the next batch
+            if len(constraints) == 0:
+                self.debug_execute(step_stmt, args=(results[-1][0],), cur="main_key_flags_iterator")
+            else:
+                self.debug_execute(step_stmt, args=tuple(const_args + [results[-1][0]]), cur="main_key_flags_iterator")
 
         self.remove_extra_cursor("main_key_flags_iterator")
 
