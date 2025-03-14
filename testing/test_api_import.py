@@ -80,6 +80,7 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
 
         self.api = PhotoAPI(root_path=self.temp_db,
                             init=False, init_loggers=False)
+        self.api.config.batch_size = 10
 
     def tearDown(self):  # pragma: no cover
         """
