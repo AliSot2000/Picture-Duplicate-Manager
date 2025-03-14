@@ -919,17 +919,29 @@ class PhotoDB(BaseSQliteDB):
             # Reset the match columns before recomputing.
             self.debug_execute(f"UPDATE `{tbl_name}` SET highest_match= NULL, matches = NULL, match_type = 0 "
                                f"WHERE allowed = 1, AND imported IN (0, 1)")
+            base_stmt = (f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
+                         f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1")
 
-            self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
-                               f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1",
-                               cur="match_cursor")
+            self.debug_execute(base_stmt, cur="match_cursor")
         else:
-            self.debug_execute(f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
-                               f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1 AND matches IS NULL",
-                               cur="match_cursor")
 
-        for key, ofn, ofd, fsb, fh in self.get_cursor("match_cursor"):
-            yield key, ofn, ofd, fsb, fh
+            base_stmt = (f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
+                         f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1 AND matches IS NULL")
+            self.debug_execute(base_stmt, cur="match_cursor")
+
+        step_stmt = base_stmt + " AND key > ?"
+
+        while True:
+            results = self.get_cursor("match_cursor").fetchmany(self.config.batch_size)
+
+            # Exit loop on end
+            if len(results) == 0:
+                break
+
+            for key, ofn, ofd, fsb, fh in results:
+                yield key, ofn, ofd, fsb, fh
+
+            self.debug_execute(step_stmt, args=(results[-1][0],), cur="match_cursor")
 
         self.remove_extra_cursor("match_cursor")
 
