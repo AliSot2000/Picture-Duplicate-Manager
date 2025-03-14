@@ -872,7 +872,7 @@ class PhotoDB(BaseSQliteDB):
 
                 yield k, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, imp_key
 
-            self.debug_execute(stmt=ordered_step_statement, args=(results[-1][0],), cur="import_cursor")
+            self.debug_execute(base_stmt, cur="import_cursor")
 
         self.remove_extra_cursor("import_cursor")
 
