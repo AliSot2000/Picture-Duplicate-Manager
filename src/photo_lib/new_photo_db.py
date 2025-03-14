@@ -2650,7 +2650,7 @@ class PhotoDB(BaseSQliteDB):
             stmt += " WHERE "
             const_str = " AND ".join(constraints)
             base_stmt = stmt + const_str + " ORDER BY key"
-            step_stmt = base_stmt + " AND key > ? ORDER BY key"
+            step_stmt = stmt + const_str + " AND key > ? ORDER BY key"
             self.debug_execute(stmt=base_stmt, args=tuple(const_args), cur="main_key_flags_iterator")
 
         while True:
