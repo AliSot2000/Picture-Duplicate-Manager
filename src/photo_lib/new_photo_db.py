@@ -1341,7 +1341,11 @@ class PhotoDB(BaseSQliteDB):
 
         base_stmt = "SELECT key, name, dir_name, file_size_bytes, hash FROM name_update_table"
         step_stmt = base_stmt + " WHERE key > ?"
-        self.debug_execute(stmt=base_stmt,
+
+        ordered_base_stmt = base_stmt + " ORDER BY key"
+        ordered_step_stmt = step_stmt + " ORDER BY key"
+
+        self.debug_execute(stmt=ordered_base_stmt,
                            cur="name_update_hash_match")
 
         while True:
@@ -1354,7 +1358,7 @@ class PhotoDB(BaseSQliteDB):
             for key, name, dir_name, file_size_bytes, hash in results:
                 yield key, name, dir_name, file_size_bytes, hash
 
-            self.debug_execute(step_stmt, args=(results[-1][0],), cur="name_update_hash_match")
+            self.debug_execute(ordered_step_stmt, args=(results[-1][0],), cur="name_update_hash_match")
 
         self.remove_extra_cursor("name_update_hash_match")
 
