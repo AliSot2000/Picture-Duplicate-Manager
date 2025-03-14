@@ -1305,7 +1305,11 @@ class PhotoDB(BaseSQliteDB):
                       # Ensure match is HASH_MATCH_MAIN
                       "WHERE best_match IS NOT NULL AND updated = 0 AND match_type = 2")
         step_stmt = base_stmt + " AND key > ?"
-        self.debug_execute(base_stmt, cur="name_update")
+
+        ordered_base_stmt = base_stmt + " ORDER BY key"
+        ordered_step_stmt = step_stmt + " ORDER BY key"
+
+        self.debug_execute(ordered_base_stmt, cur="name_update")
 
         while True:
             results = self.get_cursor("name_update").fetchmany(self.config.batch_size)
@@ -1317,7 +1321,7 @@ class PhotoDB(BaseSQliteDB):
             for key, name, dir_name, best_match in results:
                 yield key, name, dir_name, best_match
 
-            self.debug_execute(step_stmt, args=(results[-1][0],), cur="name_update")
+            self.debug_execute(ordered_step_stmt, args=(results[-1][0],), cur="name_update")
 
         self.remove_extra_cursor("name_update")
 
