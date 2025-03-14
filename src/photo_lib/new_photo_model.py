@@ -1487,7 +1487,7 @@ class PhotoAPI:
         #   remove the lowest node tree and then go up and attempt to remove all upper nodes and remove those as well
         #   if they are empty.
         keys_to_delete = []
-        for raw in self.db.prune_db_dir_iterator():
+        for raw in self.db.prune_db_dir_list():
             ktd = raw[0]
             db_local_dir = raw[1]
 
