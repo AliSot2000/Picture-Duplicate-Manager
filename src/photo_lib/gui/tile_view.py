@@ -17,7 +17,100 @@ from photo_lib.gui.old_model import Model, GroupCount, GroupingCriterion, TileBu
 use_timers_resize = True
 use_timers_scroll = False
 
-
+# TODO test the following bug:
+#   - Scroll out of bounds
+#   - Increase Tile Size to max
+#   - Use scroll arrows
+#   - Make are larger than image
+#   - Scale down
+# Main point seems to be, window is smaller than the displayed image.
+# Error output:
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b5941559090>
+# Removed 87 Widgets
+# Compute lut took: 0.001769
+# Number of rows: 1643
+# Number of generated rows: 22, Number of columns: 3, Number of Widgets: 66
+# Added: 53 Widgets
+# Removed 0 Widgets
+# Compute lut took: 0.004081
+# Number of rows: 4149
+# Number of generated rows: 13, Number of columns: 1, Number of Widgets: 13
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a350>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a3f0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a490>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a530>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155b610>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155b570>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155b4d0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155b430>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155b390>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155b2f0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155b250>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155b1b0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155b110>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155b070>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155afd0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155af30>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155ae90>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155adf0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155ad50>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155acb0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155ac10>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155ab70>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155aad0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155aa30>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a990>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a8f0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a850>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a7b0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a710>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a670>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b594155a5d0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b5941559770>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415596d0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b5941559630>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b5941559590>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415594f0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b5941559450>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415593b0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b5941559310>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b5941559270>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415bb430>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415bb390>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415bb2f0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415bb250>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415bb1b0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415bb110>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415bb070>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415bafd0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415baf30>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415bae90>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b59415591d0>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b5941559130>
+# DEBUG: Deleted Later <photo_lib.gui.image_tile.IndexedTile object at 0x7b5941558e10>
+# Removed 53 Widgets
+# Traceback (most recent call last):
+#   File "/home/alisot2000/Documents/01_ReposNCode/Picture-Duplicate-Manager/src/photo_lib/gui/tile_view.py", line 1115, in update_scroll_on_change
+#     """
+#
+#   File "/home/alisot2000/Documents/01_ReposNCode/Picture-Duplicate-Manager/src/photo_lib/gui/tile_view.py", line 936, in scroll_slot
+#     #     self.scroll_buffer = row
+#     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+#   File "/home/alisot2000/Documents/01_ReposNCode/Picture-Duplicate-Manager/src/photo_lib/gui/tile_view.py", line 532, in scroll_animation
+#     Start scroll animation and buffer the row into a temp variable
+#         ^^^^^^^^^^^^^^^^^^^^^^^
+#   File "/home/alisot2000/Documents/01_ReposNCode/Picture-Duplicate-Manager/src/photo_lib/gui/tile_view.py", line 595, in scroll_to_row
+#     self.layout_from_datastructure()
+# ^^^^^^^^^^^^^^^^^^^^^^^^
+#   File "/home/alisot2000/Documents/01_ReposNCode/Picture-Duplicate-Manager/src/photo_lib/gui/tile_view.py", line 619, in _scroll_to_row
+#     + self.preload_row_count
+#          ^^^^^^^^^^^^^^^^^^^^
+#   File "/home/alisot2000/Documents/01_ReposNCode/Picture-Duplicate-Manager/src/photo_lib/gui/tile_view.py", line 754, in _generate_row
+#
+#   File "/home/alisot2000/Documents/01_ReposNCode/Picture-Duplicate-Manager/src/photo_lib/gui/tile_view.py", line 356, in get_hidden_widget
+#     def get_hidden_widget(self) -> IndexedTile:
+#             ^^^^^^^^^^^^^^^^^^^^^^^^^
+# IndexError: pop from empty list
 # TODO register clickable tiles to emmit the img_selected signal
 class TileWidget(QFrame):
     # Backend objects
