@@ -2642,15 +2642,15 @@ class PhotoDB(BaseSQliteDB):
 
         # Execute the statement
         if len(constraints) == 0:
-            base_stmt = stmt
-            step_stmt = base_stmt + " WHERE key > ?"
+            base_stmt = stmt + " ORDER BY key"
+            step_stmt = base_stmt + " WHERE key > ? ORDER BY key"
             self.debug_execute(stmt, cur="main_key_flags_iterator")
 
         else:
             stmt += " WHERE "
             const_str = " AND ".join(constraints)
-            base_stmt = stmt + const_str
-            step_stmt = base_stmt + " AND key > ?"
+            base_stmt = stmt + const_str + " ORDER BY key"
+            step_stmt = base_stmt + " AND key > ? ORDER BY key"
             self.debug_execute(stmt=base_stmt, args=tuple(const_args), cur="main_key_flags_iterator")
 
         while True:
