@@ -526,16 +526,15 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute(stmt, args)
         self.commit()
 
-    def list_import_tables(self) -> Iterator[NewImportTableEntry]:
+    def list_import_tables(self) -> List[NewImportTableEntry]:
         """
         Return List of all Import Tables
         """
-        self.add_extra_cursor("list_import_tables")
         self.debug_execute("SELECT key, root_path, table_name, table_name, flags FROM import_table")
-        for key, rp, tbl_name, tbl_desc, _flags in self.get_cursor("list_import_tables"):
-            yield NewImportTableEntry(key, rp, tbl_name, tbl_desc, GenericTableFlags.from_int(_flags))
-
-        self.remove_extra_cursor("list_import_tables")
+        retl = []
+        for key, rp, tbl_name, tbl_desc, _flags in self.sq_cur.fetchall():
+            retl.append(NewImportTableEntry(key, rp, tbl_name, tbl_desc, GenericTableFlags.from_int(_flags)))
+        return retl
 
     # INFO: Needed for testing
     def get_size_of_single_import_table(self, tbl_name: str):
