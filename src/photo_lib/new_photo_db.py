@@ -833,19 +833,18 @@ class PhotoDB(BaseSQliteDB):
         :raises sqlite3.OperationalError: If the Import Table doesn't exist
         """
         self.add_extra_cursor("import_cursor")
+
         base_stmt = (f"SELECT key, original_filename, original_dirname, metadata, google_metadata, "
                      f"file_hash, file_size_bytes, datetime, timezone, naming_tag, gps_latitude, "
                      f"gps_longitude, datetime_source, allowed, import_key "
-                     f"FROM `{tbl_name}` WHERE imported = 1")
-        ordered_base_statement = base_stmt + " ORDER BY original_dirname, original_filename"
+                     f"FROM `{tbl_name}` WHERE imported = 1 ORDER BY original_dirname, original_filename")
 
-        ordered_step_statement = base_stmt + " AND key > ? ORDER BY original_dirname, original_filename"
-        self.debug_execute(stmt=ordered_base_statement, cur="import_cursor")
+        self.debug_execute(stmt=base_stmt , cur="import_cursor")
 
         while True:
             results = self.get_cursor("import_cursor").fetchmany(self.config.batch_size)
 
-            # Exit the loop if we don't have any more results
+            # Exit loop on empty list
             if len(results) == 0:
                 break
 
