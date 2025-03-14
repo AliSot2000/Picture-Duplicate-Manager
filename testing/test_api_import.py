@@ -409,6 +409,7 @@ class TestAPIPerformImport(unittest.TestCase):
         self.api = PhotoAPI(root_path=self.temp_db,
                             init_loggers=False,
                             init=False)
+        self.api.config.batch_size = 10
 
     def tearDown(self):  # pragma: no cover
         """
