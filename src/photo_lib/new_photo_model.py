@@ -1243,7 +1243,7 @@ class PhotoAPI:
         if count == 0:
             return 0
 
-        for key, name, dir_name, fsb, fh in self.db.find_hash_match_iterator():
+        for key, name, dir_name, fsb, fh in self.db.find_hash_match_name_update_iterator():
             name: str
             dir_name: str
 
