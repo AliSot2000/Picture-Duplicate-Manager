@@ -1614,26 +1614,27 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("SELECT COUNT(*) FROM hash_assoz WHERE file_key = ?", (key,))
         return self.sq_cur.fetchone()[0]
 
-    def get_all_hashes_of_file(self, key: int) -> Iterator[Tuple[str, int, datetime.datetime, bool]]:
+    def get_all_hashes_of_file(self, key: int) -> List[Tuple[str, int, datetime.datetime, bool]]:
         """
         Get all file hashes of a given file.
 
         :param key: keys in main table to get the hashes for
 
-        :returns Iterator to all files hashes given a file key.
+        :returns List to all files hashes given a file key.
         """
         self.add_extra_cursor("get_file_hash")
         self.debug_execute("SELECT h.hash, ha.file_size_bytes, ha.hash_date, ha.initial "
                            "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
                            "WHERE ha.file_key = ?",
-                           (key,), "get_file_hash")
+                           (key,))
+        res_list = []
 
         # Process the rows
-        for h, fsb, _hd, ini in self.get_cursor("get_file_hash"):
+        for h, fsb, _hd, ini in self.sq_cur.fetchall():
             dt = datetime.datetime.fromisoformat(_hd)
-            yield h, fsb, dt, bool(ini)
+            res_list.append((h, fsb, dt, bool(ini)))
 
-        self.remove_extra_cursor("get_file_hash")
+        return res_list
 
     def check_add_file_hash(self, file_key: int,
                             file_size: int,
