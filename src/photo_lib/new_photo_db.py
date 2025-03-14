@@ -922,16 +922,21 @@ class PhotoDB(BaseSQliteDB):
             self.debug_execute(f"UPDATE `{tbl_name}` SET highest_match= NULL, matches = NULL, match_type = 0 "
                                f"WHERE allowed = 1, AND imported IN (0, 1)")
             base_stmt = (f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
-                         f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1")
+                         f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1 ")
 
-            self.debug_execute(base_stmt, cur="match_cursor")
+            ordered_base_stmt = base_stmt + "ORDER BY key"
+
+            self.debug_execute(ordered_base_stmt, cur="match_cursor")
         else:
 
             base_stmt = (f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
                          f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1 AND matches IS NULL")
-            self.debug_execute(base_stmt, cur="match_cursor")
 
-        step_stmt = base_stmt + " AND key > ?"
+            ordered_base_stmt = base_stmt + " ORDER BY key"
+
+            self.debug_execute(ordered_base_stmt, cur="match_cursor")
+
+        step_stmt = base_stmt + " AND key > ? ORDER BY key"
 
         while True:
             results = self.get_cursor("match_cursor").fetchmany(self.config.batch_size)
