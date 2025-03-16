@@ -6,7 +6,7 @@ import unittest
 from typing import Optional, List, Dict, Any
 from zoneinfo import ZoneInfo
 
-from photo_lib.custom_enum import Allowed, MediaType
+from photo_lib.custom_enum import Allowed, MediaType, ImportStatus
 from photo_lib.flag_dataclasses import GenericTableFlags, MainFlags
 from photo_lib.metadata_aggregator import DateTimeSource
 from photo_lib.new_photo_model import PhotoAPI
