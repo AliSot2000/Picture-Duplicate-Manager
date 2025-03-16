@@ -2082,7 +2082,7 @@ class PhotoAPI:
         self.db.update_row_main_table(key=child_key, parent=parent_key, flags=main_flags)
 
         # TODO Darktable???
-        self.prune_db_dir()
+        # INFO: Calling prune_db_dir doesn't make sense. The metadata row still exists, it is only updated to DUPLICATE
         self.prune_fs_dir = True
 
         self.key_to_filepath_cache.update(arg=child_key, value=os.path.join(self.db.get_trash_dir(), db_name))
