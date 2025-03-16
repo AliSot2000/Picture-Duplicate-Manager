@@ -15,6 +15,23 @@ from photo_lib.utils import rec_list_all
 
 wip: bool = False
 
+
+"""
+This file fully tests the following functions:
+- api.verify_external_dir
+- api.prepare_directory_for_import
+- api.db.add_import_table
+- api.update_allowed
+- api.verify_custom_target_dir
+- api.perform_import
+- api._add_update_exif_tag
+- api.db.insert_row_main_table
+- api.db.update_row_main_table
+- api.db.update_row_metadata_table
+
+The file covers 100% of the function without specific tests:
+- api.db.insert_row_metadata_table
+"""
 class TestAPIPrepareDirectoryForImport(unittest.TestCase):
     shadow_db: str
     temp_db: str
