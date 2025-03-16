@@ -135,7 +135,7 @@ class TestClassifyLocalBase(TestClassifyBase):
             self.assertIn(row, expected_kdt)
 
 
-class TestToDuplicates(TestClassifyBase):
+class TestToDuplicates(TestClassifyLocalBase):
     """
     Tests for the move_to_duplicates method.
     """
@@ -457,7 +457,7 @@ class TestToDuplicates(TestClassifyBase):
         self.assertEqual(par_row.google_metadata, json.dumps(gfmd))
 
 
-class TestToTrash(TestClassifyBase):
+class TestToTrash(TestClassifyLocalBase):
     """
     Tests for the move_to_trash method.
     """
