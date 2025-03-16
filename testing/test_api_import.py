@@ -306,6 +306,18 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
 
         self.assertEqual(len(tbl), 120)
 
+    def test_duplicate_table_name(self):
+        """
+        Check that add_import_table will raise an error when the same table name is passed twice
+        """
+        test_tbl = "Test_Table"
+
+        res = self.api.db.add_import_table(root_path="/foo/bar/baz", name=test_tbl)
+
+        self.assertEqual(res, test_tbl)
+
+        self.assertRaises(ValueError, lambda : self.api.db.add_import_table(root_path="/foo/bar/baz", name=test_tbl))
+
     def test_update_allowed(self):
         """
         Check that update allowed works correctly
