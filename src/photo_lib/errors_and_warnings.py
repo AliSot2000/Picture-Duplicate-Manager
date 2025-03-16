@@ -1,11 +1,7 @@
+"""
+This file contains custom Errors that are needed by the photo api.
+"""
 
-
-class RareOccurrence(Warning):
-    def __init__(self, message):
-        self.message = message
-
-    def __str__(self):
-        return repr(self.message)
 
 
 class DuplicateChainingError(Exception):
@@ -24,6 +20,7 @@ class CorruptDatabase(Exception):
         return repr(self.message)
 
 
+# TODO to Exception
 class NoDatabaseEntry(Warning):
     def __init__(self, message):
         self.message = message
