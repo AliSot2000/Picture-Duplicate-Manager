@@ -20,9 +20,9 @@ nd = NotDefined()
 class Cache:
     __max_size: int
 
-    __arg_res_lookup: dict = {}
-    __arg_index_lookup: dict = {}
-    __index_arg_lookup: dict = {}
+    __arg_res_lookup: dict
+    __arg_index_lookup: dict
+    __index_arg_lookup: dict
 
     __lru: np.ndarray[bool]
     __lru_index: int
@@ -56,6 +56,11 @@ class Cache:
         self.__max_size = size
         self.__lru_index = 0
         self.__lru = np.array([False for _ in range(self.size)])
+
+        # Need to explicitly set it here, otherwise, clashes bc of class vars.
+        self.__arg_res_lookup = {}
+        self.__arg_index_lookup = {}
+        self.__index_arg_lookup = {}
 
     def get(self, arg: Hashable):
         """
