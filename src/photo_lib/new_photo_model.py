@@ -2096,6 +2096,9 @@ class PhotoAPI:
         - Creates Thumbnail and Miniature
         - Moves the original file to the trash
         - Updates the flags of the file.
+
+        :param key: Key to move to trash
+        :param overwrite: Write disp media even if it exists already.
         """
         main_flags = self.db.get_main_flags(key)
         if main_flags is None:
