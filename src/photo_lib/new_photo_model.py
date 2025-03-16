@@ -2138,11 +2138,13 @@ class PhotoAPI:
         main_flags.present = os.path.exists(target_path)
         main_flags.trashed = True
 
+        # TODO darktable
+
         # All things done, update the flags and write the db, update the metadata table.
         self.db.update_row_main_table(key=key, flags=main_flags)
         self.db.update_row_metadata_table(key=key, replaced=MediaType.TRASH)
 
-        self.prune_db_dir()
+        # INFO: prune call makes no sense since the metadata row isn't deleted
         self.prune_fs_dir = True
 
         self.key_to_filepath_cache.update(arg=key, value=target_path)
