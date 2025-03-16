@@ -681,7 +681,7 @@ class TestRestore(TestClassifyBase):
 
         self.api.db.delete_row_metadata_table(key=1)
 
-        self.api.db.delete_row_main_table(key=1000, assert_exists=Falase)
+        self.api.db.delete_row_main_table(key=1000, assert_exists=False)
 
         # Metadata row not found
         self.assertRaises(ValueError, lambda: self.api.restore_trash(1))
