@@ -2055,9 +2055,11 @@ class PhotoAPI:
         self.db.check_flags(key=child_key, flags=main_flags, miniature=True, thumbnail=True, org_path=fp)
 
         # Take care of three kinds of files.
-        if os.path.exists(fp):
-            self.main_logger.debug("Moving Original File to Trash")
-            os.rename(fp, os.path.join(self.db.get_trash_dir(), db_name))
+        if not os.path.exists(fp):
+            raise FileNotFoundError("Move to Duplicate can only be called with file present.")
+
+        self.main_logger.debug("Moving Original File to Trash")
+        os.rename(fp, os.path.join(self.db.get_trash_dir(), db_name))
 
         # Setting present flag based on path in trash
         main_flags.present = os.path.exists(os.path.join(self.db.get_trash_dir(), db_name))
