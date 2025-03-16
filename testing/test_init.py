@@ -58,6 +58,9 @@ class BaseInit(unittest.TestCase):
 
 
 class TestDBInit(BaseInit):
+    """
+    Test init and aux methods of PhotoDB
+    """
 
     def test_exists(self):
         """
