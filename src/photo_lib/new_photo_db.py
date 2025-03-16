@@ -1682,7 +1682,7 @@ class PhotoDB(BaseSQliteDB):
 
             res = self.sq_cur.fetchall()
 
-            if len(res) > 1:
+            if len(res) > 1:  # pragma: no cover
                 raise CorruptDatabase("There's not supposed to be more than one initial hash per file.")
 
             if len(res) == 0:
