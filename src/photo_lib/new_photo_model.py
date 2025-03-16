@@ -2115,11 +2115,8 @@ class PhotoAPI:
         target_path = os.path.join(self.db.get_trash_dir(), os.path.basename(current_path))
 
         # Store existence in flags
-        main_flags.present = os.path.exists(current_path)
-
-        # TODO darktable
-        if main_flags.present:
-            assert os.path.exists(current_path), "Upper Condition wrong"
+        if not os.path.exists(current_path):
+            raise FileNotFoundError("Move to trash may only be called on files which are present in the db.")
 
             # Create thumbnail
             self.main_logger.debug("Creating Thumbnail for image going into Trash")
