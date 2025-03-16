@@ -158,6 +158,8 @@ class TestDBInit(BaseInit):
                      init_loggers=True,
                      config=PhotoAPI.build_default_config())
 
+        db.reload_loggers()
+
         self.assertIsInstance(db, PhotoDB)
         self.assertTrue(db.verified)
 
