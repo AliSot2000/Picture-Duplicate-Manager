@@ -3145,7 +3145,7 @@ class PhotoDB(BaseSQliteDB):
         Dumps the entire table to a list of dicts
         """
         self.debug_execute(
-            "SELECT key_a, key_b, delta FROM known_duplicates ORDER BY main_key")
+            "SELECT key_a, key_b, delta FROM known_duplicates ORDER BY key_a, key_b")
         return [{"key_a": row[0],
                  "key_b": row[1],
                  "delta": row[2],
@@ -3156,7 +3156,7 @@ class PhotoDB(BaseSQliteDB):
         Dumps the entire table to a list of dicts
         """
         self.debug_execute(
-            "SELECT key_a, key_b, delta FROM known_duplicates ORDER BY main_key")
+            "SELECT key_a, key_b, delta FROM duplicates ORDER BY key_a, key_b")
         return [{"key_a": row[0],
                  "key_b": row[1],
                  "delta": row[2],
