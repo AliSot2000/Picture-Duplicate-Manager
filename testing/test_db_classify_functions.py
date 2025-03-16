@@ -533,3 +533,121 @@ class TestToDuplicates(TestClassifyBase):
 
         for row in kdt:
             self.assertIn(row, expected_kdt)
+
+
+class TestToTrash(TestClassifyBase):
+    """
+    Tests for the move_to_trash method.
+    """
+
+    def test_errors(self):
+        """
+        Test that all error conditions are correctly handled.
+        """
+        self.assertRaises(ValueError, lambda: self.api.move_to_trash(1000))
+
+        # check trash flag error
+        mr = self.api.db.get_main_row(key=1)
+        self.assertIsNotNone(mr)
+
+        mr.flags.trashed = True
+        self.api.db.update_row_main_table(key=1, flags=mr.flags)
+
+        # raise actual error
+        self.assertRaises(ValueError, lambda: self.api.move_to_trash(1))
+
+        # check duplicate flag error
+        mr = self.api.db.get_main_row(key=2)
+        self.assertIsNotNone(mr)
+
+        mr.flags.duplicate = True
+        self.api.db.update_row_main_table(key=2, flags=mr.flags)
+
+        # raise actual error
+        self.assertRaises(ValueError, lambda: self.api.move_to_trash(2))
+
+        # Remove the third key
+        os.remove(self.api.db.db_resolve_key_to_abs_path(3))
+
+        self.assertRaises(FileNotFoundError, lambda: self.api.move_to_trash(3))
+
+    def test_regular_move(self):
+        """
+        Test that the file is moved and the thumbnails are created
+        """
+        self.api.move_to_trash(key=1, overwrite=False)
+
+        self.perform_basic_checks()
+
+    def perform_basic_checks(self):
+        """
+        Performs the basic operation of moving a file to trash
+        """
+        mr = self.api.db.get_main_row(1)
+        self.assertIsNotNone(mr)
+
+        # Check the file is in the trash
+        self.assertTrue(os.path.exists(os.path.join(self.api.db.get_trash_dir(), mr.db_name)))
+
+        # Check the trash flag is set and the present flag is set
+        self.assertTrue(mr.flags.trashed)
+        self.assertTrue(mr.flags.present)
+
+        # Check the metadata row exists and is set to trash
+        mdr = self.api.db.get_metadata_row(1)
+        self.assertIsNotNone(mdr)
+
+        self.assertEqual(mdr.replaced, MediaType.TRASH)
+
+        # Ensure the images exist
+        self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(1)))
+        self.assertTrue(os.path.exists(self.api.db.full_miniature_path(1)))
+
+    def test_move_with_overwrite(self):
+        """
+        Check that the display files are created after the current datetime
+        """
+        # Create the display files
+        self.api.create_display_files(miniature=True, thumbnail=True)
+
+        default_tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzname()
+        time_limit = datetime.datetime.now(zoneinfo.ZoneInfo(default_tz))
+
+        self.api.move_to_trash(key=1, overwrite=True)
+
+        self.perform_basic_checks()
+
+        # Ensure the file is created newer
+        created_min = os.stat(self.api.db.full_miniature_path(1)).st_ctime
+        self.assertLess(time_limit, datetime.datetime.fromtimestamp(created_min, zoneinfo.ZoneInfo(default_tz)))
+
+        # Ensure the file is created newer
+        created_thumb = os.stat(self.api.db.full_thumbnail_path(1)).st_ctime
+        self.assertLess(time_limit, datetime.datetime.fromtimestamp(created_thumb, zoneinfo.ZoneInfo(default_tz)))
+
+    def test_no_update_display_files(self):
+        """
+        Test that display files aren't created if they exist already
+        """
+        # Create the display files
+        self.api.create_display_files(miniature=True, thumbnail=True, overwrite=False)
+
+        time.sleep(1)
+
+        now = time.time()
+
+        self.api.move_to_trash(key=1, overwrite=False)
+
+        self.perform_basic_checks()
+
+        # Ensure the file is created newer
+        created_min = os.stat(self.api.db.full_miniature_path(1)).st_ctime
+        # created_min_dt = datetime.datetime.fromtimestamp(created_min, zoneinfo.ZoneInfo(default_tz))
+        # self.assertGreater(time_limit, created_min_dt)
+        self.assertGreater(now, created_min)
+
+        # Ensure the file is created newer
+        created_thumb = os.stat(self.api.db.full_thumbnail_path(1)).st_ctime
+        # created_thumb_dt = datetime.datetime.fromtimestamp(created_thumb, zoneinfo.ZoneInfo(default_tz))
+        # self.assertGreater(time_limit, created_thumb_dt)
+        self.assertGreater(now, created_thumb)
