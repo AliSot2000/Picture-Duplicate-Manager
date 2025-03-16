@@ -2066,11 +2066,13 @@ class PhotoAPI:
         if os.path.exists(self.db.full_thumbnail_path(child_key)):
             self.main_logger.debug(f"Deleting Thumbnail {self.db.thumbnail_name(child_key)}")
             os.remove(self.db.full_thumbnail_path(child_key))
+            main_flags.has_thumbnail = False
 
         # Remove Miniature
         if os.path.exists(self.db.full_miniature_path(child_key)):
             self.main_logger.debug(f"Deleting Miniature {self.db.miniature_name(child_key)}")
             os.remove(self.db.full_miniature_path(child_key))
+            main_flags.has_miniature = False
 
         # Copy the Google photos metadata to the parent.
         if copy_google_metadata and parent_google_metadata is None and child_gfmd is not None:
