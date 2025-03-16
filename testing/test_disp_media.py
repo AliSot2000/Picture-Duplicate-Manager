@@ -13,6 +13,15 @@ from photo_lib.utils import rec_list_all
 
 wip = False
 
+"""
+This file fully tests the following functions:
+- api._create_img_thumbnails
+- api._create_vid_thumbnails
+- api._create_display_file
+- api.create_display_files
+"""
+
+
 # Custom error to test exception handling
 class CustomError(Exception):
     """
