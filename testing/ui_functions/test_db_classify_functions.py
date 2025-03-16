@@ -575,7 +575,7 @@ class TestToTrash(TestClassifyLocalBase):
         self.assertGreater(now, created_thumb)
 
 
-class TestRestore(TestClassifyBase):
+class TestRestore(TestClassifyLocalBase):
     """
     Test the restore function which allows the undo of the to trash action or the undo of the to duplicates action
     """
