@@ -25,6 +25,9 @@ The file covers 100% of the function without specific tests:
 - api.db.remove_all_tuples_with_key
 - api.db.delete_row_metadata_table
 - api.db.delete_row_main_table
+- api.db.get_main_flags
+- api.db.get_replace_data
+- api.db.get_metadata_row
 """
 
 
@@ -677,6 +680,8 @@ class TestRestore(TestClassifyBase):
         self.assertRaises(ValueError, lambda : self.api.restore_trash(40))
 
         self.api.db.delete_row_metadata_table(key=1)
+
+        self.api.db.delete_row_main_table(key=1000, assert_exists=Falase)
 
         # Metadata row not found
         self.assertRaises(ValueError, lambda: self.api.restore_trash(1))
