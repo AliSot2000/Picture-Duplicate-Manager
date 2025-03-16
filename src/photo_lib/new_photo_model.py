@@ -2079,7 +2079,7 @@ class PhotoAPI:
             parent_flags.org_google_metadata = False
             self.db.update_row_main_table(key=parent_key, google_metadata=child_gfmd, flags=parent_flags)
 
-        self.db.change_parent(key=child_key, new_parent=parent_key)
+        self.db.update_row_main_table(key=child_key, parent=parent_key, flags=main_flags)
 
         # TODO Darktable???
         self.prune_db_dir()
