@@ -14,6 +14,25 @@ from photo_lib.new_photo_model import PhotoAPI
 test_scratch = os.path.join(os.path.dirname(__file__), "scratch")
 
 
+"""
+This file fully tests the following functions:
+- api.db.detach
+- api.db.__init__
+- api.db.set_logging_defaults
+- api.db.cleanup
+- api.db.init_db
+- api.db.verify_tables
+- api.db.get_thumb_dir
+- api.db.get_trash_dir
+- api.db.get_temp_dir
+- api.db.reload_loggers
+- api.__init__
+- api.reload_loggers
+- api.set_logging_defaults
+- check_create_default_dirs
+- write_config
+- build_default_config
+"""
 
 class BaseInit(unittest.TestCase):
     def setUp(self):  # pragma: no cover
