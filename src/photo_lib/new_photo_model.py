@@ -2088,7 +2088,7 @@ class PhotoAPI:
         self.key_to_filepath_cache.update(arg=child_key, value=os.path.join(self.db.get_trash_dir(), db_name))
         self.db.commit()
 
-    def move_to_trash(self, key: int):
+    def move_to_trash(self, key: int, overwrite: bool = False):
         """
         Move a given image to trash.
 
