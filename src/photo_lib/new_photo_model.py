@@ -26,7 +26,7 @@ from photo_lib.new_photo_db import PhotoDB
 
 
 # https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
-# TODO: Rework Loggers, Integrity Logger needs to be present on
+# TODO Add RowNotFoundError for row not found in the database
 class PhotoAPI:
     root_path: str
 
