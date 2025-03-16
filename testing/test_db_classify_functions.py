@@ -12,12 +12,19 @@ import shutil
 
 
 """
-This file contains the testing of all the functions in the ui, that modify the classification of a file
-changes are:
-main -> duplicate
-main -> trashed
-trashed -> main
-duplicate -> main
+This file fully tests the following functions:
+- api.move_to_duplicates
+- api.move_to_trash
+- api.restore_duplicate
+- api.restore_trash
+- api._internal_undo
+
+
+The file covers 100% of the function without specific tests:
+- api.db.migrate_parent_duplicate
+- api.db.remove_all_tuples_with_key
+- api.db.delete_row_metadata_table
+- api.db.delete_row_main_table
 """
 
 
