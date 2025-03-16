@@ -2058,8 +2058,9 @@ class PhotoAPI:
         self.main_logger.debug("Moving Original File to Trash")
         os.rename(fp, os.path.join(self.db.get_trash_dir(), db_name))
 
-        # Setting present flag based on path in trash
-        main_flags.present = os.path.exists(os.path.join(self.db.get_trash_dir(), db_name))
+        # PRECONDITION: File must exist
+        assert os.path.exists(os.path.join(self.db.get_trash_dir(), db_name)), "File must be in trash"
+        main_flags.present = True
 
         # Remove Thumbnail
         if os.path.exists(self.db.full_thumbnail_path(child_key)):
