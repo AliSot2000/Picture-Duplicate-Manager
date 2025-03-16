@@ -2239,17 +2239,17 @@ class PhotoAPI:
             if not os.path.exists(self.db.full_thumbnail_path(key)):
                 flags.has_thumbnail = self._create_display_file(
                     in_path=db_path, out_path=self.db.full_thumbnail_path(key), major_size=self.config.thumbnail_target)
-            else:
-                flags.has_thumbnail = True
+
+            flags.has_thumbnail = os.path.exists(self.db.full_thumbnail_path(key))
 
             # Create miniature
             if not os.path.exists(self.db.full_miniature_path(key)):
                 flags.has_miniature = self._create_display_file(
                     in_path=db_path, out_path=self.db.full_miniature_path(key), major_size=self.config.thumbnail_target)
-            else:
-                flags.has_miniature = True
 
-        self.db.update_row_metadata_table(key=key, replaced=0)
+            flags.has_miniature = os.path.exists(self.db.full_miniature_path(key))
+
+        self.db.update_row_metadata_table(key=key, replaced=MediaType.MAIN)
         if trash:
             self.db.update_row_main_table(key=key, flags=flags)
         else:
