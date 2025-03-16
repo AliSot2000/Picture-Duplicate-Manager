@@ -1897,14 +1897,15 @@ class PhotoDB(BaseSQliteDB):
 
         self.logger.debug(f"Changing {len(results)} `{tbl}` entries to the new parent")
 
-            args = []
-            for result in results:
-                if result[0] == child_key:
-                    args.append({"key_a": parent_key, "key_b": result[1], "delta": result[2]})
-                elif result[1] == child_key:
-                    args.append({"key_a": result[0], "key_b": parent_key, "delta": result[2]})
-                else:  # pragma: no cover
-                    raise ImplementationError("Couldn't find targeted key. Erroneous SQL Statement?")
+        # Parse results and update child to parent
+        args = []
+        for result in results:
+            if result[0] == child_key:
+                args.append({"key_a": parent_key, "key_b": result[1], "delta": result[2]})
+            elif result[1] == child_key:
+                args.append({"key_a": result[0], "key_b": parent_key, "delta": result[2]})
+            else:  # pragma: no cover
+                raise ImplementationError("Couldn't find targeted key. Erroneous SQL Statement?")
 
             # Remove tuple of kind (parent_key, parent_key)
             filtered_args = list(filter(lambda a: a["key_a"] != a["key_b"], args))
