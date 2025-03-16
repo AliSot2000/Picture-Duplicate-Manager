@@ -669,8 +669,12 @@ class TestRestore(TestClassifyBase):
         """
         Check that errors are  raised on the right conditions
         """
+        self.api.db.delete_row_main_table(40)
+
+        self.api.db.delete_row_main_table(1000, assert_exists=False)
+
         # Check main row not found
-        self.assertRaises(ValueError, lambda : self.api.restore_trash(1000))
+        self.assertRaises(ValueError, lambda : self.api.restore_trash(40))
 
         self.api.db.delete_row_metadata_table(key=1)
 
