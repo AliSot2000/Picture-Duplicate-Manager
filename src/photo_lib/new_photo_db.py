@@ -1840,7 +1840,7 @@ class PhotoDB(BaseSQliteDB):
             if key_b == key_a:
                 raise ValueError("Identical Keys.")
 
-            if key_a >= key_b:
+            if key_a > key_b:
                 key_a, key_b = key_b, key_a
 
             args = (key_a, key_b) if delta is None else (key_a, key_b, delta)
