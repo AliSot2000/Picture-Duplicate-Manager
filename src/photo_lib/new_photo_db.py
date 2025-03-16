@@ -406,6 +406,7 @@ class PhotoDB(BaseSQliteDB):
         # - Exactly one entry per file_key with initial flags hash_assoz.
         # - Check constraint on flags: either trashed OR duplicate but both.
         # - Check no duplicate chaining.
+        # - Check no intersection between known duplicates and duplicates table
         # TODO Implement
         return True
 
