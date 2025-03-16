@@ -56,6 +56,7 @@ class BaseInit(unittest.TestCase):
             print(f"Clearing Test Directory")
             shutil.rmtree(test_scratch)
 
+
 class TestDBInit(BaseInit):
 
     def test_exists(self):
