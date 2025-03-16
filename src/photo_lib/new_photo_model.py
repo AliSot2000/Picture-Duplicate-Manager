@@ -2039,7 +2039,7 @@ class PhotoAPI:
             self.main_logger.info(f"Updating {count} children of this entry")
 
             for child in children:
-                self.db.change_parent(key=child, new_parent=parent_key)
+                self.db.update_row_main_table(key=child, parent=parent_key)
 
         # Check Entries in duplicates table and known_duplicates table
         self.db.migrate_parent_duplicate(child_key=child_key, parent_key=parent_key, known=False)
