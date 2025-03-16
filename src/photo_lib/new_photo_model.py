@@ -2024,9 +2024,6 @@ class PhotoAPI:
         if parent_flags.trashed:
             self.main_logger.warning(f"Marking File as Duplicate with Parent in Trash")
 
-        if not parent_flags.present:
-            self.main_logger.warning("Marking File as Duplicate without Parent file being present")
-
         # Cannot update if the file is already duplicate
         if main_flags.duplicate:
             raise ValueError("File is already duplicate")
