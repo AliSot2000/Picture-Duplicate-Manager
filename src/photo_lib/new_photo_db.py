@@ -1825,7 +1825,7 @@ class PhotoDB(BaseSQliteDB):
         tbl = "known_duplicates" if known else "duplicates"
 
         if add:
-            if delta is not None:
+            if delta is None:
                 op = f"INSERT OR IGNORE INTO `{tbl}` (key_a, key_b) VALUES (?, ?)"
             else:
                 op = f"INSERT OR IGNORE INTO `{tbl}` (key_a, key_b, delta) VALUES (?, ?, ?)"
