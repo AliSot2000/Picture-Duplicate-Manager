@@ -5,6 +5,11 @@ from photo_lib.new_photo_db import PhotoDB
 from photo_lib.db_definitions import DBVersion, DBHistorySpec, StaticDeclaration, GenericDeclaration, Version
 
 
+"""
+Testing the following functions
+- api.db.build_definition_lookup
+"""
+
 class BuildDefTest(TestCase):
     def test_basic(self):
         """
