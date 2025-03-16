@@ -1,15 +1,12 @@
+import datetime
 import json
+import os
+import shutil
 import time
-import unittest
 import zoneinfo
 
 from photo_lib.custom_enum import MediaType
-from photo_lib.new_photo_model import PhotoAPI
-from typing import Optional
-import os
-import datetime
-import shutil
-
+from .base_class import TestClassifyBase
 
 """
 This file fully tests the following functions:
