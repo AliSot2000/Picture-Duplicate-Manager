@@ -1907,13 +1907,15 @@ class PhotoDB(BaseSQliteDB):
             else:  # pragma: no cover
                 raise ImplementationError("Couldn't find targeted key. Erroneous SQL Statement?")
 
-            # Remove tuple of kind (parent_key, parent_key)
-            filtered_args = list(filter(lambda a: a["key_a"] != a["key_b"], args))
-            self._internal_modify_duplicates(key_a=[a["key_a"] for a in filtered_args],
-                                             key_b=[a["key_b"] for a in filtered_args],
-                                             known=known,
-                                             add=True,
-                                             delta=[a["delta"] for a in filtered_args])
+        # Remove tuple of kind (parent_key, parent_key)
+        filtered_args = list(filter(lambda a: a["key_a"] != a["key_b"], args))
+
+        # Add the rows for the parent and the duplicates of the children
+        self._internal_modify_duplicates(key_a=[a["key_a"] for a in filtered_args],
+                                         key_b=[a["key_b"] for a in filtered_args],
+                                         known=known,
+                                         add=True,
+                                         delta=[a["delta"] for a in filtered_args])
 
             self._internal_modify_duplicates(key_a=[r["key_a"] for r in results],
                                              key_b=[r["key_b"] for r in results],
