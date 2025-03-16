@@ -651,3 +651,229 @@ class TestToTrash(TestClassifyBase):
         # created_thumb_dt = datetime.datetime.fromtimestamp(created_thumb, zoneinfo.ZoneInfo(default_tz))
         # self.assertGreater(time_limit, created_thumb_dt)
         self.assertGreater(now, created_thumb)
+
+
+class TestRestore(TestClassifyBase):
+    """
+    Test the restore function which allows the undo of the to trash action or the undo of the to duplicates action
+    """
+
+    def test_errors(self):
+        """
+        Check that errors are  raised on the right conditions
+        """
+        # Check main row not found
+        self.assertRaises(ValueError, lambda : self.api.restore_trash(1000))
+
+        self.api.db.delete_row_metadata_table(key=1)
+
+        # Metadata row not found
+        self.assertRaises(ValueError, lambda: self.api.restore_trash(1))
+
+        # file not found
+        self.api.move_to_trash(2)
+
+        # delete it
+        os.remove(self.api.resolve_key_to_path(2))
+
+        self.assertRaises(FileNotFoundError, lambda: self.api.restore_trash(2))
+
+        # Create a duplicate and a trash file and check raises
+
+        self.api.move_to_trash(10)
+        self.api.move_to_duplicates(11, 10)
+
+        # Check wrongly attributed calls
+        self.assertRaises(ValueError, lambda: self.api.restore_trash(11))
+        self.assertRaises(ValueError, lambda: self.api.restore_duplicate(10))
+
+        # Check file exists at destination
+        cur_path = self.api.resolve_key_to_path(20)
+        self.api.move_to_trash(20)
+
+        shutil.copy2(self.api.resolve_key_to_path(20), cur_path)
+        self.assertRaises(FileExistsError, lambda: self.api.restore_trash(20))
+
+    def test_normal_restore(self):
+        """
+        Test the restore functionality for a basic case
+        """
+        # 1 parent, 2 duplicate, 3 trash
+        self.api.move_to_duplicates(child_key=2, parent_key=1)
+        self.api.move_to_trash(3)
+
+        self.api.restore_trash(3, create_display_files=False)
+        self.api.restore_duplicate(2, create_display_files=False)
+
+        # INFO: The to trash and to replaced functionality is tested in different classes,
+        #   we don't check that the files were moved to trash and replaced correctly.
+        for i in (2, 3):
+            with self.subTest(f"Test restore, target key {i}"):
+                mr = self.api.db.get_main_row(i)
+
+                # Check row and check flags
+                self.assertIsNotNone(mr)
+                self.assertTrue(mr.flags.present)
+                self.assertFalse(mr.flags.trashed)
+                self.assertFalse(mr.flags.duplicate)
+
+                # Check parent
+                self.assertIsNone(mr.parent)
+
+
+                mdr = self.api.db.get_metadata_row(i)
+                self.assertIsNotNone(mdr)
+
+                self.assertEqual(mdr.replaced, MediaType.MAIN)
+
+    def test_normal_restore_with_display_files(self):
+        """
+        Check regular restore procedure now with creating display files.
+        """
+        # 1 parent, 2 duplicate, 3 trash
+        self.api.move_to_duplicates(child_key=2, parent_key=1)
+        self.api.move_to_trash(3)
+
+        self.api.restore_trash(3, create_display_files=True)
+        self.api.restore_duplicate(2, create_display_files=True)
+
+        # INFO: The to trash and to replaced functionality is tested in different classes,
+        #   we don't check that the files were moved to trash and replaced correctly.
+        for i in (2, 3):
+            with self.subTest(f"Test restore, target key {i}"):
+                mr = self.api.db.get_main_row(i)
+
+                # Check row and check flags
+                self.assertIsNotNone(mr)
+                self.assertTrue(mr.flags.present)
+                self.assertFalse(mr.flags.trashed)
+                self.assertFalse(mr.flags.duplicate)
+
+                # Check display file flags
+                self.assertTrue(mr.flags.has_thumbnail)
+                self.assertTrue(mr.flags.has_miniature)
+
+                # Check parent
+                self.assertIsNone(mr.parent)
+
+                mdr = self.api.db.get_metadata_row(i)
+                self.assertIsNotNone(mdr)
+
+                self.assertEqual(mdr.replaced, MediaType.MAIN)
+
+                # Check that the paths exist
+                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(i)))
+                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(i)))
+
+    def test_custom_dir_restore(self):
+        """
+        Check restore with a custom directory
+        """
+        tgt_dir = os.path.join(self.media_source, "hash_change_1")
+        tbl_name = self.api.prepare_directory_for_import(source_dir=tgt_dir)
+
+        self.api.db.debug_execute(f"UPDATE `{tbl_name}` SET imported = 1")
+
+        # Perform import to custom directory
+        self.api.perform_import(tbl_name=tbl_name, _dest_dir="import/custom/directory")
+
+        # Move a specific file to trash from the given import table
+        self.api.move_to_trash(158)
+
+        self.api.restore_trash(158)
+
+        mr = self.api.db.get_main_row(158)
+
+        # Check row and check flags
+        self.assertIsNotNone(mr)
+        self.assertTrue(mr.flags.present)
+        self.assertFalse(mr.flags.trashed)
+        self.assertFalse(mr.flags.duplicate)
+
+        # Check parent
+        self.assertIsNone(mr.parent)
+
+        mdr = self.api.db.get_metadata_row(158)
+        self.assertIsNotNone(mdr)
+
+        self.assertEqual(mdr.replaced, MediaType.MAIN)
+
+        self.assertTrue(os.path.exists(os.path.join(self.api.root_path, "import/custom/directory", mr.db_name)))
+
+    def test_no_effect_on_dup_tables_restore_duplicates(self):
+        """
+        Check that restore doesn't perform any chanages on the duplicates tables.
+        """
+        # Duplicates
+        # Key to move 2
+        # Parent 1
+        # Children of 2, duplicates,  (3,4,5)
+        self.api.db.add_default_duplicate(key_a=[2, 2, 2], key_b=[3, 4, 5])
+
+        # Children of 2, known_duplicates, (6,7,8)
+        self.api.db.add_known_duplicate(key_a=[2, 2, 2], key_b=[6 ,7 ,8])
+
+        # Children of 1, duplicates, (10, 11, 12)
+        self.api.db.add_default_duplicate(key_a=[1, 1, 1], key_b=[10, 11, 12])
+
+        # Children of 1, known_duplicates (13, 14, 15)
+        self.api.db.add_known_duplicate(key_a=[1, 1, 1], key_b=[13, 14, 15])
+
+        # Children of 1, 2 duplicates (20, 21, 22)
+        self.api.db.add_default_duplicate(key_a=[20, 21, 22, 20, 21, 22], key_b=[1, 1, 1, 2, 2, 2])
+
+        # Children of 1, 2 known_duplicates (23, 24, 25)
+        self.api.db.add_known_duplicate(key_a=[1, 1, 1, 2, 2, 2], key_b=[23, 24, 25, 23, 24, 25])
+
+        # Add known duplicates for test
+        self.api.db.add_default_duplicate(key_a=1, key_b=2)
+
+        self.check_table_pre_migration(with_child=True)
+
+        # Perform actual move
+        self.api.move_to_duplicates(child_key=2, parent_key=1)
+
+        self.check_table_post_migration()
+
+        self.api.restore_duplicate(2)
+
+        self.check_table_post_migration()
+
+    def test_no_effect_on_dup_tables_restore_trash(self):
+        """
+        Check that restoring after having moved a file to trash doesn't affect the duplicates tables.
+        """
+        # Duplicates
+        # Key to move 2
+        # Parent 1
+        # Children of 2, duplicates,  (3,4,5)
+        self.api.db.add_default_duplicate(key_a=[2, 2, 2], key_b=[3, 4, 5])
+
+        # Children of 2, known_duplicates, (6,7,8)
+        self.api.db.add_known_duplicate(key_a=[2, 2, 2], key_b=[6, 7, 8])
+
+        # Children of 1, duplicates, (10, 11, 12)
+        self.api.db.add_default_duplicate(key_a=[1, 1, 1], key_b=[10, 11, 12])
+
+        # Children of 1, known_duplicates (13, 14, 15)
+        self.api.db.add_known_duplicate(key_a=[1, 1, 1], key_b=[13, 14, 15])
+
+        # Children of 1, 2 duplicates (20, 21, 22)
+        self.api.db.add_default_duplicate(key_a=[20, 21, 22, 20, 21, 22], key_b=[1, 1, 1, 2, 2, 2])
+
+        # Children of 1, 2 known_duplicates (23, 24, 25)
+        self.api.db.add_known_duplicate(key_a=[1, 1, 1, 2, 2, 2], key_b=[23, 24, 25, 23, 24, 25])
+
+        # Add known duplicates for test
+        self.api.db.add_default_duplicate(key_a=1, key_b=2)
+
+        self.check_table_pre_migration(with_child=True)
+
+        # Perform actual move
+        self.api.move_to_trash(2)
+
+        self.check_table_pre_migration(with_child=True)
+
+        self.api.restore_trash(2)
+
+        self.check_table_pre_migration(with_child=True)
