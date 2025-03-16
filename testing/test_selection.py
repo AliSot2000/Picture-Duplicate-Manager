@@ -6,6 +6,7 @@ from photo_lib.data_objects import Selection, SelectionType
 
 """
 Test the Selection Object and it's constructor
+- Selection.__init__
 """
 
 
