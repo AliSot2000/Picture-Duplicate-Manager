@@ -2349,12 +2349,6 @@ class PhotoDB(BaseSQliteDB):
                           f"where selection type = {selection}")
         return count
 
-    def change_parent(self, key: int, new_parent: int):
-        """
-        Option to change a parent of a duplicate file, needed to undo an erroneous selection of the parent
-        """
-        self.debug_execute("UPDATE main SET parent = ? WHERE key = ?", (new_parent, key))
-
     def reset_selection(self, sel_a: bool = True) -> int:
         """
         Reset all rows with a set sel_a flag if sel_a, else reset all rows with sel_b flag.
