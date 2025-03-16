@@ -2118,12 +2118,14 @@ class PhotoAPI:
         if not os.path.exists(current_path):
             raise FileNotFoundError("Move to trash may only be called on files which are present in the db.")
 
-            # Create thumbnail
+        # Create thumbnail
+        if (not os.path.exists(self.db.full_thumbnail_path(key))) or overwrite:
             self.main_logger.debug("Creating Thumbnail for image going into Trash")
             main_flags.has_thumbnail = self._create_display_file(in_path=current_path,
                                                                  out_path=self.db.full_thumbnail_path(key),
                                                                  major_size=self.config.thumbnail_target)
-            # Creating miniature
+        # Creating miniature
+        if (not os.path.exists(self.db.full_miniature_path(key))) or overwrite:
             self.main_logger.debug("Creating Miniature for image going into Trash")
             main_flags.has_miniature = self._create_display_file(in_path=current_path,
                                                                  out_path=self.db.full_miniature_path(key),
