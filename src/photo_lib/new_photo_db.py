@@ -1892,8 +1892,10 @@ class PhotoDB(BaseSQliteDB):
 
         results = self.sq_cur.fetchall()
 
-        if len(results) > 0:
-            self.logger.debug(f"Changing {len(results)} `{tbl}` entries to the new parent")
+        if len(results) == 0:
+            return
+
+        self.logger.debug(f"Changing {len(results)} `{tbl}` entries to the new parent")
 
             args = []
             for result in results:
