@@ -1917,11 +1917,8 @@ class PhotoDB(BaseSQliteDB):
                                          add=True,
                                          delta=[a["delta"] for a in filtered_args])
 
-            self._internal_modify_duplicates(key_a=[r["key_a"] for r in results],
-                                             key_b=[r["key_b"] for r in results],
-                                             known=known,
-                                             add=False,
-                                             delta=[a["delta"] for a in results])
+        # Remove the duplicates from the child
+        self.remove_all_tuples_with_key(key=child_key, known=known)
 
     def remove_all_tuples_with_key(self, key: int, known: bool = False) -> int:
         """
