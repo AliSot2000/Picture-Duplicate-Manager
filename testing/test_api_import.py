@@ -31,6 +31,18 @@ This file fully tests the following functions:
 
 The file covers 100% of the function without specific tests:
 - api.db.insert_row_metadata_table
+- api.db.db_name
+- api._prepare_file_import
+- api.db.add_file_to_import_table
+- api._handle_gps_import
+- api.db.insert_get_gps_loc
+- api.db.import_table_exists
+- api.db.remove_import_table
+- api.db.update_allowed_iterator
+- api.db.perform_import_iterator
+- api._insert_get_dir
+- api.db.set_allowed
+- 
 """
 class TestAPIPrepareDirectoryForImport(unittest.TestCase):
     shadow_db: str
