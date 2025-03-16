@@ -1864,13 +1864,13 @@ class PhotoDB(BaseSQliteDB):
                     if ka == kb:
                         raise ValueError("Identical Keys.")
 
-                    args.append((kb, ka) if ka >= kb else (kb, ka))
+                    args.append((kb, ka) if ka > kb else (ka, kb))
             else:
                 for ka, kb, dlt in zip(key_a, key_b, delta):
                     if ka == kb:
                         raise ValueError("Identical Keys.")
 
-                    args.append((kb, ka, dlt) if ka >= kb else (kb, ka, dlt))
+                    args.append((kb, ka, dlt) if ka > kb else (ka, kb, dlt))
 
             self.debug_execute_many(op, args)
         else:
