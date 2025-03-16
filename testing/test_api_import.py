@@ -12,7 +12,7 @@ from photo_lib.metadata_aggregator import DateTimeSource
 from photo_lib.new_photo_model import PhotoAPI
 from photo_lib.utils import rec_list_all
 
-# TODO add full table dump for verification.
+
 wip: bool = False
 
 class TestAPIPrepareDirectoryForImport(unittest.TestCase):
@@ -1083,10 +1083,6 @@ class TestAPIPerformImport(unittest.TestCase):
     # ==================================================================================================================
     # Check paths
     # ==================================================================================================================
-
-    # TODO FIRST: Add the three extra GPS files
-    # TODO dump tables and verify
-
 
     def check_dynamic_dirs(self, rel_paths: List[str]):
         """
