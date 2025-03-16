@@ -111,6 +111,107 @@ class TestClassifyBase(unittest.TestCase):
         if os.path.exists(self.import_source):
             shutil.rmtree(self.import_source)
 
+    def check_table_post_migration(self):
+        """
+        Check the tables look the way we expect them to prior to the
+        """
+        dt = self.api.db.dump_duplicates_table()
+
+        expected_dt = [
+            {"key_a": 1, "key_b": 3, "delta": 0.0},
+            {"key_a": 1, "key_b": 4, "delta": 0.0},
+            {"key_a": 1, "key_b": 5, "delta": 0.0},
+
+            {"key_a": 1, "key_b": 10, "delta": 0.0},
+            {"key_a": 1, "key_b": 11, "delta": 0.0},
+            {"key_a": 1, "key_b": 12, "delta": 0.0},
+
+            {"key_a": 1, "key_b": 20, "delta": 0.0},
+            {"key_a": 1, "key_b": 21, "delta": 0.0},
+            {"key_a": 1, "key_b": 22, "delta": 0.0},
+        ]
+
+        self.assertEqual(len(dt), len(expected_dt))
+
+        for row in dt:
+            self.assertIn(row, expected_dt)
+
+        kdt = self.api.db.dump_known_duplicates_table()
+
+        expected_kdt = [
+            {"key_a": 1, "key_b": 6, "delta": 0.0},
+            {"key_a": 1, "key_b": 7, "delta": 0.0},
+            {"key_a": 1, "key_b": 8, "delta": 0.0},
+
+            {"key_a": 1, "key_b": 13, "delta": 0.0},
+            {"key_a": 1, "key_b": 14, "delta": 0.0},
+            {"key_a": 1, "key_b": 15, "delta": 0.0},
+
+            {"key_a": 1, "key_b": 23, "delta": 0.0},
+            {"key_a": 1, "key_b": 24, "delta": 0.0},
+            {"key_a": 1, "key_b": 25, "delta": 0.0},
+        ]
+
+        self.assertEqual(len(kdt), len(expected_kdt))
+
+        for row in kdt:
+            self.assertIn(row, expected_kdt)
+
+    def check_table_pre_migration(self, with_child: bool = False):
+        """
+        Check the tables look the way we expect them to prior to the
+        """
+        dt = self.api.db.dump_duplicates_table()
+
+        expected_dt = [
+            {"key_a": 2, "key_b": 3, "delta": 0.0},
+            {"key_a": 2, "key_b": 4, "delta": 0.0},
+            {"key_a": 2, "key_b": 5, "delta": 0.0},
+
+            {"key_a": 1, "key_b": 10, "delta": 0.0},
+            {"key_a": 1, "key_b": 11, "delta": 0.0},
+            {"key_a": 1, "key_b": 12, "delta": 0.0},
+
+            {"key_a": 1, "key_b": 20, "delta": 0.0},
+            {"key_a": 1, "key_b": 21, "delta": 0.0},
+            {"key_a": 1, "key_b": 22, "delta": 0.0},
+            {"key_a": 2, "key_b": 20, "delta": 0.0},
+            {"key_a": 2, "key_b": 21, "delta": 0.0},
+            {"key_a": 2, "key_b": 22, "delta": 0.0},
+        ]
+
+        if with_child:
+            expected_dt.append({"key_a": 1, "key_b": 2, "delta": 0.0})
+
+        self.assertEqual(len(dt), len(expected_dt))
+
+        for row in dt:
+            self.assertIn(row, expected_dt)
+
+        kdt = self.api.db.dump_known_duplicates_table()
+
+        expected_kdt = [
+            {"key_a": 2, "key_b": 6, "delta": 0.0},
+            {"key_a": 2, "key_b": 7, "delta": 0.0},
+            {"key_a": 2, "key_b": 8, "delta": 0.0},
+
+            {"key_a": 1, "key_b": 13, "delta": 0.0},
+            {"key_a": 1, "key_b": 14, "delta": 0.0},
+            {"key_a": 1, "key_b": 15, "delta": 0.0},
+
+            {"key_a": 1, "key_b": 23, "delta": 0.0},
+            {"key_a": 1, "key_b": 24, "delta": 0.0},
+            {"key_a": 1, "key_b": 25, "delta": 0.0},
+            {"key_a": 2, "key_b": 23, "delta": 0.0},
+            {"key_a": 2, "key_b": 24, "delta": 0.0},
+            {"key_a": 2, "key_b": 25, "delta": 0.0},
+        ]
+
+        self.assertEqual(len(kdt), len(expected_kdt))
+
+        for row in kdt:
+            self.assertIn(row, expected_kdt)
+
 
 class TestToDuplicates(TestClassifyBase):
     """
@@ -432,107 +533,6 @@ class TestToDuplicates(TestClassifyBase):
 
         # Check the metadata
         self.assertEqual(par_row.google_metadata, json.dumps(gfmd))
-
-    def check_table_post_migration(self):
-        """
-        Check the tables look the way we expect them to prior to the
-        """
-        dt = self.api.db.dump_duplicates_table()
-
-        expected_dt = [
-            {"key_a": 1, "key_b": 3, "delta": 0.0},
-            {"key_a": 1, "key_b": 4, "delta": 0.0},
-            {"key_a": 1, "key_b": 5, "delta": 0.0},
-
-            {"key_a": 1, "key_b": 10, "delta": 0.0},
-            {"key_a": 1, "key_b": 11, "delta": 0.0},
-            {"key_a": 1, "key_b": 12, "delta": 0.0},
-
-            {"key_a": 1, "key_b": 20, "delta": 0.0},
-            {"key_a": 1, "key_b": 21, "delta": 0.0},
-            {"key_a": 1, "key_b": 22, "delta": 0.0},
-        ]
-
-        self.assertEqual(len(dt), len(expected_dt))
-
-        for row in dt:
-            self.assertIn(row, expected_dt)
-
-        kdt = self.api.db.dump_known_duplicates_table()
-
-        expected_kdt = [
-            {"key_a": 1, "key_b": 6, "delta": 0.0},
-            {"key_a": 1, "key_b": 7, "delta": 0.0},
-            {"key_a": 1, "key_b": 8, "delta": 0.0},
-
-            {"key_a": 1, "key_b": 13, "delta": 0.0},
-            {"key_a": 1, "key_b": 14, "delta": 0.0},
-            {"key_a": 1, "key_b": 15, "delta": 0.0},
-
-            {"key_a": 1, "key_b": 23, "delta": 0.0},
-            {"key_a": 1, "key_b": 24, "delta": 0.0},
-            {"key_a": 1, "key_b": 25, "delta": 0.0},
-        ]
-
-        self.assertEqual(len(kdt), len(expected_kdt))
-
-        for row in kdt:
-            self.assertIn(row, expected_kdt)
-
-    def check_table_pre_migration(self, with_child: bool = False):
-        """
-        Check the tables look the way we expect them to prior to the
-        """
-        dt = self.api.db.dump_duplicates_table()
-
-        expected_dt = [
-            {"key_a": 2, "key_b": 3, "delta": 0.0},
-            {"key_a": 2, "key_b": 4, "delta": 0.0},
-            {"key_a": 2, "key_b": 5, "delta": 0.0},
-
-            {"key_a": 1, "key_b": 10, "delta": 0.0},
-            {"key_a": 1, "key_b": 11, "delta": 0.0},
-            {"key_a": 1, "key_b": 12, "delta": 0.0},
-
-            {"key_a": 1, "key_b": 20, "delta": 0.0},
-            {"key_a": 1, "key_b": 21, "delta": 0.0},
-            {"key_a": 1, "key_b": 22, "delta": 0.0},
-            {"key_a": 2, "key_b": 20, "delta": 0.0},
-            {"key_a": 2, "key_b": 21, "delta": 0.0},
-            {"key_a": 2, "key_b": 22, "delta": 0.0},
-        ]
-
-        if with_child:
-            expected_dt.append({"key_a": 1, "key_b": 2, "delta": 0.0})
-
-        self.assertEqual(len(dt), len(expected_dt))
-
-        for row in dt:
-            self.assertIn(row, expected_dt)
-
-        kdt = self.api.db.dump_known_duplicates_table()
-
-        expected_kdt = [
-            {"key_a": 2, "key_b": 6, "delta": 0.0},
-            {"key_a": 2, "key_b": 7, "delta": 0.0},
-            {"key_a": 2, "key_b": 8, "delta": 0.0},
-
-            {"key_a": 1, "key_b": 13, "delta": 0.0},
-            {"key_a": 1, "key_b": 14, "delta": 0.0},
-            {"key_a": 1, "key_b": 15, "delta": 0.0},
-
-            {"key_a": 1, "key_b": 23, "delta": 0.0},
-            {"key_a": 1, "key_b": 24, "delta": 0.0},
-            {"key_a": 1, "key_b": 25, "delta": 0.0},
-            {"key_a": 2, "key_b": 23, "delta": 0.0},
-            {"key_a": 2, "key_b": 24, "delta": 0.0},
-            {"key_a": 2, "key_b": 25, "delta": 0.0},
-        ]
-
-        self.assertEqual(len(kdt), len(expected_kdt))
-
-        for row in kdt:
-            self.assertIn(row, expected_kdt)
 
 
 class TestToTrash(TestClassifyBase):
