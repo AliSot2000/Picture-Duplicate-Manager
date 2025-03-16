@@ -268,7 +268,6 @@ class NewMetadataAggregator:
         metadata (so you have an example).
         Searching is only done when the `search` parameter is set to `True`.
 
-
         Discover
         ========
         
