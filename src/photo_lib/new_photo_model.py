@@ -2130,9 +2130,9 @@ class PhotoAPI:
             main_flags.has_miniature = self._create_display_file(in_path=current_path,
                                                                  out_path=self.db.full_miniature_path(key),
                                                                  major_size=self.config.miniature_target)
-            # Attempt the move the file
-            self.main_logger.debug(f"Moving {current_path} to {target_path}")
-            os.rename(current_path, target_path)
+        # Attempt the move the file
+        self.main_logger.debug(f"Moving {current_path} to {target_path}")
+        os.rename(current_path, target_path)
 
         # Set the presence flag and trash flag.
         main_flags.present = os.path.exists(target_path)
