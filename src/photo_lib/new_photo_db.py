@@ -1938,6 +1938,74 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute(f"DELETE FROM `{tbl}` WHERE key_a = ? OR key_b = ?", (key, key))
         return cnt
 
+    def row_exists(self, key_a: int, key_b: int, known: bool) -> bool:
+        """
+        Check whether a given row exists in the either known or regular duplicates table
+
+        :param key_a: First key to check
+        :param key_b: Second key to check
+        :param known: If true, will check if the row exists in the known_duplicates table
+        """
+        if key_a == key_b:
+            return False
+
+        # Switch if ordering is wrong
+        if key_b > key_a:
+            key_a, key_b = key_b, key_a
+
+        tbl = "known_duplicates" if known else "duplicates"
+
+        self.debug_execute(f"SELECT * FROM `{tbl}` WHERE key_a = ? AND key_b = ?", (key_a, key_b))
+        return self.sq_cur.fetchone() is not None
+
+    def get_duplicates(self, key: int, known: bool = None) -> Dict[Tuple[int, int], float]:
+        """
+        Get all pairs of duplicates which involve a given key.
+
+        PRECONDITION: No intersection between known_duplicates and duplicates table
+
+        Return Types:
+
+        - `known == None` => Union of known_duplicates and duplicates
+        - `known == False` => Only results from duplicates table
+        - `known == True` => Only Results from known_duplicates table
+
+        :param key: Key which must be contained in the duplicates tuples.
+        :param known: control selection of table
+        """
+        self.debug_execute(
+            "SELECT key_a, key_b, delta FROM duplicates WHERE key_a = ? OR key_b = ?", args=(key, key))
+
+        dup = {(ka, kb): d for ka, kb, d in self.sq_cur.fetchall()}
+
+        self.debug_execute(
+            "SELECT key_a, key_b, delta FROM known_duplicates WHERE key_a = ? OR key_b = ?", args=(key, key))
+
+        kd = {(ka, kb): d for ka, kb, d in self.sq_cur.fetchall()}
+
+        assert set(dup.keys()).intersection(set(kd.keys())) == set(), \
+            "Intersection between known and duplicates not empty"
+
+        if known is None:
+            # We want union
+            res = {}
+            for k, v in dup.items():
+                res[k] = v
+
+            for k, v in kd.items():
+                res[k] = v
+
+            return res
+
+        elif known is False:
+            return dup
+
+        elif known is True:
+            return kd
+
+        else:
+            raise ImplementationError(f"Unexpected known value {type(known).__name__}")
+
     # ==================================================================================================================
     # Metadata Table
     # ==================================================================================================================
