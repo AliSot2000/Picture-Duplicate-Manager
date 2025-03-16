@@ -2151,7 +2151,7 @@ class PhotoAPI:
 
         self.db.commit()
 
-    def restore_replaced(self, key: int, create_display_files: bool = True):
+    def restore_duplicate(self, key: int, create_display_files: bool = True):
         """
         Moves file back to original location
         Updates the metadata table.
