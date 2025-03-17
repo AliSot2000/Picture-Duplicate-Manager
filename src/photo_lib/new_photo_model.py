@@ -1930,6 +1930,9 @@ class PhotoAPI:
         if new_path == current_path:
             return
 
+        # Need to create directory
+        os.makedirs(os.path.dirname(new_path), exist_ok=True)
+
         # Check the file extensions.
         if os.path.splitext(new_name)[1] != os.path.splitext(db_name)[1]:
             self.main_logger.warning("New file extension does not match DB file extension")
@@ -1984,6 +1987,9 @@ class PhotoAPI:
 
         if current_path == new_path:
             return
+
+        # Need to create directory
+        os.makedirs(os.path.dirname(new_path), exist_ok=True)
 
         self.db.check_flags(key=key, flags=flags, org_path=current_path)
 
