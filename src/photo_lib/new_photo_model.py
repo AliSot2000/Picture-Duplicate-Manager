@@ -1985,8 +1985,8 @@ class PhotoAPI:
         """
         # Parse the paths.
         if db_local_dir is not None:
-            current_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), dbn)
-            new_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), dbn)
+            # When we have a custom dir, no movement is performed.
+            return
         else:
             assert db_local_dir is None and new_datetime is not None, \
                 f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {new_datetime}"
