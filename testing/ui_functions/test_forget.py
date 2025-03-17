@@ -6,6 +6,19 @@ from .base_class import TestClassifyBase
 
 """
 Test the forget functionality of the api.
+
+This file fully tests the following functions:
+- api.forget_file
+- api._internal_forget
+
+The file covers 100% of the function without specific tests:
+- api.db.get_main_flags
+- api.db.list_children
+- api.resolve_key_to_path
+- api.db.delete_file_association
+- api.db.delete_row_metadata_table
+- api.db.remove_all_tuples_with_key
+- api.db.delete_row_main_table
 """
 
 
