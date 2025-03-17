@@ -407,6 +407,7 @@ class PhotoDB(BaseSQliteDB):
         # - Check constraint on flags: either trashed OR duplicate but both.
         # - Check no duplicate chaining.
         # - Check no intersection between known duplicates and duplicates table
+        # - Check all keys from duplicates and knonw_duplicates table present in main table
         # TODO Implement
         return True
 
