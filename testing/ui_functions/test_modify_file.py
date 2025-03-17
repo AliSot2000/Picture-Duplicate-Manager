@@ -11,6 +11,8 @@ This file fully tests the following functions:
 - api.modify_timezone
 - api.change_datetime
 - metadata_aggregator.serialize_key
+- api.change_filename
+- api.move_file
 
 The file covers 100% of the function without specific tests:
 - api.db.get_path_data
