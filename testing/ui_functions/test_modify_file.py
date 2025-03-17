@@ -380,3 +380,336 @@ class TestModifyTimezone(TestClassifyBase):
 
         # check hashes
         self.assertEqual(1, len(self.api.db.get_all_hashes_of_file(1)))
+
+
+class TestChangeDatetime(TestClassifyBase):
+    """
+    Fully test the change_datetime function
+    """
+    def test_errors(self):
+        """
+        Check that all errors are raised correctly.
+        """
+        naive_dt = datetime.datetime(year=2025, month=3, day=17, hour=12, minute=0, second=0)
+        tz_dt = naive_dt.replace(tzinfo=ZoneInfo("CET"))
+
+        # Check an error is raised if a naive datetime object is passed
+        self.assertRaises(TypeError, lambda : self.api.change_datetime(key=1,
+                                                                        tag="Custom",
+                                                                        dts=DateTimeSource.CUSTOM,
+                                                                        new_dt=naive_dt))
+
+        # Check that the key needs to exist
+        self.assertRaises(ValueError, lambda : self.api.change_datetime(key=1000,
+                                                                        tag="Custom",
+                                                                        dts=DateTimeSource.CUSTOM,
+                                                                        new_dt=tz_dt))
+
+        # Wrong flags
+        self.api.move_to_trash(2)
+        self.api.move_to_duplicates(child_key=4, parent_key=3)
+
+        flags = self.api.db.get_main_flags(key=5)
+        self.assertIsNotNone(flags)
+
+        flags.present = False
+        self.api.db.update_row_main_table(key=5, flags=flags)
+
+        self.assertRaises(ValueError, lambda: self.api.change_datetime(key=2,
+                                                                       tag="Custom",
+                                                                       dts=DateTimeSource.CUSTOM,
+                                                                       new_dt=tz_dt))
+        self.assertRaises(ValueError, lambda: self.api.change_datetime(key=2,
+                                                                       tag="Custom",
+                                                                       dts=DateTimeSource.CUSTOM,
+                                                                       new_dt=tz_dt))
+        self.assertRaises(ValueError, lambda: self.api.change_datetime(key=2,
+                                                                       tag="Custom",
+                                                                       dts=DateTimeSource.CUSTOM,
+                                                                       new_dt=tz_dt))
+
+        self.assertRaises(TypeError, lambda : self.api.change_datetime(key=1,
+                                                                       tag=1234,
+                                                                       dts=DateTimeSource.CUSTOM,
+                                                                       new_dt=tz_dt))
+
+    def test_no_exiftag_on_equal_dt(self):
+        """
+        Check that when two datetime objects have the same offset, now change is performed on the exiftag
+        """
+        new_tz = "MET"
+
+        prev_file = self.api.resolve_key_to_path(1)
+
+        # Get the main row
+        prev_mr1 = self.api.db.get_main_row(1)
+        self.assertIsNotNone(prev_mr1)
+
+        self.assertEqual(prev_mr1.datetime, datetime.datetime(
+            year=1990, month=1, day=1, hour=12, minute=0, second=0, tzinfo=ZoneInfo("CET"))
+                         )
+
+        new_dt = prev_mr1.datetime.astimezone(tz=ZoneInfo(new_tz))
+
+        self.api.change_datetime(key=1, tag="CUSTOM", dts=DateTimeSource.CUSTOM, new_dt=new_dt, add_exif_tag=True)
+
+        # check results
+        new_name = self.api.db.db_name(prev_mr1.original_filename, 1, new_dt)
+        new_path = os.path.join(self.api.root_path, self.api.db.dt_to_dir(new_dt), new_name)
+
+        # New path present, old path not
+        self.assertTrue(os.path.exists(new_path))
+        self.assertEqual(prev_file, new_path)
+
+        # get row
+        new_mr = self.api.db.get_main_row(1)
+        new_mdr = self.api.db.get_metadata_row(1)
+
+        self.assertIsNotNone(new_mr)
+        self.assertIsNotNone(new_mdr)
+
+        # Check timezone and datetime
+        self.assertEqual(new_mr.datetime, new_dt)
+        self.assertEqual(new_mr.timezone, new_tz)
+
+        # check metadata row
+        self.assertEqual(new_mdr.datetime_source, DateTimeSource.CUSTOM)
+        self.assertEqual(new_mdr.naming_tag, "CUSTOM")
+
+        # Check no new hash was added since the offset is equal
+        self.assertEqual(len(self.api.db.get_all_hashes_of_file(1)), 1)
+
+    def test_gps_and_cache_update(self):
+        """
+        Test that the gps data is added and also that cache update is performed
+        """
+        gps_lat = 40.71427000
+        gps_long = -74.00597000
+
+        new_tz = "EST"
+
+        prev_file = self.api.resolve_key_to_path(1)
+
+        prev_mr1 = self.api.db.get_main_row(1)
+        self.assertIsNotNone(prev_mr1)
+
+        self.assertEqual(prev_mr1.datetime, datetime.datetime(
+            year=1990, month=1, day=1, hour=12, minute=0, second=0, tzinfo=ZoneInfo("CET"))
+                         )
+
+        new_dt = prev_mr1.datetime.astimezone(tz=ZoneInfo(new_tz))
+
+        prev_mdr1 = self.api.db.get_metadata_row(1)
+        self.assertIsNotNone(prev_mdr1)
+
+        self.assertIsNone(prev_mdr1.gps_long)
+        self.assertIsNone(prev_mdr1.gps_lat)
+
+        # Populate cache
+        self.api.filename_to_key(prev_mr1.db_name)
+
+        # Check that there's one hash
+        self.assertEqual(len(self.api.db.get_all_hashes_of_file(1)), 1)
+
+        # Perform update
+        self.api.change_datetime(key=1,
+                                 tag="CUSTOM",
+                                 dts=DateTimeSource.CUSTOM,
+                                 new_dt=new_dt,
+                                 add_exif_tag=True,
+                                 gps_long=gps_long,
+                                 gps_lat=gps_lat)
+
+        new_name = self.api.db.db_name(prev_mr1.original_filename, 1, new_dt)
+        new_path = os.path.join(self.api.root_path, self.api.db.dt_to_dir(new_dt), new_name)
+
+        # check paths
+        self.assertTrue(os.path.exists(new_path))
+        self.assertFalse(os.path.exists(prev_file))
+
+        new_mr1 = self.api.db.get_main_row(1)
+        new_mdr1 = self.api.db.get_metadata_row(1)
+
+        self.assertIsNotNone(new_mr1)
+        self.assertIsNotNone(new_mdr1)
+
+        # check new datetime
+        self.assertEqual(new_mr1.datetime, new_dt)
+        self.assertEqual(new_mr1.timezone, new_dt.tzname())
+
+        # Test metadata
+        self.assertEqual(new_mdr1.datetime_source, DateTimeSource.CUSTOM)
+        self.assertEqual(new_mdr1.naming_tag, "CUSTOM")
+        self.assertEqual(new_mdr1.gps_lat, gps_lat)
+        self.assertEqual(new_mdr1.gps_long, gps_long)
+
+        # Check new hashes were added
+        fh1 = [{"hash": hs, "file_size": fs, "initial": ini}
+               for hs, fs, _, ini in  self.api.db.get_all_hashes_of_file(1)]
+
+        ex_fh1 = [
+            {
+                'hash': 'f99faa2783761e229fa56eb97d3271852a1cbdbff81dbc2366815714d6c9e4f4',
+                'file_size': 18258,
+                'initial': True
+            },
+            {
+                'hash': '042d3f52d4e60b15c57411e190dad2d2c323656d094a1aeff1949c86f81709f1',
+                'file_size': 18258,
+                'initial': False
+            }
+        ]
+
+        self.assertListEqual(fh1, ex_fh1)
+
+    def test_move(self):
+        """
+        Test correct function when moving a file
+        """
+        new_tz = "Etc/GMT-14"
+
+        prev_file = self.api.resolve_key_to_path(1)
+
+        # Get the main row
+        prev_mr1 = self.api.db.get_main_row(1)
+        self.assertIsNotNone(prev_mr1)
+
+        self.assertEqual(prev_mr1.datetime, datetime.datetime(
+            year=1990, month=1, day=1, hour=12, minute=0, second=0, tzinfo=ZoneInfo("CET"))
+                         )
+
+        new_dt = prev_mr1.datetime.astimezone(tz=ZoneInfo(new_tz))
+
+        self.api.change_datetime(key=1,
+                                 tag="CUSTOM",
+                                 dts=DateTimeSource.CUSTOM,
+                                 new_dt=new_dt,
+                                 add_exif_tag=False,
+                                 rename=False)
+
+        # check results
+        new_path = os.path.join(self.api.root_path, self.api.db.dt_to_dir(new_dt), prev_mr1.db_name)
+
+        # New path present, old path not
+        self.assertTrue(os.path.exists(new_path))
+        self.assertFalse(os.path.exists(prev_file))
+
+        # get row
+        new_mr = self.api.db.get_main_row(1)
+        new_mdr = self.api.db.get_metadata_row(1)
+
+        self.assertIsNotNone(new_mr)
+        self.assertIsNotNone(new_mdr)
+
+        # Check timezone and datetime
+        self.assertEqual(new_mr.datetime, new_dt)
+        self.assertEqual(new_mr.timezone, new_dt.tzname())
+
+        # check metadata row
+        self.assertEqual(new_mdr.datetime_source, DateTimeSource.CUSTOM)
+        self.assertEqual(new_mdr.naming_tag, "CUSTOM")
+
+        # Check no new hash was added since the offset is equal
+        self.assertEqual(len(self.api.db.get_all_hashes_of_file(1)), 1)
+
+    def test_move_with_list_key(self):
+        """
+        Test correct function when moving a file
+        """
+        new_tz = "Etc/GMT-14"
+
+        prev_file = self.api.resolve_key_to_path(1)
+
+        # Get the main row
+        prev_mr1 = self.api.db.get_main_row(1)
+        self.assertIsNotNone(prev_mr1)
+
+        self.assertEqual(prev_mr1.datetime, datetime.datetime(
+            year=1990, month=1, day=1, hour=12, minute=0, second=0, tzinfo=ZoneInfo("CET"))
+                         )
+
+        new_dt = prev_mr1.datetime.astimezone(tz=ZoneInfo(new_tz))
+
+        tag = ["key", 5, "some_other_key", 4]
+        self.api.change_datetime(key=1,
+                                 tag=tag,
+                                 dts=DateTimeSource.CUSTOM,
+                                 new_dt=new_dt,
+                                 add_exif_tag=False,
+                                 rename=False)
+
+        # check results
+        new_path = os.path.join(self.api.root_path, self.api.db.dt_to_dir(new_dt), prev_mr1.db_name)
+
+        # New path present, old path not
+        self.assertTrue(os.path.exists(new_path))
+        self.assertFalse(os.path.exists(prev_file))
+
+        # get row
+        new_mr = self.api.db.get_main_row(1)
+        new_mdr = self.api.db.get_metadata_row(1)
+
+        self.assertIsNotNone(new_mr)
+        self.assertIsNotNone(new_mdr)
+
+        # Check timezone and datetime
+        self.assertEqual(new_mr.datetime, new_dt)
+        self.assertEqual(new_mr.timezone, new_dt.tzname())
+
+        # check metadata row
+        self.assertEqual(new_mdr.datetime_source, DateTimeSource.CUSTOM)
+        self.assertEqual(new_mdr.naming_tag, "GooglePhotosMetadata:" + ":".join(map(str, tag)))
+
+        # Check no new hash was added since the offset is equal
+        self.assertEqual(len(self.api.db.get_all_hashes_of_file(1)), 1)
+
+    def test_move_with_DoubleKey(self):
+        """
+        Test correct function when moving a file
+        """
+        new_tz = "Etc/GMT-14"
+
+        prev_file = self.api.resolve_key_to_path(1)
+
+        # Get the main row
+        prev_mr1 = self.api.db.get_main_row(1)
+        self.assertIsNotNone(prev_mr1)
+
+        self.assertEqual(prev_mr1.datetime, datetime.datetime(
+            year=1990, month=1, day=1, hour=12, minute=0, second=0, tzinfo=ZoneInfo("CET"))
+                         )
+
+        new_dt = prev_mr1.datetime.astimezone(tz=ZoneInfo(new_tz))
+
+        tag = DoubleKey(first_key="EXIF:ModifyDate", second_key="EXIF:OffsetTime")
+        self.api.change_datetime(key=1,
+                                 tag=tag,
+                                 dts=DateTimeSource.CUSTOM,
+                                 new_dt=new_dt,
+                                 add_exif_tag=False,
+                                 rename=False)
+
+        # check results
+        new_path = os.path.join(self.api.root_path, self.api.db.dt_to_dir(new_dt), prev_mr1.db_name)
+
+        # New path present, old path not
+        self.assertTrue(os.path.exists(new_path))
+        self.assertFalse(os.path.exists(prev_file))
+
+        # get row
+        new_mr = self.api.db.get_main_row(1)
+        new_mdr = self.api.db.get_metadata_row(1)
+
+        self.assertIsNotNone(new_mr)
+        self.assertIsNotNone(new_mdr)
+
+        # Check timezone and datetime
+        self.assertEqual(new_mr.datetime, new_dt)
+        self.assertEqual(new_mr.timezone, new_dt.tzname())
+
+        # check metadata row
+        self.assertEqual(new_mdr.datetime_source, DateTimeSource.CUSTOM)
+        self.assertEqual(new_mdr.naming_tag, tag.first_key + ", " + tag.second_key)
+
+        # Check no new hash was added since the offset is equal
+        self.assertEqual(len(self.api.db.get_all_hashes_of_file(1)), 1)
