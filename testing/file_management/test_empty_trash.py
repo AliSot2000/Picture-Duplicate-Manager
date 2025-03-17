@@ -8,6 +8,14 @@ from photo_lib.custom_enum import MediaType
 from photo_lib.errors_and_warnings import ImplementationError
 
 
+# TODO assert count
+"""
+This file fully tests the following functions:
+- api.empty_trash
+- api._empty_trash
+"""
+
+
 class TestEmptyTrash(TestClassifyBase):
     """
     Test the empty trash functionality.
