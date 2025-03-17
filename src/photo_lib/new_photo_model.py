@@ -1858,8 +1858,10 @@ class PhotoAPI:
             if os.path.join(os.path.join(dt_path, db_name)) == source_path:
                 return
 
+            dst = os.path.join(dt_path, db_name)
+
             # Check destination is empty
-            if os.path.exists(os.path.join(dt_path, db_name)):
+            if os.path.exists(dst):
                 raise FileExistsError("File exists at destination")
 
             # PRECONDITION: destination empty, source present
