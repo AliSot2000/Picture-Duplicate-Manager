@@ -1890,6 +1890,10 @@ class PhotoAPI:
             self.db.update_row_metadata_table(key=key, db_dir=dir_key)
             self.prune_fs_dir = True
 
+        # Update caches
+        self.key_to_filepath_cache.update(arg=key, value=dst)
+        # INFO: We're not changing the db_name, so no need to update the db_name to key cache
+
         flags.present = True
         self.db.update_row_main_table(key=key, flags=flags)
         self.db.commit()
