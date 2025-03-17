@@ -1703,9 +1703,9 @@ class PhotoAPI:
                         key: int,
                         tag: str | List[Union[str, int]] | DoubleKey,
                         dts: DateTimeSource,
+                        new_dt: datetime.datetime,
                         gps_lat: float = None,
                         gps_long: float = None,
-                        new_dt: datetime.datetime = None,
                         rename: bool = True,
                         add_exif_tag: bool = None):
         """
