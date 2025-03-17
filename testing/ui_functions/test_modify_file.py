@@ -2,12 +2,14 @@ import datetime
 import os
 from zoneinfo import ZoneInfoNotFoundError, ZoneInfo
 
+from photo_lib.metadata_aggregator import DateTimeSource, DoubleKey
 from .base_class import TestClassifyBase
 
 """
 This file fully tests the following functions:
 - api.modify_timezone
-
+- api.change_datetime
+- metadata_aggregator.serialize_key
 
 The file covers 100% of the function without specific tests:
 - api.db.get_path_data
