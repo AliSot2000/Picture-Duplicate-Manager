@@ -1765,7 +1765,7 @@ class PhotoAPI:
 
         # Evicting lookup of old name to key
         if self.filename_to_key_cache.evict(arg=db_name):
-            self.filename_to_key_cache.set(arg=db_name, value=key)
+            self.filename_to_key_cache.set(arg=new_name, value=key)
 
         self.db.commit()
 
@@ -1812,7 +1812,7 @@ class PhotoAPI:
 
         # Update cache
         if self.filename_to_key_cache.evict(arg=db_name):
-            self.filename_to_key_cache.set(arg=db_name, value=key)
+            self.filename_to_key_cache.set(arg=new_filename, value=key)
 
         self.db.commit()
 
