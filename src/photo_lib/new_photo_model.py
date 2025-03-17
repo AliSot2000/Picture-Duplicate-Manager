@@ -1829,6 +1829,7 @@ class PhotoAPI:
         """
         self.verify_custom_target_dir(new_dir)
 
+        # Check exists and flags
         flags = self.db.get_main_flags(key)
         if flags is None:
             raise ValueError("Couldn't find key in main table")
@@ -1837,6 +1838,7 @@ class PhotoAPI:
             raise ValueError(f"Invalid state of file, trashed: {flags.trashed}, duplicate: {flags.duplicate}, "
                              f"present: {flags.present}")
 
+        # Get path data
         rnd = self.db.get_path_data(key)
         assert rnd is not None, "Unexpected outcome, path data isn't supposed to be None"
 
