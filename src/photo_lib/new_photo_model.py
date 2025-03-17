@@ -1470,7 +1470,7 @@ class PhotoAPI:
 
             count += 1
 
-        self.main_logger.info(f"Updated names of :{count} files. Couldn't rename: {conflict} files because of "
+        self.main_logger.info(f"Updated names of: {count} files. Couldn't rename: {conflict} files because of "
                               f"conflicts.")
         self.db.commit()
         return count, conflict
