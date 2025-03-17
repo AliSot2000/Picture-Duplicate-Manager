@@ -959,3 +959,221 @@ class TestMoveFile(TestClassifyBase):
         self.assertTrue(mr.flags.present)
         self.assertTrue(os.path.exists(org_path))
 
+
+class TestAuxInternalFunction(TestClassifyBase):
+    """
+    Class to test _internal_rename and _internal_move_file to completion
+    """
+    def test_error_internal_rename(self):
+        """
+        Check _internal_rename raises the correct errors
+        """
+        path_data = self.api.db.get_path_data(1)
+        self.assertIsNotNone(path_data)
+
+        # Unpack the path data
+        dt, flags, db_local_dir, db_name, _ = path_data
+
+        new_dt = datetime.datetime(year=2025, month=3, day=17, hour=12, minute=0, second=0, tzinfo=ZoneInfo("EST"))
+        mr = self.api.db.get_main_row(1)
+
+        self.assertIsNotNone(mr)
+        new_name = self.api.db.db_name(original_filename=mr.original_filename, key=1, fdt=new_dt)
+
+        # Remove file prior tot test
+        path, name = os.path.split(self.api.resolve_key_to_path(1))
+        os.rename(self.api.resolve_key_to_path(1), os.path.join(path, new_name))
+
+        self.assertRaises(FileNotFoundError, lambda : self.api._internal_rename(key=1,
+                                                                                flags=flags,
+                                                                                db_name=db_name,
+                                                                                new_name=new_name,
+                                                                                dt=dt,
+                                                                                new_datetime=new_dt,
+                                                                                db_local_dir=db_local_dir))
+
+        # move the file back
+        os.rename(os.path.join(path, new_name), self.api.resolve_key_to_path(1))
+
+        # Copy the file to the destination
+        shutil.copy2(self.api.resolve_key_to_path(1),
+                     os.path.join(self.api.root_path, self.api.db.dt_to_dir(new_dt), new_name))
+
+        self.assertRaises(FileExistsError, lambda : self.api._internal_rename(key=1,
+                                                                              flags=flags,
+                                                                              db_name=db_name,
+                                                                              new_name=new_name,
+                                                                              dt=dt,
+                                                                              new_datetime=new_dt,
+                                                                              db_local_dir=db_local_dir))
+    def test_error_internal_move(self):
+        """
+        Test errors are correctly raised in the _internal_move function
+        """
+        path_data = self.api.db.get_path_data(1)
+        self.assertIsNotNone(path_data)
+
+        # Unpack the path data
+        dt, flags, db_local_dir, db_name, _ = path_data
+
+        new_dt = datetime.datetime(year=2025, month=3, day=17, hour=12, minute=0, second=0, tzinfo=ZoneInfo("EST"))
+        mr = self.api.db.get_main_row(1)
+
+        self.assertIsNotNone(mr)
+        new_name = self.api.db.db_name(original_filename=mr.original_filename, key=1, fdt=new_dt)
+
+        # Remove file prior tot test
+        path, name = os.path.split(self.api.resolve_key_to_path(1))
+        os.rename(self.api.resolve_key_to_path(1), os.path.join(path, new_name))
+
+        self.assertRaises(FileNotFoundError, lambda : self.api._internal_move_file(key=1,
+                                                                                   flags=flags,
+                                                                                   dbn=db_name,
+                                                                                   dt=dt,
+                                                                                   new_datetime=new_dt,
+                                                                                   db_local_dir=db_local_dir))
+
+        os.rename(os.path.join(path, new_name), self.api.resolve_key_to_path(1))
+
+        shutil.copy2(self.api.resolve_key_to_path(1),
+                     os.path.join(self.api.root_path, self.api.db.dt_to_dir(new_dt), db_name))
+
+        self.assertRaises(FileExistsError, lambda : self.api._internal_move_file(key=1,
+                                                                                 flags=flags,
+                                                                                 dbn=db_name,
+                                                                                 dt=dt,
+                                                                                 new_datetime=new_dt,
+                                                                                 db_local_dir=db_local_dir))
+
+    def test_internal_move_early_abort(self):
+        """
+        Test that the internal_move_file will abort early when the paths match
+        """
+        path_data = self.api.db.get_path_data(1)
+        self.assertIsNotNone(path_data)
+
+        # Unpack the path data
+        dt, flags, db_local_dir, db_name, _ = path_data
+
+        self.api._internal_move_file(key=1, flags=flags, db_local_dir=db_local_dir, dbn=db_name, dt=dt, new_datetime=dt)
+
+        self.assertFalse(self.api.prune_fs_dir)
+
+        # Assert the file still exists
+        self.assertTrue(os.path.exists(self.api.resolve_key_to_path(1)))
+
+    def test_internal_rename_early_abort(self):
+        """
+        Test internal_rename aborts correctly upon having two identical paths
+        """
+        path_data = self.api.db.get_path_data(1)
+        self.assertIsNotNone(path_data)
+
+        # Unpack the path data
+        dt, flags, db_local_dir, db_name, _ = path_data
+
+        self.api._internal_rename(key=1, flags=flags, db_local_dir=db_local_dir, db_name=db_name, dt=dt,
+                                  new_datetime=dt, new_name=db_name)
+
+        self.assertFalse(self.api.prune_fs_dir)
+
+        # Assert the file still exists
+        self.assertTrue(os.path.exists(self.api.resolve_key_to_path(1)))
+
+    def test_renaming_with_different_extension(self):
+        """
+        Test the if statement that
+        """
+        path_data = self.api.db.get_path_data(1)
+        self.assertIsNotNone(path_data)
+
+        # Unpack the path data
+        dt, flags, db_local_dir, db_name, _ = path_data
+
+        new_dt = datetime.datetime(year=2025, month=3, day=17, hour=12, minute=0, second=0, tzinfo=ZoneInfo("EST"))
+        mr = self.api.db.get_main_row(1)
+
+        self.assertIsNotNone(mr)
+        new_name = self.api.db.db_name(original_filename=mr.original_filename, key=1, fdt=new_dt) + ".jpg"
+
+        with self.assertLogs(self.api.main_logger, level=logging.WARNING):
+            self.api._internal_rename(key=1, flags=flags, db_local_dir=db_local_dir, db_name=db_name, dt=dt,
+                                      new_datetime=new_dt, new_name=new_name)
+
+        # Assert the file still exists
+        self.assertTrue(os.path.exists(os.path.join(self.api.root_path, self.api.db.dt_to_dir(new_dt), new_name)))
+
+    def test_renaming_with_db_local_dir(self):
+        """
+        Test the renaming operation with a db_local_dir
+        """
+        target_path = os.path.join(self.api.root_path, "foo", "bar", "baz")
+
+        file_path = self.api.resolve_key_to_path(1)
+        self.assertIsNotNone(file_path)
+
+        # Move file to new target path
+        self.api.move_file(1, target_path)
+
+        # Check the new path exists
+        self.assertTrue(os.path.exists(os.path.join(target_path, os.path.basename(file_path))))
+        self.assertFalse(os.path.exists(file_path))
+
+        path_data = self.api.db.get_path_data(1)
+        self.assertIsNotNone(path_data)
+
+        # Unpack the path data
+        dt, flags, db_local_dir, db_name, _ = path_data
+
+        new_dt = datetime.datetime(year=2025, month=3, day=17, hour=12, minute=0, second=0, tzinfo=ZoneInfo("EST"))
+        mr = self.api.db.get_main_row(1)
+
+        self.assertIsNotNone(mr)
+        new_name = self.api.db.db_name(original_filename=mr.original_filename, key=1, fdt=new_dt)
+
+        # Internally should be renamed
+        self.api._internal_rename(key=1, db_local_dir=db_local_dir, new_name=new_name, new_datetime=new_dt,
+                                  dt=dt, db_name=db_name, flags=flags)
+
+        self.assertTrue(os.path.exists(os.path.join(self.api.root_path,
+                                                    *self.api.db.parse_db_local_dir(db_local_dir),
+                                                    new_name)))
+        self.assertFalse(os.path.exists(os.path.join(self.api.root_path,
+                                                     *self.api.db.parse_db_local_dir(db_local_dir),
+                                                     db_name)))
+
+    def test_moving_with_db_local_dir(self):
+        """
+        Test file is moved with db_local_dir set
+        """
+        target_path = os.path.join(self.api.root_path, "foo", "bar", "baz")
+
+        file_path = self.api.resolve_key_to_path(1)
+        self.assertIsNotNone(file_path)
+
+        # Move file to new target path
+        self.api.move_file(1, target_path)
+
+        # Check the new path exists
+        self.assertTrue(os.path.exists(os.path.join(target_path, os.path.basename(file_path))))
+        self.assertFalse(os.path.exists(file_path))
+
+        path_data = self.api.db.get_path_data(1)
+        self.assertIsNotNone(path_data)
+
+        # Unpack the path data
+        dt, flags, db_local_dir, db_name, _ = path_data
+
+        new_dt = datetime.datetime(year=2025, month=3, day=17, hour=12, minute=0, second=0, tzinfo=ZoneInfo("EST"))
+        mr = self.api.db.get_main_row(1)
+
+        self.assertIsNotNone(mr)
+        new_name = self.api.db.db_name(original_filename=mr.original_filename, key=1, fdt=new_dt)
+
+        # Internally should be renamed
+        self.api._internal_move_file(key=1, db_local_dir=db_local_dir, new_datetime=new_dt, dt=dt, dbn=db_name,
+                                     flags=flags)
+
+        self.assertTrue(os.path.exists(os.path.join(self.api.root_path,
+                                                    *self.api.db.parse_db_local_dir(db_local_dir),
+                                                    db_name)))
