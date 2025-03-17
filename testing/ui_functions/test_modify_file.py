@@ -1,5 +1,6 @@
 import datetime
 import os
+import shutil
 from zoneinfo import ZoneInfoNotFoundError, ZoneInfo
 
 from photo_lib.metadata_aggregator import DateTimeSource, DoubleKey
