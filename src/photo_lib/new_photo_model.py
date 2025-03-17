@@ -1792,7 +1792,7 @@ class PhotoAPI:
         if db_name == new_filename:
             return
 
-        if self.filename_to_key(new_filename):
+        if self.filename_to_key(new_filename) is not None:
             raise ValueError("Filename already exists in main table.")
 
         if not flags.present or flags.trashed or flags.duplicate:
