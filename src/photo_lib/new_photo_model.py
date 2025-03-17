@@ -1895,7 +1895,7 @@ class PhotoAPI:
         :param key: key of image to rename
         :param db_name: current name of image to rename
         :param new_name: new name of image to rename
-        :param flags: Flags of the current file needed to determine path
+        :param flags: Flags of current file. Needed foe check_flags call
         :param dt: Datetime of the file
         :param new_datetime: New datetime of the file
         :param db_local_dir: Local path of current file if not standard.
@@ -1906,10 +1906,7 @@ class PhotoAPI:
         # Parse the paths.
         ndt = dt if new_datetime is None else new_datetime
 
-        if flags.trashed or flags.duplicate:
-            current_path = os.path.join(self.db.get_trash_dir(), db_name)
-            new_path = os.path.join(self.db.get_trash_dir(), new_name)
-        elif db_local_dir is not None:
+        if db_local_dir is not None:
             current_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), db_name)
             new_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), new_name)
         else:
@@ -1951,7 +1948,7 @@ class PhotoAPI:
 
         :param key: key of image to rename
         :param dbn: current name of image to rename
-        :param flags: Flags of the current file needed to determine path
+        :param flags: Flags of the current file , needed for check flags
         :param dt: Datetime of current file
         :param new_datetime: New datetime of current file
         :param db_local_dir: Local path of current file if not standard.
@@ -1962,10 +1959,7 @@ class PhotoAPI:
         new_datetime = dt if new_datetime is None else new_datetime
 
         # Parse the paths.
-        if flags.trashed or flags.duplicate:
-            current_path = os.path.join(self.db.get_trash_dir(), dbn)
-            new_path = os.path.join(self.db.get_trash_dir(), dbn)
-        elif db_local_dir is not None:
+        if db_local_dir is not None:
             current_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), dbn)
             new_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), dbn)
         else:
