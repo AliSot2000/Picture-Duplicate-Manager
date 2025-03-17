@@ -2000,6 +2000,9 @@ class PhotoAPI:
         :param copy_google_metadata: Copy the Google Metadata from the child to the parent if the parent doesn't have
             Google Metadata
         """
+        if child_key == parent_key:
+            raise ValueError("Child cannot be child of itself.")
+
         # Ensure both keys exist.
         parent_data = self.db.get_replace_data(parent_key)
 
