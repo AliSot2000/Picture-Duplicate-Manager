@@ -1825,7 +1825,7 @@ class PhotoAPI:
         - file present, not trashed, not duplicate
 
         :param key: Key in main database to update with the new filename
-        :param new_dir: The new directory to move the file to
+        :param new_dir: The new directory to move the file to. Must be absolute.
         """
         self.verify_custom_target_dir(new_dir)
 
