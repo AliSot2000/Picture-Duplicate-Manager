@@ -6,7 +6,7 @@ import time
 import zoneinfo
 
 from photo_lib.custom_enum import MediaType
-from .base_class import TestClassifyBase
+from base_class import TestClassifyBase
 
 """
 This file fully tests the following functions:

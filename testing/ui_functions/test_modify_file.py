@@ -5,7 +5,7 @@ import shutil
 from zoneinfo import ZoneInfoNotFoundError, ZoneInfo
 
 from photo_lib.metadata_aggregator import DateTimeSource, DoubleKey
-from .base_class import TestClassifyBase
+from base_class import TestClassifyBase
 
 """
 This file fully tests the following functions:
