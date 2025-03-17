@@ -1885,8 +1885,14 @@ class PhotoAPI:
         self.db.update_row_main_table(key=key, flags=flags)
         self.db.commit()
 
-    def _internal_rename(self, key: int, flags: MainFlags, db_name: str, new_name: str, dt: datetime.datetime,
-                         new_datetime: datetime.datetime = None, db_local_dir: str = None):
+    def _internal_rename(self,
+                         key: int,
+                         flags: MainFlags,
+                         db_name: str,
+                         new_name: str,
+                         dt: datetime.datetime,
+                         new_datetime: datetime.datetime = None,
+                         db_local_dir: str = None):
         """
         Shared part of the function that all functions that rename a file use.
 
@@ -1937,7 +1943,11 @@ class PhotoAPI:
         self.key_to_filepath_cache.update(arg=key, value=new_path)
         self.prune_fs_dir = True
 
-    def _internal_move_file(self, key: int, flags: MainFlags, dbn: str, dt: datetime.datetime,
+    def _internal_move_file(self,
+                            key: int,
+                            flags: MainFlags,
+                            dbn: str,
+                            dt: datetime.datetime,
                             new_datetime: datetime.datetime = None,
                             db_local_dir: str = None):
         """
