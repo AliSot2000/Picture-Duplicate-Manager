@@ -165,6 +165,8 @@ class TestToDuplicates(TestClassifyLocalBase):
 
         self.assertRaises(ValueError, lambda : self.api.move_to_duplicates(parent_key=2, child_key=1))
 
+        self.assertRaises(ValueError, lambda: self.api.move_to_duplicates(parent_key=3, child_key=3))
+
     def test_basic(self):
         """
         Test basic changes of moving a key to the duplicates table
