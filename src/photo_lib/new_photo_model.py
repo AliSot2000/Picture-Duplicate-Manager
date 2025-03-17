@@ -1686,8 +1686,10 @@ class PhotoAPI:
             self.db.update_row_main_table(key=key, datetime=new_dt, timezone=new_dt.tzname())
 
         if add_exif_tag or (add_exif_tag is None and self.config.add_safety_exif_tags):
-            if dt != new_dt:
-                self._add_update_exif_tag(key=key, target_datetime=new_dt, file_path=self.resolve_key_to_path(key))
+            assert dt.utcoffset() != new_dt.utcoffset(), \
+                "PRECONDITION FAILED: dt.utcoffset() == new_dt.utcoffset() should have returned"
+            # INFO: Using resolve_key_to_path is correct, _internal_move and _internal_rename updated the cache
+            self._add_update_exif_tag(key=key, target_datetime=new_dt, file_path=self.resolve_key_to_path(key))
 
         self._handle_gps_import(gps_lat=gps_lat, gps_long=gps_long, main_key=key)
 
