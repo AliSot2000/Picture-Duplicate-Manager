@@ -1759,7 +1759,7 @@ class PhotoAPI:
                                           datetime_source=dts)
 
         if add_exif_tag or (add_exif_tag is None and self.config.add_safety_exif_tags):
-            if dt != new_dt:
+            if dt.utcoffset() != new_dt.utcoffset():
                 self._add_update_exif_tag(key=key, target_datetime=new_dt, file_path=self.resolve_key_to_path(key))
 
         # Evicting lookup of old name to key
