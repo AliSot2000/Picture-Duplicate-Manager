@@ -823,3 +823,133 @@ class TestChangeFileName(TestClassifyBase):
 
         self.assertEqual(self.api.filename_to_key(new_name), 1)
         self.assertIsNone(self.api.filename_to_key(os.path.basename(prev_path)))
+
+
+class TestMoveFile(TestClassifyBase):
+    """
+    Fully test the move_file function
+    """
+    def test_errors_raised(self):
+        """
+        Test that the correct errors are raised.
+        """
+        tgt_path = os.path.join(self.temp_db, "foo", "bar", "baz")
+        self.assertRaises(ValueError, lambda : self.api.move_file(1000, tgt_path))
+
+        # Wrong flags
+        self.api.move_to_trash(2)
+        self.api.move_to_duplicates(child_key=4, parent_key=3)
+
+        flags = self.api.db.get_main_flags(key=5)
+        self.assertIsNotNone(flags)
+
+        flags.present = False
+        self.api.db.update_row_main_table(key=5, flags=flags)
+
+        self.assertRaises(ValueError, lambda : self.api.move_file(2, tgt_path))
+        self.assertRaises(ValueError, lambda : self.api.move_file(4, tgt_path))
+        self.assertRaises(ValueError, lambda : self.api.move_file(5, tgt_path))
+
+        os.remove(self.api.resolve_key_to_path(6))
+
+        # Removed source file
+        self.assertRaises(FileNotFoundError, lambda : self.api.move_file(6, tgt_path))
+
+        # Check file exists at target
+        file = self.api.resolve_key_to_path(10)
+
+        # Create directory
+        os.makedirs(tgt_path)
+
+        # copy file to destination
+        shutil.copy2(file, os.path.join(tgt_path, os.path.basename(file)))
+
+        self.assertRaises(FileExistsError, lambda: self.api.move_file(10, tgt_path))
+
+
+        old_path = self.api.resolve_key_to_path(20)
+
+        # Move file to other dir and them moving it bac
+        self.api.move_file(20, tgt_path)
+
+        new_path = self.api.resolve_key_to_path(20)
+
+        shutil.copy2(new_path, old_path)
+
+        self.assertRaises(FileExistsError, lambda : self.api.move_file(20, os.path.dirname(old_path)))
+
+    def test_abort_same_dt_path(self):
+        """
+        Test the system aborts if the file paths are identical
+        """
+        cur_dir_path = self.api.resolve_key_to_path(1)
+
+        dst = os.path.dirname(cur_dir_path)
+
+        # Tra to move
+        self.api.move_file(1, dst)
+
+        # Ensure we stay there
+        self.assertTrue(os.path.exists(cur_dir_path))
+
+    def test_abort_same_custom_path_and_move_to_custom_dir(self):
+        """
+        Test the system aborts if the file paths are identical
+        """
+        new_path = os.path.join(self.temp_db, "foo", "bar", "baz")
+
+        self.api.move_file(1, new_path)
+
+        # Test move was successful
+        mr = self.api.db.get_main_row(1)
+        mdr = self.api.db.get_metadata_row(1)
+
+        self.assertIsNotNone(mr)
+        self.assertIsNotNone(mdr)
+
+        self.assertIsNotNone(mdr.db_local_dir)
+
+        self.assertTrue(mr.flags.present)
+        self.assertTrue(os.path.exists(os.path.join(new_path, mr.db_name)))
+
+        self.api.move_file(1, new_path)
+
+        self.assertTrue(os.path.exists(os.path.join(new_path, mr.db_name)))
+
+    def test_correct_move_back(self):
+        """
+        Move a file to a custom dir and then back to check that the move back works correctly.
+        """
+        new_path = os.path.join(self.temp_db, "foo", "bar", "baz")
+        org_path = self.api.resolve_key_to_path(1)
+
+        # Move to custom path and check the result
+        self.api.move_file(1, new_path)
+
+        # Test move was successful
+        mr = self.api.db.get_main_row(1)
+        mdr = self.api.db.get_metadata_row(1)
+
+        self.assertIsNotNone(mr)
+        self.assertIsNotNone(mdr)
+
+        self.assertIsNotNone(mdr.db_local_dir)
+
+        self.assertTrue(mr.flags.present)
+        self.assertTrue(os.path.exists(os.path.join(new_path, mr.db_name)))
+
+        # Move back to dt path and check result
+        self.api.move_file(1, os.path.dirname(org_path))
+
+        # Test move was successful
+        mr = self.api.db.get_main_row(1)
+        mdr = self.api.db.get_metadata_row(1)
+
+        self.assertIsNotNone(mr)
+        self.assertIsNotNone(mdr)
+
+        self.assertIsNone(mdr.db_local_dir)
+
+        self.assertTrue(mr.flags.present)
+        self.assertTrue(os.path.exists(org_path))
+
