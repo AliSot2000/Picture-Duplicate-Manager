@@ -147,6 +147,10 @@ class TestModifyTimezone(TestClassifyBase):
             year=1990, month=2, day=1, hour=12, minute=0, second=0, tzinfo=ZoneInfo("CET"))
         )
 
+        # Check only one hash present in the beginning
+        self.assertEqual(1, len(self.api.db.get_all_hashes_of_file(1)))
+        self.assertEqual(1, len(self.api.db.get_all_hashes_of_file(1)))
+
         self.api.modify_timezone(key=1, _target_tz=new_tz, replace=False)
         self.api.modify_timezone(key=2, _target_tz=new_tz, replace=True)
 
