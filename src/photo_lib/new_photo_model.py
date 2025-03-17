@@ -1684,6 +1684,8 @@ class PhotoAPI:
 
             self.db.update_row_main_table(key=key, datetime=new_dt, timezone=new_dt.tzname())
 
+            new_name = db_name
+
         if add_exif_tag or (add_exif_tag is None and self.config.add_safety_exif_tags):
             assert dt.utcoffset() != new_dt.utcoffset(), \
                 "PRECONDITION FAILED: dt.utcoffset() == new_dt.utcoffset() should have returned"
@@ -1694,7 +1696,7 @@ class PhotoAPI:
 
         # Evicting lookup of old name to key
         if self.filename_to_key_cache.evict(arg=db_name):
-            self.filename_to_key_cache.set(arg=db_name, value=key)
+            self.filename_to_key_cache.set(arg=new_name, value=key)
 
         self.db.commit()
 
