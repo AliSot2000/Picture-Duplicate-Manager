@@ -260,6 +260,10 @@ class TestModifyTimezone(TestClassifyBase):
         # check hashes
         self.assertEqual(1, len(self.api.db.get_all_hashes_of_file(1)))
 
+        # Check cache
+        self.assertEqual(self.api.filename_to_key(new_name1), 1)
+        self.assertIsNone(self.api.filename_to_key(prev_mr1.db_name))
+
     def test_all_timezone_types(self):
         """
         Test all possible types of timezones
@@ -561,6 +565,10 @@ class TestChangeDatetime(TestClassifyBase):
         ]
 
         self.assertListEqual(fh1, ex_fh1)
+
+        # Check cache
+        self.assertEqual(self.api.filename_to_key(new_name), 1)
+        self.assertIsNone(self.api.filename_to_key(prev_mr1.db_name))
 
     def test_move(self):
         """
