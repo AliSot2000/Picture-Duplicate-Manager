@@ -2796,7 +2796,8 @@ class PhotoAPI:
 
             flags.present = False
             self.db.update_row_main_table(key=key, flags=flags)
-            self.db.delete_row_metadata_table(key=key)
+            # INFO: Calling delete anyway, but may not assert.
+            self.db.delete_row_metadata_table(key=key, assert_exists=False)
 
         self.main_logger.info(f"Finished Deleting {count} Originals {'Duplicates' if duplicates else 'Trash'}")
         self.db.commit()
