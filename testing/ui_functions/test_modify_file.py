@@ -721,3 +721,105 @@ class TestChangeDatetime(TestClassifyBase):
 
         # Check no new hash was added since the offset is equal
         self.assertEqual(len(self.api.db.get_all_hashes_of_file(1)), 1)
+
+
+class TestChangeFileName(TestClassifyBase):
+    """
+    Tests for the change_filename
+    """
+    def test_raise_errors(self):
+        """
+        Check that the correct errors are raised.
+        """
+        # File doesn't exist
+        self.assertRaises(ValueError, lambda : self.api.change_filename(key=1000, new_filename="unga_bunga.png"))
+
+        # Filename exists
+        fpath = self.api.resolve_key_to_path(100)
+        self.assertIsNotNone(fpath)
+
+        # Try to update to a name that's already taken
+        self.assertRaises(ValueError, lambda : self.api.change_filename(key=1, new_filename=os.path.basename(fpath)))
+
+        # Wrong flags
+        self.api.move_to_trash(2)
+        self.api.move_to_duplicates(child_key=4, parent_key=3)
+
+        flags = self.api.db.get_main_flags(key=5)
+        self.assertIsNotNone(flags)
+
+        flags.present = False
+        self.api.db.update_row_main_table(key=5, flags=flags)
+
+        self.assertRaises(ValueError, lambda : self.api.change_filename(key=2, new_filename="unga_bunga.png"))
+        self.assertRaises(ValueError, lambda : self.api.change_filename(key=4, new_filename="unga_bunga.png"))
+        self.assertRaises(ValueError, lambda : self.api.change_filename(key=5, new_filename="unga_bunga.png"))
+
+    def test_early_exit(self):
+        """
+        Check that nothing is done if the filename matches
+        """
+        fpath = self.api.resolve_key_to_path(1)
+
+        # attempt change
+        self.api.change_filename(key=1, new_filename=os.path.basename(fpath))
+
+        # Check the metadata row
+        mdr = self.api.db.get_metadata_row(1)
+        self.assertIsNotNone(mdr)
+
+        # Naming tag shouldn't be custom
+        self.assertNotEqual(mdr.naming_tag, "CUSTOM")
+
+        self.assertEqual(mdr.naming_tag, "EXIF:ModifyDate, EXIF:OffsetTime")
+
+    def test_actual_rename(self):
+        """
+        Test file is actually renamed
+        """
+        new_name = "ungabunga.png"
+        prev_path = self.api.resolve_key_to_path(1)
+
+        self.api.change_filename(1, new_name)
+
+        # check file was renamed
+        self.assertFalse(os.path.exists(prev_path))
+        self.assertTrue(os.path.exists(os.path.join(os.path.dirname(prev_path), new_name)))
+
+        # Check correctly resolved
+        mr = self.api.db.get_main_row(1)
+        mdr = self.api.db.get_metadata_row(1)
+
+        self.assertIsNotNone(mr)
+        self.assertIsNotNone(mdr)
+
+        self.assertEqual(mr.db_name, new_name)
+        self.assertEqual(mdr.naming_tag, "CUSTOM")
+
+    def test_actual_rename_with_cache_eviction(self):
+        """
+        Test cache eviction is working
+        """
+        new_name = "ungabunga.png"
+        prev_path = self.api.resolve_key_to_path(1)
+
+        self.api.filename_to_key(os.path.basename(prev_path))
+
+        self.api.change_filename(1, new_name)
+
+        # check file was renamed
+        self.assertFalse(os.path.exists(prev_path))
+        self.assertTrue(os.path.exists(os.path.join(os.path.dirname(prev_path), new_name)))
+
+        # Check correctly resolved
+        mr = self.api.db.get_main_row(1)
+        mdr = self.api.db.get_metadata_row(1)
+
+        self.assertIsNotNone(mr)
+        self.assertIsNotNone(mdr)
+
+        self.assertEqual(mr.db_name, new_name)
+        self.assertEqual(mdr.naming_tag, "CUSTOM")
+
+        self.assertEqual(self.api.filename_to_key(new_name), 1)
+        self.assertIsNone(self.api.filename_to_key(os.path.basename(prev_path)))
