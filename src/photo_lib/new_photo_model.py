@@ -1724,7 +1724,7 @@ class PhotoAPI:
         :param add_exif_tag: If true, will add exif_tag to the file. If None, default taken from config.
         """
         if new_dt.tzinfo is None:
-            raise ValueError("new_dt must have a timezone")
+            raise TypeError("new_dt must have a timezone")
 
         path_data = self.db.get_path_data(key=key)
         if path_data is None:
