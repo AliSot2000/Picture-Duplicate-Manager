@@ -1840,7 +1840,7 @@ class PhotoAPI:
 
         # Get path data
         rnd = self.db.get_path_data(key)
-        assert rnd is not None, "Unexpected outcome, path data isn't supposed to be None"
+        assert rnd is not None, "PRECONDITION FAILED:, path data isn't supposed to be None"
 
         dt, flags, db_local_dir, db_name, org_name = rnd
 
