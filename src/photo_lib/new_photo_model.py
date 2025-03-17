@@ -1644,6 +1644,7 @@ class PhotoAPI:
         if isinstance(_target_tz, ZoneInfo):
             target_tz = _target_tz
         elif isinstance(_target_tz, str):
+            # Can raise zoneinfo._common.ZoneInfoNotFoundError
             target_tz = ZoneInfo(_target_tz)
         elif isinstance(_target_tz, datetime.timedelta):
             target_tz = datetime.timezone(_target_tz)
