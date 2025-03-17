@@ -208,12 +208,12 @@ if __name__ == '__main__':
         for j in range(2**i):
             # Compute hours and seconds
             s = j % 60
-            h = j // 60
+            m = j // 60
 
             # Create the files.
             files[f"{i+1}"][f"{i+1}_{j+1}.png"] = {
                 "text": f"Image Day {i+1} \n idx {j+1}",
-                "created": dt(year=1990, month=i+1, day=1, hour=12, minute=h, second=s, tzinfo=cet)
+                "created": dt(year=1990, month=i+1, day=1, hour=12, minute=m, second=s, tzinfo=cet)
 
             }
 
