@@ -56,7 +56,7 @@ class TestEmptyTrash(TestClassifyBase):
 
         # Actually move files to trash
         for file in files:
-            self.api.move_to_trash(self.api.filename_to_key(file))
+            self.api.move_to_trash(self.api.resolve_filename_to_key(file))
 
         # Check the files are contained in the trash dir
         trash_files = os.listdir(self.api.db.get_trash_dir())
@@ -66,8 +66,8 @@ class TestEmptyTrash(TestClassifyBase):
         # Check thumbnails are present
         for file in files:
             with self.subTest(f"Testing Display Files for {file}"):
-                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.filename_to_key(file))))
-                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.resolve_filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.resolve_filename_to_key(file))))
 
         return path, files
 
@@ -79,7 +79,7 @@ class TestEmptyTrash(TestClassifyBase):
         self.assertEqual(len(files), 16)
 
         for file in files:
-            self.api.move_to_trash(self.api.filename_to_key(file))
+            self.api.move_to_trash(self.api.resolve_filename_to_key(file))
 
         # check that all files were moved
         self.assertListEqual(sorted(os.listdir(self.api.db.get_trash_dir())), sorted(files))
@@ -87,8 +87,8 @@ class TestEmptyTrash(TestClassifyBase):
         # Check thumbnails are present
         for file in files:
             with self.subTest(f"Testing Display Files for {file}"):
-                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.filename_to_key(file))))
-                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.resolve_filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.resolve_filename_to_key(file))))
 
         return path, files
 
@@ -100,7 +100,7 @@ class TestEmptyTrash(TestClassifyBase):
         self.assertEqual(len(files), 32)
 
         for file in files:
-            self.api.move_to_duplicates(child_key=self.api.filename_to_key(file), parent_key=1)
+            self.api.move_to_duplicates(child_key=self.api.resolve_filename_to_key(file), parent_key=1)
 
         # check that all files were moved
         trash_files = os.listdir(self.api.db.get_trash_dir())
@@ -110,8 +110,8 @@ class TestEmptyTrash(TestClassifyBase):
         # Check thumbnails are present
         for file in files:
             with self.subTest(f"Testing Display Files for {file}"):
-                self.assertFalse(os.path.exists(self.api.db.full_thumbnail_path(self.api.filename_to_key(file))))
-                self.assertFalse(os.path.exists(self.api.db.full_miniature_path(self.api.filename_to_key(file))))
+                self.assertFalse(os.path.exists(self.api.db.full_thumbnail_path(self.api.resolve_filename_to_key(file))))
+                self.assertFalse(os.path.exists(self.api.db.full_miniature_path(self.api.resolve_filename_to_key(file))))
 
         return path, files
 
@@ -142,8 +142,8 @@ class TestEmptyTrash(TestClassifyBase):
 
         for file in files:
             with self.subTest(f"Testing Display Files for {file}"):
-                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.filename_to_key(file))))
-                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.resolve_filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.resolve_filename_to_key(file))))
 
         self.check_flags_main_table(duplicate=False, trashed=True, filenames=files)
         self.check_metadata_table(state="deleted", files=files)
@@ -169,8 +169,8 @@ class TestEmptyTrash(TestClassifyBase):
 
         for file in files:
             with self.subTest(f"Testing Display Files for {file}"):
-                self.assertFalse(os.path.exists(self.api.db.full_thumbnail_path(self.api.filename_to_key(file))))
-                self.assertFalse(os.path.exists(self.api.db.full_miniature_path(self.api.filename_to_key(file))))
+                self.assertFalse(os.path.exists(self.api.db.full_thumbnail_path(self.api.resolve_filename_to_key(file))))
+                self.assertFalse(os.path.exists(self.api.db.full_miniature_path(self.api.resolve_filename_to_key(file))))
 
         self.check_flags_main_table(duplicate=True, trashed=False, filenames=files)
         self.check_metadata_table(state="deleted", files=files)
@@ -203,13 +203,13 @@ class TestEmptyTrash(TestClassifyBase):
         # Check trash thumbs exist
         for file in files1:
             with self.subTest(f"Testing Display Files for {file}"):
-                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.filename_to_key(file))))
-                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.resolve_filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.resolve_filename_to_key(file))))
 
         for file in files2:
             with self.subTest(f"Testing Display Files for {file}"):
-                self.assertFalse(os.path.exists(self.api.db.full_thumbnail_path(self.api.filename_to_key(file))))
-                self.assertFalse(os.path.exists(self.api.db.full_miniature_path(self.api.filename_to_key(file))))
+                self.assertFalse(os.path.exists(self.api.db.full_thumbnail_path(self.api.resolve_filename_to_key(file))))
+                self.assertFalse(os.path.exists(self.api.db.full_miniature_path(self.api.resolve_filename_to_key(file))))
 
         self.check_flags_main_table(duplicate=False, trashed=True, filenames=files1)
         self.check_flags_main_table(duplicate=True, trashed=False, filenames=files2)
@@ -239,8 +239,8 @@ class TestEmptyTrash(TestClassifyBase):
         # Check trash thumbs exist
         for file in files0:
             with self.subTest(f"Testing Display Files for {file}"):
-                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.filename_to_key(file))))
-                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.resolve_filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.resolve_filename_to_key(file))))
 
         self.check_flags_main_table(duplicate=False, trashed=True, filenames=files0)
         self.check_metadata_table(state="deleted", files=files0)
@@ -275,13 +275,13 @@ class TestEmptyTrash(TestClassifyBase):
         # Check trash thumbs exist
         for file in files1:
             with self.subTest(f"Testing Display Files for {file}"):
-                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.filename_to_key(file))))
-                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_thumbnail_path(self.api.resolve_filename_to_key(file))))
+                self.assertTrue(os.path.exists(self.api.db.full_miniature_path(self.api.resolve_filename_to_key(file))))
 
         for file in files2:
             with self.subTest(f"Testing Display Files for {file}"):
-                self.assertFalse(os.path.exists(self.api.db.full_thumbnail_path(self.api.filename_to_key(file))))
-                self.assertFalse(os.path.exists(self.api.db.full_miniature_path(self.api.filename_to_key(file))))
+                self.assertFalse(os.path.exists(self.api.db.full_thumbnail_path(self.api.resolve_filename_to_key(file))))
+                self.assertFalse(os.path.exists(self.api.db.full_miniature_path(self.api.resolve_filename_to_key(file))))
 
         self.check_flags_main_table(duplicate=False, trashed=True, filenames=files0)
         self.check_flags_main_table(duplicate=False, trashed=True, filenames=files1)
@@ -295,7 +295,7 @@ class TestEmptyTrash(TestClassifyBase):
         """
         for file in filenames:
 
-            flags = self.api.db.get_main_flags(self.api.filename_to_key(file))
+            flags = self.api.db.get_main_flags(self.api.resolve_filename_to_key(file))
 
             self.assertEqual(flags.duplicate, duplicate)
             self.assertEqual(flags.trashed, trashed)
@@ -307,7 +307,7 @@ class TestEmptyTrash(TestClassifyBase):
         assert state in ("main", "duplicates", "trash", "deleted")
 
         for file in files:
-            mdr = self.api.db.get_metadata_row(self.api.filename_to_key(file))
+            mdr = self.api.db.get_metadata_row(self.api.resolve_filename_to_key(file))
 
             if state.lower() == "main":
                 self.assertEqual(mdr.replaced, MediaType.MAIN)

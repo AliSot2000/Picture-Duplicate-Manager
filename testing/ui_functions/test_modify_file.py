@@ -236,7 +236,7 @@ class TestModifyTimezone(TestClassifyBase):
 
         self.assertIsNotNone(prev_mr1)
 
-        _ = self.api.filename_to_key(prev_mr1.db_name)
+        _ = self.api.resolve_filename_to_key(prev_mr1.db_name)
 
         self.assertEqual(prev_mr1.datetime, datetime.datetime(
             year=1990, month=1, day=1, hour=12, minute=0, second=0, tzinfo=ZoneInfo("CET"))
@@ -267,8 +267,8 @@ class TestModifyTimezone(TestClassifyBase):
         self.assertEqual(1, len(self.api.db.get_all_hashes_of_file(1)))
 
         # Check cache
-        self.assertEqual(self.api.filename_to_key(new_name1), 1)
-        self.assertIsNone(self.api.filename_to_key(prev_mr1.db_name))
+        self.assertEqual(self.api.resolve_filename_to_key(new_name1), 1)
+        self.assertIsNone(self.api.resolve_filename_to_key(prev_mr1.db_name))
 
     def test_all_timezone_types(self):
         """
@@ -516,7 +516,7 @@ class TestChangeDatetime(TestClassifyBase):
         self.assertIsNone(prev_mdr1.gps_lat)
 
         # Populate cache
-        self.api.filename_to_key(prev_mr1.db_name)
+        self.api.resolve_filename_to_key(prev_mr1.db_name)
 
         # Check that there's one hash
         self.assertEqual(len(self.api.db.get_all_hashes_of_file(1)), 1)
@@ -573,8 +573,8 @@ class TestChangeDatetime(TestClassifyBase):
         self.assertListEqual(fh1, ex_fh1)
 
         # Check cache
-        self.assertEqual(self.api.filename_to_key(new_name), 1)
-        self.assertIsNone(self.api.filename_to_key(prev_mr1.db_name))
+        self.assertEqual(self.api.resolve_filename_to_key(new_name), 1)
+        self.assertIsNone(self.api.resolve_filename_to_key(prev_mr1.db_name))
 
     def test_move(self):
         """
@@ -809,7 +809,7 @@ class TestChangeFileName(TestClassifyBase):
         new_name = "ungabunga.png"
         prev_path = self.api.resolve_key_to_path(1)
 
-        self.api.filename_to_key(os.path.basename(prev_path))
+        self.api.resolve_filename_to_key(os.path.basename(prev_path))
 
         self.api.change_filename(1, new_name)
 
@@ -827,8 +827,8 @@ class TestChangeFileName(TestClassifyBase):
         self.assertEqual(mr.db_name, new_name)
         self.assertEqual(mdr.naming_tag, "CUSTOM")
 
-        self.assertEqual(self.api.filename_to_key(new_name), 1)
-        self.assertIsNone(self.api.filename_to_key(os.path.basename(prev_path)))
+        self.assertEqual(self.api.resolve_filename_to_key(new_name), 1)
+        self.assertIsNone(self.api.resolve_filename_to_key(os.path.basename(prev_path)))
 
 
 class TestMoveFile(TestClassifyBase):

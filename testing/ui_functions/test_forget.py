@@ -70,7 +70,7 @@ class TestForget(TestClassifyBase):
 
         # Check there's no content in the caches
         self.assertIsNone(self.api.resolve_key_to_path(key))
-        self.assertIsNone(self.api.filename_to_key(os.path.basename(prev_path)))
+        self.assertIsNone(self.api.resolve_filename_to_key(os.path.basename(prev_path)))
 
         # Check no row in main or metadata table
         self.assertIsNone(self.api.db.get_main_row(key))
