@@ -1664,7 +1664,7 @@ class PhotoAPI:
         new_dt = dt.replace(tzinfo=target_tz) if replace else dt.astimezone(tz=target_tz)
 
         # Early exit, if the new datetime is equivalent to the old one.
-        if new_dt == dt:
+        if new_dt.utcoffset() == dt.utcoffset():
             # Only update the timezone
             self.db.update_row_main_table(key=key, timezone=new_dt.tzname())
             return
