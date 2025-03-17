@@ -70,14 +70,14 @@ class TestDisplayMediaCreation(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):  # pragma: no cover
-        cls.shadow_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "shadow_db"))
-        cls.temp_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "test_db"))
-        cls.media_source = os.path.join(os.path.dirname(__file__), "test_file_out")
-        cls.import_source = os.path.join(os.path.dirname(__file__), "scratch")
-        cls.tbl_dump_dir = os.path.join(os.path.dirname(__file__), "db_dump", "import")
+        cls.shadow_db = os.path.abspath(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "shadow_db")))
+        cls.temp_db = os.path.abspath(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "test_db")))
+        cls.media_source = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "test_file_out"))
+        cls.import_source = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "scratch"))
+        cls.tbl_dump_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "db_dump", "import"))
 
         # Check the input files are present
-        if not os.path.exists(os.path.join(os.path.dirname(__file__), "test_file_out")):
+        if not os.path.exists(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "test_file_out"))):
             raise FileNotFoundError(
                 "Need test files to test the db. Create them with the scripts/generate_dummy_media.py"
             )

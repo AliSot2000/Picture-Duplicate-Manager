@@ -54,13 +54,13 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):  # pragma: no cover
-        cls.shadow_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "shadow_db"))
-        cls.temp_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "test_db"))
-        cls.media_source = os.path.join(os.path.dirname(__file__), "test_file_out")
-        cls.import_source = os.path.join(os.path.dirname(__file__), "scratch")
+        cls.shadow_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "shadow_db"))
+        cls.temp_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "test_db"))
+        cls.media_source = os.path.join(os.path.dirname(__file__), "..", "test_file_out")
+        cls.import_source = os.path.join(os.path.dirname(__file__), "..", "scratch")
 
         # Check the input files are present
-        if not os.path.exists(os.path.join(os.path.dirname(__file__), "test_file_out")):
+        if not os.path.exists(os.path.join(os.path.dirname(__file__), "..", "test_file_out")):
             raise FileNotFoundError(
                 "Need test files to test the db. Create them with the scripts/generate_dummy_media.py"
             )
@@ -200,13 +200,13 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         """
         shutil.copytree(os.path.join(self.media_source, "db"), self.import_source)
 
-        tbl = self.api.prepare_directory_for_import(source_dir=self.import_source)
+        tbl = self.api.prepare_directory_for_import(source_dir=os.path.abspath(self.import_source))
         tbl_size = self.api.db.get_size_of_single_import_table(tbl)
 
         self.assertEqual(tbl_size, 157)
 
         # Test empty append
-        self.api.prepare_directory_for_import(source_dir=self.import_source, append=True, tbl_name=tbl)
+        self.api.prepare_directory_for_import(source_dir=os.path.abspath(self.import_source), append=True, tbl_name=tbl)
         tbl_size_1 = self.api.db.get_size_of_single_import_table(tbl)
 
         self.assertEqual(tbl_size_1, 157)
@@ -218,7 +218,7 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         shutil.copytree(allowed_test, os.path.join(self.import_source, "import_base_dir"))
 
         # Prepare the next 4 files.
-        self.api.prepare_directory_for_import(source_dir=self.import_source, append=True, tbl_name=tbl)
+        self.api.prepare_directory_for_import(source_dir=os.path.abspath(self.import_source), append=True, tbl_name=tbl)
         table_size_2 = self.api.db.get_size_of_single_import_table(tbl)
 
         self.assertEqual(table_size_2, 161)
@@ -270,13 +270,14 @@ class TestAPIPrepareDirectoryForImport(unittest.TestCase):
         """
         Check Add file to import table raises an error if a file is encoutered twice
         """
-        shutil.copytree(os.path.join(self.media_source, "db"), self.import_source)
+        ips = os.path.abspath(self.import_source)
+        shutil.copytree(os.path.join(self.media_source, "db"), ips)
 
         tbl = "Test_Table"
 
-        self.api.prepare_directory_for_import(source_dir=self.import_source, tbl_name=tbl)
+        self.api.prepare_directory_for_import(source_dir=ips, tbl_name=tbl)
 
-        for root, dirs, files in os.walk(self.import_source):
+        for root, dirs, files in os.walk(ips):
             for f in files:
                 self.assertRaises(ValueError, lambda: self.api._prepare_file_import(tbl_name=tbl,
                                                                                     allowed_ext=set(),
@@ -393,14 +394,14 @@ class TestAPIPerformImport(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):  # pragma: no cover
-        cls.shadow_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "shadow_db"))
-        cls.temp_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "test_db"))
-        cls.media_source = os.path.join(os.path.dirname(__file__), "test_file_out")
-        cls.import_source = os.path.join(os.path.dirname(__file__), "scratch")
-        cls.tbl_dump_dir = os.path.join(os.path.dirname(__file__), "db_dump", "import")
+        cls.shadow_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "shadow_db"))
+        cls.temp_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "test_db"))
+        cls.media_source = os.path.join(os.path.dirname(__file__), "..", "test_file_out")
+        cls.import_source = os.path.join(os.path.dirname(__file__), "..", "scratch")
+        cls.tbl_dump_dir = os.path.join(os.path.dirname(__file__), "..", "db_dump", "import")
 
         # Check the input files are present
-        if not os.path.exists(os.path.join(os.path.dirname(__file__), "test_file_out")):
+        if not os.path.exists(os.path.join(os.path.dirname(__file__), "..", "test_file_out")):
             raise FileNotFoundError(
                 "Need test files to test the db. Create them with the scripts/generate_dummy_media.py"
             )
