@@ -14,6 +14,8 @@ This file fully tests the following functions:
 - metadata_aggregator.serialize_key
 - api.change_filename
 - api.move_file
+- api._internal_move_file
+- api._internal_rename
 
 The file covers 100% of the function without specific tests:
 - api.db.get_path_data
