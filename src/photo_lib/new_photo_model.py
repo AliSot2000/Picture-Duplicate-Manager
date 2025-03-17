@@ -1922,9 +1922,10 @@ class PhotoAPI:
         :raises FileNotFoundError: if the path where the file is currently supposed to be doesn't exist
         :raises FileExistsError: if the path where the file is supposed to be moved to does exist
         """
-        # Parse the paths.
+        # INFO: The default is needed here in case we want to rename the file change_filename
         ndt = dt if new_datetime is None else new_datetime
 
+        # Parse the paths.
         if db_local_dir is not None:
             current_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), db_name)
             new_path = os.path.join(self.root_path, *self.db.parse_db_local_dir(db_local_dir), new_name)
