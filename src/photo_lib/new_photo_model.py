@@ -1944,7 +1944,7 @@ class PhotoAPI:
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
 
         # Check the file extensions.
-        if os.path.splitext(new_name)[1] != os.path.splitext(db_name)[1]:
+        if os.path.splitext(new_name)[1].lower() != os.path.splitext(db_name)[1].lower():
             self.main_logger.warning("New file extension does not match DB file extension")
 
         # Ensure existence, raise error (cannot be fixed by good programming, so no assert)
