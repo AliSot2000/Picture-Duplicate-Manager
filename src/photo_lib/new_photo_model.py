@@ -1983,7 +1983,7 @@ class PhotoAPI:
             assert db_local_dir is None and new_datetime is None, \
                 f"Unexpected argument combination. db_local_dir {db_local_dir}, ndt: {new_datetime}"
             current_path = os.path.join(self.root_path, self.db.dt_to_dir(dt), dbn)
-            new_path = os.path.join(self.root_path, self.db.dt_to_dir(dt), dbn)
+            new_path = os.path.join(self.root_path, self.db.dt_to_dir(new_datetime), dbn)
 
         if current_path == new_path:
             return
