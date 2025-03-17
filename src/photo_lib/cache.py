@@ -92,7 +92,7 @@ class Cache:
         # Cache hit, update the flag
         if res is not nd:
             self.__lru[self.__arg_index_lookup[arg]] = True
-            self.__arg_res_lookup[arg] = res
+            self.__arg_res_lookup[arg] = value
 
         # The argument isn't currently in the cache.
         else:
