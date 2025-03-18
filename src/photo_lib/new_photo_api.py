@@ -772,6 +772,8 @@ class PhotoAPI:
         if not self.db.import_table_flags(tbl).internal:
             raise ValueError("Cannot use this function with non-internal import table")
 
+        self.db.prepare_import_table_for_remove(tbl_name=tbl)
+
         for row in self.db.perform_import_iterator(tbl):
             ik, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, ipk = row
 
