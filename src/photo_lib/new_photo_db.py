@@ -993,6 +993,22 @@ class PhotoDB(BaseSQliteDB):
 
         return result
 
+    # INFO: Needed for testing
+    def import_status_test(self, tbl_name: str) -> List[Tuple[int, Allowed, ImportStatus, str | None, str]]:
+        """
+        Get the imported status, allowed status for verification of correct update of import table.
+        """
+        self.debug_execute(f"SELECT key, allowed, imported, message, original_filename FROM `{tbl_name}`")
+
+        res = []
+        for row in self.sq_cur.fetchall():
+            key, _al, _imp, message, original_filename = row
+            allowed = Allowed(_al)
+            importst = ImportStatus(_imp)
+            res.append((key, allowed, importst, message, original_filename))
+
+        return res
+
     # ==================================================================================================================
     # Presence Table
     # ==================================================================================================================
