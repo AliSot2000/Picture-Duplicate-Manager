@@ -399,7 +399,7 @@ class TestAPIPerformImport(unittest.TestCase):
         cls.temp_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "test_db"))
         cls.media_source = os.path.join(os.path.dirname(__file__), "..", "test_file_out")
         cls.import_source = os.path.join(os.path.dirname(__file__), "..", "scratch")
-        cls.tbl_dump_dir = os.path.join(os.path.dirname(__file__), "..", "db_dump", "import")
+        cls.tbl_dump_dir = os.path.join(os.path.dirname(__file__), "..", "db_dump")
 
         # Check the input files are present
         if not os.path.exists(os.path.join(os.path.dirname(__file__), "..", "test_file_out")):
@@ -1795,7 +1795,7 @@ class TestAPIPerformImport(unittest.TestCase):
 
         :returns:
         """
-        fp = os.path.join(self.tbl_dump_dir, file)
+        fp = os.path.join(self.tbl_dump_dir, "import",  file)
         with open(fp, 'r') as f:
             return json.load(f)
 
