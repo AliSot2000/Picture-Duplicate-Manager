@@ -889,8 +889,8 @@ class PhotoDB(BaseSQliteDB):
         """
         if recompute:
             # Reset the match columns before recomputing.
-            self.debug_execute(f"UPDATE `{tbl_name}` SET highest_match= NULL, matches = NULL, match_type = 0 "
-                               f"WHERE allowed = 1, AND imported IN (0, 1)")
+            self.debug_execute(f"UPDATE `{tbl_name}` SET highest_match = NULL, matches = NULL, match_type = 0 "
+                               f"WHERE allowed = 1 AND imported IN (0, 1)")
 
             self.debug_execute(f"SELECT COUNT(key) FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1")
         else:
@@ -921,8 +921,8 @@ class PhotoDB(BaseSQliteDB):
         self.add_extra_cursor("match_cursor")
         if recompute:
             # Reset the match columns before recomputing.
-            self.debug_execute(f"UPDATE `{tbl_name}` SET highest_match= NULL, matches = NULL, match_type = 0 "
-                               f"WHERE allowed = 1, AND imported IN (0, 1)")
+            self.debug_execute(f"UPDATE `{tbl_name}` SET highest_match = NULL, matches = NULL, match_type = 0 "
+                               f"WHERE allowed = 1 AND imported IN (0, 1)")
             base_stmt = (f"SELECT key, original_filename, original_dirname, file_size_bytes, file_hash "
                          f"FROM `{tbl_name}` WHERE imported IN (0, 1) AND allowed = 1 ")
 
