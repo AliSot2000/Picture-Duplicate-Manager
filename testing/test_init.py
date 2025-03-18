@@ -628,5 +628,4 @@ class TestAPIInit(BaseInit):
 
         self.assertRaises(ValidationError, test_fn)
 
-    # INFO: missing and present db alrady checked in DBINIT
-
+    # INFO: missing and present db already checked in DBInit
