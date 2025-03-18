@@ -41,7 +41,6 @@ class BaseInit(unittest.TestCase):
         """
         # Needed in case tearDown wasn't called because of exception or debug
         if os.path.exists(test_scratch):
-            print(f"Clearing Test Directory")
             shutil.rmtree(test_scratch)
 
         if not os.path.exists(test_scratch):
@@ -53,7 +52,6 @@ class BaseInit(unittest.TestCase):
         Remove the scratch directory for testing
         """
         if os.path.exists(test_scratch):
-            print(f"Clearing Test Directory")
             shutil.rmtree(test_scratch)
 
 
