@@ -885,10 +885,11 @@ class PhotoAPI:
             m_newest_hash, _, _ = self.db.get_newest_hash(m_key)
 
             # Rare occurrence
-            if m_newest_hash == file_hash and not binary_match:
+            if m_newest_hash == file_hash and binary_match is False:
                 self.rare_occurrence_logger.warning("Found files with matching hash and size but different binary.")
-            elif m_newest_hash != file_hash and binary_match:
-                self.rare_occurrence_logger.warning("Found files different hashes but match binary.")
+            elif m_newest_hash != file_hash and binary_match is True:
+                self.rare_occurrence_logger.warning("Found files different hashes but match binary. "
+                                                    "Files updated in the mean time?")
 
             flags = self.db.get_main_flags(m_key)
             if flags is None:
