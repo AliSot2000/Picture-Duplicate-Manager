@@ -1153,11 +1153,11 @@ class TestAPIPerformImport(unittest.TestCase):
         self.assertRaises(AssertionError, lambda : self.api.db.set_imported_status(
             tbl_name=self.tgt_table,
             key=3,
-            status=ImportStatus.MARKED_FOR_IMPORT))
+            status=ImportStatus.MARKED))
 
         # Mark for import
-        self.api.db.set_imported_status(tbl_name=self.tgt_table, key=2, status=ImportStatus.MARKED_FOR_IMPORT)
-        self.api.db.set_imported_status(tbl_name=self.tgt_table, key=4, status=ImportStatus.MARKED_FOR_IMPORT)
+        self.api.db.set_imported_status(tbl_name=self.tgt_table, key=2, status=ImportStatus.MARKED)
+        self.api.db.set_imported_status(tbl_name=self.tgt_table, key=4, status=ImportStatus.MARKED)
 
         # Set one with imported key
         self.api.db.set_imported_status(tbl_name=self.tgt_table, key=4, status=ImportStatus.IMPORTED, import_key=-1)
@@ -1166,14 +1166,14 @@ class TestAPIPerformImport(unittest.TestCase):
         self.assertRaises(AssertionError, lambda: self.api.db.set_imported_status(
             tbl_name=self.tgt_table,
             key=4,
-            status=ImportStatus.MARKED_FOR_IMPORT))
+            status=ImportStatus.MARKED))
 
         # Test rows
         # 2 should have been updated successfully
         self.api.db.debug_execute(f"SELECT imported FROM `{self.tgt_table}` WHERE key = ?", (2,))
         row = self.api.db.sq_cur.fetchone()
         self.assertIsNotNone(row)
-        self.assertEqual(row[0], ImportStatus.MARKED_FOR_IMPORT.value)
+        self.assertEqual(row[0], ImportStatus.MARKED.value)
 
         # 3 Shouldn't have been updated because not allowed
         self.api.db.debug_execute(f"SELECT imported FROM `{self.tgt_table}` WHERE key = ?", (3,))
@@ -1216,7 +1216,7 @@ class TestAPIPerformImport(unittest.TestCase):
 
         self.api.db.set_imported_status(tbl_name=self.tgt_table,
                                         key=4,
-                                        status=ImportStatus.MARKED_FOR_IMPORT)
+                                        status=ImportStatus.MARKED)
 
         self.api.db.set_imported_status(tbl_name=self.tgt_table,
                                         key=4, import_key=-1,
