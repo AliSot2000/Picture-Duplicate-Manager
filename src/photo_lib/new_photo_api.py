@@ -1088,9 +1088,13 @@ class PhotoAPI:
             raise ValueError("Destination may not be in database_root")
 
     def _handle_file_internal_import(self, rename: bool, move: bool,
-                                     main_key: int, dt: datetime.datetime, ofn: str, ofd: str) -> str:
+                                     main_key: int, dt: datetime.datetime, ofn: str, ofd: str):
         """
-        Handle a file from an internal import operation
+        Handle a file from an internal import operation.
+
+        PRECONDITION: File Exists
+
+        INFO: Function handles creation of directories and appending of directories to the db_dir table.
 
         :param rename: Whether tho rename the file so it has a standardized filename
         :param move: Whether to move the file to the directory indicated by its datetime
@@ -1101,56 +1105,46 @@ class PhotoAPI:
 
         :returns: file path of the file after import
         """
+        assert os.path.exists(os.path.join(ofd, ofn)), "Original Path should exist"
+
+        # Define some common variables which are used later
+        new_file_name = self.db.db_name(original_filename=ofn, key=main_key, fdt=dt)
+        dt_dir = os.path.abspath(os.path.join(self.root_path, self.db.dt_to_dir(dt)))
+
+        # Determine new location.
         if rename and move:
-            target_path = os.path.join(self.root_path, self.db.dt_to_dir(dt),
-                                       self.db.db_name(original_filename=ofn, key=main_key, fdt=dt))
-
-            os.makedirs(os.path.dirname(target_path), exist_ok=True)
-
-            assert not os.path.exists(target_path), "Target path is not supposed to exist"
-            os.rename(os.path.join(ofd, ofn), target_path)
-
+            target_path = os.path.abspath(os.path.join(self.root_path, self.db.dt_to_dir(dt), new_file_name))
         elif not rename and move:
-            target_path = os.path.join(self.root_path, self.db.dt_to_dir(dt), ofn)
-
-            os.makedirs(os.path.dirname(target_path), exist_ok=True)
-
-            if os.path.exists(target_path):
-                # Remove rows inserted for the file before raising error.
-                self.db.delete_row_main_table(key=main_key)
-                self.db.delete_row_metadata_table(key=main_key)
-                self.db.commit()
-                raise FileExistsError(f"Couldn't import {ofn}, file already exists in {self.db.dt_to_dir(dt)}")
-
-            os.rename(os.path.join(ofd, ofn), target_path)
-
+            target_path = os.path.abspath(os.path.join(self.root_path, self.db.dt_to_dir(dt), ofn))
         elif rename and not move:
-            ofd: str
-            assert ofd.startswith(self.root_path), "Erroneous import, original_dir_name should start with root_dir"
-            target_path = os.path.join(ofd, self.db.db_name(original_filename=ofn, key=main_key, fdt=dt))
-
-            # Check if the directory matches the datetime
-            if os.path.dirname(target_path) != os.path.join(self.root_path, self.db.dt_to_dir(dt)):
-                db_local_dir = os.path.dirname(target_path)
-                dir_key = self._insert_get_dir(dir_name=db_local_dir)
-                self.db.update_row_metadata_table(key=main_key, db_dir=dir_key)
-
-            assert not os.path.exists(target_path), "Target path is not supposed to exist"
-            os.rename(os.path.join(ofd, ofn), target_path)
-
+            target_path = os.path.abspath(os.path.join(ofd, new_file_name))
         elif not rename and not move:
-            target_path = os.path.join(ofd, ofn)
-            dt_dir = os.path.join(self.root_path, self.db.dt_to_dir(dt))
+            target_path = os.path.abspath(os.path.join(ofd, ofn))
+        else:  # pragma: no cover
+            raise ImplementationError("Uncovered case rename move")
 
-            # Need to add a db_local_dir if the directory doesn't match the datetime of the image
-            if ofd != dt_dir:
-                dir_key = self._insert_get_dir(ofd)
-                self.db.update_row_metadata_table(key=main_key, db_dir=dir_key)
+        # Check target directory against datetime directory of file
+        if os.path.dirname(target_path) != dt_dir:
+            self.main_logger.info(f"Add Custom Directory {os.path.dirname(target_path)}")
+            dir_key = self._insert_get_dir(target_path)
+        else:
+            dir_key = None
 
-        else:   # pragma: no cover
-            raise ImplementationError("Tertiem Non Datur")
+        # Create target directory if it doesn't exist. (needed mostly for dt directory)
+        if not os.path.exists(os.path.dirname(target_path)):
+            self.main_logger.info(f"Created new directory {os.path.dirname(target_path)}")
+            os.makedirs(os.path.dirname(target_path))
 
-        return target_path
+        # Check that target path is empty:
+        if os.path.exists(target_path):
+            raise FileExistsError("Cannot copy file to destination. File already exists at destination.")
+
+        # check that the paths aren't equal
+        if os.path.abspath(os.path.join(ofd, ofn)) != os.path.dirname(target_path):
+            self.main_logger.debug(f"Internal file movement from: {os.path.abspath(ofd)} to {os.path.abspath(ofn)}")
+            os.rename(os.path.abspath(os.path.join(ofd, ofn)), target_path)
+
+        return target_path, dir_key
 
     # ==================================================================================================================
     # DB Integrity Checks
