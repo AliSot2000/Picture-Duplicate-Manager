@@ -97,7 +97,7 @@ class PhotoAPI:
 
         self.root_path = os.path.abspath(root_path)
 
-        cfg_path = os.path.join(self.root_path, defaults.config_path)
+        cfg_path = self.get_config_path()
 
         # Prepping Config
         if not init:
@@ -221,9 +221,7 @@ class PhotoAPI:
         """
         Write the config to the config file
         """
-        cfg_path = os.path.join(self.root_path, defaults.config_path)
-
-        with open(cfg_path, "w") as f:
+        with open(self.get_config_path(), "w") as f:
             f.write(self.config.model_dump_json())
 
     # ==================================================================================================================
@@ -2894,6 +2892,13 @@ class PhotoAPI:
             return config.db_file
         else:
             return os.path.abspath(os.path.join(self.root_path, config.db_file))
+
+    def get_config_path(self):
+        """
+        Get the abs_path to the config
+        """
+        return os.path.join(self.root_path, defaults.config_path)
+
 
 
 class RemedyPhotoDB(PhotoAPI):
