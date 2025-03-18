@@ -2394,6 +2394,64 @@ class PhotoAPI:
         else:
             self.main_logger.info(f"Forgot duplicate {key} successfully")
 
+    def delete_thumb(self, key: Union[int, None] = None, selection: Selection = None, trash_override: bool = False) -> int:
+        """
+        Function deletes the thumbnails of a given image or list of images.
+
+        If trash override is False and you attempt to delete a trashed file, will raise a ValueError
+
+        :param key: Key to delete
+        :param selection: selection from which to delete
+        :param trash_override: If you explicitly want to delete thumbnails of images which are in the trash
+        """
+        count: int = 0
+
+        if key is None and selection is None:
+            raise ValueError("Either key or selection must be specified")
+        elif key is None and selection is not None:
+            if not trash_override:
+                it = self.db.main_key_flags_iterator(allow_selection=True, selection=selection, trashed=False)
+            else:
+                it = self.db.main_key_flags_iterator(allow_selection=True, selection=selection)
+        elif key is not None and selection is None:
+            assert isinstance(key, int), f"Unexpected key type: {type(key).__name__}"
+            flags = self.db.get_main_flags(key)
+
+            if flags is None:
+                raise ValueError(f"Key: {key} doesn't exist in main table")
+
+            it = [(key, flags)]
+        elif key is not None and selection is not None:
+            raise ValueError("Both key and selection not None. specifiy only one")
+        else:  # pragma: no cover
+            raise ImplementationError("Uncovered Case")
+
+        for key, flags in it:
+            touched = False
+            if flags.trashed is True and not trash_override:
+                raise ValueError("Cannot delete thumbnails of images in trash by default")
+
+            if os.path.exists(self.db.full_thumbnail_path(key)):
+                self.main_logger.debug(f"Deleting Thumbnail for image in trash: {key}")
+                os.remove(self.db.full_thumbnail_path(key))
+                flags.has_thumbnail = False
+                touched = True
+                count += 1
+
+            if os.path.exists(self.db.full_miniature_path(key)):
+                self.main_logger.debug(f"Deleting Miniature for image in trash: {key}")
+                os.remove(self.db.full_miniature_path(key))
+                flags.has_miniature = False
+                touched = True
+                count += 1
+
+            # Performance update, only update if we modified a flag.
+            if touched:
+                self.db.update_row_main_table(key=key, flags=flags)
+
+        self.db.commit()
+        return count
+
     # ==================================================================================================================
     # UI Getters
     # ==================================================================================================================
@@ -2659,42 +2717,6 @@ class PhotoAPI:
             return False
 
         return True
-
-    def delete_trash_thumb(self, key: Union[int, None]) -> int:
-        """
-        Delete the remaining thumbnail of an image in the trash. For recognition purposes, the thumbnails of the
-        trashed images are retained by default. Use this function with care.
-
-        :param key: Key to delete, list of keys to delete, or delete all thumbnails of images in the trash with None
-        """
-        count: int = 0
-
-        if key is None:
-            it = self.db.main_key_flags_iterator(allow_selection=False, trashed=1)
-        else:
-            assert isinstance(key, int), f"Unexpected key type: {type(key).__name__}"
-            flags = self.db.get_main_flags(key)
-            if flags is None:
-                raise ValueError(f"Key: {key} doesn't exist in main table")
-            it = [(key, flags)]
-
-        for key, flags in it:
-            if os.path.exists(self.db.full_thumbnail_path(key)):
-                self.main_logger.debug(f"Deleting Thumbnail for image in trash: {key}")
-                os.remove(self.db.full_thumbnail_path(key))
-                flags.has_thumbnail = False
-                count += 1
-
-            if os.path.exists(self.db.full_miniature_path(key)):
-                self.main_logger.debug(f"Deleting Miniature for image in trash: {key}")
-                os.remove(self.db.full_thumbnail_path(key))
-                flags.has_miniature = False
-                count += 1
-
-            self.db.update_row_main_table(key=key, flags=flags)
-
-        self.db.commit()
-        return count
 
     # INFO: long-running action
     def compress(self) -> int:
