@@ -2466,9 +2466,12 @@ class PhotoAPI:
     def get_metadata(self, key: int):
         """
         Returns all metadata of a given key in a dataclass
+
+        => Returns basically union of the MainRow and MetadataRow objects.
         """
         # TODO cache
         # TODO implement
+        # TODO What exactly are we getting here.
 
     def get_compare_data(self, key: int | List[int]):
         """
