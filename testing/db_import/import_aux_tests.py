@@ -1,25 +1,13 @@
 import datetime
 import json
 import os
-from zoneinfo import ZoneInfo
-
-from photo_lib.flag_dataclasses import MainFlags
-from .import_base_casses import PrepareDirForImportBaseClass, PerformImportBaseClass
-import datetime
-import json
 import os.path
-import shutil
-import unittest
-from typing import Optional, List, Dict, Any
 from zoneinfo import ZoneInfo
 
 from photo_lib.custom_enum import Allowed, MediaType, ImportStatus
-from photo_lib.flag_dataclasses import GenericTableFlags, MainFlags
+from photo_lib.flag_dataclasses import MainFlags
 from photo_lib.metadata_aggregator import DateTimeSource
-from photo_lib.new_photo_api import PhotoAPI
-from photo_lib.utils import rec_list_all
 from .import_base_casses import PrepareDirForImportBaseClass, PerformImportBaseClass
-
 
 """
 File contains auxiliary tests run which are needed to ensure correct operation of the import methods.
