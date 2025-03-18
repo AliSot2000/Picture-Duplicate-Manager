@@ -925,14 +925,14 @@ class PhotoAPI:
 
             elif not flags.trashed and flags.duplicate:
                 if m_newest_hash != file_hash:
-                    keys[m_key] = NewMatchTypes.HASH_MATCH_REPLACED
+                    keys[m_key] = NewMatchTypes.HASH_MATCH_DUPLICATES
                 else:
                     assert m_newest_hash == file_hash, "Unexpected outcome, hashes should match."
                     if binary_match:
-                        keys[m_key] = NewMatchTypes.BINARY_MATCH_REPLACED
+                        keys[m_key] = NewMatchTypes.BINARY_MATCH_DUPLICATES
                     else:
                         # INFO: Dito as for DBLocation.MAIN
-                        keys[m_key] = NewMatchTypes.HASH_MATCH_REPLACED
+                        keys[m_key] = NewMatchTypes.HASH_MATCH_DUPLICATES
 
             elif flags.trashed and flags.duplicate:
                 raise CorruptDatabase("Trashed and Duplicate are True")
