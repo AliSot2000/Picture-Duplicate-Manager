@@ -664,7 +664,7 @@ class PhotoAPI:
 
         :returns: number of files imported, number of files with name conflict.
         """
-        name_conflict = 0
+        conflict = 0
         count = 0
 
         if not self.db.import_table_exists(tbl):
@@ -699,7 +699,7 @@ class PhotoAPI:
                     self.db.set_allowed(tbl_name=tbl, key=ik, allowed=Allowed.NOT_ALLOWED_ERR,
                                         message=f"Filename {ofn} already exists")
                     self.main_logger.info(f"Couldn't import file {ofn}, filename already used in db")
-                    name_conflict += 1
+                    conflict += 1
                     continue
 
                 db_name = ofn
@@ -724,6 +724,7 @@ class PhotoAPI:
 
             target_path = self._handle_file_internal_import(rename=rename, move=move,
                                                             dt=dt, main_key=insert_key, ofn=ofn, ofd=ofd)
+                conflict += 1
 
             # Update the name in the db
             if rename:
@@ -738,7 +739,7 @@ class PhotoAPI:
             count += 1
 
         self.db.commit()
-        return count, name_conflict
+        return count, conflict
 
     def remove_untracked_files(self, tbl: str, delete: bool = True, target_dir: str = None) -> int:
         """
