@@ -429,7 +429,7 @@ class PhotoAPI:
             if root.startswith(self.db.get_temp_dir()):
                 continue
 
-            if root.startswith(self.db.get_temp_dir()):
+            if root.startswith(self.db.get_trash_dir()):
                 continue
 
             if root.startswith(self.db.get_thumb_dir()):
