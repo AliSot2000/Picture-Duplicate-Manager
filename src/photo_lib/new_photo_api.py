@@ -436,6 +436,14 @@ class PhotoAPI:
                 continue
 
             for file in files:
+                # Skip the db file
+                if os.path.join(root, file) == self.get_db_file_path():
+                    continue
+
+                # Skip the config
+                if os.path.join(root, file) == self.get_config_path():
+                    continue
+
                 key = self.db.db_resolve_filename_to_key(file)
 
                 # Name not in db, importing file
