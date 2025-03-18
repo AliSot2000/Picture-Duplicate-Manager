@@ -746,6 +746,18 @@ class PhotoDB(BaseSQliteDB):
         else:  # pragma: no cover
             raise ImplementationError(f"Unknown ImportStatus {status.name}")
 
+    def prepare_import_table_for_remove(self, tbl_name: str):
+        """
+        Prepares the import table for the remove action.
+        Sets allowed = ALLOWED and imported = MARKED for all rows in the import table.
+
+        PRECONDITION: The import table exists
+        PRECONDITION: The import table is internal
+
+        :param tbl_name: import table to update
+        """
+        self.debug_execute(f"UPDATE `{tbl_name}` SET allowed = 1, imported = +")
+
     def get_update_allowed_iterator_size(self, tbl_name: str) -> int:
         """
         Get the number of rows in the update_allowed_iterator.
