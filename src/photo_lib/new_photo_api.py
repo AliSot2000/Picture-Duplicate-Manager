@@ -680,13 +680,8 @@ class PhotoAPI:
             ik, ofn, ofd, md, gfmd, fh, fsb, dt, tz, nt, gps_lat, gps_long, dts, allowed, ipk = row
 
             assert dt.tzinfo is not None, "All datetime objects should have tz"
-
-            # Check input
             assert ipk is None, "SQL Error, files which are imported shouldn't have imported = 1"
-
-            # Check allowed
-            if allowed != Allowed.ALLOWED:  # pragma: no cover
-                raise ImplementationError("Only Allowed Files may have the marked for import flag")
+            assert allowed == Allowed.ALLOWED, "Only Allowed Files may have the marked for import flag"
 
             # Define flags
             flags = MainFlags.default()
@@ -722,9 +717,18 @@ class PhotoAPI:
             assert fh is not None, "File Hash needs to be defined"
             self.db.check_add_file_hash(file_key=insert_key, file_hash=fh, file_size=fsb, initial=True)
 
-            target_path = self._handle_file_internal_import(rename=rename, move=move,
-                                                            dt=dt, main_key=insert_key, ofn=ofn, ofd=ofd)
+            try:
+                target_path, dir_key = self._handle_file_internal_import(rename=rename, move=move,
+                                                                         dt=dt, main_key=insert_key, ofn=ofn, ofd=ofd)
+            except FileExistsError:
+                # File exists, roll back all operations and mark file in import table
+                self.db.delete_file_association(file_key=insert_key)
+                self.db.delete_row_metadata_table(key=insert_key)
+                self.db.delete_row_main_table(key=insert_key)
+                self.db.set_allowed(tbl_name=tbl, key=ik, allowed=Allowed.NOT_ALLOWED_ERR,
+                                    message=f"File Exists at Destination. Import Aborted")
                 conflict += 1
+                continue
 
             # Update the name in the db
             if rename:
