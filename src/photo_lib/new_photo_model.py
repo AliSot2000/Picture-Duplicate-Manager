@@ -510,8 +510,6 @@ class PhotoAPI:
                 same += 1
                 self.main_logger.debug(f"{key} remains the same")
 
-        # TODO shouldn't be called here.
-        self.find_match_for_import_table(tbl)
         self.main_logger.info(f"Updated Allowed {tbl}. {now_allowed} now allowed, {now_disallowed} now disallowed, "
                               f"{same} stayed the same")
         self.db.commit()
