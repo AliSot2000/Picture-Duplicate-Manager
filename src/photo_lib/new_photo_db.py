@@ -2496,6 +2496,7 @@ class PhotoDB(BaseSQliteDB):
         # PRECONDITION: number of results = 1
         return res[0][0]
 
+    # INFO: Needed for testing
     def db_resolve_org_filename_to_keys(self, org_name: str) -> List[int]:
         """
         Resolve the Search for keys which have the matching original file name
