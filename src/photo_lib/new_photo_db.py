@@ -2226,7 +2226,6 @@ class PhotoDB(BaseSQliteDB):
         kwargs. If a kwargs is None, the column of that row will be set to NULL!!!
         All possible kwargs are:
 
-        - original_filename: str
         - metadata: str | dict | list | None
         - google_metadata: str | dict | list | None
         - datetime: datetime.datetime (timezone aware object)
@@ -2244,6 +2243,10 @@ class PhotoDB(BaseSQliteDB):
                     "parent",
                     "timezone",
                     "flags"}
+
+        # original file name shouldn't be able to update
+        if "original_filename" in kwargs.keys():
+            raise ValueError("original_filename cannot be updated")
 
         # Check the keys
         if not given.issubset(all_cols):
