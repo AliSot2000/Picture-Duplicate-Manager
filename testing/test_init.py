@@ -8,7 +8,7 @@ from pydantic_core import ValidationError
 from photo_lib import defaults
 from photo_lib.db_definitions import Version
 from photo_lib.new_photo_db import PhotoDB
-from photo_lib.new_photo_model import PhotoAPI
+from photo_lib.new_photo_api import PhotoAPI
 
 
 test_scratch = os.path.join(os.path.dirname(__file__), "scratch")

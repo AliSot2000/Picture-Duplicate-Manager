@@ -1,6 +1,6 @@
 import unittest
 from typing import Optional
-from photo_lib.new_photo_model import PhotoAPI
+from photo_lib.new_photo_api import PhotoAPI
 import os
 import shutil
 

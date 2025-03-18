@@ -301,7 +301,7 @@ class TestFindMatch(TestClassifyBase):
                 self.assertDictEqual(parsed_matches, {})
 
 
-            else:
+            else:  # pragma: no cover
                 raise ImplementationError(f"Unexpected file {ofn}")
 
     def check_dummy_values(self, tbl_name: str):
@@ -318,7 +318,7 @@ class TestFindMatch(TestClassifyBase):
 
             elif ofn in ("40_Matching_Source.png", "50_Matching_Source.png", "60_Matching_Source.png"):
                 continue
-            else:
+            else:  # pragma: no cover
                 raise ImplementationError(f"Unexpected file {ofn}")
 
     def check_half_table(self, tbl_name: str):
@@ -366,7 +366,7 @@ class TestFindMatch(TestClassifyBase):
                         self.api.db.db_resolve_org_filename_to_keys(self.hmd1)[0]: NewMatchTypes.HASH_MATCH_DUPLICATES,
                     }
                 )
-            else:
+            else:  # pragma: no cover
                 raise ImplementationError(f"Unexpected file {ofn}")
 
 

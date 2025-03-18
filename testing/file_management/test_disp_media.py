@@ -8,7 +8,7 @@ from unittest.mock import patch
 import cv2
 import ffmpeg
 
-from photo_lib.new_photo_model import PhotoAPI
+from photo_lib.new_photo_api import PhotoAPI
 from photo_lib.utils import rec_list_all
 
 wip = False
