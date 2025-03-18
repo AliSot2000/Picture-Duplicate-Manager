@@ -954,6 +954,32 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("match_cursor")
 
+        # INFO: For testing.
+    def match_test(self, tbl_name: str) -> List[Tuple[int, str, NewMatchTypes, int, Dict[int, NewMatchTypes]]]:
+        """
+        Go through the import table and get the results of the find_match operation.
+
+        :param tbl_name: Import table to iterate over
+
+        Tuple Elements are in this order:
+        - key: int (key in import table)
+        - original_filename: str
+        - match_type: MatchType
+        - highest_match: int (key of best match in main table)
+        - matches: List of all matches with associated match type
+        """
+        self.debug_execute(f"SELECT key, original_filename, match_type, highest_match, matches FROM `{tbl_name}`")
+
+        result = []
+        for row in self.sq_cur.fetchall():
+            key, original_filename, _match_type, highest_match, _matches = row
+            match_type = NewMatchTypes(_match_type)
+            matches_based_dict = json.loads(_matches)
+            parsed_matches = {k: NewMatchTypes(v) for k, v in matches_based_dict.items()}
+            result.append((key, original_filename, match_type, highest_match, parsed_matches))
+
+        return result
+
     # ==================================================================================================================
     # Presence Table
     # ==================================================================================================================
