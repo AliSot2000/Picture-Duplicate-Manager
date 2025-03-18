@@ -897,7 +897,7 @@ class PhotoAPI:
                 raise CorruptDatabase("Inconsistency between tables. File from hash_assoz not present in main tables.")
 
             # parse into NewMatchTypes
-            if not (flags.trashed and not flags.duplicate):
+            if not flags.trashed and not flags.duplicate:
                 if m_newest_hash != file_hash:
                     keys[m_key] = NewMatchTypes.HASH_MATCH_MAIN
                 else:
