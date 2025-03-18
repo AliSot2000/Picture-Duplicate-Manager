@@ -15,7 +15,7 @@ from photo_lib.cache import Cache, nd
 from photo_lib.config import Config
 from photo_lib.custom_enum import GroupingCriterion, NewMatchTypes, SelectionType, MediaType, Allowed, ImportStatus, \
     NameUpdateStatus
-from photo_lib.data_objects import Selection
+from photo_lib.data_objects import Selection, MediaPaths
 from photo_lib.db_definitions import current_version
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
 from photo_lib.flag_dataclasses import MainFlags
