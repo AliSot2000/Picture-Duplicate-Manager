@@ -966,7 +966,7 @@ class PhotoDB(BaseSQliteDB):
         - original_filename: str
         - match_type: MatchType
         - highest_match: int (key of best match in main table)
-        - matches: List of all matches with associated match type
+        - matches: Dict of all matches with associated match type, default None
         """
         self.debug_execute(f"SELECT key, original_filename, match_type, highest_match, matches FROM `{tbl_name}`")
 
@@ -974,8 +974,9 @@ class PhotoDB(BaseSQliteDB):
         for row in self.sq_cur.fetchall():
             key, original_filename, _match_type, highest_match, _matches = row
             match_type = NewMatchTypes(_match_type)
-            matches_based_dict = json.loads(_matches)
-            parsed_matches = {k: NewMatchTypes(v) for k, v in matches_based_dict.items()}
+            matches_based_dict = json.loads(_matches) if _matches is not None else None
+            parsed_matches = {int(k): NewMatchTypes(v) for k, v in matches_based_dict.items()} \
+                if matches_based_dict is not None else None
             result.append((key, original_filename, match_type, highest_match, parsed_matches))
 
         return result
