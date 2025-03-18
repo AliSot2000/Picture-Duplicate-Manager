@@ -966,7 +966,7 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("match_cursor")
 
-        # INFO: For testing.
+    # INFO: For testing.
     def match_test(self, tbl_name: str) -> List[Tuple[int, str, NewMatchTypes, int, Dict[int, NewMatchTypes]]]:
         """
         Go through the import table and get the results of the find_match operation.
