@@ -701,6 +701,7 @@ class PhotoAPI:
             else:
                 db_name = self.db.reserved_temp_file_name
 
+            # Add row into main table
             self.db.insert_row_main_table(original_filename=ofn, flags=flags, dt=dt, timezone=tz, db_name=db_name,
                                           metadata=md, google_metadata=gfmd)
 
