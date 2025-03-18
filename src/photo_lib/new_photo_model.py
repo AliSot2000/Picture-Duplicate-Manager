@@ -939,22 +939,13 @@ class PhotoAPI:
             else:  # pragma: no cover
                 raise ImplementationError("DBLocation not covered")
 
-        highest_match = None
-        highest_match_key = None
+        candidates = sorted(list(keys.items()), key=lambda x: x[1].value)
 
-        # Get highest quality match from all matches.
-        for key, match in keys.items():
-            if highest_match is None:
-                highest_match = match
-                highest_match_key = key
-
-            else:
-                if match.value < highest_match.value:
-                    highest_match = match
-                    highest_match_key = key
-
-        if highest_match is None:
+        if len(candidates) == 0:
             return {}, None, NewMatchTypes.NO_MATCH
+
+        highest_match = candidates[0][1]
+        highest_match_key = candidates[0][0]
 
         return keys, highest_match_key, highest_match
 
