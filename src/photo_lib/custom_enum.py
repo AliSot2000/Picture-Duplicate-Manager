@@ -74,8 +74,8 @@ class NewMatchTypes(Enum):
     HASH_MATCH_MAIN = 2
     BINARY_MATCH_TRASH = 3
     HASH_MATCH_TRASH = 4
-    BINARY_MATCH_REPLACED = 5
-    HASH_MATCH_REPLACED = 6
+    BINARY_MATCH_DUPLICATES = 5
+    HASH_MATCH_DUPLICATES = 6
 
 
 class ImportTableGrouping(Enum):
