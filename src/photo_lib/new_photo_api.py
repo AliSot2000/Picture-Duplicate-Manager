@@ -189,6 +189,8 @@ class PhotoAPI:
         handler.setLevel(logging.DEBUG)
         handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 
+        for handler in self.main_logger.handlers:
+            self.main_logger.removeHandler(handler)
         self.main_logger.addHandler(handler)
 
     def cleanup(self, fast: bool = False):
