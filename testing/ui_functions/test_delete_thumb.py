@@ -5,6 +5,11 @@ from photo_lib.custom_enum import SelectionType
 from photo_lib.data_objects import Selection
 
 
+"""
+This file fully tests the following functions:
+- api.delete_thumb
+"""
+
 class TestDeleteThumb(TestClassifyBase):
     """
     Test how deletion of thumbnails works
