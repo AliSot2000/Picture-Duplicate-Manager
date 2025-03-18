@@ -573,7 +573,8 @@ class NewMetadataAggregator:
                                          naming_tag=key,
                                          file_hash=file_hash,
                                          tz_name=dt.tzname(),
-                                         file_size=file_size)
+                                         file_size=file_size,
+                                         source=DateTimeSource.FILE_AWARE)
 
         # Check the presence of md and parse teh stuff
         assert md is not None, "Need exiftool results to progress"
