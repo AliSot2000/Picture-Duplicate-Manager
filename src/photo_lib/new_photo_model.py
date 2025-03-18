@@ -2476,8 +2476,12 @@ class PhotoAPI:
     def get_compare_data(self, key: int | List[int]):
         """
         Get all necessary information to compare images.
+
+        Returns metadata
+        + number of children
+        + current hash
+        + number of hashes
         """
-        # TODO cache
         # TODO implement
 
     # ==================================================================================================================
