@@ -718,14 +718,14 @@ class PhotoDB(BaseSQliteDB):
             assert self.sq_cur.rowcount == 1, \
                 f"Failed to set imported = 0 in table {tbl_name}, key: {key}, PRECONDITION"
 
-        elif status == ImportStatus.MARKED_FOR_IMPORT:
+        elif status == ImportStatus.MARKED:
 
             # PRECONDITION: Row wasn't imported
             # PRECONDITION: Key exists in table
             # PRECONDITION: Key is allowed
             self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET imported = ? "
                                     f"WHERE key = ? AND imported != 2 AND allowed = 1",
-                               args=(ImportStatus.MARKED_FOR_IMPORT.value, key))
+                               args=(ImportStatus.MARKED.value, key))
             assert self.sq_cur.rowcount == 1, \
                 f"Failed to set imported = 1 in table {tbl_name}, key: {key},PRECONDITION"
 

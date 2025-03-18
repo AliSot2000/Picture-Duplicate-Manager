@@ -115,7 +115,7 @@ class Allowed(Enum):
 
 class ImportStatus(Enum):
     IGNORE = 0
-    MARKED_FOR_IMPORT = 1
+    MARKED = 1
     IMPORTED = 2
     DELETED = 3
 
