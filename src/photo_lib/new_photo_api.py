@@ -731,10 +731,13 @@ class PhotoAPI:
                 conflict += 1
                 continue
 
-            # Update the name in the db
+            # Store custom directory if provided
+            if dir_key is not None:
+                self.db.update_row_metadata_table(key=insert_key, db_dir=dir_key)
+
+            # Update the name in the db after successful import.
             if rename:
-                name = self.db.db_name(original_filename=ofn, key=insert_key, fdt=dt)
-                self.db.update_row_main_table(key=insert_key, db_name=name)
+                self.db.update_row_main_table(key=insert_key, db_name=os.path.basename(target_path))
 
             if flags.verify and add_safety_exif_tags:
                 self._add_update_exif_tag(key=insert_key, target_datetime=dt, file_path=target_path)
