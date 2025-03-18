@@ -312,7 +312,7 @@ if __name__ == '__main__':
         "71_Duplicate_Target.png" : {
             "text": "Target for all files marked as duplicates",
             "created": dt(year=1990, month=10, day=7, hour=12, minute=0, second=0, tzinfo=cet)
-        }
+        },
     }
 
     # Make the test files for match test
@@ -323,6 +323,11 @@ if __name__ == '__main__':
         "40_Matching_Source.png": import_matches["41_Hash_Match_Trash.png"],
         "50_Matching_Source.png": import_matches["51_Binary_Match_Duplicates.png"],
         "60_Matching_Source.png": import_matches["61_Hash_Match_Duplicates.png"],
+
+        "81_No_Match.png": {
+            "text": "This file should have no matches and should be detected as souch",
+            "created": dt(year=1990, month=10, day=8, hour=12, minute=0, second=0, tzinfo=cet)
+        },
     }
 
     # Make the files for the allowed ext test
