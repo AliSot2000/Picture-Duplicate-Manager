@@ -937,6 +937,10 @@ class TestAPIPerformImport(unittest.TestCase):
         # Check superfluous row detected
         self.assertRaises(ValueError, lambda : self.api.db.update_row_main_table(key=1, some_string="Hello World"))
 
+        # Check original_filename is not allowed
+        self.assertRaises(ValueError, lambda : self.api.db.update_row_main_table(key=1,
+                                                                                 original_filename="Hello World"))
+
         # Test Datetime
         self.assertRaises(TypeError, lambda : self.api.db.update_row_main_table(key=1, datetime=dt_naive))
 
