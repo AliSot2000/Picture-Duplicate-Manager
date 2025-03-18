@@ -220,6 +220,21 @@ class TestAPIPrepareDirectoryForImport(PrepareDirForImportBaseClass):
 
         self.assertRaises(ValueError, lambda : self.api.db.add_import_table(root_path="/foo/bar/baz", name=test_tbl))
 
+    def test_file_ext_update_allowed(self):
+        """
+        Check that file exts without . are raise a ValueError
+        """
+        shutil.copytree(os.path.join(self.media_source, "import_base_dir"), self.import_source)
+
+        tbl = self.api.prepare_directory_for_import(source_dir=self.import_source, allowed_ext={".png", ".jpg"})
+
+        self.assertRaises(ValueError, lambda: self.api.update_allowed(allowed_ext={"jpg"}, tbl=tbl))
+
+
+class TestUpdateAllowed(PrepareDirForImportBaseClass):
+    """
+    Fully test the update_allowed method.
+    """
     def test_update_allowed(self):
         """
         Check that update allowed works correctly
@@ -258,18 +273,9 @@ class TestAPIPrepareDirectoryForImport(PrepareDirForImportBaseClass):
 
         self.assertEqual(2, allowed_sum)
 
-    def test_file_ext_update_allowed(self):
-        """
-        Check that file exts without . are raise a ValueError
-        """
-        shutil.copytree(os.path.join(self.media_source, "import_base_dir"), self.import_source)
 
-        tbl = self.api.prepare_directory_for_import(source_dir=self.import_source, allowed_ext={".png", ".jpg"})
-
-        self.assertRaises(ValueError, lambda: self.api.update_allowed(allowed_ext={"jpg"}, tbl=tbl))
-
-
-class TestAPIPerformImport(unittest.TestCase):
+# TODO test allowed and imported of the given import table.
+class TestAPIPerformImport(PerformImportBaseClass):
     """
     Test all functions surrounding the perform_import method.
     """
