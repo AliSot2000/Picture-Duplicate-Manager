@@ -1509,10 +1509,12 @@ class PhotoDB(BaseSQliteDB):
 
         :return: Number of rows removed
         """
-        self.debug_execute("SELECT COUNT(key) FROM gps_location WHERE key NOT IN (SELECT gps_location FROM metadata)")
+        self.debug_execute("SELECT COUNT(key) FROM gps_location WHERE key NOT IN "
+                           "(SELECT gps_location FROM metadata WHERE gps_location IS NOT NULL)")
         count = self.sq_cur.fetchone()[0]
 
-        self.debug_execute("DELETE FROM gps_location WHERE key NOT IN (SELECT gps_location FROM metadata)")
+        self.debug_execute("DELETE FROM gps_location WHERE key NOT IN "
+                           "(SELECT gps_location FROM metadata WHERE gps_location IS NOT NULL)")
         if count > 0:
             self.logger.info(f"Pruned {count} rows in gps table")
         else:
