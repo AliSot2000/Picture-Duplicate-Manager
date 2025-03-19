@@ -1164,6 +1164,16 @@ class PhotoDB(BaseSQliteDB):
         """
         self.debug_execute("DELETE FROM presence_table WHERE main_key = ?", (key,))
 
+    def update_missing_to_trash(self):
+        """
+        Marks all files that are deamed missing from the presence table as in the trash in the main table.
+        """
+        if self.presence_table_size() == 0:
+            raise ValueError("Empty Presence Table")
+
+        self.selection_from_presence_table(sel_a=True, missing=True)
+        self._set_trash_from_selection(selection=Selection(selection_type=SelectionType.SELECTION_A))
+
     # ==================================================================================================================
     # Hash Update Table
     # ==================================================================================================================
