@@ -7,6 +7,7 @@ from pydantic_core import ValidationError
 
 from photo_lib import defaults
 from photo_lib.db_definitions import Version
+from photo_lib.metadata_aggregator import NewMetadataAggregator
 from photo_lib.new_photo_db import PhotoDB
 from photo_lib.new_photo_api import PhotoAPI
 
@@ -650,5 +651,41 @@ class TestAPIInit(BaseInit):
             PhotoAPI(root_path=test_scratch, init=False, init_loggers=False, opt_integrity_check=False)
 
         self.assertRaises(ValidationError, test_fn)
+
+    def test_metadata_aggregator(self):
+        """
+        Test the correct setting of Metadata Aggregator
+        """
+        db = PhotoAPI(root_path=test_scratch,
+                      init=True, init_loggers=False, opt_integrity_check=False,
+                      config=PhotoAPI.build_default_config())
+
+        # Check the DB
+        self.assertIsInstance(db, PhotoAPI)
+        self.assertIsNotNone(db.mda)
+
+        self.assertTrue(os.path.exists(db.db.get_temp_dir()))
+        self.assertTrue(os.path.exists(db.db.get_thumb_dir()))
+        self.assertTrue(os.path.exists(db.db.get_trash_dir()))
+
+        self.assertTrue(os.path.exists(os.path.join(db.root_path, defaults.config_path)))
+        self.assertTrue(os.path.exists(db.db.root_path))
+
+        # Create custom mda
+        custom_mda = NewMetadataAggregator(logger=db.mda_logger, discover_logger=db.mda_discover_logger)
+
+        # Check our MDA isn't the one selected.
+        self.assertIsNot(db.mda, custom_mda)
+
+        # Set it
+        db.mda = custom_mda
+        self.assertIs(db.mda, custom_mda)
+
+        db.add_default_metadata_aggregator()
+
+        # Check adding the default mda hasn't overwritten our custom one
+        self.assertIs(db.mda, custom_mda)
+
+        db.cleanup(fast=True)
 
     # INFO: missing and present db already checked in DBInit
