@@ -1139,6 +1139,10 @@ class PhotoAPI:
             self.main_logger.info(f"Created new directory {os.path.dirname(target_path)}")
             os.makedirs(os.path.dirname(target_path))
 
+        # Identical source and target, skipping
+        if os.path.abspath(os.path.join(ofd, ofn)) == target_path:
+            return target_path, dir_key
+
         # Check that target path is empty:
         if os.path.exists(target_path):
             raise FileExistsError("Cannot copy file to destination. File already exists at destination.")
