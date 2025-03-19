@@ -3,7 +3,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from base_class import TestClassifyBase
+from base_class import TestDefaultBase
 from photo_lib.custom_enum import NewMatchTypes
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
 
@@ -19,7 +19,7 @@ The file covers 100% of the function without specific tests:
 """
 
 
-class TestFindMatch(TestClassifyBase):
+class TestFindMatch(TestDefaultBase):
     """
     Test the find_match_for_import_table method
     """
@@ -370,7 +370,7 @@ class TestFindMatch(TestClassifyBase):
                 raise ImplementationError(f"Unexpected file {ofn}")
 
 
-class TestGetBestMatchTypeCommon(TestClassifyBase):
+class TestGetBestMatchTypeCommon(TestDefaultBase):
     """
     Fully test the _get_best_match_type_common
     """

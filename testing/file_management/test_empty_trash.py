@@ -1,6 +1,6 @@
 import os.path
 
-from base_class import TestClassifyBase
+from base_class import TestDefaultBase
 
 from typing import List, Tuple
 
@@ -16,7 +16,7 @@ This file fully tests the following functions:
 """
 
 
-class TestEmptyTrash(TestClassifyBase):
+class TestEmptyTrash(TestDefaultBase):
     """
     Test the empty trash functionality.
     """

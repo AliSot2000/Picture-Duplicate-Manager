@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 from photo_lib.metadata_aggregator import DateTimeSource
 from photo_lib.utils import rec_list_all
 from .import_base_casses import PrepareDirForImportBaseClass
-from base_class import TestClassifyBase
+from base_class import TestDefaultBase
 from photo_lib.custom_enum import Allowed, ImportStatus
 import json
 
@@ -24,7 +24,7 @@ The file covers 100% of the function without specific tests:
 wip = False
 
 
-class TestSearchDBForNewFiles(TestClassifyBase):
+class TestSearchDBForNewFiles(TestDefaultBase):
     """
     Tests search_Db_for_new_files
     """

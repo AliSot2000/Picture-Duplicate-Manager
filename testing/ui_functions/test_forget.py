@@ -1,7 +1,7 @@
 import os.path
 
 from photo_lib.errors_and_warnings import CorruptDatabase
-from base_class import TestClassifyBase
+from base_class import TestDefaultBase
 
 
 """
@@ -22,7 +22,7 @@ The file covers 100% of the function without specific tests:
 """
 
 
-class TestForget(TestClassifyBase):
+class TestForget(TestDefaultBase):
     """
     Check the forget functionality of the api.
     """

@@ -3,7 +3,7 @@ import logging
 import os.path
 import shutil
 
-from base_class import TestClassifyBase
+from base_class import TestDefaultBase
 from photo_lib.utils import rec_list_all
 
 """
@@ -28,7 +28,7 @@ The file covers 100% of the function without specific tests:
 wip = False
 
 
-class TestDeleteDBDir(TestClassifyBase):
+class TestDeleteDBDir(TestDefaultBase):
     """
     Fully test the api.prune_db_dir function.
     """
@@ -245,7 +245,7 @@ class TestDeleteDBDir(TestClassifyBase):
         self.assertListEqual(prev_rec_list, after_rec_list)
 
 
-class TestPruneFileSystemDirectories(TestClassifyBase):
+class TestPruneFileSystemDirectories(TestDefaultBase):
     """
     Fully test teh api.prune_filesystem_directories
     """
@@ -438,7 +438,7 @@ class TestPruneFileSystemDirectories(TestClassifyBase):
         self.assertListEqual(prev_rec_list, after_rec_list)
 
 
-class TestPruneHashes(TestClassifyBase):
+class TestPruneHashes(TestDefaultBase):
     """
     Fully test the api.db.prune_hash function
     """
@@ -2272,7 +2272,7 @@ class TestPruneHashes(TestClassifyBase):
         self.assertEqual(self.api.db.get_hash_table_size(), 143)
 
 
-class TestPruneGPS(TestClassifyBase):
+class TestPruneGPS(TestDefaultBase):
     """
     Fully test the api.db.prune_gps function
     """
@@ -2452,7 +2452,7 @@ class TestPruneGPS(TestClassifyBase):
         self.assertEqual(self.api.db.get_gps_table_size(), 4)
 
 
-class TestPruneAll(TestClassifyBase):
+class TestPruneAll(TestDefaultBase):
     """
     Simple class for covering the prune_all function
     """

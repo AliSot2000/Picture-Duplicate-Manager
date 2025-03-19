@@ -5,7 +5,7 @@ import shutil
 from zoneinfo import ZoneInfoNotFoundError, ZoneInfo
 
 from photo_lib.metadata_aggregator import DateTimeSource, DoubleKey
-from base_class import TestClassifyBase
+from base_class import TestDefaultBase
 
 """
 This file fully tests the following functions:
@@ -25,7 +25,7 @@ The file covers 100% of the function without specific tests:
 """
 
 
-class TestModifyTimezone(TestClassifyBase):
+class TestModifyTimezone(TestDefaultBase):
     """
     Fully test the modify_timezone function.
     """
@@ -392,7 +392,7 @@ class TestModifyTimezone(TestClassifyBase):
         self.assertEqual(1, len(self.api.db.get_all_hashes_of_file(1)))
 
 
-class TestChangeDatetime(TestClassifyBase):
+class TestChangeDatetime(TestDefaultBase):
     """
     Fully test the change_datetime function
     """
@@ -729,7 +729,7 @@ class TestChangeDatetime(TestClassifyBase):
         self.assertEqual(len(self.api.db.get_all_hashes_of_file(1)), 1)
 
 
-class TestChangeFileName(TestClassifyBase):
+class TestChangeFileName(TestDefaultBase):
     """
     Tests for the change_filename
     """
@@ -831,7 +831,7 @@ class TestChangeFileName(TestClassifyBase):
         self.assertIsNone(self.api.resolve_filename_to_key(os.path.basename(prev_path)))
 
 
-class TestMoveFile(TestClassifyBase):
+class TestMoveFile(TestDefaultBase):
     """
     Fully test the move_file function
     """
@@ -960,7 +960,7 @@ class TestMoveFile(TestClassifyBase):
         self.assertTrue(os.path.exists(org_path))
 
 
-class TestAuxInternalFunction(TestClassifyBase):
+class TestAuxInternalFunction(TestDefaultBase):
     """
     Class to test _internal_rename and _internal_move_file to completion
     """

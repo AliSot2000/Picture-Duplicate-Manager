@@ -1,6 +1,6 @@
 import shutil
 
-from base_class import TestClassifyBase
+from base_class import TestDefaultBase
 
 import os
 from photo_lib.utils import rec_list_all
@@ -11,7 +11,7 @@ This file fully tests the following functions:
 
 """
 
-class TestCompress(TestClassifyBase):
+class TestCompress(TestDefaultBase):
     """
     Test the functionality of the compress function
     """

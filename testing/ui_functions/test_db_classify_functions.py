@@ -6,7 +6,7 @@ import time
 import zoneinfo
 
 from photo_lib.custom_enum import MediaType
-from base_class import TestClassifyBase
+from base_class import TestDefaultBase
 
 """
 This file fully tests the following functions:
@@ -28,7 +28,7 @@ The file covers 100% of the function without specific tests:
 """
 
 
-class TestClassifyLocalBase(TestClassifyBase):
+class TestClassifyLocalBase(TestDefaultBase):
     """
     Test all functions surrounding the perform_import method.
     """
