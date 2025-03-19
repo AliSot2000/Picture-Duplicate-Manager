@@ -2440,6 +2440,12 @@ class PhotoDB(BaseSQliteDB):
             self.debug_execute("UPDATE main SET flags = flags - 32 WHERE (flags >> 5, 2) == 1")
             return self.sq_cur.rowcount
 
+    def check_no_intersection_with_dt(self, selection_a: Selection, sel_b: Selection):
+        """
+        Check that the two selections don't intersect
+        """
+        # TODO implement
+
     def list_children(self, key: int) -> List[int]:
         """
         List all files which have the given key as parent.
