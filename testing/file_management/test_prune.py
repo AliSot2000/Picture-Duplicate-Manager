@@ -2407,31 +2407,37 @@ class TestPruneGPS(TestClassifyBase):
         Test that nothing is modified in the base case
         """
         self.check_gps_equivalent()
+        self.assertEqual(self.api.db.get_gps_table_size(), 4)
 
         res = self.api.db.prune_gps()
         self.assertEqual(res, 0)
 
         self.check_gps_equivalent()
+        self.assertEqual(self.api.db.get_gps_table_size(), 4)
 
     def test_single_op_gps_prune(self):
         """
         Check that a single row was deleted
         """
         self.check_gps_equivalent()
+        self.assertEqual(self.api.db.get_gps_table_size(), 4)
 
         self.api.db.insert_get_gps_loc(10.5, 10.5)
         self.check_gps_add_single()
+        self.assertEqual(self.api.db.get_gps_table_size(), 5)
 
         res = self.api.db.prune_gps()
         self.assertEqual(res, 1)
 
         self.check_gps_equivalent()
+        self.assertEqual(self.api.db.get_gps_table_size(), 4)
 
     def test_multiple_op_gps_prune(self):
         """
         Check that multiple rows were deleted
         """
         self.check_gps_equivalent()
+        self.assertEqual(self.api.db.get_gps_table_size(), 4)
 
         self.api.db.insert_get_gps_loc(10.5, 10.5)
         self.api.db.insert_get_gps_loc(11.5, 11.5)
