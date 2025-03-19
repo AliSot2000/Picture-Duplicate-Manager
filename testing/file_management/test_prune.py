@@ -204,3 +204,194 @@ class TestDeleteDBDir(TestClassifyBase):
         self.assertListEqual(prev_rec_list, after_rec_list)
 
 
+class TestPruneFileSystemDirectories(TestClassifyBase):
+    """
+    Fully test teh api.prune_filesystem_directories
+    """
+    def test_noop(self):
+        """
+        Test that nothing is done if no directories are added.
+        """
+        prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
+                                    sorted(rec_list_all(self.api.root_path))))
+
+        res = self.api.prune_filesystem_directories()
+
+        self.assertEqual(res, 0)
+
+        self.api.db.commit()
+        after_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
+                                     sorted(rec_list_all(self.api.root_path))))
+
+        self.assertListEqual(prev_rec_list, after_rec_list)
+
+    def test_removal_of_one_extra_dir(self):
+        """
+        Test one leaf is added and is removed
+        """
+        prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
+                                    sorted(rec_list_all(self.api.root_path))))
+
+        # Create directory
+        tgt_path = os.path.join(self.api.root_path, "1990", "01", "31")
+        os.makedirs(tgt_path, exist_ok=True)
+        self.assertTrue(os.path.exists(tgt_path))
+
+        count = self.api.prune_filesystem_directories()
+        self.assertEqual(1, count)
+
+        self.api.db.commit()
+        after_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
+                                     sorted(rec_list_all(self.api.root_path))))
+
+        self.assertListEqual(prev_rec_list, after_rec_list)
+
+    def test_removal_one_extra_dir_2(self):
+        """
+        Test that a path of extra dirs is removed
+        """
+        prev_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                    sorted(rec_list_all(self.api.root_path))))
+
+        # Create directory
+        tgt_path = os.path.join(self.api.root_path, "1990", "01", "31", "some_event")
+        os.makedirs(tgt_path, exist_ok=True)
+        self.assertTrue(os.path.exists(tgt_path))
+
+        count = self.api.prune_filesystem_directories()
+        self.assertEqual(2, count)
+
+        self.api.db.commit()
+        after_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                     sorted(rec_list_all(self.api.root_path))))
+
+        self.assertListEqual(prev_rec_list, after_rec_list)
+
+    def test_multiple_extra_dir(self):
+        """
+        Test that two leafs are correctly removed.
+        """
+        prev_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                    sorted(rec_list_all(self.api.root_path))))
+
+        # Create directory
+        tgt_path = os.path.join(self.api.root_path, "1990", "01", "31", "some_event")
+        os.makedirs(tgt_path, exist_ok=True)
+        self.assertTrue(os.path.exists(tgt_path))
+        tgt_path = os.path.join(self.api.root_path, "1990", "01", "29")
+        os.makedirs(tgt_path, exist_ok=True)
+        self.assertTrue(os.path.exists(tgt_path))
+
+        count = self.api.prune_filesystem_directories()
+        self.assertEqual(3, count)
+
+        self.api.db.commit()
+        after_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                     sorted(rec_list_all(self.api.root_path))))
+
+        self.assertListEqual(prev_rec_list, after_rec_list)
+
+    def test_remove_dir_from_root_1(self):
+        """
+        Test that up till root is removed
+        """
+        prev_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                    sorted(rec_list_all(self.api.root_path))))
+
+        # Create directory
+        tgt_path = os.path.join(self.api.root_path, "2025", "03", "01")
+        os.makedirs(tgt_path, exist_ok=True)
+        self.assertTrue(os.path.exists(tgt_path))
+
+        count = self.api.prune_filesystem_directories()
+        self.assertEqual(3, count)
+
+        self.api.db.commit()
+        after_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                     sorted(rec_list_all(self.api.root_path))))
+
+        self.assertListEqual(prev_rec_list, after_rec_list)
+
+    def test_remove_dir_from_root_2(self):
+        """
+        Test that up till root is removed
+        """
+        prev_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                    sorted(rec_list_all(self.api.root_path))))
+
+        # Create directory
+        tgt_path = os.path.join(self.api.root_path, "2025", "03", "01", "some_event")
+        os.makedirs(tgt_path, exist_ok=True)
+        self.assertTrue(os.path.exists(tgt_path))
+
+        count = self.api.prune_filesystem_directories()
+        self.assertEqual(4, count)
+
+        self.api.db.commit()
+        after_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                     sorted(rec_list_all(self.api.root_path))))
+
+        self.assertListEqual(prev_rec_list, after_rec_list)
+
+    def test_remove_multiple_from_root(self):
+        """
+        Test that multiple directories are correctly removed
+        """
+        prev_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                    sorted(rec_list_all(self.api.root_path))))
+
+        # Create directory
+        tgt_path = os.path.join(self.api.root_path, "2025", "03", "01")
+        os.makedirs(tgt_path, exist_ok=True)
+        self.assertTrue(os.path.exists(tgt_path))
+        tgt_path = os.path.join(self.api.root_path, "2025", "03", "02", "some_event")
+        os.makedirs(tgt_path, exist_ok=True)
+        self.assertTrue(os.path.exists(tgt_path))
+
+        count = self.api.prune_filesystem_directories()
+        self.assertEqual(5, count)
+
+        self.api.db.commit()
+        after_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                     sorted(rec_list_all(self.api.root_path))))
+
+        self.assertListEqual(prev_rec_list, after_rec_list)
+
+    def test_dir_from_db_dir_not_touched_1(self):
+        """
+        Check that a db_dir directory isn't touched.
+        """
+        self.api._insert_get_dir(os.path.join(self.api.root_path, "1990", "01", "12"))
+        self.api._insert_get_dir(os.path.join(self.api.root_path, "1990", "01", "some_event"))
+
+        prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
+                                    sorted(rec_list_all(self.api.root_path))))
+
+        res = self.api.prune_filesystem_directories()
+
+        self.assertEqual(res, 0)
+
+        self.api.db.commit()
+        after_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
+                                     sorted(rec_list_all(self.api.root_path))))
+
+        self.assertListEqual(prev_rec_list, after_rec_list)
+
+    def test_dir_from_db_dir_not_touched_2(self):
+        """
+        Check that a db_dir directory isn't touched even if they are correctly a completely empty.
+        """
+        self.api._insert_get_dir(os.path.join(self.api.root_path, "2025", "01", "12"))
+
+        prev_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                    sorted(rec_list_all(self.api.root_path))))
+
+        res = self.api.prune_filesystem_directories()
+
+        self.assertEqual(res, 0)
+
+        self.api.db.commit()
+        after_rec_list = list(filter(lambda x: not x.endswith(".photos.db-journal"),
+                                     sorted(rec_list_all(self.api.root_path))))
+
+        self.assertListEqual(prev_rec_list, after_rec_list)
