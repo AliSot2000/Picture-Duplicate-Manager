@@ -2792,8 +2792,8 @@ class PhotoDB(BaseSQliteDB):
         # Execute the statement
         if len(constraints) == 0:
             base_stmt = stmt + " ORDER BY key"
-            step_stmt = base_stmt + " WHERE key > ? ORDER BY key"
-            self.debug_execute(stmt, cur="main_key_flags_iterator")
+            step_stmt = stmt + " WHERE key > ? ORDER BY key"
+            self.debug_execute(base_stmt, cur="main_key_flags_iterator")
 
         else:
             stmt += " WHERE "
