@@ -3075,7 +3075,7 @@ class PhotoDB(BaseSQliteDB):
             if os.path.exists(org_path) and not flags.present:
                 self.integrity_logger.warning(f"original present, flags record not present.")
             elif not os.path.exists(org_path) and flags.present:
-                self.integrity_logger.warning(f"original present, flags record present.")
+                self.integrity_logger.warning(f"original not present, flags record present.")
 
     @staticmethod
     def dt_to_dir(dt: datetime.datetime) -> str:
