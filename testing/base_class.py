@@ -83,8 +83,9 @@ class TestClassifyBase(unittest.TestCase):
         """
         Remove the local instance of the db.
         """
-        self.api.cleanup(True)
-        self.api = None
+        if self.api is not None:
+            self.api.cleanup(True)
+            self.api = None
 
         # Part of setup is teardown of the test db
         if os.path.exists(self.temp_db):
