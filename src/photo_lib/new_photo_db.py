@@ -1062,7 +1062,7 @@ class PhotoDB(BaseSQliteDB):
         elif mtype == MediaType.TRASH:
             trash_flag = True
             dup_flag = False
-        else:
+        else:  # pragma: no cover
             raise ImplementationError("Unknown MediaType")
 
         if missing:
