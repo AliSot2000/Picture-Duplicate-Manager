@@ -500,8 +500,8 @@ class TestSetImportStatus(PerformImportBaseClass):
                                   F"WHERE key in (1, 2, 3, 4, 5, 6) ORDER BY key")
 
         res = self.api.db.sq_cur.fetchall()
-        self.assertListEqual(res, [(ImportStatus.MARKED.value, Allowed.ALLOWED.value, 1),
-                                   (ImportStatus.MARKED.value, Allowed.NOT_ALLOWED_EXT.value, 2),
+        self.assertListEqual(res, [(ImportStatus.IGNORE.value, Allowed.ALLOWED.value, 1),
+                                   (ImportStatus.IGNORE.value, Allowed.NOT_ALLOWED_EXT.value, 2),
                                    (ImportStatus.IGNORE.value, Allowed.NOT_ALLOWED_EXT.value, 3),
                                    (ImportStatus.IGNORE.value, Allowed.ALLOWED.value, 4),
                                    (ImportStatus.IMPORTED.value, Allowed.ALLOWED.value, 5),
