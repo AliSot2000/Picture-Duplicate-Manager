@@ -2442,10 +2442,11 @@ class TestPruneGPS(TestClassifyBase):
         self.api.db.insert_get_gps_loc(10.5, 10.5)
         self.api.db.insert_get_gps_loc(11.5, 11.5)
         self.api.db.insert_get_gps_loc(12.5, 12.5)
-        self.check_gps_add_single()
+        self.check_gps_add_multiple()
+        self.assertEqual(self.api.db.get_gps_table_size(), 7)
 
         res = self.api.db.prune_gps()
-        self.assertEqual(res, 1)
+        self.assertEqual(res, 3)
 
         self.check_gps_equivalent()
         self.assertEqual(self.api.db.get_gps_table_size(), 4)
