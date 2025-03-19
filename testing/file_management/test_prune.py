@@ -2222,10 +2222,14 @@ class TestPruneHashes(TestClassifyBase):
         Check that nothing is done, if the hash table isn't modified.
         """
         self.check_hash_table_equivalent()
+        self.assertEqual(self.api.db.get_hash_table_size(), 143)
 
         # Prune
         res = self.api.db.prune_hash()
         self.assertEqual(res, 0)
+
+        self.check_hash_table_equivalent()
+        self.assertEqual(self.api.db.get_hash_table_size(), 143)
 
     def test_hash_table_single_add(self):
         """
@@ -2233,8 +2237,10 @@ class TestPruneHashes(TestClassifyBase):
         """
         # Check base is equivalent
         self.check_hash_table_equivalent()
+        self.assertEqual(self.api.db.get_hash_table_size(), 143)
 
         self.api.db.insert_get_hash_key(file_hash="uncovered_hash")
+        self.assertEqual(self.api.db.get_hash_table_size(), 144)
 
         self.check_add_single()
 
@@ -2242,6 +2248,7 @@ class TestPruneHashes(TestClassifyBase):
         self.assertEqual(1, res)
 
         self.check_hash_table_equivalent()
+        self.assertEqual(self.api.db.get_hash_table_size(), 143)
 
     def test_hash_table_multiple_add(self):
         """
@@ -2249,10 +2256,12 @@ class TestPruneHashes(TestClassifyBase):
         """
         # Check base is equivalent
         self.check_hash_table_equivalent()
+        self.assertEqual(self.api.db.get_hash_table_size(), 143)
 
         self.api.db.insert_get_hash_key(file_hash="hash_1")
         self.api.db.insert_get_hash_key(file_hash="hash_2")
         self.api.db.insert_get_hash_key(file_hash="hash_3")
+        self.assertEqual(self.api.db.get_hash_table_size(), 146)
 
         self.check_add_multiple()
 
@@ -2260,6 +2269,7 @@ class TestPruneHashes(TestClassifyBase):
         self.assertEqual(3, res)
 
         self.check_hash_table_equivalent()
+        self.assertEqual(self.api.db.get_hash_table_size(), 143)
 
 
 class TestPruneGPS(TestClassifyBase):
