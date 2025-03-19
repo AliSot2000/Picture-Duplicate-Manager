@@ -1,4 +1,5 @@
 import json
+import logging
 import os.path
 import shutil
 from typing import List, Dict, Any
@@ -338,6 +339,16 @@ class TestCheckFileHashes(HashUpdateBase):
         self.api.db.delete_row_hash_update_table(128)
 
         self.check_hash_update_tbl_1_partial()
+
+    def test_rare_occurrence_logger(self):
+        """
+        Test the rare occurrence is
+        """
+        # Update the row of file 1 in the hash assoz table to have a different file size
+        self.api.db.debug_execute("UPDATE hash_assoz SET file_size_bytes = 5 WHERE hash_key = 1 AND file_key = 1")
+
+        with self.assertLogs(self.api.rare_occurrence_logger, level=logging.WARNING):
+            self.api.check_file_hashes()
 
 
 class TestUpdateHashFromFilenameTable(HashUpdateBase):
