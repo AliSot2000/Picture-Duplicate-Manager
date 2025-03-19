@@ -1197,7 +1197,7 @@ class PhotoAPI:
                 "SQL Error, no trashed or duplicate files allowed"
 
             # Check selection.
-            if __debug__:  # pragma: no cover
+            if __debug__ and selection is not None:  # pragma: no cover
                 if selection.selection_type == SelectionType.SELECTION_A and not flags.sel_a:
                     raise ImplementationError("Didn't receive Selection A")
                 elif selection.selection_type == SelectionType.SELECTION_B and not flags.sel_b:
