@@ -81,7 +81,6 @@ class TestDeleteDBDir(TestClassifyBase):
 
         self.assertListEqual(prev_rec_list, after_rec_list)
 
-
     def test_shared_base_1(self):
         """
         Test that if the custom dir has a shared base with a given other directory, the shared path isn't removed
