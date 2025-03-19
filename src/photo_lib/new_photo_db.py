@@ -2396,11 +2396,7 @@ class PhotoDB(BaseSQliteDB):
             #                                              trash                       sel_b
             stmt = "UPDATE main SET flags = flags + 4 WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1"
         elif target_value and selection.selection_type == SelectionType.TIME_RANGE:
-            #                                               trash
-            stmt = ("UPDATE main SET flags = flags + 4 WHERE mod(flags >> 2, 2) = 0 "
-                    #            time_range
-                    "AND datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)")
-            args = (selection.start.isoformat(), selection.end.isoformat())
+            raise TypeError("DateTimeRange not supported for update_tras_flag_from_selection")
         elif not target_value and selection.selection_type == SelectionType.SELECTION_A:
             #                                              trash                       sel_a
             stmt = "UPDATE main SET flags = flags - 4 WHERE mod(flags >> 2, 2) = 1 AND mod(flags >> 4, 2) = 1"
@@ -2408,11 +2404,7 @@ class PhotoDB(BaseSQliteDB):
             #                                              trash                       sel_b
             stmt = "UPDATE main SET flags = flags - 4 WHERE mod(flags >> 2, 2) = 1 AND mod(flags >> 5, 2) = 1"
         elif not target_value and selection.selection_type == SelectionType.TIME_RANGE:
-            #                                               trash
-            stmt = ("UPDATE main SET flags = flags - 4 WHERE mod(flags >> 2, 2) = 1 "
-                    #            time_range
-                    "AND datetime(?) <= datetime(datetime) AND datetime(datetime) <= datetime(?)")
-            args = (selection.start.isoformat(), selection.end.isoformat())
+            raise TypeError("DateTimeRange not supported for update_tras_flag_from_selection")
         else:  # pragma: no cover
             raise ImplementationError("Tertiem Non Datur")
 
