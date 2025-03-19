@@ -766,7 +766,7 @@ class PhotoDB(BaseSQliteDB):
 
         :param tbl_name: import table to update
         """
-        self.debug_execute(f"UPDATE `{tbl_name}` SET allowed = 1, imported = +")
+        self.debug_execute(f"UPDATE `{tbl_name}` SET allowed = 1, imported = 1")
 
     def get_update_allowed_iterator_size(self, tbl_name: str) -> int:
         """
