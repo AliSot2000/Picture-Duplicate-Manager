@@ -1321,10 +1321,9 @@ class PhotoAPI:
                 self.db.insert_row_hash_update_table(key=key, new_hash=new_hash, file_size=file_size_bytes)
                 count += 1
 
-            # Rare occurrence
-            elif file_size_bytes != fsb and new_hash == h:
-                self.main_logger.info(f"Rare Occurrence: File Size changed but hash stayed the same: "
-                                      f"{org_path}")
+            elif file_size_bytes != fsb and new_hash == h: # pragma: no cover
+                self.rare_occurrence_logger.warning(f"Rare Occurrence: File Size changed but hash stayed the same: "
+                                                    f"{org_path}")
 
         self.db.commit()
         return count
