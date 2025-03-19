@@ -1313,7 +1313,7 @@ class PhotoAPI:
             # Get the newest file hash of that file from the db
             h, fsb, fhdt = self.db.get_newest_hash(key)
 
-            if (h, fsb, fhdt) == (None, None, None):
+            if (h, fsb, fhdt) == (None, None, None):  # pragma: no cover
                 raise CorruptDatabase(f"Couldn't get newest hash for key: {key}")
 
             # Different hash, update
@@ -1322,7 +1322,7 @@ class PhotoAPI:
                 count += 1
 
             # Rare occurrence
-            elif file_size_bytes != new_hash and new_hash == h:
+            elif file_size_bytes != fsb and new_hash == h:
                 self.main_logger.info(f"Rare Occurrence: File Size changed but hash stayed the same: "
                                       f"{org_path}")
 
