@@ -494,14 +494,14 @@ class TestAPIInit(BaseInit):
         self.assertEqual(db.rare_occurrence_logger.name, PhotoAPI.rare_occurrence_logger_name)
 
         self.assertEqual(db.mda_logger.name, PhotoAPI.metadata_aggregator_logger_name)
-        self.assertEqual(db.mda_parsing_logger.name, PhotoAPI.metadata_aggregator_parsing_logger_name)
+        self.assertEqual(db.mda_discover_logger.name, PhotoAPI.metadata_aggregator_parsing_logger_name)
 
         db.main_logger = logging.getLogger("a")
         db.integrity_logger = logging.getLogger("b")
         db.rare_occurrence_logger = logging.getLogger("c")
 
         db.mda_logger = logging.getLogger("d")
-        db.mda_parsing_logger = logging.getLogger("e")
+        db.mda_discover_logger = logging.getLogger("e")
 
         # check loggers were updated
         self.assertEqual(db.main_logger.name, "a")
@@ -509,7 +509,7 @@ class TestAPIInit(BaseInit):
         self.assertEqual(db.rare_occurrence_logger.name, "c")
 
         self.assertEqual(db.mda_logger.name, "d")
-        self.assertEqual(db.mda_parsing_logger.name, "e")
+        self.assertEqual(db.mda_discover_logger.name, "e")
 
         db.reload_loggers()
 
@@ -519,7 +519,7 @@ class TestAPIInit(BaseInit):
         self.assertEqual(db.rare_occurrence_logger.name, PhotoAPI.rare_occurrence_logger_name)
 
         self.assertEqual(db.mda_logger.name, PhotoAPI.metadata_aggregator_logger_name)
-        self.assertEqual(db.mda_parsing_logger.name, PhotoAPI.metadata_aggregator_parsing_logger_name)
+        self.assertEqual(db.mda_discover_logger.name, PhotoAPI.metadata_aggregator_parsing_logger_name)
 
         db.cleanup(fast=True)
 

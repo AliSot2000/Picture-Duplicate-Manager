@@ -48,7 +48,7 @@ class PhotoAPI:
     integrity_logger: logging.Logger
 
     mda_logger: logging.Logger
-    mda_parsing_logger: logging.Logger
+    mda_discover_logger: logging.Logger
 
     # Flags
     prune_fs_dir: bool = False
@@ -90,7 +90,7 @@ class PhotoAPI:
         self.rare_occurrence_logger = logging.getLogger(self.rare_occurrence_logger_name)
 
         self.mda_logger = logging.getLogger(self.metadata_aggregator_logger_name)
-        self.mda_parsing_logger = logging.getLogger(self.metadata_aggregator_parsing_logger_name)
+        self.mda_discover_logger = logging.getLogger(self.metadata_aggregator_parsing_logger_name)
 
         if init_loggers:
             self.set_logging_defaults()
@@ -165,7 +165,7 @@ class PhotoAPI:
         self.rare_occurrence_logger = logging.getLogger(self.rare_occurrence_logger_name)
 
         self.mda_logger = logging.getLogger(self.metadata_aggregator_logger_name)
-        self.mda_parsing_logger = logging.getLogger(self.metadata_aggregator_parsing_logger_name)
+        self.mda_discover_logger = logging.getLogger(self.metadata_aggregator_parsing_logger_name)
 
     def set_logging_defaults(self):
         """
@@ -177,7 +177,7 @@ class PhotoAPI:
         self.rare_occurrence_logger.setLevel(logging.DEBUG)
 
         self.mda_logger.setLevel(logging.DEBUG)
-        self.mda_parsing_logger.setLevel(logging.DEBUG)
+        self.mda_discover_logger.setLevel(logging.DEBUG)
 
         # Propagate
         self.main_logger.propagate = False
@@ -185,7 +185,7 @@ class PhotoAPI:
         self.rare_occurrence_logger.propagate = True
 
         self.mda_logger.propagate = True
-        self.mda_parsing_logger.propagate = True
+        self.mda_discover_logger.propagate = True
 
         # Define handler
         handler = logging.StreamHandler(sys.stderr)
