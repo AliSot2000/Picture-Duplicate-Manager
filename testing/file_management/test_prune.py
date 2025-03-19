@@ -1,4 +1,5 @@
 import json
+import logging
 import os.path
 import shutil
 
@@ -2396,3 +2397,18 @@ class TestPruneGPS(TestClassifyBase):
         self.assertEqual(res, 1)
 
         self.check_gps_equivalent()
+class TestPruneAll(TestClassifyBase):
+    """
+    Simple class for covering the prune_all function
+    """
+
+    def test_just_cover_prune_all(self):
+        """
+        INFO: Every functionality of prune_all was tested in the upper classes.
+
+        This test class serves only the purpose of covering prune_all. Which is just a short hand for calling all
+        prune methods. What is asserted is, that a logging call is made
+        """
+        with self.assertLogs(self.api.main_logger, logging.INFO):
+            res = self.api.prune_all()
+            self.assertEqual(res, 0)
