@@ -1238,7 +1238,7 @@ class PhotoAPI:
         count = 0
 
         for root, dirs, files in os.walk(self.root_path):
-            if root.startswith(self.db.get_temp_dir()):
+            if root.startswith(self.db.get_trash_dir()):
                 continue
 
             if root.startswith(self.db.get_temp_dir()):
