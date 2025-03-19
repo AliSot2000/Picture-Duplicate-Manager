@@ -768,6 +768,9 @@ class PhotoAPI:
         count = 0
 
         if not delete:
+            if target_dir is None:
+                raise TypeError("target_dir cannot be None for move operation")
+
             self.verify_external_dir(target_dir)
 
         if not self.db.import_table_exists(tbl):
