@@ -2380,6 +2380,7 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.sq_cur.rowcount == 1, "Failed to Update Row in Main Table"
 
+    # TODO need to udpate the metadata row
     def update_trash_flag_from_selection(self, selection: Selection, target_value: bool):
         """
         Update the files which have aren't present to have been moved to the trash.
