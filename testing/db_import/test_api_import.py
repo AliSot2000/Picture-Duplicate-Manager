@@ -279,12 +279,12 @@ class TestAPIPerformImport(PerformImportBaseClass):
     """
     Test all functions surrounding the perform_import method.
     """
-    # INFO: api.verify_custom_target_dir is tested in import_aux_tests.py
-    # INFO: api.db.insert_row_main_table is tested in import_aux_tests.py
-    # INFO: api.db.insert_row_metadata_table is tested in import_aux_tests.py
-    # INFO: api.update_row_main_table is tested in import_aux_tests.py
-    # INFO: api.update_row_metadata_table is tested in import_aux_tests.py
-    # INFO: api.set_imported_status is tested in import_aux_tests.py
+    # INFO: api.verify_custom_target_dir is tested in tests_import_aux.py
+    # INFO: api.db.insert_row_main_table is tested in tests_import_aux.py
+    # INFO: api.db.insert_row_metadata_table is tested in tests_import_aux.py
+    # INFO: api.update_row_main_table is tested in tests_import_aux.py
+    # INFO: api.update_row_metadata_table is tested in tests_import_aux.py
+    # INFO: api.set_imported_status is tested in tests_import_aux.py
 
     def test_correct_paths_rel(self):
         """
