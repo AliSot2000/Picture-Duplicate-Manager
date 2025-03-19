@@ -2967,8 +2967,6 @@ class PhotoDB(BaseSQliteDB):
         PRECONDITION: Key exists.
 
         """
-        # TODO fetch from cache
-        # TODO cache answer
         org_path = self.db_resolve_key_to_abs_path(key)
         thumb_path = self.full_thumbnail_path(key)
         mini_path = self.full_miniature_path(key)
