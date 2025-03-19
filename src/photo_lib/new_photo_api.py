@@ -2798,6 +2798,17 @@ class PhotoAPI:
                     # directory not empty, abort delete.
                     break
 
+                # It might be that the parent of the directory to delete was also a dir in the db_dir table.
+                # If this is not none, shouldn't remove
+                if not first:
+                    # Check the directory is not in the db dir
+                    local_path = tgt_dir.removeprefix(self.root_path).removeprefix(os.sep)
+                    local_path_list = local_path.split(os.sep)
+
+                    # if any of the subdirectories is in the db, abort.
+                    if self.db.get_dir_key(local_path_list) is not None:
+                        break
+
                 # No guard triggered, we're deleting at last
                 self.main_logger.debug(f"deleting directory: {tgt_dir}")
                 shutil.rmtree(tgt_dir)
