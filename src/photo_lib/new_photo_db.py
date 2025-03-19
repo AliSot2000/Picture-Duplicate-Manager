@@ -1585,12 +1585,13 @@ class PhotoDB(BaseSQliteDB):
         - key in db_dir table
         - node list of directory relative to db_root
         """
-        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN (SELECT db_dir FROM metadata)")
+        self.debug_execute("SELECT key, db_local_dir FROM db_dir WHERE key NOT IN "
+                           "(SELECT db_dir FROM metadata WHERE db_dir IS NOT NULL)")
         res_list = []
 
         for key, db_local_dir in self.sq_cur.fetchall():
             row: Tuple[int, str]
-            res_list.append(key, self.parse_db_local_dir(db_local_dir))
+            res_list.append((key, self.parse_db_local_dir(db_local_dir)))
 
         return res_list
 
