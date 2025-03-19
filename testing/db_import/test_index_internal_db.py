@@ -90,6 +90,7 @@ class TestSearchDBForNewFiles(TestClassifyBase):
         # Prior to running it, we have one import table
         import_tbl_list = self.api.db.list_import_tables()
         self.assertEqual(len(import_tbl_list), 1)
+        self.assertEqual(self.api.db.get_import_tables_size(), 1)
 
         res = self.api.search_db_for_new_files(allowed_ext=set())
         self.assertEqual(res[1], 4)
@@ -98,9 +99,14 @@ class TestSearchDBForNewFiles(TestClassifyBase):
         # Make sure we still only have two tables
         import_tbl_list = self.api.db.list_import_tables()
         self.assertEqual(len(import_tbl_list), 2)
+        self.assertEqual(self.api.db.get_import_tables_size(), 2)
 
+        count = 0
         for key, allowed, ofn in self.api.db.update_allowed_iterator(tbl_name=res[0]):
+            count += 1
             self.assertEqual(Allowed(allowed), Allowed.NOT_ALLOWED_EXT)
+
+        self.assertEqual(self.api.db.get_update_allowed_iterator_size(res[0]), count)
 
     def test_all_allowed_files(self):
         """
@@ -116,6 +122,7 @@ class TestSearchDBForNewFiles(TestClassifyBase):
         # Prior to running it, we have one import table
         import_tbl_list = self.api.db.list_import_tables()
         self.assertEqual(len(import_tbl_list), 1)
+        self.assertEqual(self.api.db.get_import_tables_size(), 1)
 
         res = self.api.search_db_for_new_files(allowed_ext={".tiff", ".jpg", ".jpeg", ".png"})
         self.assertEqual(res[1], 4)
@@ -124,9 +131,14 @@ class TestSearchDBForNewFiles(TestClassifyBase):
         # Make sure we still only have two tables
         import_tbl_list = self.api.db.list_import_tables()
         self.assertEqual(len(import_tbl_list), 2)
+        self.assertEqual(self.api.db.get_import_tables_size(),2)
 
+        count = 0
         for key, allowed, ofn in self.api.db.update_allowed_iterator(tbl_name=res[0]):
+            count += 1
             self.assertEqual(Allowed(allowed), Allowed.ALLOWED)
+
+        self.assertEqual(count, self.api.db.get_update_allowed_iterator_size(res[0]))
 
 
 class BaseInternalImportTable(PrepareDirForImportBaseClass):
