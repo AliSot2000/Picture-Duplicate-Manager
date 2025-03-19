@@ -18,6 +18,10 @@ This file fully tests the following functions:
 
 """
 
+
+wip = True
+
+
 class TestDeleteDBDir(TestClassifyBase):
     """
     Fully test the api.prune_db_dir function.
