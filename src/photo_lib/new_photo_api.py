@@ -2782,11 +2782,13 @@ class PhotoAPI:
                 tgt_dir = os.path.join(self.root_path, *db_local_dir[:len(db_local_dir) - i])
 
                 # Path doesn't exist => path empty => can be deleted.
-                if not os.path.exists(tgt_dir):
-                    if first:
-                        keys_to_delete.append(ktd)
-                        first = False
+                if not os.path.exists(tgt_dir) and first:
+                    keys_to_delete.append(ktd)
+                    first = False
                     continue
+
+                # if the first direcory existed, so must the entire tree upwards
+                assert os.path.exists(tgt_dir), "Cannot have had child without parent"
 
                 # path exists
                 if len(os.listdir(str(tgt_dir))) > 0:
