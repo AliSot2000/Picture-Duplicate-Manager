@@ -490,6 +490,13 @@ class TestUpdateHashFromFilenameTable(HashUpdateBase):
 
         return tgt
 
+    def test_raises_error(self):
+        """
+        Test ValueError is raised if table is empty
+        """
+        self.api.db.clear_hash_update_table()
+        self.assertRaises(ValueError, self.api.update_hash_from_filename_table)
+
     def test_no_apply(self):
         """
         Test empty hash update
