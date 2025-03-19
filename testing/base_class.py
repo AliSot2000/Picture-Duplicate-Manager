@@ -4,9 +4,9 @@ from photo_lib.new_photo_api import PhotoAPI
 import os
 import shutil
 
-class TestClassifyBase(unittest.TestCase):
+class DefaultBase(unittest.TestCase):
     """
-    Test all functions surrounding the perform_import method.
+    Contains default set up and tear down for tests
     """
     shadow_db: str
     temp_db: str
@@ -15,6 +15,49 @@ class TestClassifyBase(unittest.TestCase):
 
     api: Optional[PhotoAPI] = None
     tgt_table: Optional[str] = None
+
+    def setUp(self):  # pragma: no cover
+        """
+        Setup function creates a fresh instance of the db to run the tests against
+        """
+        # Part of setup is teardown of the test db
+        if os.path.exists(self.temp_db):
+            shutil.rmtree(self.temp_db)
+
+        shutil.copytree(self.shadow_db, self.temp_db)
+
+        # Part of setup is teardown of the import_source directory
+        if os.path.exists(self.import_source):
+            shutil.rmtree(self.import_source)
+
+        self.api = PhotoAPI(root_path=self.temp_db,
+                            init_loggers=False,
+                            init=False)
+
+        self.api.config.batch_size = 10
+
+    def tearDown(self):  # pragma: no cover
+        """
+        Remove the local instance of the db.
+        """
+        if self.api is not None:
+            self.api.cleanup(True)
+            self.api = None
+
+        # Part of setup is teardown of the test db
+        if os.path.exists(self.temp_db):
+            shutil.rmtree(self.temp_db)
+
+        # Part of setup is teardown of the import_source directory
+        if os.path.exists(self.import_source):
+            shutil.rmtree(self.import_source)
+
+
+class TestDefaultBase(DefaultBase):
+    """
+    Class is populated with a database that contains already a lot of images.
+    Class doesn't contain any display files.
+    """
 
     @classmethod
     def setUpClass(cls):  # pragma: no cover
