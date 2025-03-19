@@ -558,6 +558,29 @@ class TestAPIInit(BaseInit):
 
         db.cleanup(fast=True)
 
+    def test_full_cleanup(self):
+        """
+        Cover the cleanup code. Correctness of the code is checked in file_management/test_prune.py
+        """
+        db = PhotoAPI(root_path=test_scratch,
+                      init=True, init_loggers=False, opt_integrity_check=False,
+                      config=PhotoAPI.build_default_config())
+
+        db.prune_fs_dir = True
+
+        # Check the DB
+        self.assertIsInstance(db, PhotoAPI)
+        self.assertIsNotNone(db.mda)
+
+        self.assertTrue(os.path.exists(db.db.get_temp_dir()))
+        self.assertTrue(os.path.exists(db.db.get_thumb_dir()))
+        self.assertTrue(os.path.exists(db.db.get_trash_dir()))
+
+        self.assertTrue(os.path.exists(os.path.join(db.root_path, defaults.config_path)))
+        self.assertTrue(os.path.exists(db.db.root_path))
+
+        db.cleanup(fast=False)
+
     def test_connect_missing_config(self):
         """
         Check the database correctly reconnects after closing
