@@ -739,6 +739,10 @@ class PhotoAPI:
             if rename:
                 self.db.update_row_main_table(key=insert_key, db_name=os.path.basename(target_path))
 
+            # INFO: We're not adding the tag in case we have a UNAWARE_GPS result (because we get the same result again
+            #  since we have the datetime and the gps in the metadata)
+            # INFO: We're not adding the tag in case we have UNAWARE_DEFAULT_TZ (because we don't know for sure that
+            #  the currently selected timezone is the right one
             if flags.verify and add_safety_exif_tags:
                 self._add_update_exif_tag(key=insert_key, target_datetime=dt, file_path=target_path)
 
