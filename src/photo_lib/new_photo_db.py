@@ -2433,11 +2433,11 @@ class PhotoDB(BaseSQliteDB):
         :param sel_a: Bool whether to reset selection a or selection b
         """
         if sel_a:
-            self.debug_execute("UPDATE main SET flags = flags - 16 WHERE (flags >> 4, 2) == 1")
+            self.debug_execute("UPDATE main SET flags = flags - 16 WHERE mod(flags >> 4, 2) == 1")
             return self.sq_cur.rowcount
 
         else:
-            self.debug_execute("UPDATE main SET flags = flags - 32 WHERE (flags >> 5, 2) == 1")
+            self.debug_execute("UPDATE main SET flags = flags - 32 WHERE mod(flags >> 5, 2) == 1")
             return self.sq_cur.rowcount
 
     def check_no_intersection_with_dt(self, selection_a: Selection, sel_b: Selection):
