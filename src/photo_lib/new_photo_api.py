@@ -2847,7 +2847,7 @@ class PhotoAPI:
         """
         dir_to_prune = []
         for root, dirs, files in os.walk(self.root_path, topdown=False):
-            if root.startswith(self.db.get_temp_dir()):
+            if root.startswith(self.db.get_trash_dir()):
                 continue
 
             if root.startswith(self.db.get_temp_dir()):
