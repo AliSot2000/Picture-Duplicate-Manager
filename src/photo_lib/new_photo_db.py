@@ -2389,43 +2389,58 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.sq_cur.rowcount == 1, "Failed to Update Row in Main Table"
 
-    # TODO need to udpate the metadata row
-    def update_trash_flag_from_selection(self, selection: Selection, target_value: bool):
+    def _set_trash_from_selection(self, selection: Selection):
         """
-        Update the files which have aren't present to have been moved to the trash.
+        Updates the trash flag from a selection and updates also the metadata table.
+
+        This function is supposed to be used in conjunction with the selection_from_presence_table with missing.
+        It is explicitly made private to discourage the use of it. To ensure consistency in the database, it should only
+        be called with an the outer wrapper function.
+
+        This function is not without reason in the danger zone. Since it updates the database without a checking a lot
+        of conditions the regular UI functions do check
 
         :param selection: Selection of Files to update
-        :param target_value: bool, whether to set the flag to True or False
         """
-        args = tuple()
-        if target_value and selection.selection_type == SelectionType.SELECTION_A:
-            #                                              trash                       sel_a
-            stmt = "UPDATE main SET flags = flags + 4 WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1"
-        elif target_value and selection.selection_type == SelectionType.SELECTION_B:
-            #                                              trash                       sel_b
-            stmt = "UPDATE main SET flags = flags + 4 WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1"
-        elif target_value and selection.selection_type == SelectionType.TIME_RANGE:
+        if selection.selection_type == SelectionType.SELECTION_A:
+            #                                   set trash to true
+            self.debug_execute("UPDATE main SET flags = flags + 4 "
+                               #      check trash is false       check is selection a
+                               "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 4, 2) = 1")
+            main_count = self.sq_cur.rowcount
+
+            self.debug_execute("UPDATE metadata SET replaced = 2 WHERE main_key IN "
+                               "(SELECT key FROM main WHERE mod(flags >> 4, 2) = 1)")
+            metadata_count = self.sq_cur.rowcount
+
+        elif selection.selection_type == SelectionType.SELECTION_B:
+            #                                   set trash to true
+            self.debug_execute("UPDATE main SET flags = flags + 4 "
+                               #      check trash is false      check is selection b
+                               "WHERE mod(flags >> 2, 2) = 0 AND mod(flags >> 5, 2) = 1")
+            main_count = self.sq_cur.rowcount
+
+            self.debug_execute("UPDATE metadata SET replaced = 2 WHERE main_key IN "
+                               "(SELECT key FROM main WHERE mod(flags >> 5, 2) = 1)")
+            metadata_count = self.sq_cur.rowcount
+
+        elif selection.selection_type == SelectionType.TIME_RANGE:
             raise TypeError("DateTimeRange not supported for update_tras_flag_from_selection")
-        elif not target_value and selection.selection_type == SelectionType.SELECTION_A:
-            #                                              trash                       sel_a
-            stmt = "UPDATE main SET flags = flags - 4 WHERE mod(flags >> 2, 2) = 1 AND mod(flags >> 4, 2) = 1"
-        elif not target_value and selection.selection_type == SelectionType.SELECTION_B:
-            #                                              trash                       sel_b
-            stmt = "UPDATE main SET flags = flags - 4 WHERE mod(flags >> 2, 2) = 1 AND mod(flags >> 5, 2) = 1"
-        elif not target_value and selection.selection_type == SelectionType.TIME_RANGE:
-            raise TypeError("DateTimeRange not supported for update_tras_flag_from_selection")
+
         else:  # pragma: no cover
             raise ImplementationError("Tertiem Non Datur")
 
-        assert stmt is not None, "Implementation issue, stmt shouldn't be None"
-        self.debug_execute(stmt, args)
-
-        count = self.sq_cur.rowcount
-
         self.commit()
-        self.logger.debug(f"updated {count} entries in main table to have trash flag = {target_value} "
+        self.logger.debug(f"updated {main_count} entries in main table to have trash flag = True "
                           f"where selection type = {selection}")
-        return count
+        self.logger.debug(f"updated {metadata_count} entries in metadata table to have trash flag = True "
+                          f"where selection type = {selection}")
+
+        if main_count != metadata_count:
+            self.integrity_logger.warning(f"Different Numbers of Rows updated in main table and metadata table:"
+                                          f"Main Table: {main_count}, Metadata Table: {metadata_count}")
+
+        return main_count
 
     def reset_selection(self, sel_a: bool = True) -> int:
         """
