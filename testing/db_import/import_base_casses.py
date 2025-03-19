@@ -11,13 +11,59 @@ File contains two base classes which set up the project directories and test obj
 """
 
 
-class PrepareDirForImportBaseClass(unittest.TestCase):
+class ImportTestBaseClass(unittest.TestCase):
+    """
+    Base Class for all tests in the db_import directory.
+    """
     shadow_db: str
     temp_db: str
     media_source: str
     import_source: str
+    tbl_dump_dir: str
 
     api: Optional[PhotoAPI] = None
+    tgt_table: Optional[str] = None
+
+    def setUp(self):  # pragma: no cover
+        """
+        Setup function creates a fresh instance of the db to run the tests against
+        """
+        # Part of setup is teardown of the test db
+        if os.path.exists(self.temp_db):
+            shutil.rmtree(self.temp_db)
+
+        shutil.copytree(self.shadow_db, self.temp_db)
+
+        # Part of setup is teardown of the import_source directory
+        if os.path.exists(self.import_source):
+            shutil.rmtree(self.import_source)
+
+        self.api = PhotoAPI(root_path=self.temp_db,
+                            init_loggers=False,
+                            init=False)
+
+        self.api.config.batch_size = 10
+
+    def tearDown(self):  # pragma: no cover
+        """
+        Remove the local instance of the db.
+        """
+        self.api.cleanup(True)
+        self.api = None
+
+        # Part of setup is teardown of the test db
+        if os.path.exists(self.temp_db):
+            shutil.rmtree(self.temp_db)
+
+        # Part of setup is teardown of the import_source directory
+        if os.path.exists(self.import_source):
+            shutil.rmtree(self.import_source)
+
+
+class PrepareDirForImportBaseClass(ImportTestBaseClass):
+    """
+    Class creates a shadow db that has all tables but is otherwise empty.
+    """
 
     @classmethod
     def setUpClass(cls):  # pragma: no cover
@@ -35,6 +81,8 @@ class PrepareDirForImportBaseClass(unittest.TestCase):
         cls.temp_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "test_db"))
         cls.media_source = os.path.join(os.path.dirname(__file__), "..", "test_file_out")
         cls.import_source = os.path.join(os.path.dirname(__file__), "..", "scratch")
+        cls.tbl_dump_dir = os.path.join(os.path.dirname(__file__), "..", "db_dump")
+        cls.tgt_table = None
 
         # Check the input files are present
         if not os.path.exists(os.path.join(os.path.dirname(__file__), "..", "test_file_out")):
@@ -61,68 +109,23 @@ class PrepareDirForImportBaseClass(unittest.TestCase):
         - temp_db
         - media_source
         - import_source
+        - tbl_dump_dir
         """
         path = cls.shadow_db
 
         shutil.rmtree(path)
 
+        delattr(cls, "tgt_table")
         delattr(cls, "shadow_db")
         delattr(cls, "temp_db")
         delattr(cls, "media_source")
         delattr(cls, "import_source")
+        delattr(cls, "tbl_dump_dir")
 
-    def setUp(self):  # pragma: no cover
-        """
-        Setup function creates a fresh instance of the db to run the tests against
-        """
-        # Need to clear api if not done so already
-        if self.api is not None:
-            self.api.cleanup(True)
-            self.api = None
-
-        # Part of setup is teardown of the test db
-        if os.path.exists(self.temp_db):
-            shutil.rmtree(self.temp_db)
-
-        shutil.copytree(self.shadow_db, self.temp_db)
-
-        # Part of setup is teardown of the import_source directory
-        if os.path.exists(self.import_source):
-            shutil.rmtree(self.import_source)
-
-        self.api = PhotoAPI(root_path=self.temp_db,
-                            init=False, init_loggers=False)
-        self.api.config.batch_size = 10
-
-    def tearDown(self):  # pragma: no cover
-        """
-        Remove the local instance of the db.
-        """
-        self.api.cleanup(True)
-        self.api = None
-
-        # Part of setup is teardown of the test db
-        if os.path.exists(self.temp_db):
-            shutil.rmtree(self.temp_db)
-
-        # Part of setup is teardown of the import_source directory
-        if os.path.exists(self.import_source):
-            shutil.rmtree(self.import_source)
-
-
-class PerformImportBaseClass(unittest.TestCase):
+class PerformImportBaseClass(ImportTestBaseClass):
     """
-    Setup and tear down for perform import tests.
+    Class creates a shadow db that has all tables and has the default db directory imported..
     """
-    shadow_db: str
-    temp_db: str
-    media_source: str
-    import_source: str
-    tbl_dump_dir: str
-
-    api: Optional[PhotoAPI] = None
-    tgt_table: Optional[str] = None
-
     @classmethod
     def setUpClass(cls):  # pragma: no cover
         """
@@ -162,57 +165,3 @@ class PerformImportBaseClass(unittest.TestCase):
 
         db.cleanup()
 
-    @classmethod
-    def tearDownClass(cls):  # pragma: no cover
-        """
-        Delete the shadow db and unset class attributes:
-        - shadow_db
-        - temp_db
-        - media_source
-        - import_source
-        - tbl_dump_dir
-        """
-        path = cls.shadow_db
-
-        shutil.rmtree(path)
-
-        delattr(cls, "tgt_table")
-        delattr(cls, "shadow_db")
-        delattr(cls, "temp_db")
-        delattr(cls, "media_source")
-        delattr(cls, "import_source")
-        delattr(cls, "tbl_dump_dir")
-
-    def setUp(self):  # pragma: no cover
-        """
-        Setup function creates a fresh instance of the db to run the tests against
-        """
-        # Part of setup is teardown of the test db
-        if os.path.exists(self.temp_db):
-            shutil.rmtree(self.temp_db)
-
-        shutil.copytree(self.shadow_db, self.temp_db)
-
-        # Part of setup is teardown of the import_source directory
-        if os.path.exists(self.import_source):
-            shutil.rmtree(self.import_source)
-
-        self.api = PhotoAPI(root_path=self.temp_db,
-                            init_loggers=False,
-                            init=False)
-        self.api.config.batch_size = 10
-
-    def tearDown(self):  # pragma: no cover
-        """
-        Remove the local instance of the db.
-        """
-        self.api.cleanup(True)
-        self.api = None
-
-        # Part of setup is teardown of the test db
-        if os.path.exists(self.temp_db):
-            shutil.rmtree(self.temp_db)
-
-        # Part of setup is teardown of the import_source directory
-        if os.path.exists(self.import_source):
-            shutil.rmtree(self.import_source)
