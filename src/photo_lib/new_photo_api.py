@@ -1404,8 +1404,9 @@ class PhotoAPI:
         modified = 0
         added = 0
         for mk, nh, fsb in self.db.hash_update_iterator():
-            added += int(not self.db.check_add_file_hash(file_hash=nh, file_key=mk, file_size=fsb))
-            modified += 1
+            hash_existed = self.db.check_add_file_hash(file_hash=nh, file_key=mk, file_size=fsb)
+            added += int(not hash_existed)
+            modified += int(hash_existed)
 
         self.main_logger.info(f"Updated {modified} file hashes. {added} of unseen hashes.")
 
