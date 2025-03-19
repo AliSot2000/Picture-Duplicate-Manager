@@ -529,6 +529,8 @@ class TestSetImportStatus(PerformImportBaseClass):
         """
         Test the set_imported_status function with imported.
         """
+
+        # TODO test case for DELETED.
         self.api.db.debug_execute_many(f"UPDATE `{self.tgt_table}` SET allowed = ? WHERE key = ?",
                                        [(1,3), (1,4), (0,2)])
 
@@ -580,3 +582,52 @@ class TestSetImportStatus(PerformImportBaseClass):
         self.assertEqual(row[0], ImportStatus.IMPORTED.value)
         self.assertIsNotNone(row[1])
 
+    # TODO finish test up.
+    def test_set_imported_status_deleted(self):
+        """
+        Test the set_imported_status function with imported.
+        """
+        self.api.db.debug_execute_many(f"UPDATE `{self.tgt_table}` SET allowed = ? WHERE key = ?",
+                                       [(1,3), (1,4), (0,2)])
+
+
+        # Should fail, because not allowed
+        self.assertRaises(AssertionError, lambda : self.api.db.set_imported_status(tbl_name=self.tgt_table,
+                                                                                   key=2,
+                                                                                   status=ImportStatus.DELETED))
+
+        # Fail because imported is = 0
+        self.assertRaises(AssertionError, lambda : self.api.db.set_imported_status(tbl_name=self.tgt_table,
+                                                                                   key=3,
+                                                                                   status=ImportStatus.DELETED))
+
+        self.api.db.set_imported_status(tbl_name=self.tgt_table,
+                                        key=4,
+                                        status=ImportStatus.MARKED)
+
+        self.api.db.set_imported_status(tbl_name=self.tgt_table,
+                                        key=4, import_key=-1,
+                                        status=ImportStatus.IMPORTED)
+
+        # Check the rows
+        # row 2 should be Ignored, because not allowed
+        self.api.db.debug_execute(f"SELECT imported, import_key FROM `{self.tgt_table}` WHERE key = ?", (2,))
+        row = self.api.db.sq_cur.fetchone()
+        self.assertIsNotNone(row)
+        self.assertEqual(row[0], ImportStatus.IGNORE.value)
+        self.assertIsNone(row[1])
+
+
+        # row 3 should be Ignored, because allowed but not marked_for_import
+        self.api.db.debug_execute(f"SELECT imported, import_key FROM `{self.tgt_table}` WHERE key = ?", (3,))
+        row = self.api.db.sq_cur.fetchone()
+        self.assertIsNotNone(row)
+        self.assertEqual(row[0], ImportStatus.IGNORE.value)
+        self.assertIsNone(row[1])
+
+        # Row 4 should be importe becuase, allowed, and previously set to marked_for_import
+        self.api.db.debug_execute(f"SELECT imported, import_key FROM `{self.tgt_table}` WHERE key = ?", (4,))
+        row = self.api.db.sq_cur.fetchone()
+        self.assertIsNotNone(row)
+        self.assertEqual(row[0], ImportStatus.IMPORTED.value)
+        self.assertIsNotNone(row[1])
