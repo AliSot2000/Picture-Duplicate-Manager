@@ -401,8 +401,9 @@ class TestImportInternalNewFiles(BaseInternalImportTable):
 
         self.mark_all_as_ready(tbl)
 
+        it_size = self.api.db.get_perform_import_iterator_size(tbl)
         allowed, conflict = self.api.import_internal_new_files(tbl=tbl, rename=True, move=True)
-        self.assertEqual(self.api.db.get_perform_import_iterator_size(tbl), allowed + conflict)
+        self.assertEqual(it_size, allowed + conflict)
 
         self.check_table_dump_common()
         self.check_metadata_table_dump_move()
@@ -423,8 +424,9 @@ class TestImportInternalNewFiles(BaseInternalImportTable):
 
         self.mark_all_as_ready(tbl)
 
+        it_size = self.api.db.get_perform_import_iterator_size(tbl)
         allowed, conflict = self.api.import_internal_new_files(tbl=tbl, rename=False, move=True)
-        self.assertEqual(self.api.db.get_perform_import_iterator_size(tbl), allowed + conflict)
+        self.assertEqual(it_size, allowed + conflict)
 
         self.check_table_dump_common()
         self.check_metadata_table_dump_move()
@@ -445,8 +447,9 @@ class TestImportInternalNewFiles(BaseInternalImportTable):
 
         self.mark_all_as_ready(tbl)
 
+        it_size = self.api.db.get_perform_import_iterator_size(tbl)
         allowed, conflict = self.api.import_internal_new_files(tbl=tbl, rename=True, move=False)
-        self.assertEqual(self.api.db.get_perform_import_iterator_size(tbl), allowed + conflict)
+        self.assertEqual(it_size, allowed + conflict)
 
 
         self.check_table_dump_common()
@@ -468,8 +471,9 @@ class TestImportInternalNewFiles(BaseInternalImportTable):
 
         self.mark_all_as_ready(tbl)
 
+        it_size = self.api.db.get_perform_import_iterator_size(tbl)
         allowed, conflict = self.api.import_internal_new_files(tbl=tbl, rename=False, move=False)
-        self.assertEqual(self.api.db.get_perform_import_iterator_size(tbl), allowed + conflict)
+        self.assertEqual(it_size, allowed + conflict)
 
         self.check_table_dump_common()
         self.check_metadata_table_dump_no_move()
@@ -494,10 +498,11 @@ class TestImportInternalNewFiles(BaseInternalImportTable):
         self.mark_all_as_ready(tbl1)
 
         # Perform the import
+        it_size = self.api.db.get_perform_import_iterator_size(tbl1)
         imported, conflict = self.api.import_internal_new_files(tbl=tbl1, rename=False, move=True)
         self.assertEqual(imported, 3)
         self.assertEqual(conflict, 3)
-        self.assertEqual(self.api.db.get_perform_import_iterator_size(tbl1), imported + conflict)
+        self.assertEqual(it_size, imported + conflict)
 
         # Check the messages in the import table
         for row in self.api.db.import_status_test(tbl1):
@@ -555,10 +560,11 @@ class TestImportInternalNewFiles(BaseInternalImportTable):
         shutil.copy2(sf3, df3)
 
         # Perform import this time with errors
+        it_size = self.api.db.get_perform_import_iterator_size(tbl1)
         imported, conflict = self.api.import_internal_new_files(tbl=tbl1, rename=False, move=True)
         self.assertEqual(imported, 0)
         self.assertEqual(conflict, 3)
-        self.assertEqual(self.api.db.get_perform_import_iterator_size(tbl1), imported + conflict)
+        self.assertEqual(it_size, imported + conflict)
 
         for row in self.api.db.import_status_test(tbl1):
             key, allowed, import_status, message, original_filename = row
