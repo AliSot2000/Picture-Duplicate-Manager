@@ -715,7 +715,7 @@ class PhotoDB(BaseSQliteDB):
 
             # PRECONDITION: Row wasn't imported
             # PRECONDITION: Key exists in table
-            self.debug_execute(f"UPDATE `{tbl_name}` SET imported = ? WHERE key = ? AND imported != 2",
+            self.debug_execute(f"UPDATE `{tbl_name}` SET imported = ? WHERE key = ? AND imported NOT IN (2, 3)",
                                args=(ImportStatus.IGNORE.value, key))
             assert self.sq_cur.rowcount == 1, \
                 f"Failed to set imported = 0 in table {tbl_name}, key: {key}, PRECONDITION"
@@ -726,7 +726,7 @@ class PhotoDB(BaseSQliteDB):
             # PRECONDITION: Key exists in table
             # PRECONDITION: Key is allowed
             self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET imported = ? "
-                                    f"WHERE key = ? AND imported != 2 AND allowed = 1",
+                                    f"WHERE key = ? AND imported NOT IN (2, 3) AND allowed = 1",
                                args=(ImportStatus.MARKED.value, key))
             assert self.sq_cur.rowcount == 1, \
                 f"Failed to set imported = 1 in table {tbl_name}, key: {key},PRECONDITION"
