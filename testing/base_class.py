@@ -1,6 +1,7 @@
 import unittest
 from typing import Optional
 from photo_lib.new_photo_api import PhotoAPI
+from photo_lib.cache import Cache
 import os
 import shutil
 
@@ -34,6 +35,9 @@ class DefaultBase(unittest.TestCase):
                             init_loggers=False,
                             opt_integrity_check=True,
                             init=False)
+
+        self.api.key_to_filepath_cache = Cache(size=10)
+        self.api.filename_to_key_cache = Cache(size=10)
 
         self.api.config.batch_size = 10
 
