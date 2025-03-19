@@ -1148,9 +1148,10 @@ class PhotoAPI:
             raise FileExistsError("Cannot copy file to destination. File already exists at destination.")
 
         # check that the paths aren't equal
-        if os.path.abspath(os.path.join(ofd, ofn)) != os.path.dirname(target_path):
-            self.main_logger.debug(f"Internal file movement from: {os.path.abspath(ofd)} to {os.path.abspath(ofn)}")
-            os.rename(os.path.abspath(os.path.join(ofd, ofn)), target_path)
+        assert os.path.abspath(os.path.join(ofd, ofn)) != target_path, \
+            "PRECONDITION FAILED: Expected differing source and target path."
+        self.main_logger.debug(f"Internal file movement from: {os.path.abspath(ofd)} to {os.path.abspath(ofn)}")
+        os.rename(os.path.abspath(os.path.join(ofd, ofn)), target_path)
 
         return target_path, dir_key
 
