@@ -743,6 +743,16 @@ class PhotoDB(BaseSQliteDB):
             assert self.sq_cur.rowcount == 1, \
                 f"Failed to set imported = 2 in table {tbl_name}, key: {key}, PRECONDITION"
 
+        elif status == ImportStatus.DELETED:
+            # PRECONDITION: Row marked for import
+            # PRECONDITION: Key exists in table
+            # PRECONDITION: Key is allowed
+            self.debug_execute(stmt=f"UPDATE `{tbl_name}` SET imported = ? "
+                                    f"WHERE key = ? AND imported = 1 AND allowed = 1",
+                               args=(ImportStatus.DELETED.value, key))
+            assert self.sq_cur.rowcount == 1, \
+                f"Failed to set imported = 3 in table {tbl_name}, key: {key}, PRECONDITION"
+
         else:  # pragma: no cover
             raise ImplementationError(f"Unknown ImportStatus {status.name}")
 
