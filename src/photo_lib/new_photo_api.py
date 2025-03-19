@@ -2751,7 +2751,22 @@ class PhotoAPI:
         """
         Remove all entries and all directories form the database which are no longer referenced
         """
-        # TODO Darktable
+        acc = 0
+
+        # Continue until nothing is lseft
+        while True:
+            inc = self._internal_prune_db_dir()
+            if inc == 0:
+                break
+
+            acc += inc
+        return acc
+
+    def _internal_prune_db_dir(self):
+        """
+        It is also possible for the db_dirs to be contain themselves. So this function needs to be called until 0 is
+        returned.
+        """
 
         # INFO: A db_local_dir can share a partial path with other directories, for example
         #   Assume you had an event spanning a weekend and it's in a given month, so what you want is to store it in
