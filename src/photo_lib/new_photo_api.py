@@ -1503,7 +1503,7 @@ class PhotoAPI:
         """
         Find any grouping of hashes which have the same file size, and hash.
         """
-        ...
+        # TODO implement
 
     # INFO: long-running action
     def deduplicate_internal(self, scope: GroupingCriterion):
@@ -1513,7 +1513,7 @@ class PhotoAPI:
         :param scope: Grouping criterion to deduplicate
         :param com: Connection object to report progress to frontend
         """
-        ...
+        # TODO implement
 
     # INFO: long-running action
     def deduplicate_partitions(self, a: Selection, b: Selection):
@@ -1524,7 +1524,7 @@ class PhotoAPI:
         Partition can be selection from table (all rows which have the mark field set)
         Partition can be the entire table like import table
         """
-        ...
+        # TODO implement
 
     # ==================================================================================================================
     # UI Functions
