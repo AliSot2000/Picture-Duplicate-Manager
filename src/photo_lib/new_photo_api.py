@@ -1491,111 +1491,6 @@ class PhotoAPI:
         self.db.commit()
         return count, conflict
 
-    def prune_db_dir(self) -> int:
-        """
-        Remove all entries and all directories form the database which are no longer referenced
-        """
-        # TODO Darktable
-
-        # INFO: A db_local_dir can share a partial path with other directories, for example
-        #   Assume you had an event spanning a weekend and it's in a given month, so what you want is to store it in
-        #   root_dir/YYYY/MM/event-name/. Deleting the db_local_dir i.e. ['YYYY', 'MM', 'event-name'] will attempt to
-        #   remove the lowest node tree and then go up and attempt to remove all upper nodes and remove those as well
-        #   if they are empty.
-        keys_to_delete = []
-        for raw in self.db.prune_db_dir_list():
-            ktd = raw[0]
-            db_local_dir = raw[1]
-
-            first = True
-            for i in range(len(db_local_dir)):
-                tgt_dir = os.path.join(self.root_path, *db_local_dir[:len(db_local_dir) - i])
-
-                # Path doesn't exist => path empty => can be deleted.
-                if not os.path.exists(tgt_dir):
-                    if first:
-                        keys_to_delete.append(ktd)
-                        first = False
-                    continue
-
-                # path exists
-                if os.listdir(str(tgt_dir)):
-                    if first:
-                        self.main_logger.warning(f"Lowest Directory Not Empty: {tgt_dir}")
-
-                    # directory not empty, abort delete.
-                    break
-
-                # No guard triggered, we're deleting at last
-                self.main_logger.debug(f"deleting directory: {tgt_dir}")
-                shutil.rmtree(tgt_dir)
-
-                if first:
-                    keys_to_delete.append(ktd)
-                    first = False
-
-        self.db.delete_dir(keys_to_delete)
-
-        if len(keys_to_delete) > 0:
-            self.main_logger.info(f"Pruned {len(keys_to_delete)} rows in dir table")
-        else:
-            self.main_logger.debug(f"Call to prune_dir, no rows pruned")
-
-        self.db.commit()
-        return len(keys_to_delete)
-
-    def prune_filesystem_directories(self) -> int:
-        """
-        Walk through the file system and check for empty directories. Remove empty directories if they exist.
-        """
-        count = 0
-        current_count = self._internal_prune_fs_dir()
-
-        # Call recursively
-        while current_count > 0:
-            count += current_count
-            current_count = self._internal_prune_fs_dir()
-
-        return count
-
-    def _internal_prune_fs_dir(self) -> int:
-        """
-        Internal function to prune file system directories. Needs to be called recursively to check
-        """
-        dir_to_prune = []
-        for root, dirs, files in os.walk(self.root_path, topdown=False):
-            if root.startswith(self.db.get_temp_dir()):
-                continue
-
-            if root.startswith(self.db.get_temp_dir()):
-                continue
-
-            if root.startswith(self.db.get_thumb_dir()):
-                continue
-
-            if len(files) + len(dirs) == 0:
-                dir_to_prune.append(root)
-
-        # Early exit
-        if len(dir_to_prune) == 0:
-            return 0
-
-        count = 0
-        for d in dir_to_prune:
-            local_path = d.removeprefix(self.root_path).removeprefix(os.sep)
-            local_path_list = local_path.split(os.sep)
-
-            # Got something from the db_dir table, continue.
-            if self.db.get_dir_key(local_path_list) is not None:
-                continue
-
-            # PRECONDITION: Directory is empty and not listed in the db_dir table, deleting
-            self.main_logger.debug(f"Pruned {count} rows in dir table")
-            shutil.rmtree(d)
-            count += 1
-
-        return count
-
     # ==================================================================================================================
     # Deduplication
     # ==================================================================================================================
@@ -2847,6 +2742,110 @@ class PhotoAPI:
         self.main_logger.info(f"Finished Deleting {count} Originals {'Duplicates' if duplicates else 'Trash'}")
         self.db.commit()
         # INFO: Don't need to update the caches, the path isn't modified.
+        return count
+
+    def prune_db_dir(self) -> int:
+        """
+        Remove all entries and all directories form the database which are no longer referenced
+        """
+        # TODO Darktable
+
+        # INFO: A db_local_dir can share a partial path with other directories, for example
+        #   Assume you had an event spanning a weekend and it's in a given month, so what you want is to store it in
+        #   root_dir/YYYY/MM/event-name/. Deleting the db_local_dir i.e. ['YYYY', 'MM', 'event-name'] will attempt to
+        #   remove the lowest node tree and then go up and attempt to remove all upper nodes and remove those as well
+        #   if they are empty.
+        keys_to_delete = []
+        for raw in self.db.prune_db_dir_list():
+            ktd, db_local_dir = raw
+
+            first = True
+            for i in range(len(db_local_dir)):
+                tgt_dir = os.path.join(self.root_path, *db_local_dir[:len(db_local_dir) - i])
+
+                # Path doesn't exist => path empty => can be deleted.
+                if not os.path.exists(tgt_dir):
+                    if first:
+                        keys_to_delete.append(ktd)
+                        first = False
+                    continue
+
+                # path exists
+                if len(os.listdir(str(tgt_dir))) > 0:
+                    if first:
+                        self.main_logger.warning(f"Lowest Directory Not Empty: {tgt_dir}")
+
+                    # directory not empty, abort delete.
+                    break
+
+                # No guard triggered, we're deleting at last
+                self.main_logger.debug(f"deleting directory: {tgt_dir}")
+                shutil.rmtree(tgt_dir)
+
+                if first:
+                    keys_to_delete.append(ktd)
+                    first = False
+
+        self.db.delete_dir(keys_to_delete)
+
+        if len(keys_to_delete) > 0:
+            self.main_logger.info(f"Pruned {len(keys_to_delete)} rows in dir table")
+        else:
+            self.main_logger.debug(f"Call to prune_dir, no rows pruned")
+
+        self.db.commit()
+        return len(keys_to_delete)
+
+    def prune_filesystem_directories(self) -> int:
+        """
+        Walk through the file system and check for empty directories. Remove empty directories if they exist.
+        """
+        count = 0
+        current_count = self._internal_prune_fs_dir()
+
+        # Call recursively
+        while current_count > 0:
+            count += current_count
+            current_count = self._internal_prune_fs_dir()
+
+        return count
+
+    def _internal_prune_fs_dir(self) -> int:
+        """
+        Internal function to prune file system directories. Needs to be called recursively to check
+        """
+        dir_to_prune = []
+        for root, dirs, files in os.walk(self.root_path, topdown=False):
+            if root.startswith(self.db.get_temp_dir()):
+                continue
+
+            if root.startswith(self.db.get_temp_dir()):
+                continue
+
+            if root.startswith(self.db.get_thumb_dir()):
+                continue
+
+            if len(files) + len(dirs) == 0:
+                dir_to_prune.append(root)
+
+        # Early exit
+        if len(dir_to_prune) == 0:
+            return 0
+
+        count = 0
+        for d in dir_to_prune:
+            local_path = d.removeprefix(self.root_path).removeprefix(os.sep)
+            local_path_list = local_path.split(os.sep)
+
+            # Got something from the db_dir table, continue.
+            if self.db.get_dir_key(local_path_list) is not None:
+                continue
+
+            # PRECONDITION: Directory is empty and not listed in the db_dir table, deleting
+            self.main_logger.debug(f"Pruned {count} rows in dir table")
+            shutil.rmtree(d)
+            count += 1
+
         return count
 
     def prune_all(self) -> int:
