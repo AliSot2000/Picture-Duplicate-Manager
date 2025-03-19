@@ -424,7 +424,7 @@ class TestUpdateMetadataRow(PerformImportBaseClass):
         self.assertIsNone(mdr.db_local_dir)
 
         gps_key = self.api.db.insert_get_gps_loc(9.876543, 1.234567)
-        dir_key = self.api._insert_get_dir("insert/second/dir")
+        dir_key = self.api._insert_get_dir(os.path.join(self.api.root_path, "insert/second/dir"))
 
         self.api.db.update_row_metadata_table(key=1, gps_location=gps_key, db_dir=dir_key)
 
