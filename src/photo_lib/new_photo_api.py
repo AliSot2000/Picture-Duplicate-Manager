@@ -41,7 +41,7 @@ class PhotoAPI:
     integrity_logger_name: str = "PhotoDB.Integrity"
     rare_occurrence_logger_name: str = "PhotoDB.RareOccurrence"
     metadata_aggregator_logger_name: str = "PhotoDB.MetadataAggregator"
-    metadata_aggregator_parsing_logger_name: str = "PhotoDB.MetadataAggregator.Parsing"
+    metadata_aggregator_discover_logger_name: str = "PhotoDB.MetadataAggregator.Discover"
 
     main_logger: logging.Logger
     rare_occurrence_logger: logging.Logger
@@ -90,7 +90,7 @@ class PhotoAPI:
         self.rare_occurrence_logger = logging.getLogger(self.rare_occurrence_logger_name)
 
         self.mda_logger = logging.getLogger(self.metadata_aggregator_logger_name)
-        self.mda_discover_logger = logging.getLogger(self.metadata_aggregator_parsing_logger_name)
+        self.mda_discover_logger = logging.getLogger(self.metadata_aggregator_discover_logger_name)
 
         if init_loggers:
             self.set_logging_defaults()
@@ -165,7 +165,7 @@ class PhotoAPI:
         self.rare_occurrence_logger = logging.getLogger(self.rare_occurrence_logger_name)
 
         self.mda_logger = logging.getLogger(self.metadata_aggregator_logger_name)
-        self.mda_discover_logger = logging.getLogger(self.metadata_aggregator_parsing_logger_name)
+        self.mda_discover_logger = logging.getLogger(self.metadata_aggregator_discover_logger_name)
 
     def set_logging_defaults(self):
         """

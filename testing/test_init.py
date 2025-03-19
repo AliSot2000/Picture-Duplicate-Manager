@@ -494,7 +494,7 @@ class TestAPIInit(BaseInit):
         self.assertEqual(db.rare_occurrence_logger.name, PhotoAPI.rare_occurrence_logger_name)
 
         self.assertEqual(db.mda_logger.name, PhotoAPI.metadata_aggregator_logger_name)
-        self.assertEqual(db.mda_discover_logger.name, PhotoAPI.metadata_aggregator_parsing_logger_name)
+        self.assertEqual(db.mda_discover_logger.name, PhotoAPI.metadata_aggregator_discover_logger_name)
 
         db.main_logger = logging.getLogger("a")
         db.integrity_logger = logging.getLogger("b")
@@ -519,7 +519,7 @@ class TestAPIInit(BaseInit):
         self.assertEqual(db.rare_occurrence_logger.name, PhotoAPI.rare_occurrence_logger_name)
 
         self.assertEqual(db.mda_logger.name, PhotoAPI.metadata_aggregator_logger_name)
-        self.assertEqual(db.mda_discover_logger.name, PhotoAPI.metadata_aggregator_parsing_logger_name)
+        self.assertEqual(db.mda_discover_logger.name, PhotoAPI.metadata_aggregator_discover_logger_name)
 
         db.cleanup(fast=True)
 
