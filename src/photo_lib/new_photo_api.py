@@ -1130,7 +1130,7 @@ class PhotoAPI:
         # Check target directory against datetime directory of file
         if os.path.dirname(target_path) != dt_dir:
             self.main_logger.info(f"Add Custom Directory {os.path.dirname(target_path)}")
-            dir_key = self._insert_get_dir(target_path)
+            dir_key = self._insert_get_dir(os.path.dirname(target_path))
         else:
             dir_key = None
 
