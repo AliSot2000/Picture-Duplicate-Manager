@@ -13,14 +13,19 @@ This file fully tests the following functions:
 - api.prune_filesystem_directories
 - api._internal_prune_fs_dir
 - api.prune_db_dir
+- api._internal_prune_db_dir
 - api.db.prune_gps
 - api.db.prune_hash
 - api.prune_all
 
+The file covers 100% of the function without specific tests:
+- api.db.get_db_dir_count
+- api.db.get_hash_table_size
+- api.db.get_gps_table_size
 """
 
 
-wip = True
+wip = False
 
 
 class TestDeleteDBDir(TestClassifyBase):
@@ -2397,6 +2402,9 @@ class TestPruneGPS(TestClassifyBase):
         self.assertEqual(res, 1)
 
         self.check_gps_equivalent()
+        self.assertEqual(self.api.db.get_gps_table_size(), 4)
+
+
 class TestPruneAll(TestClassifyBase):
     """
     Simple class for covering the prune_all function
