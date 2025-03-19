@@ -806,6 +806,7 @@ class PhotoAPI:
 
             count += 1
 
+        self.db.mark_import_table_as_stale(name=tbl)
         self.db.commit()
         return count
 
