@@ -1156,7 +1156,13 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to Insert Row"
 
-    # TODO add delete
+    def delete_row_presence_table(self, key: int):
+        """
+        Delete a row from the presence table to exculde it from further operations with the presence table.
+
+        :param key: int key from presence table to delete
+        """
+        self.debug_execute("DELETE FROM presence_table WHERE main_key = ?", (key,))
 
     # ==================================================================================================================
     # Hash Update Table
