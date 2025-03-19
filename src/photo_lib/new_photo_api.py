@@ -1501,6 +1501,12 @@ class PhotoAPI:
         self.db.commit()
         return count, conflict
 
+    def update_missing_to_trash(self):
+        """
+        Updates all files in the presence table which are missing to be labeled as trashed
+        """
+        self.db.update_missing_to_trash()
+
     def move_files_to_target_dir(self):
         """
         Moves all files which aren't in the correct location to their correct directory
