@@ -39,7 +39,9 @@ class TestDeleteDBDir(TestClassifyBase):
         prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
                                     sorted(rec_list_all(self.api.root_path))))
 
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
         res = self.api.prune_db_dir()
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
 
         self.assertEqual(res, 0)
 
@@ -56,15 +58,20 @@ class TestDeleteDBDir(TestClassifyBase):
         prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
                                     sorted(rec_list_all(self.api.root_path))))
 
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
+
         # Directory for testing
         tgt_dir = os.path.join(self.api.root_path, "1990", "05", "dir_a")
         self.api._insert_get_dir(tgt_dir)
         self.assertTrue(os.path.exists(tgt_dir))
 
+        self.assertEqual(self.api.db.get_db_dir_count(), 1)
+
         shutil.rmtree(tgt_dir)
         self.assertFalse(os.path.exists(tgt_dir))
 
         res = self.api.prune_db_dir()
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
 
         self.assertEqual(res, 1)
 
@@ -82,12 +89,16 @@ class TestDeleteDBDir(TestClassifyBase):
         prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
                                     sorted(rec_list_all(self.api.root_path))))
 
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
+
         # Directory for testing
         tgt_dir = os.path.join(self.api.root_path, "1990", "05", "dir_a")
         self.api._insert_get_dir(tgt_dir)
         self.assertTrue(os.path.exists(tgt_dir))
+        self.assertEqual(self.api.db.get_db_dir_count(), 1)
 
         res = self.api.prune_db_dir()
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
 
         self.assertEqual(res, 1)
 
@@ -105,13 +116,17 @@ class TestDeleteDBDir(TestClassifyBase):
         prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
                                     sorted(rec_list_all(self.api.root_path))))
 
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
+
         # Directory for testing
         tgt_dir = os.path.join(self.api.root_path, "1990", "05", "dir_a", "dir_b")
         self.api._insert_get_dir(tgt_dir)
         self.assertTrue(os.path.exists(tgt_dir))
+        self.assertEqual(self.api.db.get_db_dir_count(), 1)
 
         res = self.api.prune_db_dir()
 
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
         self.assertEqual(res, 1)
 
         self.api.db.commit()
@@ -127,6 +142,8 @@ class TestDeleteDBDir(TestClassifyBase):
         prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
                                     sorted(rec_list_all(self.api.root_path))))
 
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
+
         # Directory for testing
         tgt_dir = os.path.join(self.api.root_path, "1990", "05", "dir_a", "dir_b")
         self.api._insert_get_dir(tgt_dir)
@@ -134,8 +151,10 @@ class TestDeleteDBDir(TestClassifyBase):
         tgt_dir = os.path.join(self.api.root_path, "1990", "05", "dir_a")
         self.api._insert_get_dir(tgt_dir)
         self.assertTrue(os.path.exists(tgt_dir))
+        self.assertEqual(self.api.db.get_db_dir_count(), 2)
 
         res = self.api.prune_db_dir()
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
 
         self.assertEqual(res, 2)
 
@@ -152,12 +171,16 @@ class TestDeleteDBDir(TestClassifyBase):
         prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
                                     sorted(rec_list_all(self.api.root_path))))
 
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
+
         # Directory for testing
         tgt_dir = os.path.join(self.api.root_path, "dir_a")
         self.api._insert_get_dir(tgt_dir)
         self.assertTrue(os.path.exists(tgt_dir))
+        self.assertEqual(self.api.db.get_db_dir_count(), 1)
 
         res = self.api.prune_db_dir()
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
 
         self.assertEqual(res, 1)
 
@@ -174,12 +197,16 @@ class TestDeleteDBDir(TestClassifyBase):
         prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
                                     sorted(rec_list_all(self.api.root_path))))
 
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
+
         # Directory for testing
         tgt_dir = os.path.join(self.api.root_path, "dir_a", "dir_b")
         self.api._insert_get_dir(tgt_dir)
         self.assertTrue(os.path.exists(tgt_dir))
+        self.assertEqual(self.api.db.get_db_dir_count(), 1)
 
         res = self.api.prune_db_dir()
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
 
         self.assertEqual(res, 1)
 
@@ -196,6 +223,8 @@ class TestDeleteDBDir(TestClassifyBase):
         prev_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
                                     sorted(rec_list_all(self.api.root_path))))
 
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
+
         # Directory for testing
         tgt_dir = os.path.join(self.api.root_path, "dir_a")
         self.api._insert_get_dir(tgt_dir)
@@ -203,10 +232,12 @@ class TestDeleteDBDir(TestClassifyBase):
         tgt_dir = os.path.join(self.api.root_path, "dir_a", "dir_b")
         self.api._insert_get_dir(tgt_dir)
         self.assertTrue(os.path.exists(tgt_dir))
+        self.assertEqual(self.api.db.get_db_dir_count(), 2)
 
         res = self.api.prune_db_dir()
+        self.assertEqual(self.api.db.get_db_dir_count(), 0)
 
-        self.assertEqual(res, 1)
+        self.assertEqual(res, 2)
 
         self.api.db.commit()
         after_rec_list = list(filter(lambda x : not x.endswith(".photos.db-journal"),
