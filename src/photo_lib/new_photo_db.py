@@ -1150,7 +1150,7 @@ class PhotoDB(BaseSQliteDB):
 
         :param key: key to add into the presence_table
 
-        :raises sqlite3.IntegrityError: If the file path already exists
+        :raises sqlite3.IntegrityError: If the file path already exists in the table
         """
         self.debug_execute(f"INSERT INTO presence_table (main_key) VALUES (?)", (key,))
 
