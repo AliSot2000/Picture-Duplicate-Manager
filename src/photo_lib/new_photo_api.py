@@ -1328,6 +1328,13 @@ class PhotoAPI:
         self.db.commit()
         return count
 
+    def check_file_location(self):
+        """
+        Check that all files are in their designated directories.
+        If not, will the file key and the path into the rehome table.
+        """
+        # TODO implement
+
     # INFO: long-running action
     def check_and_update_disp_files(self, selection: Selection = None) -> Tuple[int, int, int, int, int, int]:
         """
@@ -1493,6 +1500,18 @@ class PhotoAPI:
                               f"conflicts.")
         self.db.commit()
         return count, conflict
+
+    def move_files_to_target_dir(self):
+        """
+        Moves all files which aren't in the correct location to their correct directory
+        """
+        # TODO implement
+
+    def set_custom_directores(self):
+        """
+        For all files which aren't in the correct directory, add the current directory as a db_dir
+        """
+        # TODO implement
 
     # ==================================================================================================================
     # Deduplication
