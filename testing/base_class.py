@@ -32,6 +32,7 @@ class DefaultBase(unittest.TestCase):
 
         self.api = PhotoAPI(root_path=self.temp_db,
                             init_loggers=False,
+                            opt_integrity_check=True,
                             init=False)
 
         self.api.config.batch_size = 10
