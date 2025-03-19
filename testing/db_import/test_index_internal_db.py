@@ -38,6 +38,7 @@ class TestSearchDBForNewFiles(TestClassifyBase):
         # Prior to running it, we have one import table
         import_tbl_list = self.api.db.list_import_tables()
         self.assertEqual(len(import_tbl_list), 1)
+        self.assertEqual(self.api.db.get_import_tables_size(), 1)
 
         # Perform the search
         with self.assertLogs(self.api.main_logger, logging.INFO):
@@ -47,6 +48,7 @@ class TestSearchDBForNewFiles(TestClassifyBase):
         # Make sure we still only have two tables
         import_tbl_list = self.api.db.list_import_tables()
         self.assertEqual(len(import_tbl_list), 1)
+        self.assertEqual(self.api.db.get_import_tables_size(), 1)
 
     def test_logging_message_on_moved_file(self):
         """
@@ -62,6 +64,7 @@ class TestSearchDBForNewFiles(TestClassifyBase):
         # Prior to running it, we have one import table
         import_tbl_list = self.api.db.list_import_tables()
         self.assertEqual(len(import_tbl_list), 1)
+        self.assertEqual(self.api.db.get_import_tables_size(), 1)
 
         # Perform the search
         with self.assertLogs(self.api.main_logger, logging.WARNING):
@@ -71,6 +74,7 @@ class TestSearchDBForNewFiles(TestClassifyBase):
         # Make sure we still only have two tables
         import_tbl_list = self.api.db.list_import_tables()
         self.assertEqual(len(import_tbl_list), 1)
+        self.assertEqual(self.api.db.get_import_tables_size(), 1)
 
     def test_allowed_ext_override(self):
         """
