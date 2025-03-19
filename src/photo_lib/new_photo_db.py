@@ -1107,6 +1107,7 @@ class PhotoDB(BaseSQliteDB):
 
         if missing and sel_a:
             # Set sel_a if file is missing but marked as presente
+            # INFO in table and present => missing
             self.debug_execute("UPDATE main SET flags = flags + 16 "
                                "WHERE key IN (SELECT main_key FROM presence_table) "
                                "AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 1")
@@ -1115,6 +1116,7 @@ class PhotoDB(BaseSQliteDB):
 
         elif missing and not sel_a:
             # Set sel_b if file is missing but marked as presente
+            # INFO in table and present => missing
             self.debug_execute("UPDATE main SET flags = flags + 32 "
                                "WHERE key IN (SELECT main_key FROM presence_table) "
                                "AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 1")
@@ -1123,6 +1125,7 @@ class PhotoDB(BaseSQliteDB):
 
         elif not missing and sel_a:
             # Set sel_a if file is present but marked as missing
+            # INFO in table and missing => present
             self.debug_execute("UPDATE main SET flags = flags + 16 "
                                "WHERE key IN (SELECT main_key FROM presence_table) "
                                "AND mod(flags >> 4, 2) = 0 AND mod(flags, 2) = 0")
@@ -1131,6 +1134,7 @@ class PhotoDB(BaseSQliteDB):
 
         elif not missing and not sel_a:
             # Set sel_b if file is present but marked as missing
+            # INFO in table and missing => present
             self.debug_execute("UPDATE main SET flags = flags + 32 "
                                "WHERE key IN (SELECT main_key FROM presence_table) "
                                "AND mod(flags >> 5, 2) = 0 AND mod(flags, 2) = 0")
