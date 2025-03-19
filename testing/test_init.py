@@ -689,3 +689,33 @@ class TestAPIInit(BaseInit):
         db.cleanup(fast=True)
 
     # INFO: missing and present db already checked in DBInit
+
+    def test_clear_mda(self):
+        """
+        Test clearing of the mda
+        """
+        db = PhotoAPI(root_path=test_scratch,
+                      init=True, init_loggers=False, opt_integrity_check=False,
+                      config=PhotoAPI.build_default_config())
+
+        # Check the DB
+        self.assertIsInstance(db, PhotoAPI)
+        self.assertIsNotNone(db.mda)
+
+        self.assertTrue(os.path.exists(db.db.get_temp_dir()))
+        self.assertTrue(os.path.exists(db.db.get_thumb_dir()))
+        self.assertTrue(os.path.exists(db.db.get_trash_dir()))
+
+        self.assertTrue(os.path.exists(os.path.join(db.root_path, defaults.config_path)))
+        self.assertTrue(os.path.exists(db.db.root_path))
+
+        # Set it
+        db.mda = None
+        self.assertIsNone(db.mda)
+
+        db.add_default_metadata_aggregator()
+
+        # Check adding the default mda hasn't overwritten our custom one
+        self.assertIsNotNone(db.mda)
+
+        db.cleanup(fast=True)
