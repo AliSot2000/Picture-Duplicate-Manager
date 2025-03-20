@@ -449,6 +449,10 @@ class PhotoAPI:
                 if os.path.join(root, file) == self.get_config_path():
                     continue
 
+                # Ignore db journal
+                if file == '.photos.db-journal':
+                    continue
+
                 key = self.db.db_resolve_filename_to_key(file)
 
                 # Name not in db, importing file
