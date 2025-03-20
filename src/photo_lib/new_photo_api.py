@@ -870,7 +870,7 @@ class PhotoAPI:
 
         :returns Dict of all hash_matches with match type, key of highest match, highest match value
         """
-        mode = "ANY" if not latest else "latest"
+        mode = "latest" if latest else "any"
         match_keys = self.db.find_hash_match_keys(target_hash=file_hash, file_size=fsb, mode=mode)
         return self._get_best_match_type_common(tgt_fp=tgt_fp, file_hash=file_hash, match_keys=match_keys)
 
