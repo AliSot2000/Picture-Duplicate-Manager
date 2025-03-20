@@ -1649,22 +1649,18 @@ class PhotoDB(BaseSQliteDB):
 
         if mode.lower() == "earliest":
             self.debug_execute("SELECT ha.file_key "
-                               "FROM hashes AS h JOIN hash_assoz AS ha "
-                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
-                               "(SELECT MIN(datetime(ha.hash_date)) "
-                               "FROM hash_assoz AS ha JOIN hash ON hash.key = ha.hash_key "
-                               "WHERE hash.hash = ? AND ha.file_size_bytes = ? AND ha.initial = 0 "
-                               "GROUP BY hash_key, file_key)",
-                               (target_hash, file_size, target_hash, file_size))
+                               "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
+                               "WHERE h.hash = ? AND ha.file_size_bytes = ? AND datetime(ha.hash_date, 'subsec') IN "
+                               "(SELECT MIN(datetime(ha.hash_date, 'subsec')) "
+                               "FROM hash_assoz AS ha WHERE ha.initial = 0 GROUP BY file_key)",
+                               (target_hash, file_size))
 
         elif mode.lower() == "latest":
             self.debug_execute("SELECT ha.file_key "
-                               "FROM hashes AS h JOIN hash_assoz AS ha "
+                               "FROM hashes AS h JOIN hash_assoz AS ha ON h.key = ha.hash_key "
                                "WHERE h.hash = ? AND ha.file_size_bytes = ? AND ha.hash_date IN "
-                               "(SELECT MAX(datetime(ha.hash_date)) "
-                               "FROM hash_assoz AS ha JOIN hash ON hash.key = ha.hash_key "
-                               "WHERE hash.hash = ? AND ha.file_size_bytes = ? GROUP BY hash_key, file_key)",
-                               (target_hash, file_size, target_hash, file_size))
+                               "(SELECT MAX(hash_date) FROM hash_assoz GROUP BY file_key)",
+                               (target_hash, file_size))
         elif mode.lower() == "any":
             self.debug_execute("SELECT ha.file_key "
                                "FROM hashes AS h JOIN hash_assoz AS ha "
