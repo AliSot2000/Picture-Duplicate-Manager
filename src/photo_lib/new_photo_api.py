@@ -1290,7 +1290,7 @@ class PhotoAPI:
             matches, best_match, best_match_type = \
                 self._get_general_best_match_type(file_hash=fh,
                                                   fsb=fsb,
-                                                  tgt_fp=os.path.join(dir_name, name),
+                                                  tgt_fp=os.path.join(self.root_path, dir_name, name),
                                                   latest=only_latest)
 
             self.db.set_match_data_name_update_table(key=key, matches=matches, best_match=best_match,
