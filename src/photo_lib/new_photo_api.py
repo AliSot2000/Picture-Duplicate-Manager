@@ -1441,7 +1441,7 @@ class PhotoAPI:
         return added, modified
 
     # INFO: long-running action,
-    def update_filename_from_hash(self, move: bool):
+    def update_filename_from_hash(self, move: bool) -> Tuple[int, int]:
         """
         Update the names of files resolved through hash and filesize.
 
@@ -1449,6 +1449,8 @@ class PhotoAPI:
         INFO: Given all MatchTypes, the function only considers HASH_MATCH_MAIN
 
         :parma move: move the file to the correct location based on it's datetime.
+
+        :returns: correctly moved files, files with issues
         """
         count = 0
         conflict = 0
