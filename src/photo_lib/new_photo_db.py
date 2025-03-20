@@ -1356,7 +1356,7 @@ class PhotoDB(BaseSQliteDB):
         """
         serializable_matches = {k: v.value for k, v in matches.items()}
 
-        self.debug_execute(stmt="UPDATE name_update_table SET matches = ?, best_match = ?, best_match_type = ? "
+        self.debug_execute(stmt="UPDATE name_update_table SET matches = ?, best_match = ?, match_type = ? "
                                 "WHERE key = ?",
                            args=(json.dumps(serializable_matches), best_match, match_type.value, key))
 
