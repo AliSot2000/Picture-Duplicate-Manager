@@ -2512,7 +2512,6 @@ class PhotoDB(BaseSQliteDB):
 
         :returns: Tuple(datetime, flags, db_local_dir, db_name, original_name)
         """
-        # TODO test this function
         self.debug_execute(stmt="SELECT m.db_name, d.db_local_dir, m.datetime, m.flags, m.original_filename "
                                 "FROM main AS m "
                                 "LEFT OUTER JOIN metadata AS md ON m.key = md.main_key "
