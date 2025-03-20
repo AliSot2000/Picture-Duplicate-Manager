@@ -1252,6 +1252,18 @@ class PhotoAPI:
                 continue
 
             for file in files:
+                # Skip the db file
+                if os.path.join(root, file) == self.get_db_file_path():
+                    continue
+
+                # Skip the config
+                if os.path.join(root, file) == self.get_config_path():
+                    continue
+
+                # Ignore db journal
+                if file == '.photos.db-journal':
+                    continue
+
                 tgt_key = self.db.db_resolve_filename_to_key(file)
 
                 if tgt_key is not None:
