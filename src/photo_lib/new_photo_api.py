@@ -1476,47 +1476,43 @@ class PhotoAPI:
                 conflict += 1
                 continue
 
+            reset_filename = os.path.basename(tgt_path)
+
             # Determine target location
-            if not move:
-                dst_path = os.path.join(dir_name, name)
+            if move:
+                dst_path = tgt_path
             else:
-                dst_path = os.path.join(os.path.dirname(tgt_path), name)
+                dst_path = os.path.join(self.root_path, dir_name, reset_filename)
 
-            # Check if the destination exists, if it's different from the current path.
-            if dst_path != os.path.join(dir_name, name) and os.path.exists(dst_path):
-                self.db.set_updated_status_name_update_table(key=key, status=NameUpdateStatus.FAILED,
-                                                             message="File exists at destination")
+                # Check if the destination exists, if it's different from the current path.
+                if os.path.exists(dst_path):
+                    self.db.set_updated_status_name_update_table(key=key, status=NameUpdateStatus.FAILED,
+                                                                 message="Filename exists at alterior location")
 
-                conflict += 1
-                continue
+                    conflict += 1
+                    continue
 
             flags = self.db.get_main_flags(best_match)
             assert flags is not None, "Flags should exist, if path resolved"
 
+            # INFO: Shouldn't be possble becuase of match type
             if flags.trashed or flags.duplicate:
-                self.db.set_updated_status_name_update_table(
-                    key=key, status=NameUpdateStatus.FAILED,message=f"Parent is trash or duplicate, update not allowed")
+                raise ImplementationError("Match Type Hash Match Main gave result with trash or duplicate flag")
 
-                conflict += 1
-                continue
-
-            # Need to update
-            dir_key = None
+            # Create dir key if needed
             if os.path.dirname(dst_path) != os.path.dirname(tgt_path):
                 dir_key = self._insert_get_dir(os.path.dirname(dst_path))
+                self.db.update_row_metadata_table(key=key, db_dir=dir_key)
 
-            # Only need to move the file if the destination are actually different.
-            if os.path.join(dir_name, name) != os.path.join(os.path.dirname(tgt_path), name):
-                os.rename(os.path.join(dir_name, name), os.path.join(os.path.dirname(tgt_path), name))
+            assert os.path.join(self.root_path, dir_name, name) != dst_path, \
+                ("Path must differ at the very least in the file name otherwise, "
+                 "the file shouldn't have ended up in the name_update_table")
+            os.rename(os.path.join(self.root_path, dir_name, name), dst_path)
 
             flags.present = True
 
             self.db.set_updated_status_name_update_table(key=key, status=NameUpdateStatus.UPDATED)
-            self.db.update_row_main_table(key=best_match, db_name=name, flags=flags)
-
-            if dir_key is not None:
-                self.db.update_row_metadata_table(key=key, db_dir=dir_key)
-
+            self.db.update_row_main_table(key=best_match, flags=flags)
             count += 1
 
         self.main_logger.info(f"Updated names of: {count} files. Couldn't rename: {conflict} files because of "
