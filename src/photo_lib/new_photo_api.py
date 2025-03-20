@@ -1272,7 +1272,12 @@ class PhotoAPI:
                 fsb = os.stat(os.path.join(root, file)).st_size
                 fh = self.mda.hash_file(os.path.join(root, file))
 
-                self.db.insert_row_name_update_table(filename=file, dirname=root, file_size=fsb, file_hash=fh)
+                self.db.insert_row_name_update_table(
+                    filename=file,
+                    dirname=root.removeprefix(self.root_path).removeprefix(os.sep),
+                    file_size=fsb,
+                    file_hash=fh
+                )
                 count += 1
 
         if count == 0:
