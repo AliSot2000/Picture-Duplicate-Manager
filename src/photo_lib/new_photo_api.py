@@ -14,7 +14,7 @@ import photo_lib.defaults as defaults
 from photo_lib.cache import Cache, nd
 from photo_lib.config import Config
 from photo_lib.custom_enum import GroupingCriterion, NewMatchTypes, SelectionType, MediaType, Allowed, ImportStatus, \
-    NameUpdateStatus
+    UpdateStatus
 from photo_lib.data_objects import Selection, MediaPaths
 from photo_lib.db_definitions import current_version
 from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
@@ -1463,7 +1463,7 @@ class PhotoAPI:
                 # INFO: This case should be technically impossible. Can only happen if the name_update_table is
                 #  generated, then a file is forgotten in the main table and then update_filename_from_hash is  called.
                 self.db.set_updated_status_name_update_table(
-                    key=key, status=NameUpdateStatus.FAILED, message="Matched key doesn't exist in main table")
+                    key=key, status=UpdateStatus.FAILED, message="Matched key doesn't exist in main table")
 
                 conflict += 1
                 continue
@@ -1471,7 +1471,7 @@ class PhotoAPI:
             if os.path.exists(tgt_path):
                 # INFO: Can occur if we don't match latest, the parent file exists but has a different newest_hash
                 self.db.set_updated_status_name_update_table(
-                    key=key, status=NameUpdateStatus.FAILED, message="Parent File is Present")
+                    key=key, status=UpdateStatus.FAILED, message="Parent File is Present")
 
                 conflict += 1
                 continue
@@ -1486,7 +1486,7 @@ class PhotoAPI:
 
                 # Check if the destination exists, if it's different from the current path.
                 if os.path.exists(dst_path):
-                    self.db.set_updated_status_name_update_table(key=key, status=NameUpdateStatus.FAILED,
+                    self.db.set_updated_status_name_update_table(key=key, status=UpdateStatus.FAILED,
                                                                  message="Filename exists at alterior location")
 
                     conflict += 1
@@ -1511,7 +1511,7 @@ class PhotoAPI:
 
             flags.present = True
 
-            self.db.set_updated_status_name_update_table(key=key, status=NameUpdateStatus.UPDATED)
+            self.db.set_updated_status_name_update_table(key=key, status=UpdateStatus.UPDATED)
             self.db.update_row_main_table(key=best_match, flags=flags)
             count += 1
 

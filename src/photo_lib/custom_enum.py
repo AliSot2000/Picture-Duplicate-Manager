@@ -120,7 +120,7 @@ class ImportStatus(Enum):
     DELETED = 3
 
 
-class NameUpdateStatus(Enum):
+class UpdateStatus(Enum):
     READY_TO_UPDATE=0
     UPDATED=1
     FAILED=2
