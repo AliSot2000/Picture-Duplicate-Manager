@@ -1468,7 +1468,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Get the number of entries of the location_update_table.
         """
-        self.debug_execute("SELECT COUNT(*) FROM name_update_table")
+        self.debug_execute("SELECT COUNT(*) FROM location_update_table")
         return self.sq_cur.fetchone()[0]
 
     def insert_row_location_update_table(self, key: int, file_name: str, directory: str):
