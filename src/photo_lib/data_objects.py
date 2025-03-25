@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from typing import Union, Optional
+from typing import Union, Optional, List
 
 from photo_lib.custom_enum import *
 from photo_lib.errors_and_warnings import ImplementationError
@@ -169,7 +169,7 @@ class MetadataRow:
     datetime_source: DateTimeSource
     replaced: MediaType # can be  0, 1, 2
 
-    db_local_dir: Optional[str] = None
+    db_local_dir: Optional[List[str]] = None
     gps_lat: Optional[float] = None
     gps_long: Optional[float] = None
 
