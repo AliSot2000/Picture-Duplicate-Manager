@@ -1585,7 +1585,6 @@ class PhotoAPI:
             # Current path should exist
             assert os.path.exists(cur_path), "cur_path shouldn't be None"
 
-    def set_custom_directores(self):
             # target path shouldn't exist
             tgt_path = self.resolve_key_to_path(key)
             if os.path.exists(tgt_path):
@@ -1604,10 +1603,36 @@ class PhotoAPI:
         return success, failed
 
     # INFO: long-running action
+    def set_custom_directories(self) -> Tuple[int, int]:
         """
-        For all files which aren't in the correct directory, add the current directory as a db_dir
+        For all files which aren't in the correct directory, add the current directory as a db_dir.
+
+        :returns: number of successful updates, number of failed updates
         """
-        # TODO implement
+        success = failed = 0
+        for key, file_name, directory in self.db.location_update_table_iterator():
+            cur_path = os.path.join(self.root_path, directory, file_name)
+
+            # Current path should exist
+            assert os.path.exists(cur_path), "cur_path shouldn't be None"
+
+            # target path shouldn't exist
+            tgt_path = self.resolve_key_to_path(key)
+            if os.path.exists(tgt_path):
+
+                self.main_logger.warning("Couldn't update directory. File exists at former location.")
+                self.db.set_location_update_table_success(key=key, success=False)
+                failed += 1
+                continue
+
+            # Path doesn't exist, we can move
+            dir_key = self._insert_get_dir(os.path.dirname(cur_path))
+            self.db.update_row_metadata_table(key=key, db_dir=dir_key)
+            self.db.set_location_update_table_success(key=key, success=True)
+            success += 1
+
+        self.db.commit()
+        return success, failed
 
     # ==================================================================================================================
     # Deduplication
