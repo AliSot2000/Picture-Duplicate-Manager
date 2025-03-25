@@ -1514,12 +1514,12 @@ class PhotoDB(BaseSQliteDB):
         :param sel_a: if True, set the selection a flag, else selection b flag
         """
         if sel_a:
-            self.debug_execute(f"UPDATE main SET flags = flags + 16 WHERE mod(flags >> 4) = 0 "
-                               f"AND key IN (SELECT best_match FROM location_update_table WHERE success = 1) ")
+            self.debug_execute(f"UPDATE main SET flags = flags + 16 WHERE mod(flags >> 4, 2) = 0 "
+                               f"AND key IN (SELECT key FROM location_update_table WHERE success = 1) ")
             rc = self.sq_cur.rowcount
         else:
-            self.debug_execute(f"UPDATE main SET flags = flags + 32 WHERE mod(flags >> 5) = 0 "
-                               f"AND key IN (SELECT best_match FROM location_update_table WHERE success = 1)")
+            self.debug_execute(f"UPDATE main SET flags = flags + 32 WHERE mod(flags >> 5, 2) = 0 "
+                               f"AND key IN (SELECT key FROM location_update_table WHERE success = 1)")
             rc = self.sq_cur.rowcount
         return rc
 
