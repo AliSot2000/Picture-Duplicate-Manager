@@ -1301,7 +1301,7 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to insert row into name_update_table"
 
-    def set_updated_status_name_update_table(self, key: int, status: NameUpdateStatus, message: str = None):
+    def set_updated_status_name_update_table(self, key: int, status: UpdateStatus, message: str = None):
         """
         Set the update state of a row in the name_update_table. Can also add a message, if one is provided.
 
@@ -1312,7 +1312,7 @@ class PhotoDB(BaseSQliteDB):
         :param message: New message of the file
         """
 
-        if status == NameUpdateStatus.READY_TO_UPDATE or status == NameUpdateStatus.UPDATED:
+        if status == UpdateStatus.READY_TO_UPDATE or status == UpdateStatus.UPDATED:
             if message is not None:
                 raise ValueError("Message only intended to inform about failure")
 
