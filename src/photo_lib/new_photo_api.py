@@ -1597,7 +1597,6 @@ class PhotoAPI:
             # target path shouldn't exist
             tgt_path = self.db.db_resolve_key_to_abs_path(key)
             if os.path.exists(tgt_path):
-
                 self.main_logger.warning("Couldn't rehome file. Destination not empty.")
                 self.db.set_location_update_table_success(key=key, success=False)
                 failed += 1
