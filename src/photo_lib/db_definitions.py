@@ -310,7 +310,7 @@ current_version = DBVersion(
             name="name_update_table",
             declaration_string="CREATE TABLE `%name%` ("
                                "key INTEGER PRIMARY KEY AUTOINCREMENT, "
-                               "name TEXT not NULL,"
+                               "name TEXT NOT NULL,"
                                "dir_name TEXT NOT NULL,"
                                "file_size_bytes INTEGER NOT NULL,"
                                "hash TEXT NOT NULL, "
