@@ -1490,6 +1490,9 @@ class PhotoDB(BaseSQliteDB):
         Set the success state of the location_update_table.
 
         PRECONDITION: key wasn't updated already.
+
+        :param key: key in location_update_table to update
+        :param success: whether the operation was successful or not.
         """
         args = (UpdateStatus.UPDATED.value, key) if success else (UpdateStatus.FAILED.value, key)
         self.debug_execute("UPDATE location_update_table SET success = ? WHERE key = ? AND success = 0", args)
