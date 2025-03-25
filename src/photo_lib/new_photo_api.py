@@ -1382,7 +1382,7 @@ class PhotoAPI:
                 # Path matches, skip
                 tgt_path = self.db.db_resolve_key_to_abs_path(tgt_key)
 
-                if tgt_path is None:  # pragma: no cover
+                if tgt_path is None:
                     raise CorruptDatabase("Was able to resolve filename to key but not key to abs_path.")
 
                 if os.path.join(root, file) == tgt_path:
