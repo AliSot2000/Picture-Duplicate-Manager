@@ -103,6 +103,7 @@ current_version = DBVersion(
                   "presence_table", "presence_key_index",
                   "hash_update_table", "hash_update_key_index",
                   "name_update_table", "name_update_key_index", "name_update_match_type_index",
+                  "location_update_table", "location_update_key_index",
                   ],
     all_generic_definitions=["import_table"],
     all_definitions=["hashes", "hashes_str_index", "hash_key_index",
@@ -117,6 +118,7 @@ current_version = DBVersion(
                      "presence_table", "presence_key_index",
                      "hash_update_table", "hash_update_key_index",
                      "name_update_table", "name_update_key_index", "name_update_match_type_index",
+                     "location_update_table", "location_update_key_index",
                      ],
     definitions={
         # All definitions for the main hash lookup table
@@ -329,6 +331,20 @@ current_version = DBVersion(
         "name_update_match_type_index": StaticDeclaration(
             name="name_update_match_type_index",
             declaration_string="CREATE INDEX `%name%` ON name_update_table (match_type)"
+        ),
+        "location_update_table": StaticDeclaration(
+            name="location_update_table",
+            declaration_string="CREATE TABLE `%name%` ("
+                               "key INTEGER, "
+                               "file_name TEXT NOT NULL, "
+                               "directory TEXT NOT NULL, "
+                               "success INTEGER CHECK (success IN (0, 1, 2)), "
+                               "UNIQUE (file_name, directory), "
+                               "FOREIGN KEY (key) REFERENCES main(key))"
+        ),
+        "location_update_key_index": StaticDeclaration(
+            name="location_update_key_index",
+            declaration_string="CREATE INDEX `%name%` ON location_update_table (key)"
         )
     },
     generic_definitions={
