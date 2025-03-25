@@ -1454,6 +1454,113 @@ class PhotoDB(BaseSQliteDB):
         self.remove_extra_cursor("name_update_hash_match")
 
     # ==================================================================================================================
+    # Location Update Table
+    # ==================================================================================================================
+    
+    def clear_location_update_table(self):
+        """
+        Empty out the location update table
+        """
+        self.debug_execute("DELETE FROM location_update_table")
+        self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='location_update_table'")
+    
+    def location_update_table_size(self) -> int:
+        """
+        Get the number of entries of the location_update_table.
+        """
+        self.debug_execute("SELECT COUNT(*) FROM name_update_table")
+        return self.sq_cur.fetchone()[0]
+
+    def insert_row_location_update_table(self, key: int, file_name: str, directory: str):
+        """
+        Insert a row into the location update table
+
+        PRECONDITION: path is relative
+
+        :param key: key to insert (references the key from the main table)
+        :param file_name: Filename under which it was found.
+        :param directory: Directory under which it was found. (is relative to the database root)
+        """
+        self.debug_execute("INSERT INTO location_update_table (key, file_name, directory) VALUES (?, ?, ?)",
+                           (key, file_name, directory))
+        assert self.sq_cur.rowcount == 1, "Failed to insert row into location_update_table"
+
+    def set_location_update_table_success(self, key: int, success: bool):
+        """
+        Set the success state of the location_update_table.
+
+        PRECONDITION: key wasn't updated already.
+        """
+        args = (UpdateStatus.UPDATED.value, key) if success else (UpdateStatus.FAILED.value, key)
+        self.debug_execute("UPDATE location_update_table SET success = ? WHERE key = ? AND success = 0", args)
+        assert self.sq_cur.rowcount == 1, "Failed to update row into location_update_table"
+
+    def delete_row_location_update_table(self, key: int) -> bool:
+        """
+        Delete a row from the location update table
+
+        :param key: key to delete (references the key from the main table)
+        """
+        self.debug_execute("DELETE FROM location_update_table WHERE key = ?", (key,))
+        return self.sq_cur.rowcount == 1
+
+    def selection_from_location_update_table(self, sel_a: bool = True):
+        """
+        Set the selection flags from the location update table
+
+        :param sel_a: if True, set the selection a flag, else selection b flag
+        """
+        if sel_a:
+            self.debug_execute(f"UPDATE main SET flags = flags + 16 WHERE mod(flags >> 4) = 0 "
+                               f"AND key IN (SELECT best_match FROM location_update_table WHERE success = 1) ")
+            rc = self.sq_cur.rowcount
+        else:
+            self.debug_execute(f"UPDATE main SET flags = flags + 32 WHERE mod(flags >> 5) = 0 "
+                               f"AND key IN (SELECT best_match FROM location_update_table WHERE success = 1)")
+            rc = self.sq_cur.rowcount
+        return rc
+
+    def get_location_update_iterator_size(self) -> int:
+        """
+        Get the number of rows in the location update table which we need to process.
+        Equivalent to all rows with 0 as success
+        """
+        self.debug_execute("SELECT COUNT(*) FROM location_update_table WHERE success = 0")
+        return self.sq_cur.fetchone()[0]
+
+    def location_update_table_iterator(self) -> Iterator[Tuple[int, str, str]]:
+        """
+        Get an iterator to the location update table to be able to get the filesystem and the database back in line.
+
+        Tuple elements are in this order:
+        - key to location_update_table / main table
+        - filename
+        - directory (relative)
+        """
+        self.add_extra_cursor("location_update_table_iterator")
+
+        base_stmt = "SELECT key, file_name, directory FROM location_update_table"
+        ordered_base_stmt = base_stmt + " ORDER BY key ASC"
+        step_stmt = base_stmt + "WHERE key > ? ORDER BY key ASC"
+
+        self.debug_execute(ordered_base_stmt)
+
+        while True:
+            results = self.get_cursor("location_update_table_iterator").fetchmany(self.config.batch_size)
+
+            # Exit loop if there's nothing left to be done
+            if len(results) == 0:
+                break
+
+            # Output the result
+            for key, filename, directory in results:
+                yield key, filename, directory
+
+            self.debug_execute(step_stmt, args=(results[-1][0],), cur="location_update_table_iterator")
+
+        self.remove_extra_cursor("location_update_table_iterator")
+
+    # ==================================================================================================================
     # Hash Table
     # ==================================================================================================================
 
