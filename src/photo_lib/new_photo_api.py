@@ -1689,7 +1689,8 @@ class PhotoAPI:
         :param key: key in db of file which needs to be modified.
         :param _target_tz: Target timezone of the file.
         :param rename: If true, will rename the file in the main table.
-        :param replace: If true, will replace the file in the main table.
+        :param replace: If true, will replace the timezone (i.e. zone offset changes, datetime doesn't) else updates
+            time and timezone.
         :param gps_lat: GPS Latitude in decimal format
         :param gps_long: GPS Longitude in decimal format
         :param add_exif_tag: If true, will add exif_tag to the file. If None, default taken from config.
