@@ -25,7 +25,7 @@ The file covers 100% of the function without specific tests:
 - api.db.dump_loccation_update_table
 """
 
-wip: bool = True
+wip: bool = False
 
 
 class TestDBFunctions(TestDefaultBase):
