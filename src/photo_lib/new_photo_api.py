@@ -1603,6 +1603,12 @@ class PhotoAPI:
                 continue
 
             # Path doesn't exist, we can move
+            if not os.path.exists(os.path.dirname(tgt_path)):
+                self.main_logger.debug(
+                    f"Creating directory: {tgt_path.removeprefix(self.root_path).removeprefix(os.sep)}"
+                )
+                os.makedirs(os.path.dirname(tgt_path))
+
             os.rename(cur_path, tgt_path)
             self.db.set_location_update_table_success(key=key, success=True)
             success += 1
