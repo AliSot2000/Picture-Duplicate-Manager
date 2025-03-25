@@ -1540,7 +1540,7 @@ class PhotoAPI:
             flags = self.db.get_main_flags(best_match)
             assert flags is not None, "Flags should exist, if path resolved"
 
-            # INFO: Shouldn't be possble becuase of match type
+            # INFO: Shouldn't be possible because of match type
             if flags.trashed or flags.duplicate:
                 raise ImplementationError("Match Type Hash Match Main gave result with trash or duplicate flag")
 
