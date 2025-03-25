@@ -3427,3 +3427,17 @@ class PhotoDB(BaseSQliteDB):
                  "table_description": row[3],
                  "flags": row[4]
                  } for row in self.sq_cur]
+
+    def dump_location_update_table(self) -> List[Dict[str, Any]]:
+        """
+        Dump the entire table to a list of dicts
+        """
+        self.debug_execute("SELECT key, file_name, directory, success FROM location_update_table ORDER BY key")
+        return [
+            {
+                "key": row[0],
+                "file_name": row[1],
+                "directory": row[2],
+                "success": row[3],
+            } for row in self.sq_cur
+        ]
