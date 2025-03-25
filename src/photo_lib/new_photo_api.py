@@ -1586,7 +1586,7 @@ class PhotoAPI:
             assert os.path.exists(cur_path), "cur_path shouldn't be None"
 
             # target path shouldn't exist
-            tgt_path = self.resolve_key_to_path(key)
+            tgt_path = self.db.db_resolve_key_to_abs_path(key)
             if os.path.exists(tgt_path):
 
                 self.main_logger.warning("Couldn't rehome file. Destination not empty.")
@@ -1617,7 +1617,7 @@ class PhotoAPI:
             assert os.path.exists(cur_path), "cur_path shouldn't be None"
 
             # target path shouldn't exist
-            tgt_path = self.resolve_key_to_path(key)
+            tgt_path = self.db.db_resolve_key_to_abs_path(key)
             if os.path.exists(tgt_path):
 
                 self.main_logger.warning("Couldn't update directory. File exists at former location.")
