@@ -1349,12 +1349,57 @@ class PhotoAPI:
         self.db.commit()
         return count
 
-    def check_file_location(self):
+    # INFO: long-running action
+    def check_file_location(self) -> int:
         """
         Check that all files are in their designated directories.
-        If not, will the file key and the path into the rehome table.
+        If not, insert the file key and the path into the rehome table.
+
+        :returns: number of files with path missmatch
         """
-        # TODO implement
+        self.db.clear_location_update_table()
+
+        count = 0
+
+        for root, dirs, files in os.walk(self.root_path):
+            if root.startswith(self.db.get_trash_dir()):
+                continue
+
+            if root.startswith(self.db.get_temp_dir()):
+                continue
+
+            if root.startswith(self.db.get_thumb_dir()):
+                continue
+
+            for file in files:
+                tgt_key = self.db.db_resolve_filename_to_key(file)
+
+                # Skipping things that aren't in the db
+                if tgt_key is None:
+                    # INFO: This branch handles config, db and db_journal
+                    continue
+
+                # Path matches, skip
+                tgt_path = self.db.db_resolve_key_to_abs_path(tgt_key)
+
+                if tgt_path is None:  # pragma: no cover
+                    raise CorruptDatabase("Was able to resolve filename to key but not key to abs_path.")
+
+                if os.path.join(root, file) == tgt_path:
+                    self.main_logger.debug(f"Found {file} with matching path.")
+                    continue
+
+                # Path missmatch, enter table
+                rel_p = root.removeprefix(self.root_path).removeprefix(os.sep)
+                self.db.insert_row_location_update_table(key=tgt_key,
+                                                         file_name=file,
+                                                         directory=rel_p)
+
+                count += 1
+
+        # Finish up.
+        self.db.commit()
+        return count
 
     # INFO: long-running action
     def check_and_update_disp_files(self, selection: Selection = None) -> Tuple[int, int, int, int, int, int]:
