@@ -1571,13 +1571,39 @@ class PhotoAPI:
         """
         self.db.update_missing_to_trash()
 
-    def move_files_to_target_dir(self):
+    # INFO: long-running action
+    def move_files_to_target_dir(self) -> Tuple[int, int]:
         """
         Moves all files which aren't in the correct location to their correct directory
+
+        :returns: number of successful updates, number of failed updates
         """
-        # TODO implement
+        success = failed = 0
+        for key, file_name, directory in self.db.location_update_table_iterator():
+            cur_path = os.path.join(self.root_path, directory, file_name)
+
+            # Current path should exist
+            assert os.path.exists(cur_path), "cur_path shouldn't be None"
 
     def set_custom_directores(self):
+            # target path shouldn't exist
+            tgt_path = self.resolve_key_to_path(key)
+            if os.path.exists(tgt_path):
+
+                self.main_logger.warning("Couldn't rehome file. Destination not empty.")
+                self.db.set_location_update_table_success(key=key, success=False)
+                failed += 1
+                continue
+
+            # Path doesn't exist, we can move
+            os.rename(cur_path, tgt_path)
+            self.db.set_location_update_table_success(key=key, success=True)
+            success += 1
+
+        self.db.commit()
+        return success, failed
+
+    # INFO: long-running action
         """
         For all files which aren't in the correct directory, add the current directory as a db_dir
         """
