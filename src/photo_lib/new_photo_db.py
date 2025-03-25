@@ -1543,10 +1543,10 @@ class PhotoDB(BaseSQliteDB):
         self.add_extra_cursor("location_update_table_iterator")
 
         base_stmt = "SELECT key, file_name, directory FROM location_update_table"
-        ordered_base_stmt = base_stmt + " ORDER BY key ASC"
-        step_stmt = base_stmt + "WHERE key > ? ORDER BY key ASC"
+        ordered_base_stmt = base_stmt + " WHERE success = 0 ORDER BY key ASC"
+        step_stmt = base_stmt + " WHERE key > ? AND success = 0 ORDER BY key ASC"
 
-        self.debug_execute(ordered_base_stmt)
+        self.debug_execute(ordered_base_stmt, cur="location_update_table_iterator")
 
         while True:
             results = self.get_cursor("location_update_table_iterator").fetchmany(self.config.batch_size)
