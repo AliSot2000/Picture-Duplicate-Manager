@@ -338,7 +338,7 @@ current_version = DBVersion(
                                "key INTEGER, "
                                "file_name TEXT NOT NULL, "
                                "directory TEXT NOT NULL, "
-                               "success INTEGER CHECK (success IN (0, 1, 2)), "
+                               "success INTEGER DEFAULT 0 CHECK (success IN (0, 1, 2)), "
                                "UNIQUE (file_name, directory), "
                                "FOREIGN KEY (key) REFERENCES main(key))"
         ),
