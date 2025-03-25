@@ -1585,6 +1585,15 @@ class PhotoAPI:
             # Current path should exist
             assert os.path.exists(cur_path), "cur_path shouldn't be None"
 
+            # Need to check flags, such that we only update files in the main t able
+            flags = self.db.get_main_flags(key)
+            assert flags is not None, "Flags should exist, if path resolved"
+            if flags.duplicate or flags.trashed:
+                self.main_logger.debug(f"Skipping: {key}, is trash or duplicate")
+                self.db.set_location_update_table_success(key=key, success=False)
+                failed += 1
+                continue
+
             # target path shouldn't exist
             tgt_path = self.db.db_resolve_key_to_abs_path(key)
             if os.path.exists(tgt_path):
@@ -1621,6 +1630,15 @@ class PhotoAPI:
             if os.path.exists(tgt_path):
 
                 self.main_logger.warning("Couldn't update directory. File exists at former location.")
+                self.db.set_location_update_table_success(key=key, success=False)
+                failed += 1
+                continue
+
+            # Need to check flags, such that we only update files in the main t able
+            flags = self.db.get_main_flags(key)
+            assert flags is not None, "Flags should exist, if path resolved"
+            if flags.duplicate or flags.trashed:
+                self.main_logger.debug(f"Skipping: {key}, is trash or duplicate")
                 self.db.set_location_update_table_success(key=key, success=False)
                 failed += 1
                 continue
