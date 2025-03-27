@@ -460,6 +460,9 @@ class TestAPIInit(BaseInit):
         self.assertRaises(FileExistsError, test_fn)
 
     def test_db_exists(self):
+        """
+        Test that an error is raised if the database eixsts on the file system already.
+        """
         with open(os.path.join(test_scratch, defaults.db_file), "w") as f:
             f.write("Content")
 
