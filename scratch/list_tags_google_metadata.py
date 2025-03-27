@@ -7,7 +7,8 @@ import os
 
 """
 Added all google photos metadata to a table so we can test the metadata aggregator without having to have the file 
-system mounted"""
+system mounted
+"""
 
 
 paths = ["/mnt/Aljoscha-Storage/trash/",
