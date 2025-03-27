@@ -178,7 +178,7 @@ class Cache:
             return False
 
         # PRECONDITION: Argument is in cache
-        # Set the cache to be populatable
+        # Set the cache to be populate
         self.__lru[self.__arg_index_lookup[arg]] = False
 
         # Remove the lookup from index to argument
