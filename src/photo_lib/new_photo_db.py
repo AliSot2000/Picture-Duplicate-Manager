@@ -1690,19 +1690,16 @@ class PhotoDB(BaseSQliteDB):
         self.logger.debug(f"Added custom dir {os.path.join(*local_dir)}")
         return self.insert_get_dir(local_dir)
 
-    def delete_dir(self, key: int | List[int]):
+    # INFO: Always calling from another method of the api. Can drop support for single calls
+    def delete_dir(self, keys = List[int]):
         """
         Delete row(s) of the directory table, given a key.
 
         PRECONDITION: Rows exist in table
-        """
-        if isinstance(key, int):
-            raw_key = [key]
-        else:
-            assert isinstance(key, list), f"Unexpected Type: {type(key).__name__}"
-            raw_key = key
 
-        pruned_keys = list(set(raw_key))
+        :param keys: List of keys to dirs
+        """
+        pruned_keys = list(set(keys))
         self.debug_execute_many("DELETE FROM db_dir WHERE key = ?", args=[(k,) for k in pruned_keys])
 
         assert len(pruned_keys) == self.sq_cur.rowcount, (f"Unexpected number of updated rows {self.sq_cur.rowcount}, "
