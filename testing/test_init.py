@@ -10,6 +10,7 @@ from photo_lib.db_definitions import Version
 from photo_lib.metadata_aggregator import NewMetadataAggregator
 from photo_lib.new_photo_db import PhotoDB
 from photo_lib.new_photo_api import PhotoAPI
+from photo_lib.cache import nd, NotDefined, Cache
 
 
 test_scratch = os.path.join(os.path.dirname(__file__), "scratch")
