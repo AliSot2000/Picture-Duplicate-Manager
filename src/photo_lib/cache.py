@@ -100,10 +100,12 @@ class Cache:
             if len(self.__arg_res_lookup) < self.size:
 
                 # Find the entry in the index to arg lookup which currently doesn't have a value set.
-                # INFO, it's correct that we always enter this loop there's no way we don't run that loop. => coverage
-                for idx in range(self.size):
+                idx = 0
+                while idx < self.size:
                     if self.__index_arg_lookup.get(idx, nd) is not nd:
                         continue
+                    else:
+                        break
 
                     assert self.__lru[idx] == False, "Unexpected LRU state."
 
