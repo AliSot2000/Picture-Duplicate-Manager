@@ -2981,9 +2981,9 @@ class PhotoAPI:
                     keys_to_delete.append(ktd)
                     first = False
 
-        self.db.delete_dir(keys_to_delete)
-
         if len(keys_to_delete) > 0:
+            # Performance optimizaiton, move call here since we have the if branch anyway.
+            self.db.delete_dir(keys_to_delete)
             self.main_logger.info(f"Pruned {len(keys_to_delete)} rows in dir table")
         else:
             self.main_logger.debug(f"Call to prune_dir, no rows pruned")
