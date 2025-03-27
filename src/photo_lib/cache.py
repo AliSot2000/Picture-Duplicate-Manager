@@ -102,10 +102,9 @@ class Cache:
                 # Find the entry in the index to arg lookup which currently doesn't have a value set.
                 idx = 0
                 while idx < self.size:
-                    if self.__index_arg_lookup.get(idx, nd) is not nd:
-                        continue
-                    else:
+                    if self.__index_arg_lookup.get(idx, nd) is nd:
                         break
+                    idx += 1
 
                 assert self.__lru[idx] == False, "Unexpected LRU state."
 
