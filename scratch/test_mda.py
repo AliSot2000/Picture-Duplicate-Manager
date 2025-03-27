@@ -8,7 +8,7 @@ import json
 
 
 """
-File goes through all direcctoreis specified in the paths variable. Then adds the metadata persing 
+File goes through all directors specified in the paths variable. Then adds the metadata persing 
 result into the table.
 """
 
