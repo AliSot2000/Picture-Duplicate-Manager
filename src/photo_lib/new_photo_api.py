@@ -28,7 +28,7 @@ from photo_lib.new_photo_db import PhotoDB
 # https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
 # TODO Add RowNotFoundError for row not found in the database
 #   prune_fs_dir should be prune_db (basically set a flag that we need to prune the dir)
-#   Add test case for custom metadata aggregator.
+#   Maybe rework the cache such that the one branch of the for loop is triggered once.
 
 class PhotoAPI:
     root_path: str
