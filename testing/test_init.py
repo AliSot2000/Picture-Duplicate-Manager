@@ -723,3 +723,17 @@ class TestAPIInit(BaseInit):
         self.assertIsNotNone(db.mda)
 
         db.cleanup(fast=True)
+
+    def test_abs_path_db(self):
+        """
+        Test that an
+        """
+        db = PhotoAPI(root_path=test_scratch,
+                      init=True, init_loggers=False, opt_integrity_check=False,
+                      config=PhotoAPI.build_default_config())
+        db_fp = "/foo/bar/baz.db"
+        db.config.db_file = db_fp
+        self.assertEqual(db.get_db_file_path(), db_fp)
+
+        db.cleanup(fast=True)
+
