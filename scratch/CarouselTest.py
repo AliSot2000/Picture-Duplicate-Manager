@@ -5,7 +5,7 @@ from PyQt6.QtCore import Qt, QPoint, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QResizeEvent, QKeyEvent, QColor
 from PyQt6.QtWidgets import QApplication, QFrame, QLabel, QScrollBar
 
-from photo_lib.gui.model import Model
+from photo_lib.gui.old_model import Model
 
 
 class MyLabel(QLabel):
