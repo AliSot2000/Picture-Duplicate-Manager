@@ -6,7 +6,7 @@ import os
 
 from photo_lib.errors_and_warnings import ImplementationError
 
-wip = True
+wip = False
 
 
 """
