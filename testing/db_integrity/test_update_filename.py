@@ -953,7 +953,7 @@ class TestUpdateFilenameFromHash(FixFilenameBase):
             }
         ]
 
-        if wip:
+        if wip:  # pragma: no cover
             print("Target Path Missing Table Dump")
             print(json.dumps(tbl_dump, indent=4))
 
@@ -994,7 +994,7 @@ class TestUpdateFilenameFromHash(FixFilenameBase):
             }
         ]
 
-        if wip:
+        if wip:  # pragma: no cover
             print("Target Path Exists Table Dump")
             print(json.dumps(tbl_dump, indent=4))
 
@@ -1036,7 +1036,7 @@ class TestUpdateFilenameFromHash(FixFilenameBase):
             }
         ]
 
-        if wip:
+        if wip:  # pragma: no cover
             print("Target Path Exists Table Dump")
             print(json.dumps(tbl_dump, indent=4))
 
@@ -1114,7 +1114,7 @@ class TestUpdateFilenameFromHash(FixFilenameBase):
             }
         ]
 
-        if wip:
+        if wip:  # pragma: no cover
             print("Target Path Exists Table Dump")
             print(json.dumps(tbl_dump, indent=4))
 
@@ -1166,7 +1166,7 @@ class TestUpdateFilenameFromHash(FixFilenameBase):
             }
         ]
 
-        if wip:
+        if wip:  # pragma: no cover
             print("Target Path Exists Table Dump")
             print(json.dumps(tbl_dump, indent=4))
 
