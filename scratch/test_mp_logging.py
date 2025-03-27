@@ -6,25 +6,45 @@ import time
 import multiprocessing as mp
 
 
-def some_test_fn(duration: int, step: int, index: int):
+"""
+File was used to test the logging behavior when using a process pool executor. 
+"""
+
+
+def some_test_fn(dur: int, stp: int, fn_idx: int):
+    """
+    Small test function. Retrieves the QueueHandler from the given environment.
+    Counts up to duration, sleeping for step s between outputs to the logger and finally returning the index.
+    
+    :param dur: How long should we sleep for in total
+    :param stp: How long should we sleep for each increment
+    :param fn_idx: user defined return value for debugging
+    
+    :returns: index
+    """
     qh = globals().get("queue_handler")
-    logger = logging.getLogger(f"worker_{index}")
+    logger = logging.getLogger(f"worker_{fn_idx}")
     logger.setLevel(logging.DEBUG)
     logger.addHandler(qh)
     qh.setLevel(logging.DEBUG)
 
     idx = 0
-    while idx < duration:
-        time.sleep(step)
-        idx += step
+    while idx < dur:
+        time.sleep(stp)
+        idx += stp
         logger.info(f"Now at: {idx}")
 
     logger.warning(f"We're done now")
-    return index
+    return fn_idx
+
 
 def init_child_logger(logging_queue: mp.Queue):
+    """
+    Init method adds a queue handler to the global environment of the child process.
+    """
     queue_handler = handlers.QueueHandler(logging_queue)
     globals()["queue_handler"] = queue_handler
+
 
 queue = mp.Queue()
 duration = [i for i in range(60, 120, 2)]
