@@ -107,22 +107,22 @@ class Cache:
                     else:
                         break
 
-                    assert self.__lru[idx] == False, "Unexpected LRU state."
+                assert self.__lru[idx] == False, "Unexpected LRU state."
 
-                    # Store the argument in the argument to result lookup dict
-                    self.__arg_res_lookup[arg] = value
+                # Store the argument in the argument to result lookup dict
+                self.__arg_res_lookup[arg] = value
 
-                    # Store the index in the __lru array in the arg to index lookup dict
-                    self.__arg_index_lookup[arg] = idx
+                # Store the index in the __lru array in the arg to index lookup dict
+                self.__arg_index_lookup[arg] = idx
 
-                    # Store the index to argument lookup (needed for eviction)
-                    self.__index_arg_lookup[idx] = arg
+                # Store the index to argument lookup (needed for eviction)
+                self.__index_arg_lookup[idx] = arg
 
-                    # Set the entry as accessed
-                    self.__lru[self.__arg_index_lookup[arg]] = True
+                # Set the entry as accessed
+                self.__lru[self.__arg_index_lookup[arg]] = True
 
-                    # Return, we don't want to update anything else
-                    return
+                # Return, we don't want to update anything else
+                return
 
             else:
                 assert len(self.__arg_res_lookup) == self.size, (f"Unexpected size of cache: "
