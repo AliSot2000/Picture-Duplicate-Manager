@@ -737,3 +737,78 @@ class TestAPIInit(BaseInit):
 
         db.cleanup(fast=True)
 
+
+class TestCoverCache(unittest.TestCase):
+    """
+    Class contains auxiliary methods to fully cover the cache.
+    """
+
+    def test_cache_basic(self):
+        """
+        This test basically only serves to cover the cache.py
+        It doesn't 'test' the cache per se.
+        """
+        cache = Cache(1024)
+
+        self.assertEqual(cache.current_size, 0)
+        self.assertEqual(cache.hits, 0)
+        self.assertEqual(cache.misses, 0)
+
+        self.assertDictEqual(cache.get_stats(), {
+            "max_size": 1024,
+            "hits": 0,
+            "misses": 0,
+            "current_size": 0,
+        })
+
+    def test_raises_with_nd(self):
+        """
+        Test the cache raises an Exception if anything is the not defined singleton
+        """
+        cache = Cache(1024)
+
+        nd2 = NotDefined()
+
+        self.assertEqual(nd2, nd)
+
+        # Test the get function
+        self.assertRaises(ValueError, lambda: cache.get(nd))
+
+        # Test the evict function
+        self.assertRaises(ValueError, lambda: cache.evict(nd))
+
+        # Test the set function
+        self.assertRaises(ValueError, lambda: cache.set(arg=nd, value="Value"))
+        self.assertRaises(ValueError, lambda: cache.set(arg="some_arg", value=nd))
+
+        # Test the set function
+        self.assertRaises(ValueError, lambda: cache.update(arg=nd, value="Value"))
+        self.assertRaises(ValueError, lambda: cache.update(arg="some_arg", value=nd))
+
+        cache.inspect()
+
+    def test_cache_full(self):
+        """
+        Test that the cache correctly starts evicting the last used element.
+        """
+        c = Cache(4)
+        c.set("a", 1)
+        c.set("b", 2)
+        c.set("c", 3)
+        c.set("d", 4)
+
+        # check that the cache still contains the key a
+        self.assertEqual(c.get("a"), 1)
+
+        # Now set
+        c.set("e", 5)
+
+        self.assertIs(c.get("a"), nd)
+
+        self.assertEqual(c.misses, 1)
+        self.assertEqual(c.hits, 1)
+
+        c.reset()
+
+        self.assertEqual(c.misses, 0)
+        self.assertEqual(c.hits, 0)
