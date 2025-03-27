@@ -450,7 +450,7 @@ class PhotoAPI:
                     continue
 
                 # Ignore db journal
-                if file == '.photos.db-journal':
+                if file == '.photos.db-journal':  # pragma: no cover
                     continue
 
                 key = self.db.db_resolve_filename_to_key(file)
