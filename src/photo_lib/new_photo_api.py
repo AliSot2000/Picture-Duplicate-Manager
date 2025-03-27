@@ -3133,4 +3133,3 @@ class RemedyPhotoDB(PhotoAPI):
         """
         Functionality needed because some images are only on older dbs including their metadata.
         """
-        ...
