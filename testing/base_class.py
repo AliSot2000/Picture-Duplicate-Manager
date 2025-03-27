@@ -5,6 +5,7 @@ from photo_lib.cache import Cache
 import os
 import shutil
 
+
 class DefaultBase(unittest.TestCase):
     """
     Contains default set up and tear down for tests
