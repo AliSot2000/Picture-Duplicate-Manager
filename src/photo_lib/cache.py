@@ -214,7 +214,7 @@ class Cache:
         self.__misses: int = 0
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     test_cache = Cache(size=4)
 
     test_cache.set(1, "one")
