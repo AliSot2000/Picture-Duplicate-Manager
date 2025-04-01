@@ -727,6 +727,7 @@ class TestAPIPerformImport(PerformImportBaseClass):
             "1990/11/01/1990-11-01T12-00-04_0135.jpg",      # Needed to test gps parsing
         ]
 
+        self.assertEqual(len(rel_paths), len(db_paths))
         for rp in rel_paths:
             self.assertIn(rp, db_paths)
 
@@ -908,6 +909,7 @@ class TestAPIPerformImport(PerformImportBaseClass):
             "1990-11-01T12-00-04_0135.jpg",     # Needed to test gps parsing
         ]
 
+        self.assertEqual(len(db_files), len(files))
         for file in files:
             self.assertIn(file, db_files)
 
@@ -1087,7 +1089,7 @@ class TestAPIPerformImport(PerformImportBaseClass):
             "1990-11-01T12-00-03_0134_22_gps_metadata.jpg",             # Needed to test gps parsing
             "1990-11-01T12-00-04_0135_23_gps_metadata.jpg",             # Needed to test gps parsing
         ]
-
+        self.assertEqual(len(db_files), len(files))
         for file in files:
             self.assertIn(file, db_files)
 
