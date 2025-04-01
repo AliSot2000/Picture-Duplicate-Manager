@@ -10,13 +10,14 @@ from zoneinfo import ZoneInfo
 import dateutil.parser
 import exiftool
 import timezonefinder
+import tzlocal
 from dateutil import parser
 
 from photo_lib.metadata_aggregator.config import (
     InternalDateTimeParser, DateTimeParser, LookupSource, InternalStaticLookupSource, DoubleKey, DoubleKeyFormat,
     InternalDoubleKeyStatic, GoogleFotoDatetime, StaticLookupSource, DoubleKeyStatic)
-from photo_lib.metadata_aggregator.enums import DateTimeCategory, DateTimeSource
 from photo_lib.metadata_aggregator.dataclasses import DateTimeParsingResult, GPSParsingResult, MetadataParsingResult
+from photo_lib.metadata_aggregator.enums import DateTimeCategory, DateTimeSource
 
 
 # https://docs.python.org/3/howto/logging.html#logging-flow
