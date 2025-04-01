@@ -445,6 +445,9 @@ if __name__ == '__main__':
     import_input_dir = os.path.join(target_dir, "import_match_source")
     create_files_from_dict(import_match_input, import_input_dir)
 
+    # copy the a file for it to be not allowed
+    shutil.copy2(os.path.join(import_input_dir, "81_No_Match.png"), os.path.join(import_input_dir, "81_No_Match.pvl"))
+
     # Create the directory for the database files for the hash matching test
     hash_db_base = os.path.join(target_dir, "db", "hash_matches")
     create_files_from_dict(arg_dict=hash_db_base_tests, tgt_dir=hash_db_base)
