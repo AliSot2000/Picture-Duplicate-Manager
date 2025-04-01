@@ -124,3 +124,15 @@ class UpdateStatus(Enum):
     READY_TO_UPDATE=0
     UPDATED=1
     FAILED=2
+
+
+class MainTileView(Enum):
+    """
+    List of all possible views for the main tile view.
+    """
+    MAIN = 0
+    TRASH = 1
+    DUPLICATE = 2
+    VERIFY = 3
+    SEL_A = 4
+    SEL_B = 5
