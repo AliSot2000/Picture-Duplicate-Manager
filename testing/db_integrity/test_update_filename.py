@@ -233,6 +233,18 @@ class FixFilenameBase(HashUpdateBase):
                 "match_type": 0,
                 "updated": 0,
                 "message": None
+            },
+            {
+                "key": 8,
+                "name": "81_No_Match.pvl",
+                "dir_name": "2025/03/19",
+                "file_size_bytes": 42798,
+                "hash": "9b9e0c5b46c73cedf092524e29828de87a0e60bdf21c893493087186d6d58d44",
+                "matches": "{}",
+                "best_match": None,
+                "match_type": 0,
+                "updated": 0,
+                "message": None
             }
         ]
 
