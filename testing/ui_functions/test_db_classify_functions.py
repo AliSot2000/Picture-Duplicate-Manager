@@ -536,7 +536,7 @@ class TestToTrash(TestClassifyLocalBase):
         # Create the display files
         self.api.create_display_files(miniature=True, thumbnail=True)
 
-        default_tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzname()
+        default_tz = tzlocal.get_localzone_name()
         time_limit = datetime.datetime.now(zoneinfo.ZoneInfo(default_tz))
 
         self.api.move_to_trash(key=1, overwrite=True)
