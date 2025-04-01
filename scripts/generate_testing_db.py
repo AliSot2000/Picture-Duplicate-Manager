@@ -98,8 +98,12 @@ api.move_to_duplicates(parent_key=par_key,
                             child_key=api.db.db_resolve_org_filename_to_keys(hmt2)[0])
 api.move_to_duplicates(parent_key=par_key,
                             child_key=api.db.db_resolve_org_filename_to_keys(bmd1)[0])
-# ======================================================================================================================
 
+# ======================================================================================================================
+import_source = os.path.abspath(os.path.join(os.path.abspath(__file__), "..", "..", "testing", "test_file_out", "import_match_source"))
+
+api.prepare_directory_for_import(import_source, tbl_name="import_test")
+api.find_match_for_import_table(tbl_name="import_test")
 
 api.cleanup()
 
