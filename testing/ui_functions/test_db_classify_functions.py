@@ -5,8 +5,10 @@ import shutil
 import time
 import zoneinfo
 
-from photo_lib.custom_enum import MediaType
+import tzlocal
+
 from base_class import TestDefaultBase
+from photo_lib.custom_enum import MediaType
 
 """
 This file fully tests the following functions:
