@@ -695,7 +695,7 @@ class TestCheckFilenames(FixFilenameBase):
         # copy into database
         shutil.copytree(base_dir, tgt_dir)
 
-        self.assertEqual(self.api.check_filenames(), 7)
+        self.assertEqual(self.api.check_filenames(), 8)
 
         self.check_import_match_table()
 
