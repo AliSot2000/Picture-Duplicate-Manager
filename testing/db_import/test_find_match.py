@@ -300,6 +300,12 @@ class TestFindMatch(TestDefaultBase):
                 self.assertIsNone(bm)
                 self.assertDictEqual(parsed_matches, {})
 
+            # Not allowed shouldn't have been a part of matching process
+            elif ofn == "81_No_Match.pvl":
+                self.assertEqual(mt, NewMatchTypes.NO_MATCH)
+                self.assertIsNone(bm)
+                self.assertIsNone(parsed_matches)
+
 
             else:  # pragma: no cover
                 raise ImplementationError(f"Unexpected file {ofn}")
@@ -316,6 +322,12 @@ class TestFindMatch(TestDefaultBase):
                 self.assertIsNone(bm)
                 self.assertDictEqual(parsed_matches, {})
 
+            # Not allowed file. Shouldn't have been a part of matching process.
+            elif ofn == "81_No_Match.pvl":
+                self.assertEqual(mt, NewMatchTypes.NO_MATCH)
+                self.assertIsNone(bm)
+                self.assertIsNone(parsed_matches)
+
             elif ofn in ("40_Matching_Source.png", "50_Matching_Source.png", "60_Matching_Source.png"):
                 continue
             else:  # pragma: no cover
@@ -328,7 +340,8 @@ class TestFindMatch(TestDefaultBase):
         :param tbl_name: Import Table to process
         """
         for key, ofn, mt, bm, parsed_matches in self.api.db.match_test(tbl_name=tbl_name):
-            if ofn in ("10_Matching_Source.png", "20_Matching_Source.png", "30_Matching_Source.png", "81_No_Match.png"):
+            if ofn in ("10_Matching_Source.png", "20_Matching_Source.png", "30_Matching_Source.png", "81_No_Match.png",
+                       "81_No_Match.pvl"):
                 continue
 
             elif ofn == "40_Matching_Source.png":
