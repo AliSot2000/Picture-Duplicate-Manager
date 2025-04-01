@@ -383,7 +383,7 @@ class NewMetadataAggregator:
         self.__use_google_photos_metadata = use_google_photos_metadata
 
         if default_tz is None:
-            self.default_tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzname()
+            self.default_tz = tzlocal.get_localzone_name()
 
         if tz_priority is not None:
             no_dup = set(tz_priority)
