@@ -1,8 +1,9 @@
 # pragma: no cover
 
 import os
-from photo_lib.new_photo_api import PhotoAPI
 import shutil
+
+from photo_lib.new_photo_api import PhotoAPI
 
 
 def setup_missing_and_present(api_internal: PhotoAPI, file_root: str):
