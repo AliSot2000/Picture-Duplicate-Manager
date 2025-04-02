@@ -1486,7 +1486,7 @@ class PhotoDB(BaseSQliteDB):
                            (key, file_name, directory))
         assert self.sq_cur.rowcount == 1, "Failed to insert row into location_update_table"
 
-    def set_location_update_table_success(self, key: int, success: bool):
+    def set_location_update_table_success(self, key: int, success: bool, message: str = None):
         """
         Set the success state of the location_update_table.
 
@@ -1495,6 +1495,9 @@ class PhotoDB(BaseSQliteDB):
         :param key: key in location_update_table to update
         :param success: whether the operation was successful or not.
         """
+        if success and message is not None:
+            raise ValueError("Success doesn't need a message")
+
         args = (UpdateStatus.UPDATED.value, key) if success else (UpdateStatus.FAILED.value, key)
         self.debug_execute("UPDATE location_update_table SET success = ? WHERE key = ? AND success = 0", args)
         assert self.sq_cur.rowcount == 1, "Failed to update row into location_update_table"
