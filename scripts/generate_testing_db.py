@@ -240,6 +240,7 @@ api.perform_import(tbl_name=tgt_table)
 setup_missing_and_present(api, dummy_files)
 setup_hash_update(api, file_root=dummy_files)
 setup_name_match(api, file_root=dummy_files)
+setup_moved(api, file_root=dummy_files)
 
 
 api.cleanup()
