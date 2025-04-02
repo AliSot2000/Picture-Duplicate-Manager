@@ -51,6 +51,16 @@ class TestDBFunctions(TestDefaultBase):
 
         self.assertRaises(AssertionError, lambda : self.api.db.set_location_update_table_success(key=1, success=False))
 
+    def test_raises_message_error(self):
+        """
+        Test that the update call raises an error, if a message is provided in conjunction with success
+        """
+        self.assertRaises(ValueError, lambda : self.api.db.set_location_update_table_success(
+            key=1,
+            success=True,
+            message="Some Message"
+        ))
+
     def test_update_to_failure(self):
         """
         Test that we can update a row to failure, and it won't update afterwards. Also test the iterator size
