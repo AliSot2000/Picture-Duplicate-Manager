@@ -1588,9 +1588,11 @@ class PhotoAPI:
             # Need to check flags, such that we only update files in the main t able
             flags = self.db.get_main_flags(key)
             assert flags is not None, "Flags should exist, if path resolved"
+            assert not (flags.trashed and flags.duplicate), "INVARIANT ERROR: Either Trash or Duplicate, not both"
             if flags.duplicate or flags.trashed:
                 self.main_logger.debug(f"Skipping: {key}, is trash or duplicate")
-                self.db.set_location_update_table_success(key=key, success=False)
+                msg = f"Skipping {key}, is {'trash' if flags.trashed else 'duplicate'}"
+                self.db.set_location_update_table_success(key=key, success=False, message=msg)
                 failed += 1
                 continue
 
@@ -1598,7 +1600,9 @@ class PhotoAPI:
             tgt_path = self.db.db_resolve_key_to_abs_path(key)
             if os.path.exists(tgt_path):
                 self.main_logger.warning("Couldn't rehome file. Destination not empty.")
-                self.db.set_location_update_table_success(key=key, success=False)
+                self.db.set_location_update_table_success(
+                    key=key, success=False, message=f"Couldn't rehome file {key}. Destination not empty."
+                )
                 failed += 1
                 continue
 
