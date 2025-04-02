@@ -203,6 +203,26 @@ def setup_name_match(api_internal: PhotoAPI, file_root: str):
     api_internal.db.debug_execute("UPDATE name_update_table SET updated = 2 WHERE key = ?", (key_2,))
 
 
+def setup_moved(api_internal: PhotoAPI, file_root: str):
+    """
+    Move a folder to anohter place
+    """
+    src1 = os.path.join(api_internal.root_path, "1990", "04", "01")
+    src2 = os.path.join(api_internal.root_path, "1990", "07", "01")
+
+    dst1 = os.path.join(api_internal.root_path, "1992", "04", "02")
+    dst2 = os.path.join(api_internal.root_path, "1992", "07", "02")
+
+    shutil.copytree(src1, dst1)
+    shutil.copytree(src2, dst2)
+
+    api_internal.check_file_location()
+
+    api_internal.db.debug_execute("UPDATE location_update_table SET success = 1 WHERE key = ?", (8,))
+    api_internal.db.debug_execute("UPDATE location_update_table SET success = 2 WHERE key = ?", (9,))
+
+
+
 dummy_files = os.path.abspath(os.path.join(os.path.abspath(__file__), "..", "..", "testing", "test_file_out"))
 
 
