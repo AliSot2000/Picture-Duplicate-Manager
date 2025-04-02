@@ -3,11 +3,12 @@ import json
 import logging
 import os.path
 import sys
-from typing import Set, Dict, List, Union, Tuple, Iterator, Any, Optional
+from textwrap import dedent
+from typing import Set, Dict, List, Union, Tuple, Iterator, Any
 
 from photo_lib.config import Config
 from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus, UpdateStatus, \
-    NewMatchTypes
+    NewMatchTypes, MainTileView
 from photo_lib.data_objects import Selection, NewImportTableEntry, MetadataRow, MainRow, MediaPaths
 from photo_lib.db_definitions import StaticDeclaration, GenericDeclaration, DBVersion, \
     DBHistorySpec
