@@ -1639,16 +1639,19 @@ class PhotoAPI:
             if os.path.exists(tgt_path):
 
                 self.main_logger.warning("Couldn't update directory. File exists at former location.")
-                self.db.set_location_update_table_success(key=key, success=False)
+                self.db.set_location_update_table_success(
+                    key=key, success=False, message="Couldn't update directory. File exists at former location.")
                 failed += 1
                 continue
 
             # Need to check flags, such that we only update files in the main t able
             flags = self.db.get_main_flags(key)
             assert flags is not None, "Flags should exist, if path resolved"
+            assert not (flags.trashed and flags.duplicate), "INVARIANT ERROR: Either Trash or Duplicate, not both"
             if flags.duplicate or flags.trashed:
                 self.main_logger.debug(f"Skipping: {key}, is trash or duplicate")
-                self.db.set_location_update_table_success(key=key, success=False)
+                msg = f"Skipping {key}, is {'trash' if flags.trashed else 'duplicate'}"
+                self.db.set_location_update_table_success(key=key, success=False, message=msg)
                 failed += 1
                 continue
 
