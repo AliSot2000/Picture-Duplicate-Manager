@@ -3585,8 +3585,6 @@ class PhotoDB(BaseSQliteDB):
             assert header in (0, 1), "Unexpected value for Header of Presence View Lookup Table"
             return "Currently Missing" if header == 0 else "Currently Present"
 
-    # TODO give smarter name
-    def lookup_row_to_xxx(self, key: int, target_table: str, tbl_name: str = None):
         # Header for Hash Update Table
         elif target_view == TargetViewTable.HASH:
             assert header is None, "Unexpected value for Header of Hash View Lookup Table"
@@ -3638,15 +3636,32 @@ class PhotoDB(BaseSQliteDB):
         """
         Resolve row to list of image metadata
 
-        :param key: Row to resolve
-        :param target_table: str; selection of [main, import, presence, hash, name], case insensitive
-        :param tbl_name: Name of the import table.
+        :param row: Row to resolve
+        :param target_view: View for which to resolve the row to keys.
+
+        :return: List of keys. WARNING: The user needs to know what type of keys are returned (keys unique to the
+            table or keys referenced in the main table)
         """
-        int_tbl = target_table.lower().strip()
-        self._check_target_table(int_tbl, tbl_name)
-        # TODO implement
+        _, row_cache, _ = self.get_caches(target_view)
+        tgt_table = target_view.value
+
+        # Query cache
+        if row_cache is not None:
+            res = row_cache.get(row)
+            if res is not nd:
+                return res
+
+        # Query table and get results
+        self.debug_execute(f"SELECT key FROM `{tgt_table}` WHERE global_row = ? ORDER BY col", (row,))
+        results = [k[0] for k in self.sq_cur.fetchall()]
+
+        # Cache present populate cache
+        if row_cache is not None:
+            row_cache.set(row, results)
 
     def lookup_key_to_row(self, key: int, target_table: str, tbl_name: str = None):
+        return results
+
         """
         Resolve a given key from the row table to the row in the ui
 
