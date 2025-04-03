@@ -3624,6 +3624,17 @@ class PhotoDB(BaseSQliteDB):
 
         else:  # pragma: no cover
             raise ImplementationError("Unexpected target view from TargetViewTable Enum")
+
+    def clear_ui_lookup_table(self, target_table: TargetViewTable):
+        """
+        Clear a ui table for it to be rebuilt.
+        """
+        table_name = target_table.value
+        self.debug_execute(f"DELETE FROM `{table_name}`")
+
+        self.clear_caches(target_table)
+
+    def lookup_row_to_keys(self, row: int, target_view: TargetViewTable) -> List[int]:
         """
         Resolve row to list of image metadata
 
