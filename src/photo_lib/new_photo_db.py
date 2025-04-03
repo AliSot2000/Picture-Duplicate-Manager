@@ -351,6 +351,8 @@ class PhotoDB(BaseSQliteDB):
             self.prune_gps()
             self.prune_hash()
 
+            # TODO clear view tables.
+
             self.basic_integrity_check()
 
         super().cleanup()
