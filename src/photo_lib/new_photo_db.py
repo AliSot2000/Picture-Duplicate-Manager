@@ -1381,7 +1381,7 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute("DELETE FROM name_update_table")
         self.debug_execute("UPDATE sqlite_sequence SET seq=0 WHERE NAME='name_update_table'")
 
-    def filename_update_table_size(self) -> int:
+    def name_update_table_size(self) -> int:
         """
         Check whether the filename_update_table contains any entries.
         """
