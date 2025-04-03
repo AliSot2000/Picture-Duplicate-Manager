@@ -3316,10 +3316,70 @@ class PhotoDB(BaseSQliteDB):
     def build_presence_table_lookup(self, col_width: int):
         """
         Build the lookup table for the presence_table
-        """
-        # TODO implement
 
-    def build_hash_update_table_lookup(self):
+        :param col_width: Column width of the view table.
+        """
+        assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
+
+        stmt = f"""
+            INSERT INTO lookup_presence_view_tbl
+            WITH GroupedData AS (
+                SELECT
+                    key,
+                    datetime(datetime) AS dt,
+                    CASE
+                        WHEN mod(main.flags, 2) = 1 THEN 0 --flags are 1, means, is present but also in presence table => missing now
+                        WHEN mod(main.flags, 2) = 0 THEN 1 --flags are 0, means, is missing but also in presence table => present now
+                    END AS grouping_criterion
+            
+                FROM presence_table JOIN main ON presence_table.main_key = main.key 
+            ),
+            NumberedData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    ROW_NUMBER() OVER (PARTITION BY grouping_criterion ORDER BY dt, key) AS partition_index
+                FROM GroupedData
+            ),
+            CollectionData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    partition_index,
+                    (partition_index - 1) / {col_width} AS partition_row,
+                    (partition_index - 1) % {col_width} AS col
+                FROM NumberedData
+            ),
+            PartitionSizes AS (
+                SELECT
+                    grouping_criterion,
+                    MAX(partition_row) + 1 AS total_rows  -- Count total rows in each partition
+                FROM CollectionData
+                GROUP BY grouping_criterion
+            ),
+            GlobalPositionData AS (
+                SELECT
+                    c.*,
+                    (SELECT COALESCE(SUM(p2.total_rows), 0)
+                     FROM PartitionSizes p2
+                     WHERE p2.grouping_criterion < c.grouping_criterion) + partition_row AS global_row
+                FROM CollectionData c
+            )
+            SELECT
+                key,
+                partition_index,
+                partition_row,
+                col,
+                grouping_criterion,
+                global_row
+            FROM GlobalPositionData
+            
+            ORDER BY grouping_criterion, dt, key
+        """
+        san_stmt = dedent(stmt)
+        self.debug_execute(san_stmt)
+
+    def build_hash_update_table_lookup(self, col_width: int):
         """
         Build the lookup table for the hash_update_table
         """
