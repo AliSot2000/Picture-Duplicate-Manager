@@ -3136,10 +3136,184 @@ class PhotoDB(BaseSQliteDB):
                                   partition: MainTileView = MainTileView.MAIN):
         """
         Build the row lookup table for the images table
-        """
-        # TODO implement
 
-    def build_presence_table_lookup(self):
+        :param grouping: Grouping Criteria provided called for by the view.
+        :param col_width: Column width of the view table.
+        :param partition: Select a given partition of the Images known to the db
+        """
+        # Get the correct selection of images to view.
+        if partition == MainTileView.MAIN:
+            # No Duplicates, No Trash
+            filter_clause = "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 0"
+        elif partition == MainTileView.TRASH:
+            # No Duplicates, Trash
+            filter_clause = "WHERE mod(flags >> 8, 2) = 0 AND mod(flags >> 2, 2) = 1"
+        elif partition == MainTileView.DUPLICATE:
+            # No Duplicates, Trash
+            filter_clause = "WHERE mod(flags >> 8, 2) = 1 AND mod(flags >> 2, 2) = 0"
+
+        # Partitions which do are union of MAIN, TRASH, DUPLICATES
+        elif partition == MainTileView.VERIFY:
+            # All Verify marked images
+            filter_clause = "WHERE mod(flags >> 1, 2) = 1"
+        elif partition == MainTileView.SEL_A:
+            # All Sel_A images
+            filter_clause = "WHERE mod(flags >> 4, 2) = 1"
+        elif partition == MainTileView.SEL_B:
+            # All Sel_B images
+            filter_clause = "WHERE mod(flags >> 5, 2) = 1"
+        else:  # pragma: no cover
+            raise ImplementationError("Missing Case For Enum")
+
+        # Parse the grouping criterion
+        if grouping == GroupingCriterion.NONE:
+            column = None
+        elif grouping == GroupingCriterion.YEAR:
+            column = "strftime('%Y', datetime) AS grouping_criterion"
+        elif grouping == GroupingCriterion.YEAR_MONTH:
+            column = "strftime('%Y-%m', datetime) AS grouping_criterion"
+        elif grouping == GroupingCriterion.YEAR_MONTH_DAY:
+            column = "strftime('%Y-%m-%d', datetime) AS grouping_criterion"
+        else:
+            raise ImplementationError("Missing Grouping Criterion")
+
+        # Actually populate the table.
+        if grouping == GroupingCriterion.NONE:
+            self.__internal_non_grouped_main_table(filter_clause, col_width)
+        else:
+            self._internal_grouped_main_table(column, filter_clause, col_width)
+
+        self.__last_main_grouping_criterion = grouping
+
+    def __internal_non_grouped_main_table(self, filter_clause: str, col_width: int):
+        """
+        Populate the main_image_lookup_table.
+
+        PRECONDITION:
+        - images_lookup exists
+        - col_width > 0
+
+        :param filter_clause: Definition of the WHERE clause that limits the images from the main table we're observing
+        :param col_width: Width of the layout.
+        """
+        assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
+        assert len(filter_clause) > 0, "PRECONDITION FAILED: filter_clause empty"
+
+        stmt = f"""
+            INSERT INTO lookup_main_view_tbl
+            WITH GroupedData AS (
+                SELECT
+                    key,
+                    datetime(datetime) AS datetime_value,
+                    strftime('%Y-%m-%d', datetime) AS grouping_criterion, 
+                FROM main {filter_clause}
+            ),
+            NumberedData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    ROW_NUMBER() OVER (ORDER BY datetime_value, key) AS partition_position
+                FROM GroupedData
+            ),
+            CollectionData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    partition_position,
+                    (partition_position - 1) / {col_width} AS partition_row,  -- Compute partition row index
+                    (partition_position - 1) / {col_width} AS global_row,  -- Compute partition row index
+                    (partition_position - 1) % {col_width} AS col -- Compute column index
+                FROM NumberedData
+            )
+            SELECT
+                key,
+                grouping_criterion,
+                partition_position,
+                global_row,
+                partition_row,
+                col
+            FROM CollectionData
+            ORDER BY grouping_criterion, global_row, col;
+        """
+
+        san_stmt = dedent(stmt)
+
+        # Populate the table.
+        self.debug_execute(san_stmt)
+
+    def _internal_grouped_main_table(self, column: str, filter_clause: str, col_width: int):
+        """
+        Populate the main_image_lookup_table.
+
+        PRECONDITION:
+        - images_lookup exists
+        - col_width > 0
+        - column is not None
+
+        :param column: Definition of the column used for grouping
+        :param filter_clause: Definition of the WHERE clause that limits the images from the main table we're observing
+        :param col_width: Width of the layout.
+        """
+        assert column is not None, "PRECONDITION FAIlED: Column is None"
+        assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
+        assert len(filter_clause) > 0, "PRECONDITION FAILED: filter_clause empty"
+
+        stmt = f"""
+            INSERT INTO lookup_main_view_tbl
+            WITH GroupedData AS (
+                SELECT
+                    key,
+                    datetime(datetime) AS datetime_value,
+                    {column}
+                FROM main {filter_clause} 
+            ),
+            NumberedData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    ROW_NUMBER() OVER (PARTITION BY grouping_criterion ORDER BY datetime_value, key) AS partition_position
+                FROM GroupedData
+            ),
+            CollectionData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    partition_position,
+                    (partition_position - 1) / {col_width} AS partition_row,  -- Compute partition row index
+                    (partition_position - 1) % {col_width} AS col -- Compute column index
+                FROM NumberedData
+            ),
+            PartitionSizes AS (
+                SELECT
+                    grouping_criterion,
+                    MAX(partition_row) + 1 AS total_rows  -- Count total rows in each partition
+                FROM CollectionData
+                GROUP BY grouping_criterion
+            ),
+            GlobalPositionData AS (
+                SELECT
+                    c.*,
+                    (SELECT COALESCE(SUM(p2.total_rows), 0)
+                     FROM PartitionSizes p2
+                     WHERE p2.grouping_criterion < c.grouping_criterion) + partition_row AS global_row
+                FROM CollectionData c
+            )
+            SELECT
+                key,
+                grouping_criterion,
+                partition_position,
+                global_row,
+                partition_row,
+                col
+            FROM GlobalPositionData
+            ORDER BY grouping_criterion, global_row, col;
+        """
+        san_stmt = dedent(stmt)
+
+        # Populate the table.
+        self.debug_execute(san_stmt)
+
+    def build_presence_table_lookup(self, col_width: int):
         """
         Build the lookup table for the presence_table
         """
