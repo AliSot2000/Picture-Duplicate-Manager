@@ -104,6 +104,13 @@ current_version = DBVersion(
                   "hash_update_table", "hash_update_key_index",
                   "name_update_table", "name_update_key_index", "name_update_match_type_index",
                   "location_update_table", "location_update_key_index",
+
+                  "lookup_import_view_tbl", "lookup_import_view_key_idx", "lookup_import_view_row_idx",
+                  "lookup_main_view_tbl", "lookup_main_view_key_idx", "lookup_main_view_row_idx",
+                  "lookup_presence_view_tbl", "lookup_presence_view_key_idx", "lookup_presence_view_row_idx",
+                  "lookup_hash_view_tbl", "lookup_hash_view_key_idx", "lookup_hash_view_row_idx",
+                  "lookup_name_view_tbl", "lookup_name_view_key_idx", "lookup_name_view_row_idx",
+                  "lookup_location_view_tbl", "lookup_location_view_key_idx", "lookup_location_view_row_idx",
                   ],
     all_generic_definitions=["import_table"],
     all_definitions=["hashes", "hashes_str_index", "hash_key_index",
@@ -119,6 +126,13 @@ current_version = DBVersion(
                      "hash_update_table", "hash_update_key_index",
                      "name_update_table", "name_update_key_index", "name_update_match_type_index",
                      "location_update_table", "location_update_key_index",
+
+                     "lookup_import_view_tbl", "lookup_import_view_key_idx", "lookup_import_view_row_idx",
+                     "lookup_main_view_tbl", "lookup_main_view_key_idx", "lookup_main_view_row_idx",
+                     "lookup_presence_view_tbl", "lookup_presence_view_key_idx", "lookup_presence_view_row_idx",
+                     "lookup_hash_view_tbl", "lookup_hash_view_key_idx", "lookup_hash_view_row_idx",
+                     "lookup_name_view_tbl", "lookup_name_view_key_idx", "lookup_name_view_row_idx",
+                     "lookup_location_view_tbl", "lookup_location_view_key_idx", "lookup_location_view_row_idx",
                      ],
     definitions={
         # All definitions for the main hash lookup table
@@ -346,7 +360,118 @@ current_version = DBVersion(
         "location_update_key_index": StaticDeclaration(
             name="location_update_key_index",
             declaration_string="CREATE INDEX `%name%` ON location_update_table (key)"
-        )
+        ),
+        # ==============================================================================================================
+        # View Tables
+        # ==============================================================================================================
+        "lookup_import_view_tbl": StaticDeclaration(
+            name="lookup_import_view_tbl",
+            declaration_string="CREATE TABLE `%name%` ("
+                               "key INTEGER, "
+                               "grouping_criterion INTEGER, "
+                               "partition_position INTEGER, "
+                               "global_row INTEGER, "
+                               "partition_row INTEGER, "
+                               "col INTEGER) "
+        ),
+        "lookup_import_view_key_idx" : StaticDeclaration(
+            name="lookup_import_view_key_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_import_view_tbl (key)"
+        ),
+        "lookup_import_view_row_idx": StaticDeclaration(
+            name="lookup_import_view_row_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_import_view_tbl (global_row)"
+        ),
+        "lookup_main_view_tbl": StaticDeclaration(
+            name="lookup_main_view_tbl",
+            declaration_string="CREATE TABLE `%name%` ("
+                               "key INTEGER, "
+                               "grouping_criterion INTEGER, "
+                               "partition_position INTEGER, "
+                               "global_row INTEGER, "
+                               "partition_row INTEGER, "
+                               "col INTEGER) "
+        ),
+        "lookup_main_view_key_idx" : StaticDeclaration(
+            name="lookup_main_view_key_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_main_view_tbl (key)"
+        ),
+        "lookup_main_view_row_idx": StaticDeclaration(
+            name="lookup_main_view_row_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_main_view_tbl (global_row)"
+        ),
+        "lookup_presence_view_tbl": StaticDeclaration(
+            name="lookup_presence_view_tbl",
+            declaration_string="CREATE TABLE `%name%` ("
+                               "key INTEGER, "
+                               "grouping_criterion TEXT, "
+                               "partition_position INTEGER, "
+                               "global_row INTEGER, "
+                               "partition_row INTEGER, "
+                               "col INTEGER) "
+        ),
+        "lookup_presence_view_key_idx": StaticDeclaration(
+            name="lookup_presence_view_key_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_presence_view_tbl (key)"
+        ),
+        "lookup_presence_view_row_idx": StaticDeclaration(
+            name="lookup_presence_view_row_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_presence_view_tbl (global_row)"
+        ),
+        "lookup_hash_view_tbl": StaticDeclaration(
+            name="lookup_hash_view_tbl",
+            declaration_string="CREATE TABLE `%name%` ("
+                               "key INTEGER, "
+                               "grouping_criterion INTEGER, "
+                               "partition_position INTEGER, "
+                               "global_row INTEGER, "
+                               "partition_row INTEGER, "
+                               "col INTEGER) "
+        ),
+        "lookup_hash_view_key_idx": StaticDeclaration(
+            name="lookup_hash_view_key_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_hash_view_tbl (key)"
+        ),
+        "lookup_hash_view_row_idx": StaticDeclaration(
+            name="lookup_hash_view_row_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_hash_view_tbl (global_row)"
+        ),
+        "lookup_name_view_tbl": StaticDeclaration(
+            name="lookup_name_view_tbl",
+            declaration_string="CREATE TABLE `%name%` ("
+                               "key INTEGER, "
+                               "grouping_criterion INTEGER, "
+                               "partition_position INTEGER, "
+                               "global_row INTEGER, "
+                               "partition_row INTEGER, "
+                               "col INTEGER) "
+        ),
+        "lookup_name_view_key_idx": StaticDeclaration(
+            name="lookup_name_view_key_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_name_view_tbl (key)"
+        ),
+        "lookup_name_view_row_idx": StaticDeclaration(
+            name="lookup_name_view_row_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_name_view_tbl (global_row)"
+        ),
+        "lookup_location_view_tbl": StaticDeclaration(
+            name="lookup_location_view_tbl",
+            declaration_string="CREATE TABLE `%name%` ("
+                               "key INTEGER, "
+                               "grouping_criterion INTEGER, "
+                               "partition_position INTEGER, "
+                               "global_row INTEGER, "
+                               "partition_row INTEGER, "
+                               "col INTEGER) "
+        ),
+        "lookup_location_view_key_idx": StaticDeclaration(
+            name="lookup_location_view_key_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_location_view_tbl (key)"
+        ),
+        "lookup_location_view_row_idx": StaticDeclaration(
+            name="lookup_location_view_row_idx",
+            declaration_string="CREATE INDEX `%name%` ON lookup_location_view_tbl (global_row)"
+        ),
     },
     generic_definitions={
         "import_table": GenericDeclaration(
