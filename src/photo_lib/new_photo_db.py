@@ -3382,6 +3382,45 @@ class PhotoDB(BaseSQliteDB):
     def build_hash_update_table_lookup(self, col_width: int):
         """
         Build the lookup table for the hash_update_table
+
+        :param col_width: Column width of the view table.
+        """
+        assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
+
+        stmt = f"""
+            CREATE TABLE lookup_hash_view_tbl AS
+            WITH GroupedData AS (
+                SELECT
+                    key,
+                    datetime(datetime) AS datetime_value
+                FROM hash_update_table JOIN main.main m on hash_update_table.main_key = m.key
+            ),
+            NumberedData AS (
+                SELECT
+                    key,
+                    NULL AS grouping_criterion,
+                    ROW_NUMBER() OVER (ORDER BY datetime_value, key) AS partition_position
+                FROM GroupedData
+            ),
+            CollectionData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    partition_position,
+                    (partition_position - 1) / {col_width} AS partition_row,  -- Compute partition row index
+                    (partition_position - 1) / {col_width} AS global_row,  -- Compute partition row index
+                    (partition_position - 1) % {col_width} AS col -- Compute column index
+                FROM NumberedData
+            )
+            SELECT
+                key,
+                grouping_criterion,
+                partition_position,
+                global_row,
+                partition_row,
+                col
+            FROM CollectionData
+            ORDER BY grouping_criterion, global_row, col;
         """
         # TODO implement
 
