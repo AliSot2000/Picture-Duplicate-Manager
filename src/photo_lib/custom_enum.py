@@ -136,3 +136,12 @@ class MainTileView(Enum):
     VERIFY = 3
     SEL_A = 4
     SEL_B = 5
+
+
+class TargetViewTable(str, Enum):
+    IMPORT = "lookup_import_view_tbl"
+    MAIN = "lookup_main_view_tbl"
+    PRESENCE = "lookup_presence_view_tbl"
+    HASH = "lookup_hash_view_tbl"
+    NAME = "lookup_name_view_tbl"
+    LOCATION = "lookup_location_view_tbl"
