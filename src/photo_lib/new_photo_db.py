@@ -4,11 +4,11 @@ import logging
 import os.path
 import sys
 from textwrap import dedent
-from typing import Set, Dict, List, Union, Tuple, Iterator, Any
+from typing import Set, Dict, List, Union, Tuple, Iterator, Any, Optional
 
 from photo_lib.config import Config
 from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus, UpdateStatus, \
-    NewMatchTypes, MainTileView
+    NewMatchTypes, MainTileView, TargetViewTable, ImportTableGrouping
 from photo_lib.data_objects import Selection, NewImportTableEntry, MetadataRow, MainRow, MediaPaths
 from photo_lib.db_definitions import StaticDeclaration, GenericDeclaration, DBVersion, \
     DBHistorySpec
@@ -19,6 +19,7 @@ from photo_lib.flag_dataclasses import MainFlags, GenericTableFlags
 from photo_lib.metadata_aggregator import MetadataParsingResult
 from photo_lib.metadata_aggregator.enums import DateTimeSource
 from photo_lib.sqlite_wrapper import BaseSQliteDB
+from photo_lib.cache import Cache, nd
 
 
 # https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
