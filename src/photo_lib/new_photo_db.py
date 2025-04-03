@@ -3554,9 +3554,76 @@ class PhotoDB(BaseSQliteDB):
         san_stmt = dedent(stmt)
         self.debug_execute(san_stmt)
 
+    def parse_header(self, header: str | int | None, target_view: TargetViewTable):
+        """
+        Parse the Header from a database internal header into something that's displayable for the view.
+        """
+        # Header for Main Table
+        if target_view == TargetViewTable.MAIN:
+            assert self.__last_main_grouping_criterion is not None, "Last Grouping Criterion Needed"
+
+            if self.__last_main_grouping_criterion == GroupingCriterion.NONE:
+                return datetime.datetime.strptime(header, "%Y-%m-%d").strftime(self.gc_year_month_day_fmt)
+            elif self.__last_main_grouping_criterion == GroupingCriterion.YEAR:
+                return datetime.datetime.strptime(header, "%Y").strftime(self.gc_year_fmt)
+            elif self.__last_main_grouping_criterion == GroupingCriterion.YEAR_MONTH:
+                return datetime.datetime.strptime(header, "%Y-%m").strftime(self.gc_year_month_fmd)
+            elif self.__last_main_grouping_criterion == GroupingCriterion.YEAR_MONTH_DAY:
+                return datetime.datetime.strptime(header, "%Y-%m-%d").strftime(self.gc_year_month_day_fmt)
+            else:  # pragma: no cover
+                raise ImplementationError("Unexpected Enum for GroupingCriterion")
+
+        # Header for Import Table
+        elif target_view == TargetViewTable.IMPORT:
+            assert isinstance(header, int), "Unexpected header type for import view"
+
+            # Get Match Type from Enum
+            return ImportTableGrouping(header).name.replace("_", " ").title()
+
+        # Header for Presence Table
+        elif target_view == TargetViewTable.PRESENCE:
+            assert header in (0, 1), "Unexpected value for Header of Presence View Lookup Table"
+            return "Currently Missing" if header == 0 else "Currently Present"
 
     # TODO give smarter name
     def lookup_row_to_xxx(self, key: int, target_table: str, tbl_name: str = None):
+        # Header for Hash Update Table
+        elif target_view == TargetViewTable.HASH:
+            assert header is None, "Unexpected value for Header of Hash View Lookup Table"
+            return None
+
+        # Header for Name Update Table
+        elif target_view == TargetViewTable.NAME:
+            assert isinstance(header, int), "Unexpected Type of Header"
+            assert header in (0, 1, 2, 3), "Unexpected Value for Header of Name View Lookup Table"
+
+            if header == 0:
+                return "Ready to Update"
+            elif header == 1:
+                return "Updated"
+            elif header == 2:
+                return "Failed"
+            elif header == 3:
+                return "Ignored"
+            else:  # pragma: no cover
+                raise ImplementationError("Unexpected Header for Name Update Table")
+
+        # Header for Location Update Table
+        elif target_view == TargetViewTable.LOCATION:
+            assert isinstance(header, int), "Unexpected Type of Header"
+            assert header in (0, 1, 2), "Unexpected Value for Header of Location View Lookup Table"
+
+            if header == 0:
+                return "Ready to Relocate"
+            elif header == 1:
+                return "Relocated"
+            elif header == 2:
+                return "Failed"
+            else:  # pragma: no cover
+                raise ImplementationError("Unexpected Header for Location Lookup Table")
+
+        else:  # pragma: no cover
+            raise ImplementationError("Unexpected target view from TargetViewTable Enum")
         """
         Resolve row to list of image metadata
 
