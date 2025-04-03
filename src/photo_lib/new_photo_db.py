@@ -3422,9 +3422,11 @@ class PhotoDB(BaseSQliteDB):
             FROM CollectionData
             ORDER BY grouping_criterion, global_row, col;
         """
-        # TODO implement
 
-    def build_name_update_table_lookup(self):
+        san_stmt = dedent(stmt)
+        self.debug_execute(san_stmt)
+
+    def build_name_update_table_lookup(self, col_width: int):
         """
         Build the lookup table for the name_update_table
         """
