@@ -305,7 +305,7 @@ class PhotoDB(BaseSQliteDB):
                 self.__verified = self.__verified and self.basic_integrity_check()
 
                 if self.verified:
-                    self.clear_filename_update_table()
+                    self.clear_name_update_table()
                     self.clear_hash_update_table()
                     self.clear_presence_table()
 
@@ -1372,7 +1372,7 @@ class PhotoDB(BaseSQliteDB):
     # Name Update Table
     # ==================================================================================================================
 
-    def clear_filename_update_table(self):
+    def clear_name_update_table(self):
         """
         Clear the filename update table.
         """

@@ -1237,7 +1237,7 @@ class PhotoAPI:
 
         The function returns the number of probably renamed files it found.
         """
-        self.db.clear_filename_update_table()
+        self.db.clear_name_update_table()
 
         count = 0
 
