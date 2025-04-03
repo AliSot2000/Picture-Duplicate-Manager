@@ -73,6 +73,11 @@ class PhotoDB(BaseSQliteDB):
 
     __last_main_grouping_criterion: Optional[GroupingCriterion] = None
 
+    # Header Format for different grouping criterion of main table
+    gc_year_month_day_fmt: str = "%A %d %B %Y"
+    gc_year_month_fmd: str = "%B %Y"
+    gc_year_fmt: str = "%Y"
+
     # ==================================================================================================================
     # Object Utility Function
     # - Classmethods
