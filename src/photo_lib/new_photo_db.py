@@ -3059,13 +3059,81 @@ class PhotoDB(BaseSQliteDB):
     # Display Tables
     # ==================================================================================================================
 
-    def build_import_table_lookup(self, target_table: str):
+    def build_import_table_lookup(self, target_table: str, col_width: int):
         """
         Build the row lookup table for an import table
-        """
-        # TODO implement
 
-    def build_images_table_lookup(self, grouping: GroupingCriterion, trash: bool = None):
+        PRECONDITION: The Target table exists
+
+        :param target_table: The name of the target table
+        :param col_width: The width of the columns in the target table
+        """
+        assert col_width > 0, "PRECONDITION FAILED: col_width should be greater than 0"
+
+        stmt = f"""
+            INSERT INTO lookup_import_view_tbl
+            WITH GroupedData AS (
+                SELECT
+                    key,
+                    datetime(datetime) AS dt,
+                    CASE
+                        WHEN allowed = 0 THEN 8  -- NOT_ALLOWED
+                        WHEN allowed = 1 AND imported = 2 THEN 7  -- IMPORTED
+                        WHEN allowed = 1 AND imported IN (0,1) THEN match_type  -- Use match_type directly (0-6)
+                    END AS grouping_criterion
+            
+                FROM `{target_table}`
+            ),
+            NumberedData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    dt,
+                    ROW_NUMBER() OVER (PARTITION BY grouping_criterion ORDER BY dt, key) AS partition_position
+                FROM GroupedData
+            ),
+            CollectionData AS (
+                SELECT
+                    key,
+                    dt,
+                    grouping_criterion,
+                    partition_position,
+                    (partition_position - 1) / {col_width} AS partition_row,
+                    (partition_position - 1) % {col_width} AS col
+                FROM NumberedData
+            ),
+            PartitionSizes AS (
+                SELECT
+                    grouping_criterion,
+                    MAX(partition_row) + 1 AS total_rows  -- Count total rows in each partition
+                FROM CollectionData
+                GROUP BY group_name
+            ),
+            GlobalPositionData AS (
+                SELECT
+                    c.*,
+                    (SELECT COALESCE(SUM(p2.total_rows), 0)
+                     FROM PartitionSizes p2
+                     WHERE p2.grouping_criterion < c.grouping_criterion) + partition_row AS global_row
+                FROM CollectionData c
+            )
+            SELECT
+                key,
+                partition_position,
+                partition_row,
+                col,
+                grouping_criterion,
+                global_row
+            FROM GlobalPositionData
+            ORDER BY grouping_criterion, global_row, col;
+            """
+        san_stmt = dedent(stmt)
+        self.debug_execute(san_stmt)
+
+    def build_images_table_lookup(self,
+                                  grouping: GroupingCriterion,
+                                  col_width: int,
+                                  partition: MainTileView = MainTileView.MAIN):
         """
         Build the row lookup table for the images table
         """

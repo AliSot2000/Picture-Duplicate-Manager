@@ -246,7 +246,8 @@ class ZoomImage(LoadingBaseImage):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = ZoomImage()
-    window.file_path = "/media/alisot2000/DumpStuff/Test128/2022-09-01 02.35.12_001.jpg"
+    # window.file_path = "/media/alisot2000/DumpStuff/Test128/2022-09-01 02.35.12_001.jpg"
+    window.file_path = "/home/alisot2000/Desktop/2024-30-11-Photos-Retrat/20241130 1722 Boestritt [Alex S] 6.jpg"
     window.show()
 
     sys.exit(app.exec())
