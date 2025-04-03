@@ -3429,6 +3429,75 @@ class PhotoDB(BaseSQliteDB):
     def build_name_update_table_lookup(self, col_width: int):
         """
         Build the lookup table for the name_update_table
+
+        :param col_width: Column width of the view table.
+        """
+        assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
+
+        stmt = f"""
+            INSERT INTO lookup_name_view_tbl
+            WITH GroupedData AS (
+                SELECT
+                    key,
+                    dir_name,
+                    name,
+                    CASE
+                        WHEN updated = 0 AND match_type = 2 THEN 0 -- Ready to Update
+                        WHEN updated = 1 THEN 1  -- UPDATED
+                        WHEN updated = 2 THEN 2 -- FAILED
+                        ELSE 3 -- Not allowed
+                    END AS grouping_criterion
+            
+                FROM name_update_table
+            ),
+            NumberedData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    ROW_NUMBER() OVER (PARTITION BY grouping_criterion ORDER BY dir_name, name, key) AS partition_index
+                FROM GroupedData
+            ),
+            CollectionData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    partition_index,
+                    (partition_index - 1) / {col_width} AS partition_row,
+                    (partition_index - 1) % {col_width} AS col
+                FROM NumberedData
+            ),
+            PartitionSizes AS (
+                SELECT
+                    grouping_criterion,
+                    MAX(partition_row) + 1 AS total_rows  -- Count total rows in each partition
+                FROM CollectionData
+                GROUP BY grouping_criterion
+            ),
+            GlobalPositionData AS (
+                SELECT
+                    c.*,
+                    (SELECT COALESCE(SUM(p2.total_rows), 0)
+                     FROM PartitionSizes p2
+                     WHERE p2.grouping_criterion < c.grouping_criterion) + partition_row AS global_row
+                FROM CollectionData c
+            )
+            SELECT
+                key,
+                partition_index,
+                partition_row,
+                col,
+                grouping_criterion,
+                global_row
+            FROM GlobalPositionData;
+        """
+        san_stmt = dedent(stmt)
+        self.debug_execute(san_stmt)
+
+    def build_location_update_table_lookup(self, col_width: int):
+        """
+        Build the lookup table for the location_update.
+
+        :param col_width: Column width of the view table.
         """
         # TODO implement
 
