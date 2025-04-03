@@ -46,6 +46,33 @@ class PhotoDB(BaseSQliteDB):
     # Flags
     opt_integrity_check: bool
 
+    # Caches for UI
+    import_view_header_cache: Optional[Cache] = None
+    import_view_row_cache: Optional[Cache] = None
+    import_view_key_cache: Optional[Cache] = None
+    
+    main_view_header_cache: Optional[Cache] = None
+    main_view_row_cache: Optional[Cache] = None
+    main_view_key_cache: Optional[Cache] = None
+
+    presence_view_header_cache: Optional[Cache] = None
+    presence_view_row_cache: Optional[Cache] = None
+    presence_view_key_cache: Optional[Cache] = None
+    
+    hash_view_header_cache: Optional[Cache] = None
+    hash_view_row_cache: Optional[Cache] = None
+    hash_view_key_cache: Optional[Cache] = None
+    
+    name_view_header_cache: Optional[Cache] = None
+    name_view_row_cache: Optional[Cache] = None
+    name_view_key_cache: Optional[Cache] = None
+    
+    location_view_header_cache: Optional[Cache] = None
+    location_view_row_cache: Optional[Cache] = None
+    location_view_key_cache: Optional[Cache] = None
+
+    __last_main_grouping_criterion: Optional[GroupingCriterion] = None
+
     # ==================================================================================================================
     # Object Utility Function
     # - Classmethods
