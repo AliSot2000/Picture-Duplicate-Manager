@@ -3499,7 +3499,61 @@ class PhotoDB(BaseSQliteDB):
 
         :param col_width: Column width of the view table.
         """
-        # TODO implement
+        assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
+
+        stmt = f"""
+            INSERT INTO lookup_location_view_tbl
+            WITH GroupedData AS (
+                SELECT
+                    location_update_table.key,
+                    success AS grouping_criterion,
+                    datetime(main.datetime) AS dt
+                FROM location_update_table JOIN main ON main.key = location_update_table.key
+            ),
+            NumberedData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    ROW_NUMBER() OVER (PARTITION BY grouping_criterion ORDER BY dt, key) AS partition_index
+                FROM GroupedData
+            ),
+            CollectionData AS (
+                SELECT
+                    key,
+                    grouping_criterion,
+                    partition_index,
+                    (partition_index - 1) / {col_width} AS partition_row,
+                    (partition_index - 1) % {col_width} AS col
+                FROM NumberedData
+            ),
+            PartitionSizes AS (
+                SELECT
+                    grouping_criterion,
+                    MAX(partition_row) + 1 AS total_rows  -- Count total rows in each partition
+                FROM CollectionData
+                GROUP BY grouping_criterion
+            ),
+            GlobalPositionData AS (
+                SELECT
+                    c.*,
+                    (SELECT COALESCE(SUM(p2.total_rows), 0)
+                     FROM PartitionSizes p2
+                     WHERE p2.grouping_criterion < c.grouping_criterion) + partition_row AS global_row
+                FROM CollectionData c
+            )
+            SELECT
+                key,
+                partition_index,
+                partition_row,
+                col,
+                grouping_criterion,
+                global_row
+            FROM GlobalPositionData;
+        """
+
+        san_stmt = dedent(stmt)
+        self.debug_execute(san_stmt)
+
 
     # TODO give smarter name
     def lookup_row_to_xxx(self, key: int, target_table: str, tbl_name: str = None):
