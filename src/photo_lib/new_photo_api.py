@@ -1681,7 +1681,6 @@ class PhotoAPI:
         Performs the action of deduplication within given scopes (Given by grouping criterion)
 
         :param scope: Grouping criterion to deduplicate
-        :param com: Connection object to report progress to frontend
         """
         # TODO implement
 
