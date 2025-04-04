@@ -3733,22 +3733,21 @@ class PhotoDB(BaseSQliteDB):
 
         :param target_view: lookup table to query.
         """
-        Check if the given target_table is allowed
+        tgt_table = target_view.value
 
-        :param tgt_tbl: str; selection of [main, import, presence, hash, name], case-insensitive
-        :param tbl_name: Table name of import table
+        self.debug_execute(f"SELECT MAX(global_row) FROM `{tgt_table}`")
+        return self.sq_cur.fetchone()[0]
 
-        :raises ValueError: If the given target_table isn't supported
-        :raises TypeError: If import table is selected and tbl_name isn't selected
+    def lookup_col_count(self, target_view: TargetViewTable):
         """
-        assert tgt_tbl.islower(), "Argument should be lower case"
-        allowed_targets = {"main", "import", "presence", "hash", "name"}
+        Get the number of columns present in the view table
 
-        if tgt_tbl not in allowed_targets:
-            raise ValueError(f"Unhandled Case of Target Table: {tgt_tbl}")
+        :param target_view: lookup table to query.
+        """
+        tgt_table = target_view.value
 
-        if tgt_tbl == "import" and tbl_name is None:
-            raise TypeError("Selecting Import table requires a table_name to be present")
+        self.debug_execute(f"SELECT MAX(col) FROM `{tgt_table}`")
+        return self.sq_cur.fetchone()[0]
 
     # INFO: long-running action
     def find_hash_based_duplicates(self):
