@@ -3695,22 +3695,40 @@ class PhotoDB(BaseSQliteDB):
 
         return san_header
 
+    def lookup_key_to_row(self, key: int, target_view: TargetViewTable) -> Optional[int]:
         """
         Resolve a given key from the row table to the row in the ui
 
         :param key: Row to resolve
-        :param target_table: str; selection of [main, import, presence, hash, name], case insensitive
-        :param tbl_name: Name of the import table.
+        :param target_view: View for which to resolve the header.
 
         :raises ValueError: If the given target_table isn't supported
-        :raises TypeError: If import table is selected and tbl_name isn't selected
         """
-        int_tbl = target_table.lower().strip()
-        self._check_target_table(int_tbl, tbl_name)
-        # TODO implement
+        _, _, key_cache = self.get_caches(target_view)
+        tgt_table = target_view.value
+
+        # Query key cache
+        if key_cache is not None:
+            res = key_cache.get(key)
+            if res is not nd:
+                return res
 
     @staticmethod
     def _check_target_table(tgt_tbl: str, tbl_name: str = None):
+        self.debug_execute(f"SELECT global_row FROM `{tgt_table}` WHERE key = ?", (key,))
+        results = [k[0] for k in self.sq_cur.fetchall()]
+
+        if len(results) == 0:
+            key_cache.set(key, None)
+            return None
+
+        assert len(results) == 1, "ROW NOT FOUND"
+
+        row = results[0]
+        key_cache.set(key, row)
+
+        return row
+
         """
         Check if the given target_table is allowed
 
