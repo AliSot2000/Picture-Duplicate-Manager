@@ -3847,7 +3847,7 @@ class PhotoDB(BaseSQliteDB):
         """
         Get all necessary information to compare images.
 
-        PRECONDITIOIN: Keys exist.
+        PRECONDITION: Keys exist.
         """
         if isinstance(key, int):
             int_key = [key]
@@ -3871,7 +3871,7 @@ class PhotoDB(BaseSQliteDB):
 
         INFO:
         - Doesn't update the DB and doesn't update the flags object
-        - Only is executed when self.opt_integrity_check si True.
+        - Only is executed when self.opt_integrity_check is True.
 
         """
         if not self.opt_integrity_check:
