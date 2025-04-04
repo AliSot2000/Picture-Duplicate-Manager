@@ -3762,7 +3762,6 @@ class PhotoDB(BaseSQliteDB):
         Performs the action of deduplication within given scopes (Given by grouping criterion)
 
         :param scope: Grouping criterion to deduplicate
-        :param com: Connection object to report progress to frontend
         """
         ...
 
@@ -3786,7 +3785,6 @@ class PhotoDB(BaseSQliteDB):
         Returns a Dataclass which contains the thumbnail path, miniature path and original path.
 
         PRECONDITION: Key exists.
-
         """
         org_path = self.db_resolve_key_to_abs_path(key)
         thumb_path = self.full_thumbnail_path(key)
