@@ -3659,8 +3659,41 @@ class PhotoDB(BaseSQliteDB):
         if row_cache is not None:
             row_cache.set(row, results)
 
-    def lookup_key_to_row(self, key: int, target_table: str, tbl_name: str = None):
         return results
+
+    def lookup_row_to_header(self, row: int, target_view: TargetViewTable) -> Optional[str]:
+        """
+        Get the Header for a given row. Header may be a string or None
+
+        :param row: row to get the header for
+        :param target_view: Which lookup table to take
+
+        :return: Header name or None
+        """
+        header_cache, _, _ = self.get_caches(target_view)
+        tgt_table = target_view.value
+
+        # Query the header cache
+        if header_cache is not None:
+            res = header_cache.get(row)
+            if res is not nd:
+                return res
+
+        # Query the table and get result
+        self.debug_execute(f"SELECT key FROM `{tgt_table}` WHERE global_row = ? and col = 0",
+                           (row,))
+        results = [k[0] for k in self.sq_cur.fetchall()]
+
+        if len(results) == 0:
+            header_cache.set(row, None)
+            return None
+
+        assert len(results) == 1, "ROW NOT FOUND"
+
+        san_header = self.parse_header(results[0], target_view)
+        header_cache.set(row, san_header)
+
+        return san_header
 
         """
         Resolve a given key from the row table to the row in the ui
