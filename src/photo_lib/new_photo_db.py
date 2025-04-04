@@ -3713,8 +3713,6 @@ class PhotoDB(BaseSQliteDB):
             if res is not nd:
                 return res
 
-    @staticmethod
-    def _check_target_table(tgt_tbl: str, tbl_name: str = None):
         self.debug_execute(f"SELECT global_row FROM `{tgt_table}` WHERE key = ?", (key,))
         results = [k[0] for k in self.sq_cur.fetchall()]
 
@@ -3729,6 +3727,11 @@ class PhotoDB(BaseSQliteDB):
 
         return row
 
+    def lookup_row_count(self, target_view: TargetViewTable):
+        """
+        Get the number of rows in the ui table.
+
+        :param target_view: lookup table to query.
         """
         Check if the given target_table is allowed
 
