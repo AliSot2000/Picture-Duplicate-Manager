@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QGridLayout, QLabel, 
     QMainWindow, QScrollBar, QHBoxLayout, QSlider, QSizePolicy
 
 from photo_lib.data_objects import BaseTileInfo
-from photo_lib.gui.image_tile import IndexedTile
+from photo_lib.gui.widgets.image_tile import IndexedTile
 from photo_lib.gui.old_model import Model, GroupCount, GroupingCriterion, TileBuffer
 
 use_timers_resize = True
