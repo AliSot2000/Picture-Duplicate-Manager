@@ -1,17 +1,15 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QGridLayout, QScrollArea, QPushButton, QLabel, QSplitter
-from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint
-from PyQt6.QtGui import QResizeEvent, QKeyEvent
 import sys
-import datetime
-import math
-import numpy as np
 from typing import Union, List, Tuple
-from photo_lib.gui.named_picture_block import CheckNamedPictureBlock
-from photo_lib.gui.image_tile import NamedTile, IndexedTile
-from photo_lib.gui.model import Model, GroupCount, GroupingCriterion, TileBuffer
+
+from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtWidgets import QApplication, QWidget, QFrame, QVBoxLayout, QScrollArea, QLabel
+
 from photo_lib.PhotoDatabase import MatchTypes
-from photo_lib.gui.gui_utils import general_wrapper
-from photo_lib.data_objects import ImportTileInfo, BaseTileInfo
+from photo_lib.data_objects import ImportTileInfo
+from photo_lib.gui.old_model import Model, GroupingCriterion
+from photo_lib.gui.util.gui_utils import general_wrapper
+from photo_lib.gui.widgets.image_tile import NamedTile
+from photo_lib.gui.widgets.named_picture_block import CheckNamedPictureBlock
 
 
 class ImportView(QFrame):
