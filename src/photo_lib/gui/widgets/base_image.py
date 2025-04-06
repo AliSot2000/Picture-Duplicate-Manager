@@ -104,7 +104,7 @@ class BaseImage(QFrame):
             return self.pixmap.size()
         return QSize()
 
-    def paintEvent(self, event):
+    def paintEvent(self, event: QPaintEvent):
         """
         Custom implementation of the paint event to rescale the image to fit.
         :param event:
@@ -143,6 +143,8 @@ class BaseImage(QFrame):
             text = f"Couldn't load {os.path.basename(self.file_path)}"
         else:
             text = "Empty file path"
+
+        # TODO Use defaults for the font size
         font = QFont("Arial", 12, QFont.Weight.Bold)
         pt.setFont(font)
         text_rect = pt.boundingRect(self.rect(), 0, text)
