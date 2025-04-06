@@ -18,13 +18,21 @@ use_base = False
 INFO: You need to restructure the system. There should be a manager in the main thread responsible for creating the images.
 """
 
-class SignalEmitter(QObject):
-    finished = pyqtSignal()
 
+@dataclass
+class LoadingResult:
+    pm: QPixmap
+    wdh: float
+    tgt_widget: "BaseImage"
+
+
+class SignalEmitter(QObject):
+    finished = pyqtSignal(LoadingResult)
 
 
 class ImageLoaderManager(QObject):
     instance = None  # Singleton
+    root_widget: Optional["MainWindow"] = None
 
     def __init__(self):
         super().__init__()
@@ -37,7 +45,7 @@ class ImageLoaderManager(QObject):
         return ImageLoaderManager.instance
 
     def load_image(self, image_path: str, widget: "BaseImage"):
-        worker = ImageLoaderWorker(image_path, widget, widget.size())
+        worker = ImageLoaderWorker(image_path, self.root_widget, widget.size(), widget)
         self.thread_pool.start(worker)
 
 
@@ -63,11 +71,6 @@ class BaseImage(QFrame):
     @pixmap.setter
     def pixmap(self, value: QPixmap):
         self.__pixmap = value
-
-
-    @pyqtSlot()
-    def pixmap_changed(self):
-        self.repaint()
 
     @property
     def file_path(self):
@@ -200,9 +203,10 @@ class BaseImage(QFrame):
 
 
 class ImageLoaderWorker(QRunnable):
-    def __init__(self, image_path: str, tgt_widget: BaseImage, size: QSize):
+    def __init__(self, image_path: str, root_widget: "MainWindow", size: QSize, tgt_widget: BaseImage):
         super().__init__()
         self.image_path = image_path
+        self.root_widget = root_widget
         self.target_widget = tgt_widget
         self.size = size
 
@@ -219,13 +223,16 @@ class ImageLoaderWorker(QRunnable):
             except ZeroDivisionError:
                 aspect_ratio = 1.0
 
-            self.target_widget.pixmap = scaled_pm
-            self.target_widget.width_div_height = aspect_ratio
+            result = LoadingResult(
+                tgt_widget=self.target_widget,
+                pm=scaled_pm,
+                wdh=aspect_ratio
+            )
 
             # Trigger repaint
-            self.emitter.finished.connect(self.target_widget.pixmap_changed)
-            self.emitter.finished.emit()
-            self.emitter.finished.disconnect(self.target_widget.pixmap_changed)
+            self.emitter.finished.connect(self.root_widget.set_pixmap)
+            self.emitter.finished.emit(result)
+            self.emitter.finished.disconnect(self.root_widget.set_pixmap)
 
 
 class MainWindow(QMainWindow):
@@ -258,6 +265,7 @@ class MainWindow(QMainWindow):
         self.paths = []
         self.inner_widgets = []
         manager = ImageLoaderManager()
+        manager.root_widget = self
 
         root_path = "/home/alisot2000/Desktop/test-dirs/dir_b/"
         cos = 5
@@ -295,6 +303,19 @@ class MainWindow(QMainWindow):
             widget.file_path = p
 
         self.reload_state = not self.reload_state
+
+    @pyqtSlot(LoadingResult)
+    def set_pixmap(self, res: LoadingResult):
+        """
+        Check that the image we're got the result for is not deleted and then update the image.
+        """
+        # Check the image is not deleted
+        if sip.isdeleted(res.tgt_widget):
+            return
+
+        res.tgt_widget.pixmap = res.pm
+        res.tgt_widget.width_div_height = res.wdh
+        res.tgt_widget.repaint()
 
 
 if __name__ == "__main__":
