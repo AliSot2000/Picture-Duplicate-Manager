@@ -807,6 +807,7 @@ class DatabaseCarousel(QFrame):
     #     print("Timeout")
     #     self.carouse_area.move_to_specific_image(self.sc.value())
 
+    # TODO solve this with slots and add actions to the view
     def keyPressEvent(self, a0: QKeyEvent) -> None:
         """
         Catch keys from keyboard and move the carousel accordingly.
