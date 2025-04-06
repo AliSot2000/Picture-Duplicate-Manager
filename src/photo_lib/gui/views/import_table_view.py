@@ -1,4 +1,6 @@
-from PyQt6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QMessageBox, QMainWindow, QApplication, QScrollArea
+from dataclasses import dataclass
+from typing import List
+
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QMessageBox, QMainWindow, QApplication
 
