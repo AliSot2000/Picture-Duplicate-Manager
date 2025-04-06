@@ -2,23 +2,28 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt, pyqtSignal
 import sys
 from typing import Union
-from photo_lib.gui.base_image_loader import LoadingBaseImage
+from photo_lib.gui.widgets.base_image_loader import LoadingBaseImage
 
 # TODO font info from config.
 
 
 class ClickableImage(LoadingBaseImage):
     clicked = pyqtSignal()
+    double_click = pyqtSignal()
     __image_loaded: bool = True
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, a0):
         """
         Catch it when the mouse button is released on the image and emit the clicked signal.
-        :param event: Click event
+        :param a0: Click event
         :return:
         """
-        if event.button() == Qt.MouseButton.LeftButton:
+        if a0.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit()
+
+    def mouseDoubleClickEvent(self, a0):
+        if a0.button() == Qt.MouseButton.LeftButton:
+            self.double_click.emit()
 
     @property
     def image_loaded(self):
