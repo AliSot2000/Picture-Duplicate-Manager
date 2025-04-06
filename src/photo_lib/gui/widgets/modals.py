@@ -1,12 +1,15 @@
+import sys
+from enum import Enum
+from typing import Union
+
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QKeySequence
 from PyQt6.QtWidgets import QWidget, QFormLayout, QLineEdit, QPushButton, QLabel, QApplication, QHBoxLayout, \
     QFileDialog, QDialog, QCheckBox
-from PyQt6.QtGui import QKeySequence
-from PyQt6.QtCore import Qt
-import sys
-from photo_lib.gui.media_pane import MediaPane
-from photo_lib.gui.model import Model
-from typing import Union
-from enum import Enum
+
+from photo_lib.gui.old_model import Model
+from photo_lib.gui.widgets.media_pane import MediaPane
+
 
 class ButtonType(Enum):
     NO_BUTTON = -1
