@@ -1,9 +1,9 @@
 import sys
 import os
 from typing import Union
-from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QSizePolicy, QMainWindow, QFrame, QWidget
+from PyQt6.QtWidgets import QApplication, QLabel, QVBoxLayout, QSizePolicy, QMainWindow, QFrame
 from PyQt6.QtCore import Qt
-from photo_lib.gui.clickable_image import ClickableImage
+from photo_lib.gui.widgets.clickable_image import ClickableImage
 from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes, BaseTileInfo
 
 
