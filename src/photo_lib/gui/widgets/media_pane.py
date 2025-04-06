@@ -1,16 +1,17 @@
-from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QFrame, QSizePolicy, QHBoxLayout
-from PyQt6.QtMultimedia import QMediaPlayer
-from PyQt6.QtGui import QPixmap, QFontMetrics, QEnterEvent, QIcon
-from PyQt6.QtCore import Qt, QEvent, QSize
-
-from photo_lib.gui.misc import QSquarePushButton
-from photo_lib.gui.clickable_image import ClickableImage
-from photo_lib.gui.text_scroll_area import TextScroller
-from photo_lib.gui.model import Model
-from photo_lib.gui.gui_utils import bake_attribute
-from photo_lib.PhotoDatabase import DatabaseEntry
-from typing import Union, Callable
 import os.path
+from typing import Union, Callable
+
+from PyQt6.QtCore import Qt, QEvent, QSize
+from PyQt6.QtGui import QEnterEvent, QIcon
+from PyQt6.QtMultimedia import QMediaPlayer
+from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QFrame, QSizePolicy, QHBoxLayout
+
+from photo_lib.PhotoDatabase import DatabaseEntry
+from photo_lib.gui.old_model import Model
+from photo_lib.gui.util.gui_utils import bake_attribute
+from photo_lib.gui.widgets.clickable_image import ClickableImage
+from photo_lib.gui.widgets.square_push_button import QSquarePushButton
+from photo_lib.gui.widgets.text_scroll_area import TextScroller
 
 
 # Rotate Image
