@@ -86,7 +86,7 @@ class ClickablePatch(ClickableImage):
         else:
             self.file_path = None
 
-
+# TODO filename, etc. and frame
 class IndexedTile(ClickablePatch):
     """
     Has a index - to keep track of the index in the database (for display purposes).
