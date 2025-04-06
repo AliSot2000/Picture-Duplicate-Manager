@@ -1,16 +1,15 @@
-import math
-
-from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QGridLayout, QFrame, QLabel, QScrollBar, QVBoxLayout
-from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent, QWheelEvent, QKeyEvent, QColor
-from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer, pyqtSlot
 import sys
 from typing import List, Union
+
+from PyQt6.QtCore import Qt, QRect, QPoint, pyqtSignal, QTimer, pyqtSlot
+from PyQt6.QtGui import QResizeEvent, QKeyEvent
+from PyQt6.QtWidgets import QWidget, QApplication, QScrollArea, QGridLayout, QFrame, QScrollBar
+
 from photo_lib.PhotoDatabase import BaseTileInfo
-from photo_lib.gui.image_tile import ClickablePatch, IndexedTile
-from photo_lib.gui.old_model import Model, TileBuffer
-from photo_lib.gui.gui_utils import image_wrapper
 from photo_lib.data_objects import ImportTileInfo
-import datetime
+from photo_lib.gui.old_model import Model, TileBuffer
+from photo_lib.gui.util.gui_utils import image_wrapper
+from photo_lib.gui.widgets.image_tile import ClickablePatch, IndexedTile
 
 """
 Information:
