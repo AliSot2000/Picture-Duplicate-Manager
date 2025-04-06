@@ -1,11 +1,11 @@
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QFrame
-from PyQt6.QtGui import QResizeEvent, QAction, QIcon, QKeySequence
+from PyQt6.QtGui import QResizeEvent, QAction, QKeySequence
 from PyQt6.QtCore import Qt
-from photo_lib.gui.model import Model, NoDbException
-from photo_lib.gui.media_pane import MediaPane
-from photo_lib.gui.text_scroll_area import TextScroller
-from photo_lib.gui.button_bar import ButtonBar
-from photo_lib.gui.gui_utils import button_wrapper, pain_wrapper, path_wrapper
+from photo_lib.gui.old_model import Model, NoDbException
+from photo_lib.gui.widgets.media_pane import MediaPane
+from photo_lib.gui.widgets.text_scroll_area import TextScroller
+from photo_lib.gui.widgets.button_bar import ButtonBar
+from photo_lib.gui.util.gui_utils import button_wrapper, pain_wrapper, path_wrapper
 
 from typing import Callable, List
 import warnings
