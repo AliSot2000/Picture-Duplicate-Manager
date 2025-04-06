@@ -269,6 +269,7 @@ class FileExtensionDialog(QDialog):
 
         self.main_layout.addRow(self.cancel_button, self.apply_button)
 
+
 class RenameTableModal(QDialog):
     main_layout: QFormLayout
 
@@ -302,7 +303,6 @@ class RenameTableModal(QDialog):
 
         self.main_layout.addRow(self.info_label, self.new_desc_input)
         self.main_layout.addRow(self.cancel_button, self.rename_button)
-
 
 
 class PrepareImportDialog(QDialog):
