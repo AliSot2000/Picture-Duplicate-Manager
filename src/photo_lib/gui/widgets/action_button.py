@@ -9,7 +9,7 @@ from typing import Union
 Class links a action with a button.
 
 On click the button will trigger the action.
-On chane of the action the button will update to match the action.
+On change of the action the button will update to match the action.
 """
 
 
@@ -34,7 +34,7 @@ class QActionButton(QPushButton):
 
     @target_action.setter
     def target_action(self, target_action: QAction):
-        # if target_action is present, we disconnect the signals
+        # if target_action is present, we disconnect the signals prior to adding the new action
         if self.__target_action is not None:
             self.__target_action.changed.disconnect(self.update_button_from_action)
             self.clicked.disconnect(self.__target_action.trigger)
