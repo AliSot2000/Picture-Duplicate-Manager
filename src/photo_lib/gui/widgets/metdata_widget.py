@@ -1,18 +1,16 @@
-import time
-import warnings
-import threading as th
-from PyQt6.QtWidgets import QVBoxLayout, QCheckBox, QPushButton, QWidget, QApplication, QHBoxLayout, QFrame, QLabel, QGridLayout
-from PyQt6.QtCore import Qt, pyqtSignal
-
-from photo_lib.PhotoDatabase import FullImportTableEntry, ImportTileInfo, MatchTypes, FullReplacedEntry, FullDatabaseEntry
-from photo_lib.custom_enum import GoogleFotosMetadataStatus
-from photo_lib.gui.text_scroll_area import TextScroller
-from photo_lib.gui.old_model import Model
-from photo_lib.gui.gui_utils import bake_attribute
-
-from typing import Union
-import sys
 import json
+import sys
+import time
+from typing import Union
+
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QCheckBox, QApplication, QFrame, QLabel, QGridLayout
+
+from photo_lib.PhotoDatabase import FullImportTableEntry, ImportTileInfo, MatchTypes, FullReplacedEntry, \
+    FullDatabaseEntry
+from photo_lib.gui.old_model import Model
+from photo_lib.gui.util.gui_utils import bake_attribute
+from photo_lib.gui.widgets.text_scroll_area import TextScroller
 
 
 class DualMetadataWidget(QFrame):
