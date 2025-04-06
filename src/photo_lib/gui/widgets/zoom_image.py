@@ -1,14 +1,12 @@
-from PyQt6.QtWidgets import QWidget, QApplication
-from PyQt6.QtGui import QPixmap, QPainter, QFont, QEnterEvent, QMouseEvent, QResizeEvent
-from PyQt6.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal, QEvent, pyqtSlot, QSize, QPointF, QTimer
-import sys
-import os
-from typing import Union
 import math
-import warnings
-from photo_lib.gui.base_image import BaseImage
-from photo_lib.gui.base_image_loader import LoadingBaseImage
+import sys
+from typing import Union
 
+from PyQt6.QtCore import Qt, QRect, QPoint, QEvent, QPointF, QTimer
+from PyQt6.QtGui import QPainter, QEnterEvent, QMouseEvent, QResizeEvent
+from PyQt6.QtWidgets import QApplication
+
+from photo_lib.gui.widgets.base_image_loader import LoadingBaseImage
 
 
 class ZoomImage(LoadingBaseImage):
