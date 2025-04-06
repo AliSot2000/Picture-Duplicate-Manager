@@ -1,6 +1,5 @@
-from PyQt6.QtGui import QPixmap, QPainter, QFont
-from photo_lib.gui.base_image import BaseImage
-from photo_lib.gui.ImageLoader import ImageLoader
+from photo_lib.gui.widgets.base_image import BaseImage
+from photo_lib.gui.util.ImageLoader import ImageLoader
 from typing import Union
 
 
