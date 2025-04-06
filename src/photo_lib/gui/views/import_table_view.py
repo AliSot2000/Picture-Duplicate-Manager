@@ -1,11 +1,12 @@
 from PyQt6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QMessageBox, QMainWindow, QApplication, QScrollArea
 from PyQt6.QtGui import QAction
-from photo_lib.gui.gui_utils import general_wrapper
-from photo_lib.gui.model import Model
-from photo_lib.gui.modals import RenameTableModal
+from PyQt6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QMessageBox, QMainWindow, QApplication
+
 from photo_lib.data_objects import ImportTableEntry
-from typing import List
-from dataclasses import dataclass
+from photo_lib.gui.old_model import Model
+from photo_lib.gui.util.gui_utils import general_wrapper
+from photo_lib.gui.widgets.modals import RenameTableModal
+
 
 # TODO add option for last_import table.
 
@@ -16,7 +17,6 @@ class ImportTableEntryWidgets:
     delete_btn: QPushButton
     change_desc_btn: QPushButton
     key: int
-
 
 
 class ImportTableList(QFrame):
