@@ -1,14 +1,15 @@
+import math
 import os
 import sys
-import math
 from typing import List, Union
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QCheckBox, QApplication, QMainWindow, QScrollArea, QFrame, \
-    QWidget
+
 from PyQt6 import QtGui
 from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QCheckBox, QApplication, QMainWindow, QScrollArea, QFrame, \
+    QWidget
 
-from photo_lib.gui.image_tile import NamedTile
 from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes
+from photo_lib.gui.widgets.image_tile import NamedTile
 
 
 class Row(QFrame):
