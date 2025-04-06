@@ -1,6 +1,7 @@
-from PyQt6.QtWidgets import QLabel, QScrollArea
-from PyQt6.QtCore import Qt
 from typing import Callable, Union
+
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QLabel, QScrollArea
 
 
 class TextScroller(QScrollArea):
