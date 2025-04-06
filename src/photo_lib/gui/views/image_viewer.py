@@ -1,16 +1,15 @@
-from PyQt6.QtWidgets import QVBoxLayout, QCheckBox, QPushButton, QWidget, QApplication, QHBoxLayout, QFrame, QLabel, QScrollArea, QSplitter, QMainWindow
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QApplication, QHBoxLayout, QFrame, QScrollArea, QSplitter, QMainWindow
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction
 
-from photo_lib.PhotoDatabase import FullImportTableEntry, ImportTileInfo, MatchTypes
-from photo_lib.gui.action_button import QActionButton
-from photo_lib.gui.metdata_widget import DualMetadataWidget
+from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes
+from photo_lib.gui.widgets.action_button import QActionButton
+from photo_lib.gui.widgets.metdata_widget import DualMetadataWidget
 from photo_lib.gui.old_model import Model
-from photo_lib.gui.zoom_image import ZoomImage
+from photo_lib.gui.widgets.zoom_image import ZoomImage
 
 from typing import Union
 import sys
-import json
 
 
 # TODO bugfix, empty metadata when match not loaded
