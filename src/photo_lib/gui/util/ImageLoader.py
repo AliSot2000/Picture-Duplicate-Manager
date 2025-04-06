@@ -1,9 +1,7 @@
-from PyQt6.QtGui import QPixmap
-import os
-import warnings
 from concurrent.futures import ThreadPoolExecutor, Future
 from dataclasses import dataclass
-from photo_lib.gui.base_image import BaseImage
+
+from photo_lib.gui.widgets.base_image import BaseImage
 
 
 def load_store_img(img: BaseImage):
