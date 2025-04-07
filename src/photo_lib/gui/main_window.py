@@ -493,7 +493,6 @@ class RootWindow(QMainWindow):
             self.mark_submenu.addAction(self.compare_root.move_left_action)
             self.mark_submenu.addAction(self.compare_root.move_right_action)
 
-
     def open_image_in_full_screen(self, path: str):
         """
         Open an image in full screen mode. Add Additional Submenu
