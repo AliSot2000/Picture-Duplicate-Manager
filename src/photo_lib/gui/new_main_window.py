@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from typing import Type
 
 import PyQt6.sip as sip
 from PyQt6.QtCore import pyqtSlot
-from PyQt6.QtWidgets import QMainWindow
+from PyQt6.QtWidgets import QMainWindow, QWidget
 
-from .util.image_loader_worker import LoadingResult
-from .util.image_loader_manager import ImageLoaderManager
+from photo_lib.gui.util.image_loader_manager import ImageLoaderManager
+from photo_lib.gui.util.image_loader_worker import LoadingResult
 
 
 """
