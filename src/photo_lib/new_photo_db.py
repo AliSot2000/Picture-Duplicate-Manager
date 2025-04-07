@@ -19,7 +19,7 @@ from photo_lib.flag_dataclasses import MainFlags, GenericTableFlags
 from photo_lib.metadata_aggregator import MetadataParsingResult
 from photo_lib.metadata_aggregator.enums import DateTimeSource
 from photo_lib.sqlite_wrapper import BaseSQliteDB
-from photo_lib.cache import Cache, nd
+from photo_lib.cache import Cache, nd, MediaCache
 
 
 # https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
@@ -71,6 +71,10 @@ class PhotoDB(BaseSQliteDB):
     location_view_row_cache: Optional[Cache] = None
     location_view_key_cache: Optional[Cache] = None
 
+    # Specific Cache needed for the MediaPaths
+    media_cache: Optional[MediaCache] = None
+
+    # Internal variable needed for knowing how to generate the header for the Main Table View
     __last_main_grouping_criterion: Optional[GroupingCriterion] = None
 
     # Header Format for different grouping criterion of main table
@@ -85,6 +89,15 @@ class PhotoDB(BaseSQliteDB):
     # - Dunder Methods
     # ... Basically what you need to create a usable object of type PhtosDB
     # ==================================================================================================================
+
+    # INFO: We added this function to ensure there's the right cache in the attribute.
+    def add_media_cache(self, size: int = 1024):
+        """
+        Add a cache for the calls to get_media function
+
+        :param size: size of cache
+        """
+        self.media_cache = MediaCache(size=size)
 
     def add_caches(self, object_cache_size: int = 1024, int_cache_size: int = 16384):
         """
