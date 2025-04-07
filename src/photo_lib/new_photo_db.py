@@ -1426,6 +1426,24 @@ class PhotoDB(BaseSQliteDB):
 
         assert self.sq_cur.rowcount == 1, "SQL ERROR, Failed to insert row into name_update_table"
 
+    def get_path_from_name_update_table(self, key: int) -> str | None:
+        """
+        :param key: Key to get the path for.
+
+        :returns: None, key not found otherwise, path to file.
+        """
+        self.debug_execute("SELECT name, dir_name FROM name_update_table WHERE key = ?", (key,))
+        res = self.sq_cur.fetchone()
+
+        if res is None:
+            return None
+
+        fn, fd = res
+        fn: str
+        fd: str
+
+        return os.path.abspath(os.path.join(fd, fn))
+
     def set_updated_status_name_update_table(self, key: int, status: UpdateStatus, message: str = None):
         """
         Set the update state of a row in the name_update_table. Can also add a message, if one is provided.
