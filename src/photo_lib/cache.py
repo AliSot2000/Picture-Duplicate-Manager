@@ -23,12 +23,12 @@ nd = NotDefined()
 class Cache:
     __max_size: int
 
-    __arg_res_lookup: dict
-    __arg_index_lookup: dict
-    __index_arg_lookup: dict
+    _arg_res_lookup: dict
+    _arg_index_lookup: dict
+    _index_arg_lookup: dict
 
-    __lru: np.ndarray[bool]
-    __lru_index: int
+    _lru: np.ndarray[bool]
+    _lru_index: int
 
     __hits: int = 0
     __misses: int = 0
@@ -39,7 +39,7 @@ class Cache:
 
     @property
     def current_size(self):
-        return len(self.__arg_res_lookup.keys())
+        return len(self._arg_res_lookup.keys())
 
     @property
     def hits(self):
@@ -57,13 +57,13 @@ class Cache:
 
     def __init__(self, size: int = 128):
         self.__max_size = size
-        self.__lru_index = 0
-        self.__lru = np.array([False for _ in range(self.size)])
+        self._lru_index = 0
+        self._lru = np.array([False for _ in range(self.size)])
 
         # Need to explicitly set it here, otherwise, clashes bc of class vars.
-        self.__arg_res_lookup = {}
-        self.__arg_index_lookup = {}
-        self.__index_arg_lookup = {}
+        self._arg_res_lookup = {}
+        self._arg_index_lookup = {}
+        self._index_arg_lookup = {}
 
     def get(self, arg: Hashable):
         """
@@ -72,7 +72,7 @@ class Cache:
         if arg is nd:
             raise ValueError("nd may not be used as argument or value in the Cache.")
 
-        res = self.__arg_res_lookup.get(arg, nd)
+        res = self._arg_res_lookup.get(arg, nd)
         if res is nd:
             self.__misses += 1
             return nd
@@ -80,7 +80,7 @@ class Cache:
         else:
             self.__hits += 1
             # Set the hit flag
-            self.__lru[self.__arg_index_lookup[arg]] = True
+            self._lru[self._arg_index_lookup[arg]] = True
             return res
 
     def set(self, arg: Hashable, value: Any):
@@ -90,69 +90,69 @@ class Cache:
         if arg is nd or value is nd:
             raise ValueError("nd may not be used as argument or value in the Cache.")
 
-        res = self.__arg_res_lookup.get(arg, nd)
+        res = self._arg_res_lookup.get(arg, nd)
 
         # Cache hit, update the flag
         if res is not nd:
-            self.__lru[self.__arg_index_lookup[arg]] = True
-            self.__arg_res_lookup[arg] = value
+            self._lru[self._arg_index_lookup[arg]] = True
+            self._arg_res_lookup[arg] = value
 
         # The argument isn't currently in the cache.
         else:
             # The cache hasn't reached full size, just add the new value
-            if len(self.__arg_res_lookup) < self.size:
+            if len(self._arg_res_lookup) < self.size:
 
                 # Find the entry in the index to arg lookup which currently doesn't have a value set.
                 idx = 0
-                while idx < self.size and self.__index_arg_lookup.get(idx, nd) is not nd:
+                while idx < self.size and self._index_arg_lookup.get(idx, nd) is not nd:
                     idx += 1
 
-                assert self.__lru[idx] == False, "Unexpected LRU state."
+                assert self._lru[idx] == False, "Unexpected LRU state."
 
                 # Store the argument in the argument to result lookup dict
-                self.__arg_res_lookup[arg] = value
+                self._arg_res_lookup[arg] = value
 
                 # Store the index in the __lru array in the arg to index lookup dict
-                self.__arg_index_lookup[arg] = idx
+                self._arg_index_lookup[arg] = idx
 
                 # Store the index to argument lookup (needed for eviction)
-                self.__index_arg_lookup[idx] = arg
+                self._index_arg_lookup[idx] = arg
 
                 # Set the entry as accessed
-                self.__lru[self.__arg_index_lookup[arg]] = True
+                self._lru[self._arg_index_lookup[arg]] = True
 
                 # Return, we don't want to update anything else
                 return
 
             else:
-                assert len(self.__arg_res_lookup) == self.size, (f"Unexpected size of cache: "
-                                                                  f"{len(self.__arg_res_lookup)}, "
+                assert len(self._arg_res_lookup) == self.size, (f"Unexpected size of cache: "
+                                                                  f"{len(self._arg_res_lookup)}, "
                                                                   f"max_size: {self.size}")
                 # Find the index to evict
-                while self.__lru[self.__lru_index]:
+                while self._lru[self._lru_index]:
                     # Update the flag
-                    self.__lru[self.__lru_index] = False
+                    self._lru[self._lru_index] = False
 
                     # increment the pointer
-                    self.__lru_index = (self.__lru_index + 1) % self.size
+                    self._lru_index = (self._lru_index + 1) % self.size
 
-                assert self.__lru[self.__lru_index] == False, "Unexpected outcome of find evict"
+                assert self._lru[self._lru_index] == False, "Unexpected outcome of find evict"
 
                 # Get the argument to evict
-                old_arg = self.__index_arg_lookup[self.__lru_index]
+                old_arg = self._index_arg_lookup[self._lru_index]
 
-                del self.__arg_index_lookup[old_arg]
-                del self.__arg_res_lookup[old_arg]
+                del self._arg_index_lookup[old_arg]
+                del self._arg_res_lookup[old_arg]
 
                 # Set the new lookup target
-                self.__index_arg_lookup[self.__lru_index] = arg
+                self._index_arg_lookup[self._lru_index] = arg
 
                 # Set the accessed flag
-                self.__lru[self.__lru_index] = True
+                self._lru[self._lru_index] = True
 
                 # Store arg to x lookups.
-                self.__arg_res_lookup[arg] = value
-                self.__arg_index_lookup[arg] = self.__lru_index
+                self._arg_res_lookup[arg] = value
+                self._arg_index_lookup[arg] = self._lru_index
 
     def update(self, arg: Hashable, value: Any):
         """
@@ -161,12 +161,12 @@ class Cache:
         if arg is nd or value is nd:
             raise ValueError("nd may not be used as argument or value in the Cache.")
 
-        res = self.__arg_res_lookup.get(arg, nd)
+        res = self._arg_res_lookup.get(arg, nd)
         if res is nd:
             return
 
         # Only update the arg
-        self.__arg_res_lookup[arg] = value
+        self._arg_res_lookup[arg] = value
 
     def evict(self, arg: Hashable) -> bool:
         """
@@ -175,42 +175,42 @@ class Cache:
         if arg is nd:
             raise ValueError("nd may not be used as argument or value in the Cache.")
 
-        res = self.__arg_res_lookup.get(arg, nd)
+        res = self._arg_res_lookup.get(arg, nd)
         if res is nd:
             return False
 
         # PRECONDITION: Argument is in cache
         # Set the cache to be populate
-        self.__lru[self.__arg_index_lookup[arg]] = False
+        self._lru[self._arg_index_lookup[arg]] = False
 
         # Remove the lookup from index to argument
-        del self.__index_arg_lookup[self.__arg_index_lookup[arg]]
+        del self._index_arg_lookup[self._arg_index_lookup[arg]]
 
         # Finally, clearing the arg to x lookups
-        del self.__arg_res_lookup[arg]
-        del self.__arg_index_lookup[arg]
+        del self._arg_res_lookup[arg]
+        del self._arg_index_lookup[arg]
         return True
 
     def inspect(self):
         """
         Inspect the cache
         """
-        print(self.__arg_res_lookup)
-        print(self.__arg_index_lookup)
-        print(self.__index_arg_lookup)
-        print(self.__lru)
+        print(self._arg_res_lookup)
+        print(self._arg_index_lookup)
+        print(self._index_arg_lookup)
+        print(self._lru)
 
     def reset(self):
         """
         Reset entire cache. Not all cache updates are efficient. In cases where updates are rare and expensive,
         it is easier to clear the cache instead.
         """
-        self.__arg_res_lookup: dict = {}
-        self.__arg_index_lookup: dict = {}
-        self.__index_arg_lookup: dict = {}
+        self._arg_res_lookup: dict = {}
+        self._arg_index_lookup: dict = {}
+        self._index_arg_lookup: dict = {}
 
-        self.__lru_index = 0
-        self.__lru = np.array([False for _ in range(self.size)])
+        self._lru_index = 0
+        self._lru = np.array([False for _ in range(self.size)])
 
         self.__hits: int = 0
         self.__misses: int = 0
