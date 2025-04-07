@@ -88,3 +88,20 @@ class TextScroller(QScrollArea):
         if self.share_scroll is not None:
             self.share_scroll(caller=self, rx=x_ratio, ry=y_ratio)
 
+
+if __name__ == "__main__":
+    import sys
+    from PyQt6.QtWidgets import QMainWindow, QApplication
+
+    class LocalMainWindow(QMainWindow):
+        def __init__(self):
+            super().__init__()
+            self.text_scroller = TextScroller("We have here a nice string that is nice and long for our need to "
+                                              "test if we have a nice scroller")
+            self.setCentralWidget(self.text_scroller)
+
+    app = QApplication(sys.argv)
+    window = LocalMainWindow()
+    window.show()
+
+    sys.exit(app.exec())
