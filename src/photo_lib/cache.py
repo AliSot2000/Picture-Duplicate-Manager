@@ -3,6 +3,9 @@ from typing import Any
 
 import numpy as np
 
+from custom_enum import TargetViewTable
+from photo_lib.data_objects import MediaElement
+
 
 class NotDefined(object):
     """
@@ -211,6 +214,23 @@ class Cache:
 
         self.__hits: int = 0
         self.__misses: int = 0
+
+
+class MediaCache(Cache):
+    """
+    This Cache is specifically made for the MediaPaths objects. In this case, we need to be able to evict elements from
+    cache based on the table they are a part of. For this, we introduce a new function - evict partition
+    """
+    def evict_partition(self, partition: TargetViewTable):
+        """
+        Evict all elements which share the partition.
+        """
+        for key in self._arg_res_lookup.keys():
+            assert isinstance(key, MediaElement), "Unexpected key type for MediaCache"
+
+            # Remove the element from cache if we have a match.
+            if key.source_table == partition:
+                self.evict(key)
 
 
 if __name__ == "__main__":  # pragma: no cover
