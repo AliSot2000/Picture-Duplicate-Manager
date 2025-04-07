@@ -46,12 +46,9 @@ class BaseImage(QFrame):
     def media(self):
         return self.__media
 
-    def load_image(self):
+    def determine_fp_to_use(self):
         """
-        Selects the correct version of the image to load and either load it directly or schedule the loading through
-        the image loading manager
-
-        :return:
+        Determine which of the possible files to use to display the image
         """
         major_size = max(self.size().width(), self.size().height())
 
@@ -75,8 +72,12 @@ class BaseImage(QFrame):
 
         assert len(valid_paths) > 0, "At least one valid path should exist."
 
-        fp = valid_paths[0]
+        return valid_paths[0]
 
+    def dispatch_load(self, fp: str):
+        """
+        Perform the loading of the image either in the current thread or with a QRunnable if the worker for that is started.
+        """
         manager = ImageLoaderManager.get_instance()
         if manager is None:
             self.local_fetch_image(fp)
