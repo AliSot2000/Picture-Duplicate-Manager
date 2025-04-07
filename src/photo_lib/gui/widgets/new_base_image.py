@@ -106,6 +106,9 @@ class BaseImage(QFrame):
         :param event:
         :return:
         """
+        # Test if we can use this to draw a frame.
+        # super().paintEvent(event)
+
         if self.pixmap is None or self.pixmap.isNull():
             self.empty_pixmap_painter()
             return
@@ -122,6 +125,7 @@ class BaseImage(QFrame):
         qp = QPainter(self)
         qp.drawPixmap(r, self.pixmap)
 
+        # Was this a frame
         # rec = self.rect()
         # rec.setWidth(rec.width() - 1)
         # rec.setHeight(rec.height() - 1)
@@ -145,8 +149,7 @@ class BaseImage(QFrame):
         else:
             text = "Empty file path"
 
-        # TODO Use defaults for the font size
-        font = QFont("Arial", 12, QFont.Weight.Bold)
+        font = QFont("Arial", font_utils.get_h1_font_size(), QFont.Weight.Bold)
         pt.setFont(font)
         text_rect = pt.boundingRect(self.rect(), 0, text)
         text_position = self.rect().center() - text_rect.center()
