@@ -9,12 +9,12 @@ from typing import Set, Dict, List, Union, Tuple, Iterator, Any, Optional
 from photo_lib.config import Config
 from photo_lib.custom_enum import GroupingCriterion, SelectionType, MediaType, Allowed, ImportStatus, UpdateStatus, \
     NewMatchTypes, MainTileView, TargetViewTable, ImportTableGrouping
-from photo_lib.data_objects import Selection, NewImportTableEntry, MetadataRow, MainRow, MediaPaths
+from photo_lib.data_objects import Selection, NewImportTableEntry, MetadataRow, MainRow, MediaPaths, MediaElement
 from photo_lib.db_definitions import StaticDeclaration, GenericDeclaration, DBVersion, \
     DBHistorySpec
 from photo_lib.db_definitions import current_version as db_current_version
 from photo_lib.db_definitions import history as db_history
-from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase
+from photo_lib.errors_and_warnings import ImplementationError, CorruptDatabase, KeyNotFound
 from photo_lib.flag_dataclasses import MainFlags, GenericTableFlags
 from photo_lib.metadata_aggregator import MetadataParsingResult
 from photo_lib.metadata_aggregator.enums import DateTimeSource
