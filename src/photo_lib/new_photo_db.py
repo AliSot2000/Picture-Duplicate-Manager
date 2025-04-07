@@ -3858,8 +3858,26 @@ class PhotoDB(BaseSQliteDB):
     # UI
     # ==================================================================================================================
 
-    # TODO implement caches for each table.
     def get_media(self, media_element: MediaElement) -> MediaPaths:
+        """
+        Cached Version of get_media. If no Cache was created, the function will always use db_get_media
+        """
+        # INFO: Cache clears are missing.
+        if self.media_cache is None or True:
+            return self.db_get_media(media_element)
+
+        assert isinstance(self.media_cache, MediaCache), "Unexpected Type of media_cache attribute"
+
+        res = self.media_cache.get(media_element)
+        if res is nd:
+            val = self.db_get_media(media_element)
+            self.media_cache.set(media_element, val)
+            return val
+
+        return res
+
+    # TODO implement caches for each table.
+    def db_get_media(self, media_element: MediaElement) -> MediaPaths:
         """
         Returns the known paths to the media. (Including thumbnail and miniature)
 
