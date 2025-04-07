@@ -3,7 +3,6 @@ This file contains custom Errors that are needed by the photo api.
 """
 
 
-
 class DuplicateChainingError(Exception):
     def __init__(self, message):
         self.message = message
