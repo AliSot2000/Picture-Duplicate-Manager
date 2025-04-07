@@ -36,6 +36,12 @@ class BaseImage(QFrame):
         self.__media = mp
         self.model = model
 
+        tgt_fp = self.determine_fp_to_use()
+        if tgt_fp is None:
+            return
+
+        self.dispatch_load(tgt_fp)
+
     @property
     def media(self):
         return self.__media
