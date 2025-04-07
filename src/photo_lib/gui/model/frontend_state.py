@@ -15,7 +15,9 @@ class TaskType(Enum):
 class UIState:
     pass
 
-class UIState(pydantic.BaseModel):
+
+# TODO implement ui state
+class TODOUIState(pydantic.BaseModel):
     current_task: TaskType
     progress: str | int
 
