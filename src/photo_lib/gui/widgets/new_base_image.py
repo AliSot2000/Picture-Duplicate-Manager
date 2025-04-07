@@ -1,0 +1,172 @@
+import os
+
+from PyQt6.QtCore import Qt, QRect, QPoint, QSize
+from PyQt6.QtGui import QPainter, QFont, QPaintEvent, QImage, QPixmap
+from PyQt6.QtWidgets import QFrame
+
+from photo_lib.custom_enum import TargetViewTable
+from photo_lib.gui.util.image_loader_manager import ImageLoaderManager
+from photo_lib.data_objects import MediaPaths
+from photo_lib.errors_and_warnings import ImplementationError
+from photo_lib.gui.model.root import UIModel
+
+
+class BaseImage(QFrame):
+    pixmap = None
+
+    __media: MediaPaths
+
+    width_div_height: float = 1.0
+
+    filler_color = Qt.GlobalColor.darkGray
+
+    def __init__(self, mp: MediaPaths, model: UIModel):
+        """
+        The new variant of the BaseImage doesn't allow reusing the widget anymore. With every new MediaPaths a new
+        object needs to be instantiated.
+        """
+        super().__init__()
+        self.__media = mp
+        self.model = model
+
+    @property
+    def media(self):
+        return self.__media
+
+    def load_image(self):
+        """
+        Selects the correct version of the image to load and either load it directly or schedule the loading through
+        the image loading manager
+
+        :return:
+        """
+        major_size = max(self.size().width(), self.size().height())
+
+        # We're smaller than thumbnail, we're taking the thumbnail
+        if major_size < self.model.thumbnail_size:
+            possible_paths = [self.media.thumbnail_fp, self.media.miniature_fp, self.media.original_fp]
+        elif major_size < self.model.miniature_size:
+            possible_paths = [self.media.miniature_fp, self.media.original_fp]
+        elif major_size >= self.model.miniature_size:
+            possible_paths = [self.media.original_fp]
+        else:  # pragma: no cover
+            raise ImplementationError("Tertiem non Datur. This case shouldn't be possible")
+
+        # Get the first matching file path
+        valid_paths = list(filter(lambda x: x is not None, possible_paths))
+
+        # No valid path found, use empty painter.
+        if len(valid_paths) == 0:
+            self.pixmap = None
+            return
+
+        assert len(valid_paths) > 0, "At least one valid path should exist."
+
+        fp = valid_paths[0]
+
+        manager = ImageLoaderManager.get_instance()
+        if manager is None:
+            self.local_fetch_image(fp)
+        else:
+            manager.load_image(image_path=fp, widget=self)
+
+    def local_fetch_image(self, fp: str):
+        """
+        Perform loading in this thread
+        """
+        assert os.path.exists(fp), "PRECONDITION violated: File Path is supposed to exist"
+
+        image = QImage(fp)  # Load image safely
+        pixmap = QPixmap.fromImage(image)  # Convert to pixmap
+
+        scaled_pm = pixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio)
+
+        try:
+            aspect_ratio = pixmap.width() / pixmap.height()
+        except ZeroDivisionError:
+            aspect_ratio = 1.0
+
+        self.pixmap = scaled_pm
+        self.width_div_height = aspect_ratio
+
+    def sizeHint(self):
+        """
+        Custom implementation of the size hint depending on if the image is loaded or not.
+        :return:
+        """
+        if self.pixmap and not self.pixmap.isNull():
+            return self.pixmap.size()
+        return QSize()
+
+    def paintEvent(self, event: QPaintEvent):
+        """
+        Custom implementation of the paint event to rescale the image to fit.
+        :param event:
+        :return:
+        """
+        if self.pixmap is None or self.pixmap.isNull():
+            self.empty_pixmap_painter()
+            return
+
+        # Draw when image is successfully loaded n stuff.
+        if self.size() == self.pixmap.size():
+            r = self.rect()
+        else:
+            r = QRect(QPoint(),
+                      self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
+            r.moveCenter(self.rect().center())
+            print("Using scaled version if Pixmap")
+
+        qp = QPainter(self)
+        qp.drawPixmap(r, self.pixmap)
+
+        # rec = self.rect()
+        # rec.setWidth(rec.width() - 1)
+        # rec.setHeight(rec.height() - 1)
+        # qp.drawRect(rec)
+
+    def empty_pixmap_painter(self):
+        """
+        In case there's no image loaded, paint a message on the widget.
+        :return:
+        """
+        # Create a filler shape to indicate where the image is supposed to be.
+        pt = QPainter(self)
+        pt.fillRect(self.rect(), self.filler_color)
+
+        # Draw the text in the middle of the widget
+        if self.pixmap.isNull() is not None:
+            if self.media.element.source_table != TargetViewTable.IMPORT:
+                text = f"Couldn't load {self.media.element.key} from {self.media.element.source_table.name}"
+            else:
+                text = f"Couldn't load {self.media.element.key} from {self.media.element.target_import_table}"
+        else:
+            text = "Empty file path"
+
+        # TODO Use defaults for the font size
+        font = QFont("Arial", 12, QFont.Weight.Bold)
+        pt.setFont(font)
+        text_rect = pt.boundingRect(self.rect(), 0, text)
+        text_position = self.rect().center() - text_rect.center()
+        pt.drawText(text_position, text)
+
+        # Attempt to reload the image.
+        if self.file_path is not None:
+            self.load_image()
+
+    def resizeEvent(self, a0):
+        """
+        Handle Resize Event differently:
+        - If we're scaling down i.e. smaller, compute pixmap as a scaled down version of the current one
+        - If we're scaling up, load the file again and recompute the smaller version.
+        """
+        r = QRect(QPoint(), self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
+
+        # If we're scaling down, we want to reduce the size of the pixmap in order to save ram
+        if r.size().width() < self.pixmap.size().width() and r.size().height() < self.pixmap.size().height():
+            self.pixmap = QPixmap(self.pixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
+
+        # We're scaling up
+        else:
+            self.load_image()
+
