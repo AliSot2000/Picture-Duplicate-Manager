@@ -211,7 +211,7 @@ class MediaElement:
         self.target_import_table = target_import_table
 
 
-class MediaPaths2:
+class MediaPaths:
     element: MediaElement
 
     original_fp: Optional[str] = None
