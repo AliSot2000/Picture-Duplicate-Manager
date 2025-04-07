@@ -152,7 +152,7 @@ class BaseImage(QFrame):
         pt.fillRect(self.rect(), self.filler_color)
 
         # Draw the text in the middle of the widget
-        if self.pixmap.isNull() is not None:
+        if self.pixmap is None or (self.pixmap is not None and self.pixmap.isNull()):
             if self.media.element.source_table != TargetViewTable.IMPORT:
                 text = f"Couldn't load {self.media.element.key} from {self.media.element.source_table.name}"
             else:
