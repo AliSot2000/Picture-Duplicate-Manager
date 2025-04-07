@@ -1,8 +1,13 @@
-from PyQt6.QtWidgets import QApplication
-from PyQt6.QtCore import Qt, pyqtSignal
+from __future__ import annotations
+
 import sys
 from typing import Union
+
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QApplication
+
 from photo_lib.gui.widgets.base_image_loader import LoadingBaseImage
+
 
 # TODO font info from config.
 
