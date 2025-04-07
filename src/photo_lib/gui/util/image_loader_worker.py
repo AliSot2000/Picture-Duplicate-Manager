@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional
 
-from PyQt6.QtCore import QRunnable, QSize, Qt, QObject, pyqtSignal
+from PyQt6.QtCore import QRunnable, QObject, pyqtSignal
 from PyQt6.QtGui import QPixmap, QImage
 
 from photo_lib.gui.widgets.base_image import BaseImage
