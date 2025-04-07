@@ -1,0 +1,68 @@
+from __future__ import annotations
+
+import os
+from typing import Optional
+
+from PyQt6.QtCore import QRunnable, QSize, Qt
+from PyQt6.QtGui import QPixmap, QImage
+
+from photo_lib.gui.new_main_window import BaseMainWindow
+from photo_lib.gui.widgets.base_image import BaseImage
+from .gui_utils import SignalEmitter, LoadingResult
+
+
+class ImageLoaderWorker(QRunnable):
+    # INFO: Might have to do a string instead of Reference
+    def __init__(self,
+                 image_path: str,
+                 root_widget: BaseMainWindow,
+                 tgt_widget: BaseImage,
+                 size: Optional[QSize] = None):
+        """
+        Create a new worker instance
+
+        :param image_path: path to image file that should be loaded
+        :param root_widget: root widget that handles checking, if the target widget still exists, sets the data and
+            issues a paint event
+        :param size: the target size the images is supposed to be scaled to. No scaling happens if it is None
+        :param tgt_widget: Widget to update afterward with the new pixmap.
+        """
+        super().__init__()
+        self.image_path = image_path
+        self.root_widget = root_widget
+        self.target_widget = tgt_widget
+        self.size = size
+
+        self.emitter = SignalEmitter()
+
+    def run(self):
+        """
+        Run Method does:
+        - Load Image
+        - Scale Image
+        - Emit a Signal for the Target Widget to Update
+        """
+        if os.path.exists(self.image_path):
+            image = QImage(self.image_path)  # Load image safely
+            pixmap = QPixmap.fromImage(image)  # Convert to pixmap
+
+            if self.size is not None:
+                scaled_pm = pixmap.scaled(self.size, Qt.AspectRatioMode.KeepAspectRatio)
+            else:
+                scaled_pm = pixmap
+
+            try:
+                aspect_ratio = pixmap.width() / pixmap.height()
+            except ZeroDivisionError:
+                aspect_ratio = 1.0
+
+            result = LoadingResult(
+                tgt_widget=self.target_widget,
+                pm=scaled_pm,
+                wdh=aspect_ratio
+            )
+
+            # Trigger repaint
+            self.emitter.finished.connect(self.root_widget.set_pixmap)
+            self.emitter.finished.emit(result)
+            self.emitter.finished.disconnect(self.root_widget.set_pixmap)
