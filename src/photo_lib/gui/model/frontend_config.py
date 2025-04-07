@@ -23,6 +23,11 @@ class UIConfig(BaseModel):
                     "this off and load the parent only on request."
     )
 
+    minimum_width_for_compare_widget: int = Field(
+        default=300,
+        description="Minimum width for Panes in the CompareView."
+    )
+
     # TODO replace that with the one from the api
     thumbnail_size: int = 100
     miniature_size: int = 500
