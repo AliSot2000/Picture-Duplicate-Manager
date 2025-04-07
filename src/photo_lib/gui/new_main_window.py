@@ -38,3 +38,17 @@ class BaseMainWindow(QMainWindow):
         result.tgt_widget.file_path = result.file_path
         result.tgt_widget.repaint()
 
+
+class DeduplicatorMainWindow(BaseMainWindow):
+    """
+    Instance of the GUI started specifically intended only for the Fast-Image-Deduplicator.
+    """
+    # TODO implement
+
+
+class PhotoLibMainWindow(BaseMainWindow):
+    """
+    Instance of the GUI started intended for the entire database.
+    """
+    last_view: Type[QWidget]
+
