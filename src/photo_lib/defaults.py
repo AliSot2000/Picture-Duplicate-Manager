@@ -23,5 +23,5 @@ temp_path = '.temp'
 config_path = '.config.json'
 db_file = ".photos.db"
 miniature_size = 512
-thumbnail_size = 64
+thumbnail_size = 256
 batch_size = 1000
