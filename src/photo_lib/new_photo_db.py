@@ -3845,68 +3845,82 @@ class PhotoDB(BaseSQliteDB):
     # UI
     # ==================================================================================================================
 
-    def get_media(self, key: int, strict: bool = False) -> MediaPaths:
+    # TODO implement caches for each table.
+    def get_media(self, media_element: MediaElement) -> MediaPaths:
         """
-        Returns a Dataclass which contains the thumbnail path, miniature path and original path.
+        Returns the known paths to the media. (Including thumbnail and miniature)
 
-        PRECONDITION: Key exists.
+        PRECONDITION: The key is present in the table.
+        PRECONDITION: The import table exists
+
+        INFO: For MAIN, HASH and PRESENCE, the function doesn't validate that the key is also in the presence,
+            hash table respectively
+
+        :param media_element: MediaElement object to fetch the data for.
+
+        :raises KeyNotFound: If key is present in the table.
+        :raises ImplementationError: If not all values of the enum are covered.
         """
-        org_path = self.db_resolve_key_to_abs_path(key)
-        thumb_path = self.full_thumbnail_path(key)
-        mini_path = self.full_miniature_path(key)
+        # Handle files from the import table
+        if media_element.source_table == TargetViewTable.IMPORT:
+            path = self.get_path_from_import_table(key=media_element.key, tbl=media_element.target_import_table)
 
-        if org_path is None:
-            raise ValueError("Key not found")
+            # Precondition violated, raise Exception
+            if path is None:
+                raise KeyNotFound(key=media_element.key, table=media_element.target_import_table)
 
-        # Handle strict case, or case when everything is present
-        if strict or (os.path.exists(org_path) and os.path.exists(thumb_path) and os.path.exists(mini_path)):
+            if os.path.exists(path):
+                return MediaPaths(element=media_element, original_fp=path)
+            else:
+                self.integrity_logger.warning(f"Couldn't find image from import table {media_element.target_import_table}")
+                return MediaPaths(element=media_element)
+
+        elif media_element.source_table == TargetViewTable.MAIN \
+            or media_element.source_table == TargetViewTable.HASH \
+            or media_element.source_table == TargetViewTable.PRESENCE:
+
+            path = self.db_resolve_key_to_abs_path(media_element.key)
+            if path is None:
+                raise KeyNotFound(key=media_element.key, table=media_element.target_import_table)
+
+            thumbnail = self.full_thumbnail_path(media_element.key)
+            miniature = self.full_miniature_path(media_element.key)
+
+            parent = self.get_parent(media_element.key)
+
             return MediaPaths(
-                target_key=key,
-                original_fp=org_path if os.path.exists(org_path) else None,
-                thumbnail_fp=thumb_path if os.path.exists(org_path) else None,
-                miniature_fp=mini_path if os.path.exists(mini_path) else None
+                element=media_element,
+                original_fp=path if os.path.exists(path) else None,
+                miniature_fp=miniature if os.path.exists(miniature) else None,
+                thumbnail_fp=thumbnail if os.path.exists(thumbnail) else None,
+                parent=MediaElement(key=parent, source_table=TargetViewTable.MAIN)
             )
 
-        # Handle non-strict case with missing paths
-        assert not os.path.exists(org_path) or not os.path.exists(thumb_path) or not os.path.exists(mini_path), \
-            f"Should have at least something missing"
-        parent = self.get_parent(key)
+        # Get the path in case we have
+        elif media_element.source_table == TargetViewTable.NAME:
+            path = self.get_path_from_name_update_table(key=media_element.key)
 
-        # No parent found, return what we got.
-        if parent is None:
+            if path is None:
+                raise KeyNotFound(key=media_element.key, table=media_element.target_import_table)
+
+            # INFO, we assume that there's a match, but we don't know for sure. So we don't add the parent.
             return MediaPaths(
-                target_key=key,
-                original_fp=org_path if os.path.exists(org_path) else None,
-                thumbnail_fp=thumb_path if os.path.exists(org_path) else None,
-                miniature_fp=mini_path if os.path.exists(mini_path) else None
+                element=media_element,
+                original_fp=path if os.path.exists(path) else None
+            )
+        elif media_element.source_table == TargetViewTable.LOCATION:
+            path = self.get_path_from_relocation_table(key=media_element.key)
+
+            if path is None:
+                raise KeyNotFound(key=media_element.key, table=media_element.target_import_table)
+
+            return MediaPaths(
+                element=media_element,
+                original_fp=path if os.path.exists(path) else None
             )
 
-        assert parent is not None, "Need parent for further resolution."
-
-        is_parent_org = is_parent_thumb = is_parent_mini = False
-        if not os.path.exists(org_path) and os.path.exists(self.db_resolve_key_to_abs_path(parent)):
-            org_path = self.db_resolve_key_to_abs_path(parent)
-            is_parent_org = True
-
-        if not os.path.exists(thumb_path) and os.path.exists(self.full_thumbnail_path(parent)):
-            thumb_path = self.full_thumbnail_path(parent)
-            is_parent_thumb = True
-
-        if not os.path.exists(mini_path) and os.path.exists(self.full_miniature_path(parent)):
-            mini_path = self.full_miniature_path(parent)
-            is_parent_mini = True
-
-        return MediaPaths(
-            target_key=key,
-            original_fp=org_path,
-            thumbnail_fp=thumb_path,
-            miniature_fp=mini_path,
-
-            parent_key=parent,
-            is_parent_org=is_parent_org,
-            is_parent_thumbnail=is_parent_thumb,
-            is_parent_miniature=is_parent_mini
-        )
+        else:  # pragma: no cover
+            raise ImplementationError("Not all values of the TargetViewTable covered")
 
     def get_compare_data(self, key: int | List[int]) -> List:
         """
