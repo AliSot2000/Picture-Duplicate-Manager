@@ -34,7 +34,7 @@ class ImageLoaderManager(QObject):
             raise ImplementationError("Attempting to reinitialize an already initialized manager")
 
     @classmethod
-    def get_instance(cls) -> ImageLoaderManager:
+    def get_instance(cls) -> ImageLoaderManager  | None:
         """
         Get the instance of the ImageLoader
         """
