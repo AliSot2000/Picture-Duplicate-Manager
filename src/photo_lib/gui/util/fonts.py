@@ -13,50 +13,58 @@ def get_sys_font() -> QFont:
     """
     return QApplication.font()
 
-def get_sys_font_size() -> float:
+
+def get_sys_font_size_float() -> float:
     """
     Gets the system default font size in points.
     """
     return QApplication.font().pointSizeF()
 
 
-def get_h1_font_size():
+def get_sys_font_size_int() -> int:
+    """
+    Gets the system default font size in points.
+    """
+    return QApplication.font().pointSize()
+
+
+def get_h1_font_size() -> int:
     """
     Get equivalent of H1 font size = 2x get_sys_font_size
     """
-    return QApplication.font().pointSizeF() * 2
+    return int(QApplication.font().pointSizeF() * 2)
 
 
-def get_h2_font_size():
+def get_h2_font_size() -> int:
     """
     Get equivalent of H2 font size = 1.5x get_sys_font_size
     """
-    return QApplication.font().pointSizeF() * 1.5
+    return int(QApplication.font().pointSizeF() * 1.5)
 
 
-def get_h3_font_size():
+def get_h3_font_size() -> int:
     """
     Get equivalent of H3 font size = 1.3x get_sys_font_size
     """
-    return QApplication.font().pointSizeF() * 1.3
+    return int(QApplication.font().pointSizeF() * 1.3)
 
 
-def get_h4_font_size():
+def get_h4_font_size() -> int:
     """
     Get equivalent of H4 font size = 1x get_sys_font_size
     """
-    return QApplication.font().pointSizeF() * 1
+    return int(QApplication.font().pointSizeF() * 1)
 
 
-def get_h5_font_size():
+def get_h5_font_size() -> int:
     """
     Get equivalent of H1 font size = 0.8x get_sys_font_size
     """
-    return QApplication.font().pointSizeF() * 0.8
+    return int(QApplication.font().pointSizeF() * 0.8)
 
 
-def get_h6_font_size():
+def get_h6_font_size() -> int:
     """
     Get equivalent of H1 font size = 0.7x get_sys_font_size
     """
-    return QApplication.font().pointSizeF() * 0.7
+    return int(QApplication.font().pointSizeF() * 0.7)
