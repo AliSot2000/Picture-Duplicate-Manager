@@ -1559,6 +1559,7 @@ class PhotoDB(BaseSQliteDB):
 
         self.remove_extra_cursor("name_update")
 
+    # TODO add iterator size
     def find_hash_match_name_update_iterator(self) -> Iterator[Tuple[int, str, str, int, str]]:
         """
         Get an iterator for all rows in the name_update_table to find matches based on the file hash and file size.
