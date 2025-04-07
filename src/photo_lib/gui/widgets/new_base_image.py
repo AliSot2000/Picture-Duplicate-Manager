@@ -15,7 +15,7 @@ from photo_lib.gui.util.image_loader_manager import ImageLoaderManager
 
 # TODO add scrolling text if it goes beyond the bounds.
 class BaseImage(QFrame):
-    pixmap = None
+    pixmap: Optional[QPixmap] = None
 
     __media: MediaPaths
 
