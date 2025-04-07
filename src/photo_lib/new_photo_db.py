@@ -700,6 +700,27 @@ class PhotoDB(BaseSQliteDB):
 
         return res[0]
 
+    def get_path_from_import_table(self, key: int, tbl: str) -> str | None:
+        """
+        Get the full path for an image in the import table.
+
+        PRECONDITION: The Table exists
+
+        :param key: Key of an image
+        :param tbl: Table name we want to query
+        """
+        self.debug_execute(f"SELECT original_filename, original_dirname FROM `{tbl}` WHERE key = ?", (key,))
+        res = self.sq_cur.fetchone()
+
+        if res is None:
+            return None
+
+        ofn, ofd = res
+        ofn: str
+        ofd: str
+
+        return os.path.abspath(os.path.join(ofd, ofn))
+
     def add_file_to_import_table(self,
                                  tbl_name: str,
                                  parsing_result: MetadataParsingResult,
