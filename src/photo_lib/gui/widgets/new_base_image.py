@@ -118,29 +118,21 @@ class BaseImage(QFrame):
         :param event:
         :return:
         """
-        # Test if we can use this to draw a frame.
-        # super().paintEvent(event)
+        super().paintEvent(event)
+
+        inner_size = QSize(max(0, self.size().width() - 2 * self.frameWidth()),
+                           max(0, self.size().height() - 2 * self.frameWidth()))
 
         if self.pixmap is None or self.pixmap.isNull():
             self.empty_pixmap_painter()
             return
 
-        # Draw when image is successfully loaded n stuff.
-        if self.size() == self.pixmap.size():
-            r = self.rect()
-        else:
-            r = QRect(QPoint(),
-                      self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
-            r.moveCenter(self.rect().center())
+        r = QRect(QPoint(),
+                  self.pixmap.size().scaled(inner_size, Qt.AspectRatioMode.KeepAspectRatio))
+        r.moveCenter(self.rect().center())
 
         qp = QPainter(self)
         qp.drawPixmap(r, self.pixmap)
-
-        # Was this a frame
-        # rec = self.rect()
-        # rec.setWidth(rec.width() - 1)
-        # rec.setHeight(rec.height() - 1)
-        # qp.drawRect(rec)
 
     def empty_pixmap_painter(self):
         """
