@@ -155,10 +155,6 @@ class BaseImage(QFrame):
         text_position = self.rect().center() - text_rect.center()
         pt.drawText(text_position, text)
 
-        # Attempt to reload the image.
-        if self.file_path is not None:
-            self.load_image()
-
     def resizeEvent(self, a0):
         """
         Handle Resize Event differently:
