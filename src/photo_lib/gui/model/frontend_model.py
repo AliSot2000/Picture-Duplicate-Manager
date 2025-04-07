@@ -61,4 +61,4 @@ class UIModel:
             return self.api.config.miniature_target
 
         else:
-            return defaults.thumbnail_size
+            return defaults.miniature_size
