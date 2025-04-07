@@ -3,7 +3,7 @@ from typing import Any
 
 import numpy as np
 
-from custom_enum import TargetViewTable
+from photo_lib.custom_enum import TargetViewTable
 from photo_lib.data_objects import MediaElement
 
 
