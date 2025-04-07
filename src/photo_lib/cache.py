@@ -56,6 +56,9 @@ class Cache:
         return {"max_size": self.size, "hits": self.__hits, "misses": self.__misses, "current_size": self.current_size}
 
     def __init__(self, size: int = 128):
+        """
+        Parameter Size is afterwards a read only attribute.
+        """
         self.__max_size = size
         self._lru_index = 0
         self._lru = np.array([False for _ in range(self.size)])
