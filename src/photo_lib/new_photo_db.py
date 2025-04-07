@@ -1629,6 +1629,24 @@ class PhotoDB(BaseSQliteDB):
                            (key, file_name, directory))
         assert self.sq_cur.rowcount == 1, "Failed to insert row into location_update_table"
 
+    def get_path_from_relocation_table(self, key: int) -> str | None:
+        """
+        Get the path of a file in the relocation table.
+
+        :returns: abs path to the file we want to look at.
+        """
+        self.debug_execute("SELECT file_name, directory FROM location_update_table WHERE key = ?", (key,))
+        res = self.sq_cur.fetchone()
+
+        if res is None:
+            return None
+
+        fn, fd = res
+        fn: str
+        fd: str
+
+        return os.path.join(self.root_path, fd, fn)
+
     def set_location_update_table_success(self, key: int, success: bool, message: str = None):
         """
         Set the success state of the location_update_table.
