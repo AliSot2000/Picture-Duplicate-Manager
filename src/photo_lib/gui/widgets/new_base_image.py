@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize
 from PyQt6.QtGui import QPainter, QFont, QPaintEvent, QImage, QPixmap
