@@ -573,6 +573,16 @@ class PhotoDB(BaseSQliteDB):
         self.debug_execute(base_stmt, args)
         return self.sq_cur.fetchone()[0]
 
+    def list_import_tables(self) -> List[NewImportTableEntry]:
+        """
+        Return List of all Import Tables
+        """
+        self.debug_execute("SELECT key, root_path, table_name, table_name, flags FROM import_table")
+        retl = []
+        for key, rp, tbl_name, tbl_desc, _flags in self.sq_cur.fetchall():
+            retl.append(NewImportTableEntry(key, rp, tbl_name, tbl_desc, GenericTableFlags.from_int(_flags)))
+        return retl
+
     def import_table_flags(self, tbl_name: str) -> GenericTableFlags | None:
         """
         Return the Flags of an Import Table.
@@ -633,16 +643,6 @@ class PhotoDB(BaseSQliteDB):
 
         self.debug_execute(stmt, args)
         self.commit()
-
-    def list_import_tables(self) -> List[NewImportTableEntry]:
-        """
-        Return List of all Import Tables
-        """
-        self.debug_execute("SELECT key, root_path, table_name, table_name, flags FROM import_table")
-        retl = []
-        for key, rp, tbl_name, tbl_desc, _flags in self.sq_cur.fetchall():
-            retl.append(NewImportTableEntry(key, rp, tbl_name, tbl_desc, GenericTableFlags.from_int(_flags)))
-        return retl
 
     # INFO: Needed for testing
     def get_size_of_single_import_table(self, tbl_name: str):
