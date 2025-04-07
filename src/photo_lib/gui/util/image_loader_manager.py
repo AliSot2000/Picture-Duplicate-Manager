@@ -48,5 +48,5 @@ class ImageLoaderManager(QObject):
         :param widget: Widget to put the pixmap on
         """
         assert self.root_widget is not None, "Root Widget needs to exist."
-        worker = ImageLoaderWorker(image_path, self.root_widget, widget, widget.size())
+        worker = ImageLoaderWorker(image_path, self.root_widget, widget)
         self.thread_pool.start(worker)
