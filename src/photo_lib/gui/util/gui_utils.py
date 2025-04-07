@@ -1,6 +1,10 @@
-from PyQt6.QtWidgets import QPushButton
-from photo_lib.gui.widgets.image_tile import ClickablePatch
+from __future__ import annotations
+
 from typing import Callable
+
+from PyQt6.QtWidgets import QPushButton
+
+from photo_lib.gui.widgets.image_tile import ClickablePatch
 
 
 class MediaPane:
