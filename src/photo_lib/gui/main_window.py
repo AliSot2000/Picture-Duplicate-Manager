@@ -1,18 +1,18 @@
 from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget, QStackedLayout, QDialog, QMenu, QProgressDialog, QLabel, QMessageBox
-from PyQt6.QtGui import QAction, QIcon, QKeySequence
+from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtCore import Qt, QTimer
 
-from photo_lib.gui.model import Model
-from photo_lib.gui.compare_widget import CompareRoot
-from photo_lib.gui.zoom_image import ZoomImage
-from photo_lib.gui.big_screen import BigScreen
-from photo_lib.gui.import_tiles_view import ImportView
-from photo_lib.gui.modals import (DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType, PrepareImportDialog,
-                                  FileExtensionDialog)
-from photo_lib.gui.media_pane import MediaPane
-from photo_lib.gui.import_table_view import ImportTableList
-from photo_lib.gui.image_tile import NamedTile
-from photo_lib.data_objects import ProcessComType, Progress, Views, LongRunningActions, ImportTileInfo, MatchTypes
+from photo_lib.gui.old_model import Model
+from photo_lib.gui.views.compare_widget import CompareRoot
+from photo_lib.gui.widgets.zoom_image import ZoomImage
+from photo_lib.gui.views.big_screen import BigScreen
+from photo_lib.gui.views.import_tiles_view import ImportView
+from photo_lib.gui.widgets.modals import (DateTimeModal, FolderSelectModal, TaskSelectModal, ButtonType, PrepareImportDialog,
+                                          FileExtensionDialog)
+from photo_lib.gui.widgets.media_pane import MediaPane
+from photo_lib.gui.views.import_table_view import ImportTableList
+from photo_lib.gui.widgets.image_tile import NamedTile
+from photo_lib.data_objects import ProcessComType, Progress, Views, LongRunningActions, MatchTypes
 from typing import Union
 
 
