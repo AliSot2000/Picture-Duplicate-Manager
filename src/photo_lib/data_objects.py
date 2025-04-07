@@ -188,17 +188,58 @@ class MainRow:
     google_metadata: Optional[str] = None
 
 
-@dataclass
-class MediaPaths:
-    target_key: int
+class MediaElement:
+    key: int
+    source_table: TargetViewTable
+    target_import_table: Optional[str]
 
-    # File paths, PRECONDITION: exist
+    def __init__(self, key: int, source_table: TargetViewTable, target_import_table: Optional[str] = None):
+        """
+        This object fully specifies the media element of the database we're operating on.
+
+        If the source_table is IMPORT, a target_import_table must be provided.
+
+        :param key: int Key in the targeted table
+        :param source_table: source of the key (i.e. the table it is from)
+        :param target_import_table: Target Import Table, needed when we have an IMPORT table
+        """
+        self.key = key
+        self.source_table = source_table
+        if source_table == TargetViewTable.IMPORT and target_import_table is None:
+            raise ValueError("target_import_table table must be provided")
+
+        self.target_import_table = target_import_table
+
+
+class MediaPaths2:
+    element: MediaElement
+
     original_fp: Optional[str] = None
     thumbnail_fp: Optional[str] = None
     miniature_fp: Optional[str] = None
 
-    parent_key: Optional[int] = None
-    is_parent_org: bool = False
-    is_parent_thumbnail: bool = False
-    is_parent_miniature: bool = False
+    parent: Optional[MediaElement] = None
 
+    def __init__(self,
+                 element: MediaElement,
+                 original_fp: Optional[str] = None,
+                 thumbnail_fp: Optional[str] = None,
+                 miniature_fp: Optional[str] = None,
+                 parent: Optional[MediaElement] = None):
+        """
+        Populate the data object and ensure correct population
+        """
+        if parent is not None:
+            if element.source_table != TargetViewTable.MAIN:
+                raise ValueError("Parent may only be provided with element from the MAIN table")
+
+            if parent.source_table != TargetViewTable.MAIN:
+                raise ValueError("Parent element must come from main table.")
+
+        self.element = element
+
+        self.original_fp = original_fp
+        self.miniature_fp = miniature_fp
+        self.thumbnail_fp = thumbnail_fp
+
+        self.parent = parent
