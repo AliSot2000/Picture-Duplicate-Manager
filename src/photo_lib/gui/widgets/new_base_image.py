@@ -172,13 +172,12 @@ class BaseImage(QFrame):
         - If we're scaling down i.e. smaller, compute pixmap as a scaled down version of the current one
         - If we're scaling up, load the file again and recompute the smaller version.
         """
-        r = QRect(QPoint(), self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
+        tgt_path = self.determine_fp_to_use()
+        if tgt_path is None:
+            return
 
-        # If we're scaling down, we want to reduce the size of the pixmap in order to save ram
-        if r.size().width() < self.pixmap.size().width() and r.size().height() < self.pixmap.size().height():
-            self.pixmap = QPixmap(self.pixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
+        # A different image is suitable. Schedule its load.
+        if tgt_path != self.file_path:
+            self.dispatch_load(tgt_path)
 
-        # We're scaling up
-        else:
-            self.load_image()
 
