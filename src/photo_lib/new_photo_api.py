@@ -2540,13 +2540,6 @@ class PhotoAPI:
     # UI Getters
     # ==================================================================================================================
 
-    def get_media(self, key: int, strict: bool = False) -> None | MediaPaths:
-        """
-        Returns a Dataclass which contains the thumbnail path, miniature path and original path.
-        """
-        # TODO cache
-        # TODO implement
-
     def get_metadata(self, key: int):
         """
         Returns all metadata of a given key in a dataclass
