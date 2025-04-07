@@ -11,7 +11,7 @@ from typing import Callable, List
 import warnings
 
 
-class CompareRoot(QFrame):
+class CompareView(QFrame):
     model: Model
     media_layout: QHBoxLayout
     media_panes: List[MediaPane]

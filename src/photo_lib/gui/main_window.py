@@ -3,7 +3,7 @@ from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtCore import Qt, QTimer
 
 from photo_lib.gui.old_model import Model
-from photo_lib.gui.views.compare_widget import CompareRoot
+from photo_lib.gui.views.compare_view import CompareView
 from photo_lib.gui.widgets.zoom_image import ZoomImage
 from photo_lib.gui.views.big_screen import BigScreen
 from photo_lib.gui.views.import_tiles_view import ImportView
@@ -36,7 +36,7 @@ class RootWindow(QMainWindow):
     # Views
     __current_view: Views = None
     full_screen_image: ZoomImage = None
-    compare_root: CompareRoot
+    compare_root: CompareView
     import_table_list: ImportTableList
     messageg_label: QLabel = None
     import_tiles: ImportView
@@ -87,7 +87,7 @@ class RootWindow(QMainWindow):
 
         self.dummy_center = QWidget()
         self.stacked_layout = QStackedLayout()
-        self.compare_root = CompareRoot(self.model, open_image_fn=self.open_image_in_full_screen,
+        self.compare_root = CompareView(self.model, open_image_fn=self.open_image_in_full_screen,
                                         open_datetime_modal_fn=self.open_datetime_modal)
 
         self.messageg_label = QLabel("You have no database selected. \nPlease select a database.")
