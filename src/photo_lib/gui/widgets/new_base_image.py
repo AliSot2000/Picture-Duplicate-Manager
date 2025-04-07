@@ -21,7 +21,11 @@ class BaseImage(QFrame):
 
     width_div_height: float = 1.0
 
+    # Background needed to
     filler_color = Qt.GlobalColor.darkGray
+
+    # Currently loaded file path (needed to determine if we need to update the currently loaded image)
+    file_path: Optional[str] = None
 
     def __init__(self, mp: MediaPaths, model: UIModel):
         """
