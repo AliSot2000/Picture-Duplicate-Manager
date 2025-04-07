@@ -4,13 +4,15 @@ from PyQt6.QtCore import Qt, QRect, QPoint, QSize
 from PyQt6.QtGui import QPainter, QFont, QPaintEvent, QImage, QPixmap
 from PyQt6.QtWidgets import QFrame
 
+import photo_lib.gui.util.fonts as font_utils
 from photo_lib.custom_enum import TargetViewTable
-from photo_lib.gui.util.image_loader_manager import ImageLoaderManager
 from photo_lib.data_objects import MediaPaths
 from photo_lib.errors_and_warnings import ImplementationError
-from photo_lib.gui.model.root import UIModel
+from photo_lib.gui.model.frontend_model import UIModel
+from photo_lib.gui.util.image_loader_manager import ImageLoaderManager
 
 
+# TODO add scrolling text if it goes beyond the bounds.
 class BaseImage(QFrame):
     pixmap = None
 
