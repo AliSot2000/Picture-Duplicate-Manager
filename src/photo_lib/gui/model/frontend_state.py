@@ -12,6 +12,8 @@ class TaskType(Enum):
     List of all known tasks.
     """
 
+class UIState:
+    pass
 
 class UIState(pydantic.BaseModel):
     current_task: TaskType
