@@ -25,6 +25,7 @@ from photo_lib.cache import Cache, nd, MediaCache
 # https://docs.darktable.org/usermanual/development/en/overview/sidecar-files/sidecar-import/
 # https://en.wikipedia.org/wiki/Join_(SQL)
 # https://www.sqlitetutorial.net/sqlite-create-view/
+# TODO needs to add cache clear partition operations for media cache
 class PhotoDB(BaseSQliteDB):
     __verified: bool = False
 
