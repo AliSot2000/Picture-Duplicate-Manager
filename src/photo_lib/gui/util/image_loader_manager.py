@@ -15,27 +15,23 @@ class ImageLoaderManager(QObject):
     # INFO: Only forward reference works.
     root_widget: Optional["BaseMainWindow"] = None
 
-    def __new__(cls, root_widget: "BaseMainWindow"):
-        """
-        New Method Needed to Handle the proper workings with a singleton
-        """
-        # Check that we haven't created a class yet.
-        if not hasattr(cls, 'instance') or cls.instance is None:
-            cls.instance = super(ImageLoaderManager, cls).__new__(cls)
-        return cls.instance
-
     def __init__(self, root_widget: "BaseMainWindow"):
         """
-        Constructor to associate ThreadPool with the Manager
-        """
-        if not self.__initialized:
-            print("Init called.")
+        Create an instance of the ImageLoaderManager.
+
+        INFO: Because we run into segfaults we don't do singletons by overloading __new__.
+            If you attempt to call it twice, it will raise an ImplementationError. It is suggested that you use the
+            get_instance() class method.
+
+        :raises ImplementationError: If you attempt to call it twice.        """
+        if self.instance is None:
             super().__init__()
+            print("Init called.")
             self.thread_pool = QThreadPool().globalInstance()
             self.root_widget = root_widget
+            ImageLoaderManager.instance = self
         else:
             raise ImplementationError("Attempting to reinitialize an already initialized manager")
-
 
     @classmethod
     def get_instance(cls) -> ImageLoaderManager:
