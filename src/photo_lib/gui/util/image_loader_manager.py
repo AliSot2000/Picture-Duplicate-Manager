@@ -11,11 +11,8 @@ from ...errors_and_warnings import ImplementationError
 
 class ImageLoaderManager(QObject):
     instance = None  # Singleton
-    __initialized: bool = False
 
-    # TODO test if it works with imports here.
-
-    # INFO: Might need to switch with string
+    # INFO: Only forward reference works.
     root_widget: Optional["BaseMainWindow"] = None
 
     def __new__(cls, root_widget: "BaseMainWindow"):
