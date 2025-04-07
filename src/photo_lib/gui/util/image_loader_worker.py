@@ -1,21 +1,33 @@
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from typing import Optional
 
-from PyQt6.QtCore import QRunnable, QSize, Qt
+from PyQt6.QtCore import QRunnable, QSize, Qt, QObject, pyqtSignal
 from PyQt6.QtGui import QPixmap, QImage
 
-from photo_lib.gui.new_main_window import BaseMainWindow
 from photo_lib.gui.widgets.base_image import BaseImage
-from .gui_utils import SignalEmitter, LoadingResult
+
+
+@dataclass
+class LoadingResult:
+    # TODO local import might be needed
+
+    pm: QPixmap
+    wdh: float
+    tgt_widget: "BaseImage"
+
+
+class SignalEmitter(QObject):
+    finished = pyqtSignal(LoadingResult)
 
 
 class ImageLoaderWorker(QRunnable):
-    # INFO: Might have to do a string instead of Reference
+    # TODO: Try local import here.
     def __init__(self,
                  image_path: str,
-                 root_widget: BaseMainWindow,
+                 root_widget: "BaseMainWindow",
                  tgt_widget: BaseImage,
                  size: Optional[QSize] = None):
         """
