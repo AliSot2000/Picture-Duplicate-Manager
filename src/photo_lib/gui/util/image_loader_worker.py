@@ -17,6 +17,7 @@ class LoadingResult:
     pm: QPixmap
     wdh: float
     tgt_widget: "BaseImage"
+    file_path: str
 
 
 class SignalEmitter(QObject):
@@ -28,8 +29,7 @@ class ImageLoaderWorker(QRunnable):
     def __init__(self,
                  image_path: str,
                  root_widget: "BaseMainWindow",
-                 tgt_widget: BaseImage,
-                 size: Optional[QSize] = None):
+                 tgt_widget: BaseImage):
         """
         Create a new worker instance
 
@@ -43,7 +43,6 @@ class ImageLoaderWorker(QRunnable):
         self.image_path = image_path
         self.root_widget = root_widget
         self.target_widget = tgt_widget
-        self.size = size
 
         self.emitter = SignalEmitter()
 
@@ -58,11 +57,6 @@ class ImageLoaderWorker(QRunnable):
             image = QImage(self.image_path)  # Load image safely
             pixmap = QPixmap.fromImage(image)  # Convert to pixmap
 
-            if self.size is not None:
-                scaled_pm = pixmap.scaled(self.size, Qt.AspectRatioMode.KeepAspectRatio)
-            else:
-                scaled_pm = pixmap
-
             try:
                 aspect_ratio = pixmap.width() / pixmap.height()
             except ZeroDivisionError:
@@ -70,8 +64,9 @@ class ImageLoaderWorker(QRunnable):
 
             result = LoadingResult(
                 tgt_widget=self.target_widget,
-                pm=scaled_pm,
-                wdh=aspect_ratio
+                pm=pixmap,
+                wdh=aspect_ratio,
+                file_path=self.image_path,
             )
 
             # Trigger repaint
