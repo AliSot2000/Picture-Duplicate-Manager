@@ -28,6 +28,16 @@ class UIConfig(BaseModel):
         description="Minimum width for Panes in the CompareView."
     )
 
+    key_cache_size: int = Field(
+        default=16384,
+        description="Maximum size of the key to row lookup cache."
+    )
+
+    object_cache_size: int = Field(
+        default=1024,
+        description="Maximum size of the object to row lookup and header lookup cache."
+    )
+
     # TODO replace that with the one from the api
     thumbnail_size: int = 100
     miniature_size: int = 500
