@@ -3127,6 +3127,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: The width of the columns in the target table
         """
         assert col_width > 0, "PRECONDITION FAILED: col_width should be greater than 0"
+        self.clear_caches(target_view=TargetViewTable.IMPORT)
 
         stmt = f"""
             INSERT INTO lookup_import_view_tbl
@@ -3199,6 +3200,8 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: Column width of the view table.
         :param partition: Select a given partition of the Images known to the db
         """
+        self.clear_caches(target_view=TargetViewTable.MAIN)
+
         # Get the correct selection of images to view.
         if partition == MainTileView.MAIN:
             # No Duplicates, No Trash
@@ -3378,6 +3381,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: Column width of the view table.
         """
         assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
+        self.clear_caches(target_view=TargetViewTable.PRESENCE)
 
         stmt = f"""
             INSERT INTO lookup_presence_view_tbl
@@ -3444,6 +3448,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: Column width of the view table.
         """
         assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
+        self.clear_caches(target_view=TargetViewTable.HASH)
 
         stmt = f"""
             CREATE TABLE lookup_hash_view_tbl AS
@@ -3491,6 +3496,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: Column width of the view table.
         """
         assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
+        self.clear_caches(target_view=TargetViewTable.NAME)
 
         stmt = f"""
             INSERT INTO lookup_name_view_tbl
@@ -3558,6 +3564,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: Column width of the view table.
         """
         assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
+        self.clear_caches(target_view=TargetViewTable.LOCATION)
 
         stmt = f"""
             INSERT INTO lookup_location_view_tbl
