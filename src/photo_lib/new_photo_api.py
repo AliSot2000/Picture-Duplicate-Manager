@@ -2536,6 +2536,18 @@ class PhotoAPI:
         self.db.commit()
         return count
 
+    def set_file_datetime_from_name(self,
+                                    format_string: str,
+                                    selection: Selection,
+                                    timezone: str = None,
+                                    only_date: bool = False,
+                                    only_time: bool = False):
+        """
+        Sometimes, the files have a datetime in their name. E.g. files sent via Whatsapp.
+
+        You can select what you're replacing.
+        """
+
     # ==================================================================================================================
     # UI Getters
     # ==================================================================================================================
