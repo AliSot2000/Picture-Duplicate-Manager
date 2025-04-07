@@ -16,6 +16,7 @@ class Config(BaseModel):
 
     exiftool: Union[str, None] = None
 
+    # Paths
     db_file: str
     trash: str
     thumbnail: str
