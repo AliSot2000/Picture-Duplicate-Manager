@@ -1,7 +1,9 @@
-from photo_lib.gui.widgets.base_image import BaseImage
-from photo_lib.gui.util.ImageLoader import ImageLoader
+from __future__ import annotations
+
 from typing import Union
 
+from photo_lib.gui.util.ImageLoader import ImageLoader
+from photo_lib.gui.widgets.base_image import BaseImage
 
 # Image loader for the base image class.
 img_loader: Union[None, ImageLoader] = None
