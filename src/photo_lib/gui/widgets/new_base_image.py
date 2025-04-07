@@ -132,7 +132,6 @@ class BaseImage(QFrame):
             r = QRect(QPoint(),
                       self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
             r.moveCenter(self.rect().center())
-            print("Using scaled version if Pixmap")
 
         qp = QPainter(self)
         qp.drawPixmap(r, self.pixmap)
