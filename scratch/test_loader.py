@@ -11,6 +11,8 @@ from PyQt6.QtGui import QPixmap, QImage, QPainter, QPaintEvent, QFont
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QScrollArea, QGridLayout
 from PyQt6.QtWidgets import QFrame, QMainWindow
 
+from photo_lib.errors_and_warnings import ImplementationError
+
 use_base = False
 
 
@@ -35,14 +37,31 @@ class ImageLoaderManager(QObject):
     root_widget: Optional["MainWindow"] = None
 
     def __init__(self):
+        """
+        Create an instance of the ImageLoaderManager.
+
+        INFO: Because we run into segfaults we don't do singletons by overloading __new__.
+            If you attempt to call it twice, it will raise an ImplementationError. It is suggested that you use the
+            get_instance() class method.
+
+        :raises ImplementationError: If you attempt to call it twice.
+        """
         super().__init__()
         self.thread_pool = QThreadPool.globalInstance()
+        if self.instance is None:
+            self.instance = self
+        else:
+            raise ImplementationError("Cannot call __init__ twice on ImageLoaderManager use get_instance()")
 
-    @staticmethod
-    def get_instance():
-        if ImageLoaderManager.instance is None:
-            ImageLoaderManager.instance = ImageLoaderManager()
-        return ImageLoaderManager.instance
+    @classmethod
+    def get_instance(cls):
+        """
+        Method to get the ImageLoaderManager Singleton.
+        """
+        if cls.instance is None:
+            cls.instance = cls()
+
+        return cls.instance
 
     def load_image(self, image_path: str, widget: "BaseImage"):
         worker = ImageLoaderWorker(image_path, self.root_widget, widget.size(), widget)
