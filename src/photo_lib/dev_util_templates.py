@@ -4,8 +4,17 @@ and populate the variables
 """
 from photo_lib.data_objects import MediaPaths
 
+# Provide a list of directories which you would like to import into the real world database for testing.
+real_world_input_dirs = [
+    "<Fill-This-In>",
+    "<Fill-This-In>",
+    "<Fill-This-In>",
+    "<Fill-This-In>",
+    "<Fill-This-In>"
+]
+
 # Var provides a path to a library which contains actual data that can be viewed.
-full_scratch_root = "<Fill-This-In>"
+real_world_scratch_root = "<Fill-This-In>"
 
 
 # Output directory where the files form the generate_dummy_media.py are stored
