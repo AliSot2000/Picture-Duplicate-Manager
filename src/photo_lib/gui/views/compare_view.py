@@ -3,7 +3,7 @@ from PyQt6.QtGui import QResizeEvent, QAction, QKeySequence
 from PyQt6.QtCore import Qt
 from photo_lib.gui.old_model import Model, NoDbException
 from photo_lib.gui.widgets.media_pane import MediaPane
-from photo_lib.gui.widgets.text_scroll_area import TextScroller
+from photo_lib.gui.temp_new_wigets.text_scroll_area import TextScroller
 from photo_lib.gui.widgets.button_bar import ButtonBar
 from photo_lib.gui.util.gui_utils import button_wrapper, pain_wrapper, path_wrapper
 

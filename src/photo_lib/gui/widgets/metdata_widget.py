@@ -10,7 +10,7 @@ from photo_lib.PhotoDatabase import FullImportTableEntry, ImportTileInfo, MatchT
     FullDatabaseEntry
 from photo_lib.gui.old_model import Model
 from photo_lib.gui.util.gui_utils import bake_attribute
-from photo_lib.gui.widgets.text_scroll_area import TextScroller
+from photo_lib.gui.temp_new_wigets.text_scroll_area import TextScroller
 
 
 class DualMetadataWidget(QFrame):

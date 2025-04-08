@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction
 
 from photo_lib.PhotoDatabase import ImportTileInfo, MatchTypes
-from photo_lib.gui.widgets.action_button import QActionButton
+from photo_lib.gui.temp_new_wigets.action_button import QActionButton
 from photo_lib.gui.widgets.metdata_widget import DualMetadataWidget
 from photo_lib.gui.old_model import Model
 from photo_lib.gui.widgets.zoom_image import ZoomImage

@@ -1,7 +1,7 @@
 import sys
 
 from PyQt6.QtWidgets import QHBoxLayout, QFrame, QLabel, QApplication
-from photo_lib.gui.widgets.action_button import QActionButton
+from photo_lib.gui.temp_new_wigets.action_button import QActionButton
 
 
 class ButtonBar(QFrame):

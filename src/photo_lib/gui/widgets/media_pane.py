@@ -11,7 +11,7 @@ from photo_lib.gui.old_model import Model
 from photo_lib.gui.util.gui_utils import bake_attribute
 from photo_lib.gui.widgets.clickable_image import ClickableImage
 from photo_lib.gui.widgets.square_push_button import QSquarePushButton
-from photo_lib.gui.widgets.text_scroll_area import TextScroller
+from photo_lib.gui.temp_new_wigets.text_scroll_area import TextScroller
 
 
 # Rotate Image
