@@ -32,7 +32,7 @@ class BaseMainWindow(QMainWindow):
         Update the targeted widget with the given pixmap.
         """
         # Check the image is not deleted
-        if sip.isdeleted(result.tgt_widget):
+        if sip.isdeleted(result.tgt_widget):  # pragma: no cover
             return
 
         result.tgt_widget.pixmap = result.pm
