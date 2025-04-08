@@ -46,7 +46,7 @@ class BaseImage(QFrame):
     def media(self):
         return self.__media
 
-    def determine_fp_to_use(self):
+    def determine_fp_to_use(self) -> str | None:
         """
         Determine which of the possible files to use to display the image
         """
@@ -68,7 +68,7 @@ class BaseImage(QFrame):
         # No valid path found, use empty painter.
         if len(valid_paths) == 0:
             self.pixmap = None
-            return
+            return None
 
         assert len(valid_paths) > 0, "At least one valid path should exist."
 
