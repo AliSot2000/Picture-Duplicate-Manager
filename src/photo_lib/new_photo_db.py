@@ -189,6 +189,7 @@ class PhotoDB(BaseSQliteDB):
         """
         return self.__verified
 
+    # TODO rework this function to be able to handle detacah and attach
     @classmethod
     def detach(cls, inst: "PhotoDB") -> "PhotoDB":
         """
