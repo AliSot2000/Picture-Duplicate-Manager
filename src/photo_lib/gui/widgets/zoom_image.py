@@ -59,9 +59,9 @@ class ZoomImage(LoadingBaseImage):
 
         # distinguish if we need to use pixelDelta or angelDelta
         if not event.pixelDelta().isNull():
-            p = event.pixelDelta()
+            p: QPoint = event.pixelDelta()
         else:
-            p = event.angleDelta() / 8
+            p: QPoint = event.angleDelta() / 8
 
         # Detect shift key
         if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
