@@ -209,6 +209,8 @@ class ZoomImage(LoadingBaseImage):
         except ValueError:
             self.__scale_offset = 1
 
+        self.__fitting_scale = self.__scale_offset
+
     def load_image(self):
         """
         Load the image from the file path into ram and set the pixmap
