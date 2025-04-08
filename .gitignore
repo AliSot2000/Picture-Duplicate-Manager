@@ -148,3 +148,4 @@ cython_debug/
 /testing/test_file_out/
 /testing/shadow_db/
 /testing/private/
+/src/photo_lib/dev_util.py
