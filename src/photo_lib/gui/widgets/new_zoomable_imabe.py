@@ -248,6 +248,7 @@ class ZoomImage(BaseImage):
         """
         self.__position_offset = QPointF(0, 0)
 
+        self.recalculate_scale_fitting_scale()
 
         self.update()
 
