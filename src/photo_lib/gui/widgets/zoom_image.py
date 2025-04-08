@@ -10,12 +10,6 @@ from photo_lib.gui.widgets.base_image_loader import LoadingBaseImage
 
 
 class ZoomImage(LoadingBaseImage):
-    # zoom_in = pyqtSignal()
-    # zoom_out = pyqtSignal()
-    # move_left = pyqtSignal()
-    # move_right = pyqtSignal()
-    # move_up = pyqtSignal()
-    # move_down = pyqtSignal()
     last_pos: Union[None , QPointF] = None
 
     __capture = False
