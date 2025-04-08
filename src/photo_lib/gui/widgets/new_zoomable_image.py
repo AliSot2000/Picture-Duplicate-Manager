@@ -1,10 +1,8 @@
 import math
-import sys
 from typing import Union, Optional
 
 from PyQt6.QtCore import Qt, QRect, QPoint, QEvent, QPointF, QTimer, pyqtSlot
 from PyQt6.QtGui import QPainter, QEnterEvent, QMouseEvent, QResizeEvent, QPixmap
-from PyQt6.QtWidgets import QApplication
 
 from photo_lib.data_objects import MediaPaths
 from photo_lib.gui.model.frontend_model import UIModel
@@ -53,6 +51,8 @@ class ZoomImage(BaseImage):
         1. original
         2. miniature
         3. thumbnail
+
+        :returns: str (found valid filepath), None (no valid path found)
         """
         order = [self.media.original_fp, self.media.miniature_fp, self.media.thumbnail_fp]
 
@@ -72,6 +72,7 @@ class ZoomImage(BaseImage):
         Catch the enter event to determine if we need to pay attention to the wheel events.
 
         :param event:
+
         :return:
         """
         self.__capture = True
@@ -82,6 +83,7 @@ class ZoomImage(BaseImage):
         Catch the leave event to determine if we need to pay attention to the wheel events.
 
         :param a0:
+
         :return:
         """
         self.__capture = False
@@ -94,6 +96,7 @@ class ZoomImage(BaseImage):
         + <ANY> + SHIFT (Reduce the movement by 4 to allow for more precise movement)
 
         :param event: Wheel event.
+
         :return:
         """
         if not self.__capture:
@@ -136,6 +139,7 @@ class ZoomImage(BaseImage):
 
         :param p: Point where zooming is starting from. Default center of the widget.
         :param d: amount to increase absolute size of image. > 0 means zooming in
+
         :return:
         """
         old_s = 2 ** (1 + self.__scale_offset / 100)
@@ -192,6 +196,7 @@ class ZoomImage(BaseImage):
         Moves the image horizontally by d pixels.
 
         :param p: shift amt in pixels, + <=> move right.
+
         :return:
         """
         print(p.x(), p.y())
@@ -203,6 +208,7 @@ class ZoomImage(BaseImage):
         When mouse is clicked, take note of current position
 
         :param a0:
+
         :return:
         """
         if a0.button() == Qt.MouseButton.LeftButton:
@@ -215,6 +221,7 @@ class ZoomImage(BaseImage):
         When mouse is released, reset the last position
 
         :param a0:
+
         :return:
         """
         if a0.button() == Qt.MouseButton.LeftButton:
@@ -229,6 +236,7 @@ class ZoomImage(BaseImage):
         When mouse is moved, move the image accordingly
 
         :param a0: MouseEvent to extract the movement from.
+
         :return:
         """
         if self.last_pos is not None:
@@ -257,7 +265,9 @@ class ZoomImage(BaseImage):
         When the widget is resized, recalculate the __fitting_scale and set the scale of the image to the fitting scale.
 
         INFO: Difference to reset_image: don't reset the position_offset
+
         :param a0:
+
         :return:
         """
         super().resizeEvent(a0)
@@ -286,6 +296,7 @@ class ZoomImage(BaseImage):
         Custom implementation of the paint event to rescale the image to fit.
 
         :param event:
+
         :return:
         """
         if self.pixmap is None or self.pixmap.isNull():
