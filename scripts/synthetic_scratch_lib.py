@@ -4,6 +4,7 @@ import os
 import shutil
 
 from photo_lib.new_photo_api import PhotoAPI
+import photo_lib.dev_util as dev_util
 
 
 def setup_missing_and_present(api_internal: PhotoAPI, file_root: str):
@@ -223,11 +224,11 @@ def setup_moved(api_internal: PhotoAPI, file_root: str):
 
 
 
-dummy_files = os.path.abspath(os.path.join(os.path.abspath(__file__), "..", "..", "testing", "test_file_out"))
+dummy_files = dev_util.synthetic_file_out
 
 
 # Create a fresh instance
-api = PhotoAPI(root_path=os.path.join(os.path.dirname(__file__),"testing_db"),
+api = PhotoAPI(root_path=dev_util.synthetic_scratch_root,
                init=True,
                init_loggers=True,
                opt_integrity_check=True)
