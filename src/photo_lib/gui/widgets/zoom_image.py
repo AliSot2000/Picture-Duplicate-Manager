@@ -17,6 +17,9 @@ class ZoomImage(LoadingBaseImage):
     __offset: QPointF = QPointF(0, 0)
     __scale_offset: int = 0
     __fitting_scale: int = 0
+
+    # Disable Constrained Scale Down: This feature re-centers the widget once you start scaling out and the image fits
+    # inside the size of the image.
     constrain_offset: bool = True
 
     def __init__(self, file_path: str = None):
