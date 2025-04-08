@@ -223,7 +223,6 @@ class RootWindow(QMainWindow):
         self.import_big_screen.set_tile(tile.tile_info)
         self.open_import_big_screen()
 
-
     def finish_import(self):
         """
         Clear all state variables and switch back to compare root.
@@ -251,7 +250,6 @@ class RootWindow(QMainWindow):
         # start the import process
         self.model.import_current_target_folder(m=selected_blocks, l=selected_keys, cgfdm=copy_gfmd)
         self.start_long_running_process("Importing selected images", LongRunningActions.Import_Images)
-
 
     def import_all(self):
         """
