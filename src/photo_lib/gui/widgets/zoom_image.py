@@ -65,7 +65,8 @@ class ZoomImage(LoadingBaseImage):
 
         # Detect shift key
         if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
-            p /= 2
+            # Divide both x and y.
+            p /= 4
 
         # if CTRL is pressed, interpret as zoom
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
