@@ -7,6 +7,7 @@ from photo_lib.metadata_aggregator.config import DateTimeParser
 
 
 # https://pypi.org/project/platformdirs/
+# TODO docs
 class Config(BaseModel):
     allowed_extensions: List[str]
     image_extensions: List[str]
@@ -32,6 +33,11 @@ class Config(BaseModel):
     fallback_tz: Union[str, None] = None
 
     batch_size: int
+
+    # TODO implement
+    # If this variable is True, the database was disconnected for it to be passed to a child process to perform a
+    # long running action.
+    is_pass: bool = False
 
     model_config = ConfigDict(
         populate_by_name=True,
