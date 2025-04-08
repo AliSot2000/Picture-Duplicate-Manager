@@ -20,6 +20,8 @@ class BaseMainWindow(QMainWindow):
     This QMainWindow is an extension of the original with the notable exception of being able to schedule the updating
     of a pixmap.
     """
+    manager: ImageLoaderManager
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.manager = ImageLoaderManager(root_widget=self)
