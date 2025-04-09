@@ -2720,11 +2720,11 @@ class PhotoAPI:
 
             # calculate new size
             if max_pix == img.shape[0]:
-                py = major_size
-                px = max(1, int(major_size / max_pix * img.shape[1]))
-            else:
                 px = major_size
-                py = max(1, int(major_size / max_pix * img.shape[0]))
+                py = max(1, int(major_size / max_pix * img.shape[1]))
+            else:
+                py = major_size
+                px = max(1, int(major_size / max_pix * img.shape[0]))
 
             img_reduced = cv2.resize(img, (py, px), interpolation=cv2.INTER_AREA)
 
