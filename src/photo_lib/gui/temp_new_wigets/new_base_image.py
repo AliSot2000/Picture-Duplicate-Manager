@@ -33,6 +33,9 @@ class BaseImage(QFrame):
         object needs to be instantiated.
 
         PRECONDITION: The Parent exists in the database.
+
+        :param mp: MediaPaths object to load the image from
+        :param model: UIModel to use for the the config
         """
         super().__init__()
         self.__media = mp
