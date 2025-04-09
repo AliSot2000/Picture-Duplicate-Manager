@@ -62,7 +62,7 @@ class UIModel:
     @property
     def miniature_size(self):
         """
-        This property is needed by the ImageWidgets (which might still be instantiated, so it may not be None)
+        This property is needed by the ImageWidgets (which might still be instantiated, so it may not be None) to
         determine which file to load for displaying
         """
         if self.api is not None:
