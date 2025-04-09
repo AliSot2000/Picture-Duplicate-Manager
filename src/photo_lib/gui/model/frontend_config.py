@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -41,3 +43,36 @@ class UIConfig(BaseModel):
     # TODO replace that with the one from the api
     thumbnail_size: int = 100
     miniature_size: int = 500
+
+    force_theme_dark: Optional[bool] = Field(
+        default=None,
+        description="Force the application to use dark mode if True, force to bright if False. "
+                    "The override exists to deal with the case when the colorSchema from the system is unknown."
+    )
+
+    # TODO add validator to check if the color names are valid (also allow for rgb and hex)
+    bright_color_name_success: str = Field(
+        default="green",
+        description="Color name for success in bright mode. Can be changed to account for disabilities."
+    )
+    bright_color_name_fail: str = Field(
+        default="red",
+        description="Color name for fail in bright mode. Can be changed to account for disabilities."
+    )
+    bright_color_name_select: str = Field(
+        default="yellow",
+        description="Color name for select in bright mode. Can be changed to account for disabilities."
+    )
+
+    dark_color_name_success: str = Field(
+        default="darkGreen",
+        description="Color name for success in dark mode. Can be changed to account for disabilities."
+    )
+    dark_color_name_fail: str = Field(
+        default="darkRed",
+        description="Color name for fail in dark mode. Can be changed to account for disabilities."
+    )
+    dark_color_name_select: str = Field(
+        default="darkYellow",
+        description="Color name for select in dark mode. Can be changed to account for disabilities."
+    )
