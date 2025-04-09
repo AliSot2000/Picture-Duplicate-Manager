@@ -55,14 +55,31 @@ class BaseImage(QFrame):
         major_size = max(self.size().width(), self.size().height())
 
         # We're smaller than thumbnail, we're taking the thumbnail
-        if major_size < self.model.thumbnail_size:
-            possible_paths = [self.media.thumbnail_fp, self.media.miniature_fp, self.media.original_fp]
-        elif major_size < self.model.miniature_size:
-            possible_paths = [self.media.miniature_fp, self.media.original_fp]
-        elif major_size >= self.model.miniature_size:
-            possible_paths = [self.media.original_fp]
-        else:  # pragma: no cover
-            raise ImplementationError("Tertiem non Datur. This case shouldn't be possible")
+        if self.model.ui_config.load_parent_automatically and self.media.parent is not None:
+            # INFO: We need to reload the parent because it could have been moved/renamed/...
+            parent = self.model.api.db.get_media(self.media.parent)
+
+            if major_size < self.model.thumbnail_size:
+                possible_paths = [self.media.thumbnail_fp, parent.thumbnail_fp,
+                                  self.media.miniature_fp, parent.miniature_fp,
+                                  self.media.original_fp, parent.original_fp]
+            elif major_size < self.model.miniature_size:
+                possible_paths = [self.media.miniature_fp, parent.miniature_fp,
+                                  self.media.original_fp, parent.original_fp]
+            elif major_size >= self.model.miniature_size:
+                possible_paths = [self.media.original_fp, parent.original_fp]
+            else:  # pragma: no cover
+                raise ImplementationError("Tertiem non Datur. This case shouldn't be possible")
+
+        else:
+            if major_size < self.model.thumbnail_size:
+                possible_paths = [self.media.thumbnail_fp, self.media.miniature_fp, self.media.original_fp]
+            elif major_size < self.model.miniature_size:
+                possible_paths = [self.media.miniature_fp, self.media.original_fp]
+            elif major_size >= self.model.miniature_size:
+                possible_paths = [self.media.original_fp]
+            else:  # pragma: no cover
+                raise ImplementationError("Tertiem non Datur. This case shouldn't be possible")
 
         # Get the first matching file path
         valid_paths = list(filter(lambda x: x is not None, possible_paths))
