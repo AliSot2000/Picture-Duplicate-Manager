@@ -72,6 +72,14 @@ class QActionButton(QPushButton):
         self.setChecked(self.target_action.isChecked())
 
 
+class SquarePushButton(QPushButton):
+    def heightForWidth(self, a0):
+        """
+        Override the heightForWidth method to make sure that the button is square.
+        """
+        return self.width()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     btn = QActionButton()
