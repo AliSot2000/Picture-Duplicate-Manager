@@ -3,7 +3,7 @@ from typing import Optional
 
 from PyQt6.QtCore import Qt, QRect, QPoint, QSize
 from PyQt6.QtGui import QPainter, QFont, QPaintEvent, QImage, QPixmap
-from PyQt6.QtWidgets import QFrame
+from PyQt6.QtWidgets import QFrame, QApplication
 
 import photo_lib.gui.util.fonts as font_utils
 from photo_lib.custom_enum import TargetViewTable
@@ -132,7 +132,7 @@ class BaseImage(QFrame):
         """
         if self.pixmap and not self.pixmap.isNull():
             return self.pixmap.size()
-        return QSize()
+        return QApplication.primaryScreen().size()
 
     def paintEvent(self, event: QPaintEvent):
         """
