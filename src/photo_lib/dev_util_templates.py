@@ -1,3 +1,5 @@
+# pragma: no cover
+
 """
 File contains variables and declarations needed to facilitate development. Please copy this file to dev_util.py
 and populate the variables
