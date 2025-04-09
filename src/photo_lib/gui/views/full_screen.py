@@ -1,6 +1,6 @@
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QKeySequence
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QApplication, QMenuBar, QStyle
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QApplication, QMenuBar
 
 from photo_lib.data_objects import MediaPaths
 from photo_lib.gui.model.frontend_model import UIModel
