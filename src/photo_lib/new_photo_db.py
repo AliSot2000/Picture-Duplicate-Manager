@@ -189,7 +189,11 @@ class PhotoDB(BaseSQliteDB):
         """
         return self.__verified
 
-    # TODO rework this function to be able to handle detacah and attach
+    # TODO four functions needed
+    #   - create new
+    #   - attach to existing with verification
+    #   - attach to existing without verification (assuming it is verified)
+    #   - detach from existing
     @classmethod
     def detach(cls, inst: "PhotoDB") -> "PhotoDB":
         """
