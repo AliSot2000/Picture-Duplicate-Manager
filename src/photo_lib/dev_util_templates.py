@@ -26,10 +26,10 @@ synthetic_scratch_root = "<Fill-This-In>"
 
 
 # Provide a MediaPaths object with different paths for each scale (without a database to test image widgets)
-different_default_media_paths: MediaPaths = None
+different_default_media_paths: MediaPaths = ...
 
 
 # Provide a MediaPaths object with the same picture at different sizes (without a database to test image widgets)
-same_default_media_paths: MediaPaths = None
+same_default_media_paths: MediaPaths = ...
 
 
