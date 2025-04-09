@@ -206,7 +206,6 @@ class ZoomImage(BaseImage):
 
         :return:
         """
-        print(p.x(), p.y())
         self.__position_offset += p.toPointF() if type(p) is QPoint else p
         self.update()
 
