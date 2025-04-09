@@ -10,7 +10,7 @@ from photo_lib.PhotoDatabase import DatabaseEntry
 from photo_lib.gui.old_model import Model
 from photo_lib.gui.util.gui_utils import bake_attribute
 from photo_lib.gui.widgets.clickable_image import ClickableImage
-from photo_lib.gui.widgets.square_push_button import QSquarePushButton
+from photo_lib.gui.temp_new_wigets.custom_buttons import SquarePushButton
 from photo_lib.gui.temp_new_wigets.text_scroll_area import TextScroller
 
 
@@ -50,9 +50,9 @@ class MediaPane(QFrame):
     main_button: QPushButton
     delete_button: QPushButton
     change_tag_button: QPushButton
-    remove_media_button: QSquarePushButton
-    left_button: QSquarePushButton
-    right_button: QSquarePushButton
+    remove_media_button: SquarePushButton
+    left_button: SquarePushButton
+    right_button: SquarePushButton
 
     min_width: int = 360
     max_height: int = 540
@@ -121,14 +121,14 @@ class MediaPane(QFrame):
         self.button_layout.setContentsMargins(0, 0, 0, 0)
         self.button_widget.setLayout(self.button_layout)
 
-        self.left_button = QSquarePushButton()
+        self.left_button = SquarePushButton()
         left_icon = QIcon(os.path.join(self.model.resources, "caret-left-solid.svg"))
         self.left_button.setIcon(left_icon)
         self.left_button.setFixedSize(QSize(26, 26))
         self.left_button.setToolTip("Moves the current pane to the left.")
         self.left_button.clicked.connect(lambda: move_left(self))
 
-        self.right_button = QSquarePushButton()
+        self.right_button = SquarePushButton()
         right_icon = QIcon(os.path.join(self.model.resources, "caret-right-solid.svg"))
         self.right_button.setIcon(right_icon)
         self.right_button.setFixedSize(QSize(26, 26))
@@ -151,7 +151,7 @@ class MediaPane(QFrame):
         self.change_tag_button.setMinimumWidth(self.change_tag_button.fontMetrics().boundingRect("Change Tag").width() + 10)
         self.change_tag_button.setFixedHeight(26)
 
-        self.remove_media_button = QSquarePushButton()
+        self.remove_media_button = SquarePushButton()
         close_icon = QIcon(os.path.join(self.model.resources, "x-solid.svg"))
         self.remove_media_button.setIcon(close_icon)
         self.remove_media_button.setFixedSize(QSize(26, 26))
