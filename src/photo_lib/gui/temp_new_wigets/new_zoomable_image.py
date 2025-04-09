@@ -291,7 +291,7 @@ class ZoomImage(BaseImage):
                   self.pixmap.size().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
 
         try:
-            self.__scale_offset = int((math.log2(r.height() / self.pixmap.height()) - 1) * 100)
+            self.__fitting_scale = int((math.log2(r.height() / self.pixmap.height()) - 1) * 100)
         except ValueError:
             self.__fitting_scale = 1
 
