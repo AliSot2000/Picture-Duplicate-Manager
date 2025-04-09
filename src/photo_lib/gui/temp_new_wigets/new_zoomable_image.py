@@ -42,7 +42,6 @@ class ZoomImage(BaseImage):
 
     def __init__(self, mp: MediaPaths, model: UIModel):
         super().__init__(mp=mp, model=model)
-        self.timer = QTimer(self)
 
     def determine_fp_to_use(self) -> str | None:
         """
