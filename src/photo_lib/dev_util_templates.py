@@ -4,7 +4,8 @@
 File contains variables and declarations needed to facilitate development. Please copy this file to dev_util.py
 and populate the variables
 """
-from photo_lib.data_objects import MediaPaths
+from photo_lib.custom_enum import TargetViewTable
+from photo_lib.data_objects import MediaPaths, MediaElement
 
 # Provide a list of directories which you would like to import into the real world database for testing.
 real_world_input_dirs = [
@@ -35,3 +36,14 @@ different_default_media_paths: MediaPaths = ...
 same_default_media_paths: MediaPaths = ...
 
 
+# Provide a MediaPaths object that links to an element in the real_world_scratch_root. Ensure the import table exists.
+import_media_paths: MediaPaths = MediaPaths(
+    element=MediaElement(
+        key=1,
+        source_table=TargetViewTable.IMPORT,
+        target_import_table=...
+    ),
+    original_fp="<Fill-This-In>",
+    miniature_fp="<Fill-This-In>",
+    thumbnail_fp="<Fill-This-In>",
+)
