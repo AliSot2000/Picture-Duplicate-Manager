@@ -28,7 +28,12 @@ class UIModel:
     ui_config: UIConfig
     ui_state: UIState
 
-    def __init__(self, preferences: UIUserPreferences = None, ui_config: UIConfig = None, ui_state: UIState = None):
+    def __init__(self,
+                 preferences: UIUserPreferences = None,
+                 ui_config: UIConfig = None,
+                 ui_state: UIState = None,
+                 api: PhotoAPI = None,
+                 runner_connection: Connection = None):
         """
         Build the UIModel
         """
@@ -38,6 +43,9 @@ class UIModel:
         self.ui_preferences = preferences
         self.ui_config = ui_config
         self.ui_state = ui_state
+
+        self.api = api
+        self.runner_connection = runner_connection
 
     @property
     def thumbnail_size(self):
