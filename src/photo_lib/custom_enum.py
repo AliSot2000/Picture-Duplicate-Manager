@@ -90,7 +90,7 @@ class ImportTableGrouping(Enum):
     BINARY_MATCH_REPLACED = 5
     HASH_MATCH_REPLACED = 6
     IMPORTED = 7
-    NOW_ALLOWED = 8
+    NOT_ALLOWED = 8
 
 
 # INFO, no table, add method selection from table in gui. Makes backend handling a lot easier. (Don't have to
