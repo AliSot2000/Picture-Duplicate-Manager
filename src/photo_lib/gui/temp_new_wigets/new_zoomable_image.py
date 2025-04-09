@@ -53,7 +53,13 @@ class ZoomImage(BaseImage):
 
         :returns: str (found valid filepath), None (no valid path found)
         """
-        order = [self.media.original_fp, self.media.miniature_fp, self.media.thumbnail_fp]
+        if self.media.parent is not None and self.model.ui_config.load_parent_automatically:
+            parent = self.model.api.db.get_media(self.media.parent)
+            order = [self.media.original_fp, parent.original_fp,
+                     self.media.miniature_fp, parent.miniature_fp,
+                     self.media.thumbnail_fp, parent.thumbnail_fp]
+        else:
+            order = [self.media.original_fp, self.media.miniature_fp, self.media.thumbnail_fp]
 
         valid_paths = list(filter(lambda x: x is not None, order))
 
