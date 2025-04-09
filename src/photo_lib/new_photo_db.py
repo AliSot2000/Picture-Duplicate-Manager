@@ -3089,7 +3089,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: The width of the columns in the target table
         """
         assert col_width > 0, "PRECONDITION FAILED: col_width should be greater than 0"
-        self.clear_caches(target_view=TargetViewTable.IMPORT)
+        self.clear_caches()
 
         stmt = f"""
             INSERT INTO lookup_import_view_tbl
@@ -3162,7 +3162,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: Column width of the view table.
         :param partition: Select a given partition of the Images known to the db
         """
-        self.clear_caches(target_view=TargetViewTable.MAIN)
+        self.clear_caches()
 
         # Get the correct selection of images to view.
         if partition == MainTileView.MAIN:
@@ -3343,7 +3343,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: Column width of the view table.
         """
         assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
-        self.clear_caches(target_view=TargetViewTable.PRESENCE)
+        self.clear_caches()
 
         stmt = f"""
             INSERT INTO lookup_presence_view_tbl
@@ -3410,7 +3410,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: Column width of the view table.
         """
         assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
-        self.clear_caches(target_view=TargetViewTable.HASH)
+        self.clear_caches()
 
         stmt = f"""
             CREATE TABLE lookup_hash_view_tbl AS
@@ -3458,7 +3458,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: Column width of the view table.
         """
         assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
-        self.clear_caches(target_view=TargetViewTable.NAME)
+        self.clear_caches()
 
         stmt = f"""
             INSERT INTO lookup_name_view_tbl
@@ -3526,7 +3526,7 @@ class PhotoDB(BaseSQliteDB):
         :param col_width: Column width of the view table.
         """
         assert col_width > 0, "PRECONDITION FAILED: column width <= 0 "
-        self.clear_caches(target_view=TargetViewTable.LOCATION)
+        self.clear_caches()
 
         stmt = f"""
             INSERT INTO lookup_location_view_tbl
@@ -3657,7 +3657,7 @@ class PhotoDB(BaseSQliteDB):
         table_name = target_table.value
         self.debug_execute(f"DELETE FROM `{table_name}`")
 
-        self.clear_caches(target_table)
+        self.clear_caches()
 
     def lookup_row_to_keys(self, row: int, target_view: TargetViewTable) -> List[int]:
         """
