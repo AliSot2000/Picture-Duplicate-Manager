@@ -3669,12 +3669,11 @@ class PhotoDB(BaseSQliteDB):
         :return: List of keys. WARNING: The user needs to know what type of keys are returned (keys unique to the
             table or keys referenced in the main table)
         """
-        _, row_cache, _ = self.get_caches(target_view)
         tgt_table = target_view.value
 
         # Query cache
-        if row_cache is not None:
-            res = row_cache.get(row)
+        if self.view_row_cache is not None:
+            res = self.view_row_cache.get(row)
             if res is not nd:
                 return res
 
@@ -3683,8 +3682,8 @@ class PhotoDB(BaseSQliteDB):
         results = [k[0] for k in self.sq_cur.fetchall()]
 
         # Cache present populate cache
-        if row_cache is not None:
-            row_cache.set(row, results)
+        if self.view_row_cache is not None:
+            self.view_row_cache.set(row, results)
 
         return results
 
@@ -3697,12 +3696,11 @@ class PhotoDB(BaseSQliteDB):
 
         :return: Header name or None
         """
-        header_cache, _, _ = self.get_caches(target_view)
         tgt_table = target_view.value
 
         # Query the header cache
-        if header_cache is not None:
-            res = header_cache.get(row)
+        if self.view_header_cache is not None:
+            res = self.view_header_cache.get(row)
             if res is not nd:
                 return res
 
@@ -3712,13 +3710,13 @@ class PhotoDB(BaseSQliteDB):
         results = [k[0] for k in self.sq_cur.fetchall()]
 
         if len(results) == 0:
-            header_cache.set(row, None)
+            self.view_header_cache.set(row, None)
             return None
 
         assert len(results) == 1, "ROW NOT FOUND"
 
         san_header = self.parse_header(results[0], target_view)
-        header_cache.set(row, san_header)
+        self.view_header_cache.set(row, san_header)
 
         return san_header
 
@@ -3731,12 +3729,11 @@ class PhotoDB(BaseSQliteDB):
 
         :raises ValueError: If the given target_table isn't supported
         """
-        _, _, key_cache = self.get_caches(target_view)
         tgt_table = target_view.value
 
         # Query key cache
-        if key_cache is not None:
-            res = key_cache.get(key)
+        if self.view_key_cache is not None:
+            res = self.view_key_cache.get(key)
             if res is not nd:
                 return res
 
@@ -3744,13 +3741,13 @@ class PhotoDB(BaseSQliteDB):
         results = [k[0] for k in self.sq_cur.fetchall()]
 
         if len(results) == 0:
-            key_cache.set(key, None)
+            self.view_key_cache.set(key, None)
             return None
 
         assert len(results) == 1, "ROW NOT FOUND"
 
         row = results[0]
-        key_cache.set(key, row)
+        self.view_key_cache.set(key, row)
 
         return row
 
