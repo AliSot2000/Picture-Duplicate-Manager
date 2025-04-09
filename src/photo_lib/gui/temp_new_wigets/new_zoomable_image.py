@@ -1,7 +1,7 @@
 import math
 from typing import Union, Optional
 
-from PyQt6.QtCore import Qt, QRect, QPoint, QEvent, QPointF, QTimer, pyqtSlot
+from PyQt6.QtCore import Qt, QRect, QPoint, QEvent, QPointF, QTimer, pyqtSlot, pyqtSignal
 from PyQt6.QtGui import QPainter, QEnterEvent, QMouseEvent, QResizeEvent, QPixmap
 
 from photo_lib.data_objects import MediaPaths
@@ -29,6 +29,8 @@ class ZoomImage(BaseImage):
     # Disable Constrained Scale Down: This feature re-centers the widget once you start scaling out and the image fits
     # inside the size of the image.
     constrain_offset: bool = True
+
+    double_click = pyqtSignal(BaseImage)
 
     # INFO overwriting an attribute with a property in a child class works!
     @property
@@ -318,3 +320,11 @@ class ZoomImage(BaseImage):
             r.moveCenter(self.rect().center() + self.__position_offset.toPoint() * (2 ** (1 + self.__scale_offset / 100)))
         qp = QPainter(self)
         qp.drawPixmap(r, self.pixmap)
+
+    def mouseDoubleClickEvent(self, a0: QMouseEvent):
+        """
+        Capture double click and send signal
+        """
+        if a0.button() == Qt.MouseButton.LeftButton:
+            self.double_click.emit(self)
+
