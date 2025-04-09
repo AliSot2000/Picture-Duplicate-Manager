@@ -31,6 +31,8 @@ class BaseImage(QFrame):
         """
         The new variant of the BaseImage doesn't allow reusing the widget anymore. With every new MediaPaths a new
         object needs to be instantiated.
+
+        PRECONDITION: The Parent exists in the database.
         """
         super().__init__()
         self.__media = mp
