@@ -319,14 +319,19 @@ class PhotoDB(BaseSQliteDB):
             self.init_db()
         else:
             if verify:
-                self.__verified = True
-                self.__verified = self.__verified and self.verify_tables()
-                self.__verified = self.__verified and self.basic_integrity_check()
+                self.__verified = is_verified = True
+                is_verified = is_verified and self.verify_tables()
+                is_verified = is_verified and self.basic_integrity_check()
+
+                self.__verified = is_verified
 
                 if self.verified:
                     self.clear_name_update_table()
                     self.clear_hash_update_table()
                     self.clear_presence_table()
+                else:
+                    # TODO determien problem and offer fixes.
+                    ...
 
     def reload_loggers(self):
         """
