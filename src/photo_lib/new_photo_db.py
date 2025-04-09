@@ -91,62 +91,20 @@ class PhotoDB(BaseSQliteDB):
         :param object_cache_size: Number of objects elements to cache (like strings or list of ints)
         :param int_cache_size: Number of int elements to cache (needed for key to row number resolution)
         """
-        self.import_view_header_cache = Cache(object_cache_size)
-        self.import_view_row_cache = Cache(object_cache_size)
-        self.import_view_key_cache = Cache(int_cache_size)
+        self.view_header_cache = Cache(object_cache_size)
+        self.view_row_cache = Cache(object_cache_size)
+        self.view_key_cache = Cache(int_cache_size)
 
-        self.main_view_header_cache = Cache(object_cache_size)
-        self.main_view_row_cache = Cache(object_cache_size)
-        self.main_view_key_cache = Cache(int_cache_size)
-
-        self.presence_view_header_cache = Cache(object_cache_size)
-        self.presence_view_row_cache = Cache(object_cache_size)
-        self.presence_view_key_cache = Cache(int_cache_size)
-
-        self.hash_view_header_cache = Cache(object_cache_size)
-        self.hash_view_row_cache = Cache(object_cache_size)
-        self.hash_view_key_cache = Cache(int_cache_size)
-
-        self.name_view_header_cache = Cache(object_cache_size)
-        self.name_view_row_cache = Cache(object_cache_size)
-        self.name_view_key_cache = Cache(int_cache_size)
-
-        self.location_view_header_cache = Cache(object_cache_size)
-        self.location_view_row_cache = Cache(object_cache_size)
-        self.location_view_key_cache = Cache(int_cache_size)
-
-    def get_caches(self, target_view: TargetViewTable) -> Tuple[Cache, Cache, Cache]:
+    def clear_caches(self):
         """
-        Get the needed caches for a given view.
-
-        :param target_view: The target view to get the caches for
-        :returns: header_cache, row_cache, key_cache
+        Clear all caches of the views.
         """
-        if target_view == TargetViewTable.IMPORT:
-            return self.import_view_header_cache, self.import_view_row_cache, self.import_view_key_cache
-        elif target_view == TargetViewTable.MAIN:
-            return self.main_view_header_cache, self.main_view_row_cache, self.main_view_key_cache
-        elif target_view == TargetViewTable.PRESENCE:
-            return self.presence_view_header_cache, self.presence_view_row_cache, self.presence_view_key_cache
-        elif target_view == TargetViewTable.HASH:
-            return self.hash_view_header_cache, self.hash_view_row_cache, self.hash_view_key_cache
-        elif target_view == TargetViewTable.NAME:
-            return self.name_view_header_cache, self.name_view_row_cache, self.name_view_key_cache
-        elif target_view == TargetViewTable.LOCATION:
-            return self.location_view_header_cache, self.location_view_row_cache, self.location_view_key_cache
-        else:  # pragma: no cover
-            raise ImplementationError("Uncovered Target View")
-
-    def clear_caches(self, target_view: TargetViewTable):
-        """
-        Clear the caches of a given target view
-        """
-        caches = self.get_caches(target_view)
-
-        # Reset all hashes
-        for c in caches:
-            if c is not None:
-                c.reset()
+        if self.view_key_cache is not None:
+            self.view_key_cache.reset()
+        if self.view_row_cache is not None:
+            self.view_row_cache.reset()
+        if self.view_header_cache is not None:
+            self.view_header_cache.reset()
 
     @property
     def reserved_named(self) -> List[str]:
