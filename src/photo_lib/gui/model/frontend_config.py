@@ -60,7 +60,7 @@ class UIConfig(BaseModel):
         description="Color name for fail in bright mode. Can be changed to account for disabilities."
     )
     bright_color_name_select: str = Field(
-        default="yellow",
+        default="blue",
         description="Color name for select in bright mode. Can be changed to account for disabilities."
     )
 
@@ -73,6 +73,6 @@ class UIConfig(BaseModel):
         description="Color name for fail in dark mode. Can be changed to account for disabilities."
     )
     dark_color_name_select: str = Field(
-        default="darkYellow",
+        default="darkBlue",
         description="Color name for select in dark mode. Can be changed to account for disabilities."
     )
