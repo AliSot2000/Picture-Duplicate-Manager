@@ -683,6 +683,25 @@ class PhotoDB(BaseSQliteDB):
 
         return os.path.abspath(os.path.join(ofd, ofn))
 
+    def get_import_state(self, key: int, tbl: str) -> Optional[Tuple[Allowed, ImportStatus]]:
+        """
+        Get the import status to determine the allowed state of a file.
+
+        PRECONDITION: The Table exists
+
+        :returns the allowed state and the import status of a file in the import table. None if the file doesn't exist.
+        """
+        self.debug_execute(f"SELECT allowed, imported FROM `{tbl}` WHERE key = ?", (key,))
+        row = self.sq_cur.fetchone()
+
+        # Get the row
+        if row is None:
+            return row
+
+        # parse the result
+        _allowed, _imported = row
+        return Allowed(_allowed), ImportStatus(_imported)
+
     def add_file_to_import_table(self,
                                  tbl_name: str,
                                  parsing_result: MetadataParsingResult,
