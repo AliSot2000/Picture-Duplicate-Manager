@@ -76,3 +76,17 @@ class UIConfig(BaseModel):
         default="darkBlue",
         description="Color name for select in dark mode. Can be changed to account for disabilities."
     )
+
+    scale_down_trigger_ratio: float = Field(
+        default=0.5,
+        description="Ratio for the scale down trigger. If the ratio between the displayed size and the pixmap size is "
+                    "less than this, the pixmap will be scaled down to save RAM. Value should be between (0, 1). The "
+                    "smaller the value, the larger the RAM usage but the better the image quality."
+    )
+    scale_up_trigger_ratio: float = Field(
+        default=1.1,
+        description="Ratio for the scale up trigger. If the ratio between the displayed size and the pixmap size is "
+                    "greater than this, the pixmap will be reloaded to be able to display the image properly. "
+                    "Value should be > 1 the larger the value, the smaller the RAM usage but the lower the image "
+                    "quality."
+    )
