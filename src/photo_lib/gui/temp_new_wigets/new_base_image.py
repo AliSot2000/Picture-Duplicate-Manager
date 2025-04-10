@@ -27,6 +27,8 @@ class BaseImage(QFrame):
     # Currently loaded file path (needed to determine if we need to update the currently loaded image)
     file_path: Optional[str] = None
 
+    rescaled: bool
+
     def __init__(self, mp: MediaPaths, model: UIModel):
         """
         The new variant of the BaseImage doesn't allow reusing the widget anymore. With every new MediaPaths a new
@@ -40,6 +42,7 @@ class BaseImage(QFrame):
         super().__init__()
         self.__media = mp
         self.model = model
+        self.rescaled = False
 
         tgt_fp = self.determine_fp_to_use()
         if tgt_fp is None:
@@ -186,12 +189,52 @@ class BaseImage(QFrame):
         - If we're scaling down i.e. smaller, compute pixmap as a scaled down version of the current one
         - If we're scaling up, load the file again and recompute the smaller version.
         """
-        tgt_path = self.determine_fp_to_use()
-        if tgt_path is None:
-            return
+        if self.media.parent is None and self.media.thumbnail_fp is None and self.media.miniature_fp is None:
+            if self.pixmap is None or (self.pixmap is not None and self.pixmap.isNull()):
+                return
 
-        # A different image is suitable. Schedule its load.
-        if tgt_path != self.file_path:
-            self.dispatch_load(tgt_path)
+            # Compute ratio between image size and display size
+            inner_size = QSize(max(0, self.size().width() - 2 * self.frameWidth()),
+                               max(0, self.size().height() - 2 * self.frameWidth()))
+
+            display_size = self.pixmap.size().scaled(inner_size, Qt.AspectRatioMode.KeepAspectRatio)
+
+            x_ratio = display_size.width() / self.pixmap.width()
+            y_ratio = display_size.height() / self.pixmap.height()
+            ratio = (x_ratio + y_ratio)/2
+
+            # Ratio is smaller than scale down threshold, scale the image down for ram conservation.
+            if ratio < self.model.ui_config.scale_down_trigger_ratio:
+                print("Scaling down")
+                # We're scaling down, compute the new pixmap
+                scaled_pm = self.pixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio)
+                self.pixmap = scaled_pm
+                self.rescaled = True
+
+            # If the Pixmap was rescaled in the past, if the display size is now larger than the pixmap by a given
+            # ratio, the image is loaded again and compressed again for an improved viewing quality.
+            elif ratio > self.model.ui_config.scale_up_trigger_ratio:
+                print("scaling up")
+                # We're scaling up, load the new image
+                tgt_path = self.determine_fp_to_use()
+                if tgt_path is None:
+                    return
+
+                # A different image is suitable. Schedule its load.
+                if self.rescaled:
+                    self.dispatch_load(tgt_path)
+                    self.rescaled = False
+            else:
+                # Nothing happens if we're within range of the two values.
+                pass
+
+        else:
+            tgt_path = self.determine_fp_to_use()
+            if tgt_path is None:
+                return
+
+            # A different image is suitable. Schedule its load.
+            if tgt_path != self.file_path:
+                self.dispatch_load(tgt_path)
 
 
