@@ -809,6 +809,8 @@ class PhotoDB(BaseSQliteDB):
         Set the imported status of a given row of an import table.
 
         PRECONDITION: The Table exists
+        PRECONDITION: The caller knows the state of the row. IGNORED and MARKED can be switched back and forth.
+                      MARKED can then switch to IMPORTED or DELETED.
 
         :param tbl_name: import table to update
         :param key: key in table to update
