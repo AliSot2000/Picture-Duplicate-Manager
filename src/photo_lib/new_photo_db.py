@@ -3605,6 +3605,9 @@ class PhotoDB(BaseSQliteDB):
     def parse_header(self, header: str | int | None, target_view: TargetViewTable):
         """
         Parse the Header from a database internal header into something that's displayable for the view.
+
+        :param header: Raw header value retrieved from the database
+        :param target_view: The view for which the header is being parsed. Determines the format of the header.
         """
         # Header for Main Table
         if target_view == TargetViewTable.MAIN:
