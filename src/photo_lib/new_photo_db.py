@@ -3653,7 +3653,7 @@ class PhotoDB(BaseSQliteDB):
             elif header == 2:
                 return "Failed"
             elif header == 3:
-                return "Ignored"
+                return "Prohibited"
             else:  # pragma: no cover
                 raise ImplementationError("Unexpected Header for Name Update Table")
 
