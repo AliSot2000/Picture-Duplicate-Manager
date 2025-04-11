@@ -3711,6 +3711,27 @@ class PhotoDB(BaseSQliteDB):
 
         return results
 
+    def db_lookup_row_to_header_raw(self, row: int, target_view: TargetViewTable) -> Optional[str | int]:
+        """
+        Get the raw header value. Is intended to be used, if all headers are cached because the row count is low enough.
+
+        :param row: Row to get the header for
+        :param target_view: Which lookup table to take
+
+        :return: Header name, Header Enum value or None
+        """
+        tgt_table = target_view.value
+
+        # The value wasn't found in the cache, query the table
+        self.debug_execute(f"SELECT grouping_criterion FROM `{tgt_table}` WHERE global_row = ? and col = 0", (row,))
+        results = [k[0] for k in self.sq_cur.fetchall()]
+
+        if len(results) == 0:
+            raise ImplementationError(f"Row: {row} doesn't exist.")
+
+        assert len(results) == 1, "ROW NOT FOUND"
+        return results[0]
+
     def lookup_row_to_header(self, row: int, target_view: TargetViewTable) -> Optional[str]:
         """
         Get the Header for a given row. Header may be a string or None
@@ -3720,26 +3741,15 @@ class PhotoDB(BaseSQliteDB):
 
         :return: Header name or None
         """
-        tgt_table = target_view.value
-
         # Query the header cache
         if self.view_header_cache is not None:
             res = self.view_header_cache.get(row)
             if res is not nd:
                 return res
 
-        # Query the table and get result
-        self.debug_execute(f"SELECT key FROM `{tgt_table}` WHERE global_row = ? and col = 0",
-                           (row,))
-        results = [k[0] for k in self.sq_cur.fetchall()]
+        raw_header = self.db_lookup_row_to_header_raw(row, target_view)
 
-        if len(results) == 0:
-            self.view_header_cache.set(row, None)
-            return None
-
-        assert len(results) == 1, "ROW NOT FOUND"
-
-        san_header = self.parse_header(results[0], target_view)
+        san_header = self.parse_header(raw_header, target_view)
         self.view_header_cache.set(row, san_header)
 
         return san_header
