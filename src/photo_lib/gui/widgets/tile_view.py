@@ -353,11 +353,6 @@ class TileWidget(QFrame):
             self.resize_timer.setSingleShot(True)
             self.resize_timer.timeout.connect(self.update_size)
 
-        if use_timers_scroll:
-            self.scroll_timer = QTimer()
-            self.scroll_timer.setSingleShot(True)
-            self.scroll_timer.timeout.connect(self.scroll_to_row)
-
     def prep_dev(self):
         print(f"INFO: CAll to prep_cev")
         self.setMinimumWidth(350)
