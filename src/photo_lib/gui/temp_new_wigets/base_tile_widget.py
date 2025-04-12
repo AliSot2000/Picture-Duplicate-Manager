@@ -466,9 +466,10 @@ class BaseTileWidget(QFrame):
                                          QSizePolicy.Policy.Expanding,
                                          QSizePolicy.Policy.Expanding)
                     self.horizontal_spacers.append(spacer)
-                    self.background_layout.addItem(row=i, column=number_of_elements, rowSpan=1,
-                                                   columnSpan=max_col_count - number_of_elements, item=spacer,
-                                                   alignment=Qt.AlignmentFlag.AlignCenter)
+                    self.background_layout.addItem(spacer,
+                                                   i, number_of_elements,
+                                                   1, max_col_count - number_of_elements,
+                                                   Qt.AlignmentFlag.AlignCenter)
 
     def compute_background_widget_offset(self) -> QPoint:
         """
