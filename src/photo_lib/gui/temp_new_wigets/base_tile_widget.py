@@ -825,6 +825,7 @@ class BaseTileWidget(QFrame):
             for mp in media_paths:
                 preexisting_widget = self.widgets.get(mp.element.key, None)
                 if preexisting_widget is not None:
+                    self.logger.debug(f"Reusing Widget for: {preexisting_widget.media.element.key}")
                     result.append(preexisting_widget)
                 else:
                     result.append(self._tile_factory(mp))
