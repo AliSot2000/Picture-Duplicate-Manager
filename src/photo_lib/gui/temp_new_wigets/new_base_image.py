@@ -214,7 +214,7 @@ class BaseImage(QFrame):
             # If the Pixmap was rescaled in the past, if the display size is now larger than the pixmap by a given
             # ratio, the image is loaded again and compressed again for an improved viewing quality.
             elif ratio > self.model.ui_config.scale_up_trigger_ratio:
-                print("scaling up")
+                print("Scaling up")
                 # We're scaling up, load the new image
                 tgt_path = self.determine_fp_to_use()
                 if tgt_path is None:
