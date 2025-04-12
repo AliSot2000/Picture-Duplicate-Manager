@@ -15,7 +15,6 @@ from photo_lib.gui.widgets.image_tile import IndexedTile
 from photo_lib.gui.old_model import Model, GroupCount, GroupingCriterion, TileBuffer
 
 use_timers_resize = True
-use_timers_scroll = False
 
 # TODO test the following bug:
 #   - Scroll out of bounds
@@ -153,7 +152,6 @@ class TileWidget(QFrame):
     # TODO config
     __tile_size: int = 100  # Different tile size for year, month and day.
     preload_row_count: int = 5
-    scroll_timeout: int = 300
     resize_timeout: int = 200
     header_height: int = 35
     __content_margin: Tuple[int, int, int, int]  # left, top, right, bottom
@@ -1017,12 +1015,6 @@ class TileWidget(QFrame):
         if row == self.focus_row:
             return
 
-        # global use_timers_scroll
-        # if use_timers_scroll:
-        #     self.scroll_buffer = row
-        #     self.scroll_timer.start(self.scroll_timeout)
-        # else:
-        #     self.scroll_to_row(row)
         self.scroll_animation(row)
 
     # ------------------------------------------------------------------------------------------------------------------
