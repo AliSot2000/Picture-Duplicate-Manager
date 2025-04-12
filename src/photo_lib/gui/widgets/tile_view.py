@@ -1011,12 +1011,12 @@ class TileWidget(QFrame):
         """
         Capture resize event and trigger update of size
         """
+        super().resizeEvent(a0)
         global use_timers_resize
         if use_timers_resize:
             self.resize_timer.start(self.resize_timeout)
         else:
             self.update_size()
-        super().resizeEvent(a0)
 
     def paintEvent(self, a0):
         """
