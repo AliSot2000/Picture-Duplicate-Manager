@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Type
 
-from PyQt6.QtCore import QObject, QThreadPool
+from PyQt6.QtCore import QObject, QThreadPool, QSize
 
 from photo_lib.gui.widgets.base_image import BaseImage
 from .image_loader_worker import ImageLoaderWorker
@@ -40,13 +40,14 @@ class ImageLoaderManager(QObject):
         """
         return cls.instance
 
-    def load_image(self, image_path: str, widget: BaseImage):
+    def load_image(self, image_path: str, widget: Type[BaseImage], target_size: QSize = None):
         """
         Schedule the loading of a given image.
 
         :param image_path: Path to the image to load
         :param widget: Widget to put the pixmap on
+        :param target_size: Target size of the image. If None, no scaling is done.
         """
         assert self.root_widget is not None, "Root Widget needs to exist."
-        worker = ImageLoaderWorker(image_path, self.root_widget, widget)
+        worker = ImageLoaderWorker(image_path, self.root_widget, widget, target_size)
         self.thread_pool.start(worker)
