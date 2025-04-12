@@ -7,6 +7,7 @@ from PyQt6.QtGui import QPainter, QEnterEvent, QMouseEvent, QResizeEvent, QPixma
 from photo_lib.data_objects import MediaPaths
 from photo_lib.gui.model.frontend_model import UIModel
 from photo_lib.gui.temp_new_wigets.new_base_image import BaseImage
+from photo_lib.gui.util.image_loader_manager import ImageLoaderManager
 
 
 class ZoomImage(BaseImage):
@@ -73,6 +74,17 @@ class ZoomImage(BaseImage):
         assert len(valid_paths) > 0, "At least one valid path should exist."
 
         return valid_paths[0]
+
+    def dispatch_load(self, fp: str):
+        """
+        Perform the loading of the image either in the current thread or with a QRunnable if the worker for that is
+        started.
+        """
+        manager = ImageLoaderManager.get_instance()
+        if manager is None:
+            self.local_fetch_image(fp)
+        else:
+            manager.load_image(image_path=fp, widget=self)
 
     def enterEvent(self, event: QEnterEvent) -> None:
         """
