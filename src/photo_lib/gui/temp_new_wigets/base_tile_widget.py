@@ -540,6 +540,7 @@ class BaseTileWidget(QFrame):
                 self._current_row_up()
 
         else:
+            self.current_row = row
             # We're out of range, build the row around the current row.
             self._build_around_row(reuse=False)
 
