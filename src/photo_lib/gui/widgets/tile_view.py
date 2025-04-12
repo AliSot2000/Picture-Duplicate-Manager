@@ -262,19 +262,6 @@ class TileWidget(QFrame):
         self.__focus_index = self.row_to_index_lut[value]
         self.focus_row_changed.emit(value)
 
-    # @property
-    # def current_tile_info(self):
-    #     return self.__current_tile_info
-    #
-    # @current_tile_info.setter
-    # def current_tile_info(self, value: IndexedTile):
-    #     if value.tile_info == self.__current_tile_info:
-    #         return
-    #
-    #     self.__current_tile_info = value.tile_info
-    #     self.__current_index = value.index
-    #     self.img_selected.emit()
-
     @property
     def number_of_rows(self):
         return self.__number_of_rows
