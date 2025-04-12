@@ -116,7 +116,6 @@ class TileWidget(QFrame):
     # Backend objects
     model: Model
     buffer: TileBuffer
-    scroll_buffer: Union[int, None] = None
 
     # Signals
     num_of_rows_changed = pyqtSignal(int)
@@ -731,7 +730,6 @@ class TileWidget(QFrame):
 
         self.layout_from_datastructure()
         self.place_background_widget()
-        self.scroll_buffer = None
 
     def _build_down(self, layout: bool = True):
         """
