@@ -101,13 +101,14 @@ class BaseImage(QFrame):
 
     def dispatch_load(self, fp: str):
         """
-        Perform the loading of the image either in the current thread or with a QRunnable if the worker for that is started.
+        Perform the loading of the image either in the current thread or with a QRunnable if the worker for that is
+        started.
         """
         manager = ImageLoaderManager.get_instance()
         if manager is None:
-            self.local_fetch_image(fp)
+            self.local_fetch_image(fp, self.size())
         else:
-            manager.load_image(image_path=fp, widget=self)
+            manager.load_image(image_path=fp, widget=self, target_size=self.size())
 
     def local_fetch_image(self, fp: str):
         """
