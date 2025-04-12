@@ -70,3 +70,9 @@ class UIModel:
 
         else:
             return defaults.miniature_size
+
+    def write_preferences(self):
+        """
+        Write the preferences to the system path.
+        """
+        ...
