@@ -614,16 +614,28 @@ class BaseTileWidget(QFrame):
         """
         Build the view / the rows around the current_row
         """
-        # Determine lowest row
-        self.lowest_row = max(0, self.current_row -
-                              (self.max_visible_rows * self.model.ui_config.tile_page_preload_count))
+        bottom_cutoff = self.number_of_rows - (1 + self.model.ui_config.tile_page_preload_count) * self.max_visible_rows
 
-        # Determine the highest row
-        self.highest_row = min(self.number_of_rows - 1,
-                               self.lowest_row
-                               + (2 * self.model.ui_config.tile_page_preload_count + 1)
-                               * self.max_visible_rows
-                               - 1)
+        if self.current_row > bottom_cutoff:
+            # We're at the very bottom and we need to calculate the highest row first and the nthe lowest row from that.
+            self.highest_row = min(self.number_of_rows - 1,
+                                   self.current_row
+                                   + (self.max_visible_rows * self.model.ui_config.tile_page_preload_count) - 1)
+
+            self.lowest_row = max(0, self.highest_row - self.number_of_generated_rows + 1)
+        else:
+            # Determine lowest row
+            self.lowest_row = max(0, self.current_row -
+                                  (self.max_visible_rows * self.model.ui_config.tile_page_preload_count))
+
+            # Determine the highest row
+            self.highest_row = min(self.number_of_rows - 1,
+                                   self.lowest_row
+                                   + (2 * self.model.ui_config.tile_page_preload_count + 1)
+                                   * self.max_visible_rows
+                                   - 1)
+
+        self.current_row_offset = self.current_row - self.lowest_row
 
         self.logger.debug(f"_build_around_row: "
                           f"reuse: {reuse}, "
