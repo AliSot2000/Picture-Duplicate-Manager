@@ -5,9 +5,8 @@ import math
 from logging import Logger
 from typing import List, Union, Dict
 
-
 from PyQt6.QtCore import pyqtSignal, QTimer, QPoint, pyqtSlot, Qt
-from PyQt6.QtGui import QResizeEvent, QPixmap, QPaintEvent
+from PyQt6.QtGui import QResizeEvent, QPaintEvent
 from PyQt6.QtWidgets import QFrame, QWidget, QGridLayout, QSpacerItem, QSizePolicy
 
 from photo_lib.custom_enum import TargetViewTable, GroupingCriterion, MainTileView
