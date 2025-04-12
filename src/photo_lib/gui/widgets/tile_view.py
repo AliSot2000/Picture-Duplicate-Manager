@@ -869,15 +869,6 @@ class TileWidget(QFrame):
         gi = self.group_infos[self.row_to_header_lut[index]]
         return self.generate_label_text(gi)
 
-    def _generate_placeholder(self):
-        """
-        Generate a placeholder for the moment
-        """
-        temp = QFrame(self)
-        temp.setFixedHeight(self.header_height)
-        temp.setFrameStyle(QFrame.Shape.StyledPanel | QFrame.Shadow.Raised)
-        return temp
-
     def _add_row_bottom(self):
         """
         Add row to bottom of data structure, doesn't update the widgets!
