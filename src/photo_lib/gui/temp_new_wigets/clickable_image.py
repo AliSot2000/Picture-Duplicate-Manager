@@ -20,7 +20,6 @@ class ClickableImage(BaseImage):
         Set up the image. Additionally, adds a variable and a timer to intercept the two left click event that are
         captured by the class when a double click occurred.
         """
-
         super().__init__(mp=mp, model=model)
 
         # We set the timeout slightly higher than to make sure the double click is able to kill the timer.
