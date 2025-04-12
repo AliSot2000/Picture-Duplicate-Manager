@@ -665,11 +665,10 @@ class BaseTileWidget(QFrame):
                 new_widgets[widget.media.element.key] = widget
 
         # Get all the rows that aren't in the new rows
-        for widget in self.widgets.values():
-            # Destroy the widget if it is not in the widgets anymore
-            if widget not in new_widgets.values():
-                print("Should be destorying...")
-                self._destroy_tile(widget)
+        to_delete = list(filter(lambda x: x not in new_widgets.values(), self.widgets.values()))
+
+        for elm in to_delete:
+            self._destroy_tile(elm)
 
         self.widgets = new_widgets
 
