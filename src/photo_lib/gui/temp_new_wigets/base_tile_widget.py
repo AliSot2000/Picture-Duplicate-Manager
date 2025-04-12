@@ -501,7 +501,8 @@ class BaseTileWidget(QFrame):
             self.resize_layout()
             self.layout_from_data_structure()
             self.background_widget.move(self.compute_background_widget_offset())
-            self.repaint()
+            self.update()
+            self.updateGeometry()
 
     # ==================================================================================================================
     # Private Functions that only perform specific actions and need to be called in conjunction with each other
@@ -535,7 +536,8 @@ class BaseTileWidget(QFrame):
         self.layout_from_data_structure()
         self.background_widget.move(self.compute_background_widget_offset())
         self.sanity_check()
-        self.repaint()
+        self.update()
+        self.updateGeometry()
 
     def _recompute_layout_vars(self) -> bool:
         """
