@@ -193,20 +193,20 @@ class BaseTileWidget(QFrame):
         super().__init__(parent=parent)
 
         self.model = model
+        self.__target_table = target_table
+
         self.resizeEvent = self._init_resize
 
         # Set the default values for the properties
         self.__number_of_rows = 0
         self.__number_of_columns = 0
-        self.__current_row = 0
         self.__max_visible_rows = 0
         self.__min_visible_rows = 0
-        self.__tile_size = self.model.ui_config.default_tile_size
-
-        self.__target_table = target_table
-
+        self.__tile_size = self.model.ui_config.default_tile_size # TODO fetch from preferences.
         self.__vertical_spacing = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutVerticalSpacing)
         self.__horizontal_spacing = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutHorizontalSpacing)
+
+        self.current_row = 0
 
         # Initialize the layout and widgets
         self.widgets = {}
