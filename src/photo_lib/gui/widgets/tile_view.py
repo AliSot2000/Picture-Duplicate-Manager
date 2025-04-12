@@ -1085,6 +1085,7 @@ class DatabaseTileView(QFrame):
         self.header_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         self.header_slider = QSlider(Qt.Orientation.Horizontal)
+        self.header_slider.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.header_slider.setFixedWidth(100)
         self.header_slider.setMinimum(100)
         self.header_slider.setMaximum(500)
@@ -1098,11 +1099,13 @@ class DatabaseTileView(QFrame):
         self.header_slider_value.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
         self.scrollbar = QScrollBar(Qt.Orientation.Vertical)
+        self.scrollbar.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.scrollbar.sliderReleased.connect(self.update_scroll_on_release)
         self.scrollbar.valueChanged.connect(self.update_scroll_on_change)
         self.scrollbar.sliderPressed.connect(self.set_indicator_visible)
 
         self.tiles = TileWidget(model)
+        self.tiles.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.tiles.prep_dev()
         self.tiles.num_of_rows_changed.connect(self.set_scrollbar_max)
         self.tiles.focus_row_changed.connect(self.scrollbar.setValue)
