@@ -3249,7 +3249,7 @@ class PhotoDB(BaseSQliteDB):
                 SELECT
                     key,
                     datetime(datetime) AS datetime_value,
-                    strftime('%Y-%m-%d', datetime) AS grouping_criterion, 
+                    strftime('%Y-%m-%d', datetime) AS grouping_criterion
                 FROM main {filter_clause}
             ),
             NumberedData AS (
