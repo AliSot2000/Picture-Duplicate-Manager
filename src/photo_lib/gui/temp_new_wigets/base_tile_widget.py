@@ -40,6 +40,8 @@ class BaseTileWidget(QFrame):
     __max_visible_rows: int
     __min_visible_rows: int
     __tile_size: int
+    __horizontal_spacing: int
+    __vertical_spacing: int
 
     # Read only properties
     __target_table: TargetViewTable
@@ -47,12 +49,10 @@ class BaseTileWidget(QFrame):
     debug_offset: int = 0
 
     # UI State variables
+    current_row: int = 0
+    current_row_offset: int = 0
     lowest_row: int = 0
     highest_row: int = 0
-
-    current_row_offset: int = 0
-    __horizontal_spacing: int = 0
-    __vertical_spacing: int = 0
 
     widgets: Dict[int, ClickableTile]  # List of all widgets that are currently instantiated
     tile_rows: List[List[ClickableTile]]
