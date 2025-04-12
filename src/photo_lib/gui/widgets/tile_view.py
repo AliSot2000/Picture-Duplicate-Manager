@@ -1223,8 +1223,10 @@ class TempRoot(QMainWindow):
         self.layout.addWidget(self.tiles)
 
         self.scrollbar = QScrollBar(Qt.Orientation.Vertical)
+        self.scrollbar.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.scrollbar.setMaximum(self.tiles.number_of_rows)
         self.tiles.num_of_rows_changed.connect(self.set_max)
+        self.tiles.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.tiles.focus_row_changed.connect(self.set_val)
         self.tiles.page_size_changed.connect(self.scrollbar.setPageStep)
         self.scrollbar.valueChanged.connect(self.set_value)
