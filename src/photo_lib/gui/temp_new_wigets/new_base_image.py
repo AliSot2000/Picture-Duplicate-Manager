@@ -113,6 +113,9 @@ class BaseImage(QFrame):
     def local_fetch_image(self, fp: str):
         """
         Perform loading in this thread
+
+        :param fp: File path to load
+        :param target_size: Target size of the image. If None, no scaling is done.
         """
         assert os.path.exists(fp), "PRECONDITION violated: File Path is supposed to exist"
 
