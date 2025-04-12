@@ -40,10 +40,6 @@ class UIConfig(BaseModel):
         description="Maximum size of the object to row lookup and header lookup cache."
     )
 
-    # TODO replace that with the one from the api
-    thumbnail_size: int = 100
-    miniature_size: int = 500
-
     force_theme_dark: Optional[bool] = Field(
         default=None,
         description="Force the application to use dark mode if True, force to bright if False. "
