@@ -122,7 +122,10 @@ class BaseImage(QFrame):
         image = QImage(fp)  # Load image safely
         pixmap = QPixmap.fromImage(image)  # Convert to pixmap
 
-        scaled_pm = pixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio)
+        if target_size is not None:
+            scaled_pm = pixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio)
+        else:
+            scaled_pm = pixmap
 
         try:
             aspect_ratio = pixmap.width() / pixmap.height()
