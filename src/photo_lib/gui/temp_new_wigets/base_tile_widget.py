@@ -483,6 +483,7 @@ class BaseTileWidget(QFrame):
 
         y += max(0, (self.tile_size + self.vertical_spacing) * (self.current_row_offset - 1))
 
+        self.logger.debug(f"compute_background_widget_offset: {y}, current_row_offset: {self.current_row_offset}")
         return QPoint(0, -y)
 
     # ==================================================================================================================
