@@ -639,8 +639,10 @@ class BaseTileWidget(QFrame):
 
         self.logger.debug(f"_build_around_row: "
                           f"reuse: {reuse}, "
+                          f"current_row: {self.current_row}, "
                           f"lowest_row: {self.lowest_row}, "
-                          f"highest_row: {self.highest_row}")
+                          f"highest_row: {self.highest_row}, "
+                          f"curernt_row_offset: {self.current_row_offset}, ")
 
         # Create new variables.
         new_widgets = {}
