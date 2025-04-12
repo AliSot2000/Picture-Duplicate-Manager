@@ -110,7 +110,7 @@ class BaseImage(QFrame):
         else:
             manager.load_image(image_path=fp, widget=self, target_size=self.size())
 
-    def local_fetch_image(self, fp: str):
+    def local_fetch_image(self, fp: str, target_size: QSize = None):
         """
         Perform loading in this thread
 
