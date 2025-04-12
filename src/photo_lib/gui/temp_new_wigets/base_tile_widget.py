@@ -37,7 +37,6 @@ class BaseTileWidget(QFrame):
     # Internal variables of properties. Needed to emit the signals when the values change.
     __number_of_rows: int
     __number_of_columns: int
-    __current_row: int
     __max_visible_rows: int
     __min_visible_rows: int
     __tile_size: int
@@ -102,17 +101,6 @@ class BaseTileWidget(QFrame):
         if self.__number_of_columns != value:
             self.__number_of_columns = value
             self.number_of_columns_changed.emit(value)
-
-    @property
-    def current_row(self) -> int:
-        return self.__current_row
-
-    @current_row.setter
-    def current_row(self, value: int):
-        assert value >= 0, "Current row must be greater than or equal to 0"
-        if self.__current_row != value:
-            self.__current_row = value
-            self.current_row_changed.emit(value)
 
     @property
     def max_visible_rows(self) -> int:
