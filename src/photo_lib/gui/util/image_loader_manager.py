@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Type
+from typing import Optional
 
 from PyQt6.QtCore import QObject, QThreadPool, QSize
 
@@ -40,7 +40,7 @@ class ImageLoaderManager(QObject):
         """
         return cls.instance
 
-    def load_image(self, image_path: str, widget: Type[BaseImage], target_size: QSize = None):
+    def load_image(self, image_path: str, widget: BaseImage, target_size: QSize = None):
         """
         Schedule the loading of a given image.
 
