@@ -210,6 +210,10 @@ class MediaElement:
 
         self.target_import_table = target_import_table
 
+    def __repr__(self):
+        return (f"MediaElement(key={self.key}, "
+                f"source_table={self.source_table}, target_import_table={self.target_import_table})")
+
 
 class MediaPaths:
     element: MediaElement
@@ -243,3 +247,10 @@ class MediaPaths:
         self.thumbnail_fp = thumbnail_fp
 
         self.parent = parent
+
+    def __repr__(self):
+        return (f"MediaPaths(element={self.element}, "
+                f"original_fp={self.original_fp}, "
+                f"thumbnail_fp={self.thumbnail_fp}, "
+                f"miniature_fp={self.miniature_fp}, "
+                f"parent={self.parent})")
