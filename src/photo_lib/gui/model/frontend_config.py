@@ -74,12 +74,15 @@ class UIConfig(BaseModel):
     )
 
     scale_down_trigger_ratio: float = Field(
+        lt=1.0,
+        gt=0.0,
         default=0.5,
         description="Ratio for the scale down trigger. If the ratio between the displayed size and the pixmap size is "
                     "less than this, the pixmap will be scaled down to save RAM. Value should be between (0, 1). The "
                     "smaller the value, the larger the RAM usage but the better the image quality."
     )
     scale_up_trigger_ratio: float = Field(
+        gt=1,
         default=1.1,
         description="Ratio for the scale up trigger. If the ratio between the displayed size and the pixmap size is "
                     "greater than this, the pixmap will be reloaded to be able to display the image properly. "
