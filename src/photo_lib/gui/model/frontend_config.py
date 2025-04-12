@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 Idea for this config - this is what you can modify from a settings pane
 """
 
-
+# TODO, the settings here should be categorized by config and tunables.
 class UIConfig(BaseModel):
     """
     Contains actually user configurable settings.
