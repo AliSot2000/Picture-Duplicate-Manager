@@ -3750,7 +3750,8 @@ class PhotoDB(BaseSQliteDB):
         raw_header = self.db_lookup_row_to_header_raw(row, target_view)
 
         san_header = self.parse_header(raw_header, target_view)
-        self.view_header_cache.set(row, san_header)
+        if self.view_header_cache is not None:
+            self.view_header_cache.set(row, san_header)
 
         return san_header
 
@@ -3781,7 +3782,8 @@ class PhotoDB(BaseSQliteDB):
         assert len(results) == 1, "ROW NOT FOUND"
 
         row = results[0]
-        self.view_key_cache.set(key, row)
+        if self.view_key_cache is not None:
+            self.view_key_cache.set(key, row)
 
         return row
 
