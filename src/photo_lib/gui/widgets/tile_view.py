@@ -325,8 +325,10 @@ class TileWidget(QFrame):
         bottom = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin)
         left = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutLeftMargin)
         right = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutRightMargin)
+
         v_space = int((top + bottom) / 2)
         h_space = int((left + right) / 2)
+
         self.header_height = QFontMetrics(QFont()).height() + top + bottom
 
         self.background_layout.setVerticalSpacing(v_space)
