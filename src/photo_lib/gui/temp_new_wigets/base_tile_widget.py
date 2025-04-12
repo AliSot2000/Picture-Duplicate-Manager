@@ -605,7 +605,8 @@ class BaseTileWidget(QFrame):
                           f"Number of rows: {self.number_of_rows}, Number of columns: {self.number_of_columns}, "
                           f"Max visible rows: {self.max_visible_rows}, Min visible rows: {self.min_visible_rows}, "
                           f"Size: {self.size()}, hs: {self.horizontal_spacing}, vs: {self.vertical_spacing}, "
-                          f"Tile Size: {self.tile_size}")
+                          f"Tile Size: {self.tile_size}, "
+                          f"max_widget_count: {self.number_of_generated_rows * self.number_of_columns}")
 
         return True
 
