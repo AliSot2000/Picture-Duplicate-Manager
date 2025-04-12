@@ -612,6 +612,7 @@ class TileWidget(QFrame):
 
         self.new_focus_row = row
         self.new_focus_row_offset = self.focus_row_offset + (self.new_focus_row - self.focus_row)
+
         target = self.place_background_widget(self.new_focus_row_offset)
         self.movement_animation.setStartValue(self.background_widget.pos())
         self.movement_animation.setEndValue(target)
