@@ -89,3 +89,22 @@ class UIConfig(BaseModel):
                     "Value should be > 1 the larger the value, the smaller the RAM usage but the lower the image "
                     "quality."
     )
+
+    tile_page_preload_count: int = Field(
+        ge=1,
+        default=1,
+        description="Any tile view has always an entire page of tiles above and below loaded (if possible). "
+                    "This number can be increased for more snappy performance, but it will also increase the RAM usage."
+    )
+
+    default_tile_size: int = Field(
+        gt=0,
+        default=100,
+        description="Default tile size in pixels."
+    )
+
+    tile_resize_timeout_ms: int = Field(
+        gt=0,
+        default=200,
+        description="Timeout for tiles resize in milliseconds."
+    )
