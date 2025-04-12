@@ -3907,7 +3907,7 @@ class PhotoDB(BaseSQliteDB):
                 original_fp=path if os.path.exists(path) else None,
                 miniature_fp=miniature if os.path.exists(miniature) else None,
                 thumbnail_fp=thumbnail if os.path.exists(thumbnail) else None,
-                parent=MediaElement(key=parent, source_table=TargetViewTable.MAIN)
+                parent=MediaElement(key=parent, source_table=TargetViewTable.MAIN) if parent is not None else None
             )
 
         # Get the path in case we have
