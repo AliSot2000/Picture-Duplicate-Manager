@@ -259,7 +259,8 @@ class BaseTileWidget(QFrame):
         :param row: THe new current row
         """
         # Perform same action as the property.
-        assert row >= 0, "Current row must be greater than or equal to 0"
+        assert self.number_of_rows > row >= 0, \
+            f"Current row must be greater than or equal to 0 and less than {self.number_of_rows}"
 
         # INFO: _scroll_to_row handles updating of the current_row
         # Update the row.
