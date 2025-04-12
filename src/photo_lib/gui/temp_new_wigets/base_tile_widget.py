@@ -447,11 +447,17 @@ class BaseTileWidget(QFrame):
                                              QSizePolicy.Policy.Expanding,
                                              QSizePolicy.Policy.Expanding)
                         self.horizontal_spacers.append(spacer)
-                        self.background_layout.addItem(spacer, i, j, 1, 1, Qt.AlignmentFlag.AlignCenter)
+                        self.background_layout.addItem(spacer,
+                                                       i, j,
+                                                       1, 1,
+                                                       Qt.AlignmentFlag.AlignCenter)
                     else:
                         # Add the widget to the layout
                         widget = row[j // 2]
-                        self.background_layout.addWidget(widget, i, j, 1, 1)
+                        self.background_layout.addWidget(widget,
+                                                         i, j,
+                                                         1, 1,
+                                                         Qt.AlignmentFlag.AlignCenter)
 
                 if number_of_elements < max_col_count:
                     # Add a horizontal spacer
