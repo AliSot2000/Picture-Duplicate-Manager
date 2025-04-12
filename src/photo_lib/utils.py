@@ -1,4 +1,5 @@
 import os
+import datetime
 
 
 def rec_list_all(path: str):
@@ -84,3 +85,24 @@ def path_builder(target, path: str = "", path_val: dict = None, path_type: dict 
         return path_val, path_type
     else:
         return {path: target}, {path: type(target)}
+
+
+def now():
+    """
+    Wrapper to for datetime.datetime.now(datetime.timezone.utc) for easier calling
+    """
+    return datetime.datetime.now(datetime.timezone.utc)
+
+
+def time_taken(start: datetime.datetime, msg: str) -> float:
+    """
+    Wrapper for datetime.timedelta to get the time taken between two datetime
+    :param start: start datetime (tz aware)
+    :param msg: Message to log the time taken with.
+
+    :return: time delta in seconds
+
+    """
+    delta = (now() - start).total_seconds()
+    print(f"{msg} took {delta:.6f} seconds")
+    return delta
