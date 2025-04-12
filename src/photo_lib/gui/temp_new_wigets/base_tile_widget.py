@@ -866,9 +866,9 @@ class BaseTileWidget(QFrame):
         # Remove the tile from the widget dict
         self.widgets.pop(tile.media.element.key)
 
-        # Disconnect the signals
-        self.click.disconnect(tile.click)
-        self.double_click.disconnect(tile.double_click)
+        # INFO: Disconnect the signals is done by destructor
+        # self.click.disconnect(tile.click)
+        # self.double_click.disconnect(tile.double_click)
 
         # Delete the tile
         tile.deleteLater()
