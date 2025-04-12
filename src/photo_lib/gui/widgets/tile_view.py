@@ -1247,14 +1247,6 @@ class TempRoot(QMainWindow):
         if not self.scrollbar.isSliderDown():
             self.tiles.scroll_slot(v)
 
-    def keyPressEvent(self, a0):
-        super().keyPressEvent(a0)
-        self.tiles.keyPressEvent(a0)
-
-    def keyReleaseEvent(self, a0):
-        super().keyReleaseEvent(a0)
-        self.tiles.keyReleaseEvent(a0)
-
     def set_max(self):
         # max = self.tiles.number_of_rows - self.tiles.min_number_of_visible_rows + 1
         print(f"Max: {self.tiles.number_of_rows}")
