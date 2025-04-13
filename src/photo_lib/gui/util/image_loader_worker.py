@@ -47,7 +47,8 @@ class ImageLoaderWorker(QRunnable):
 
         self.emitter = SignalEmitter()
 
-    def run(self):
+    # INFO: We cannot cover this function as it is executed in a different thread.
+    def run(self):  # pragma: no cover
         """
         Run Method does:
         - Load Image
