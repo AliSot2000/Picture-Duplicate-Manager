@@ -606,6 +606,7 @@ class BaseTileWidget(QFrame):
 
         # Update the number of rows and columns
         self.max_visible_rows = max_visible_rows
+        self.min_visible_rows = min_visible_rows
         self.number_of_columns = number_of_columns
 
         self.rebuild_lookup_table()
