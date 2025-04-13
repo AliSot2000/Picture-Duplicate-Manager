@@ -500,7 +500,7 @@ class BaseTileWidget(QFrame):
         self._build_around_row(True)
         self.sanity_check()
 
-    def update_size(self):
+    def update_size(self) -> bool:
         """
         Performs:
         - Updates the size of the background widget
@@ -517,6 +517,9 @@ class BaseTileWidget(QFrame):
             self.background_widget.move(self.compute_background_widget_offset())
             self.update()
             self.updateGeometry()
+            return True
+
+        return False
 
     # ==================================================================================================================
     # Private Functions that only perform specific actions and need to be called in conjunction with each other
