@@ -275,7 +275,9 @@ class BaseTileWidget(QFrame):
             tile.setFixedHeight(self.tile_size)
 
         self.set_tile_size_preference()
-        self.update_size()
+        if not self.update_size():
+            self.update()
+            self.updateGeometry()
 
     @pyqtSlot(int)
     def set_horizontal_spacing(self, spacing: int):
