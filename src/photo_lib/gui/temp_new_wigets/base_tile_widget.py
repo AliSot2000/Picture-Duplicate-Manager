@@ -54,7 +54,7 @@ class BaseTileWidget(QFrame):
     lowest_row: int = 0
     highest_row: int = 0
 
-    widgets: Dict[int, ClickableTile]  # List of all widgets that are currently instantiated
+    widgets: Dict[int, ClickableTile]  # Dict of all widgets that are currently instantiated
     tile_rows: List[List[ClickableTile]]
     layout_rows: List[Union[List[Union[QWidget, QSpacerItem]], QSpacerItem]]
 
