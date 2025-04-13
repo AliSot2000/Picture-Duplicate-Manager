@@ -568,12 +568,10 @@ class BaseTileWidget(QFrame):
         """
         Scroll to a given row using either build or build around functions.
 
+        PRECONDITION: row != self.current_row
+
         :param row: The row to scroll to.
         """
-        # Abort if we set it to the same value
-        if row == self.current_row:
-            return
-
         # We update the layout_rows attribute and update the layout afterwards.
         if self.lowest_row <= row <= self.highest_row:
             while self.current_row < row:
