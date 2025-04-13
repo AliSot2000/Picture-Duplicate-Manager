@@ -30,6 +30,7 @@ class BaseTileWidget(QFrame):
     - Animation
     """
     model: UIModel
+    logger: Logger
 
     # Define the signals for other elements to work together.
     num_of_rows_changed = pyqtSignal(int)
@@ -57,7 +58,9 @@ class BaseTileWidget(QFrame):
     current_row_offset: int = 0
     lowest_row: int = 0
     highest_row: int = 0
+    new_current_row: Optional[int] = None
 
+    # UI Widgets
     widgets: Dict[int, ClickableTile]  # Dict of all widgets that are currently instantiated
     tile_rows: List[List[ClickableTile]]
     layout_rows: List[Union[List[Union[QWidget, QSpacerItem]], QSpacerItem]]
@@ -68,9 +71,10 @@ class BaseTileWidget(QFrame):
     background_widget: QWidget
     background_layout: QGridLayout
 
+    # Auxiliary items needed for view
     resize_timer: QTimer
-
-    logger: Logger
+    movement_animation: QPropertyAnimation
+    widget_update_timer: QTimer
 
     # ==================================================================================================================
     # Properties
