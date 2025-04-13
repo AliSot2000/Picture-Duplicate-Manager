@@ -560,6 +560,48 @@ class BaseTileWidget(QFrame):
 
         return False
 
+    def scroll_animation(self, row: int) -> bool:
+        """
+        Perform the scroll animation.
+
+        :param row: Row to scroll to
+        """
+        # Abort if we
+        if row == self.current_row:
+            return False
+
+        # Abort if the animation is disabled
+        if not self.model.ui_config.tile_animation:
+            self._scroll_to_row(row)
+            return True
+
+        # Abort if we're out of bounds
+        middle_cutoff = self.lowest_row + self.max_visible_rows * (self.model.ui_config.tile_page_preload_count * 2)
+        if self.highest_row != self.number_of_rows - 1:
+            if not self.lowest_row <= row <= middle_cutoff:
+                self._scroll_to_row(row)
+                return True
+
+        else:
+            # INFO: We're at the top row, use the full range to scroll
+            if not self.lowest_row <= row <= self.highest_row:
+                self._scroll_to_row(row)
+                return True
+
+        # Stop animation and restart with new value
+        if self.movement_animation.state() == QPropertyAnimation.State.Running:
+            self.movement_animation.stop()
+
+        start = self.background_widget.pos()
+        self.movement_animation.setDuration(self.model.ui_config.tile_animation_duration_ms)
+        self.movement_animation.setStartValue(start)
+        self.new_current_row = row
+
+        end = self.compute_background_widget_offset(target_offset=self.current_row_offset + row - self.current_row)
+        self.movement_animation.setEndValue(end)
+        self.movement_animation.start()
+        return False
+
     # ==================================================================================================================
     # Private Functions that only perform specific actions and need to be called in conjunction with each other
     # ==================================================================================================================
