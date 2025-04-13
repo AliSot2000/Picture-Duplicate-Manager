@@ -261,9 +261,8 @@ class BaseTileWidget(QFrame):
 
         # INFO: _scroll_to_row handles updating of the current_row
         # Update the row.
-        self._scroll_to_row(row)
-
-        self.current_row_changed.emit(row)
+        if self.scroll_animation(row):
+            self.current_row_changed.emit(row)
 
     @pyqtSlot(int)
     def set_tile_size(self, size: int):
