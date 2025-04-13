@@ -113,6 +113,8 @@ class RootWindow(QMainWindow):
         self.indicator.setFixedHeight(26)
         self.indicator.setFixedWidth(100)
 
+        self.sc.setValue(self.sc.minimum() + int((self.sc.maximum() - self.sc.minimum()) * 0.5))
+
     def do_shit(self, *args, **kwargs):
         print(f"Args {args}")
         print(f"Kwargs {kwargs}")
@@ -228,7 +230,6 @@ class RootWindow(QMainWindow):
             print(f"Slider is down")
         else:
             print(f"Slider is up")
-
 
 
 if __name__ == '__main__':
