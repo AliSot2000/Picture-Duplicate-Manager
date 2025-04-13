@@ -17,6 +17,10 @@ from photo_lib.gui.temp_new_wigets.clickable_tile import ClickableTile
 from photo_lib.gui.temp_new_wigets.new_base_image import BaseImage
 
 
+# TODO:
+#   - HEADER
+#   - ANIMATION
+#   - SELECTION
 class BaseTileWidget(QFrame):
     """
     Basic Tile Widget. Doesn't contain Headers.
