@@ -44,8 +44,8 @@ class BaseTileWidget(QFrame):
     __max_visible_rows: int
     __min_visible_rows: int
     __tile_size: int
-    _horizontal_spacing: int
-    _vertical_spacing: int
+    __horizontal_spacing: int
+    __vertical_spacing: int
 
     # Read only properties
     __target_table: TargetViewTable
@@ -153,6 +153,14 @@ class BaseTileWidget(QFrame):
     def target_table(self):
         return self.__target_table
 
+    @property
+    def horizontal_spacing(self):
+        return self.__horizontal_spacing
+
+    @property
+    def vertical_spacing(self):
+        return self.__vertical_spacing
+
     # ==================================================================================================================
     # Constructor
     # ==================================================================================================================
@@ -180,8 +188,8 @@ class BaseTileWidget(QFrame):
         self.__max_visible_rows = 0
         self.__min_visible_rows = 0
         self.__tile_size = self.model.ui_config.default_tile_size # TODO fetch from preferences.
-        self._vertical_spacing = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutVerticalSpacing)
-        self._horizontal_spacing = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutHorizontalSpacing)
+        self.__vertical_spacing = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutVerticalSpacing)
+        self.__horizontal_spacing = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutHorizontalSpacing)
 
         self.current_row = 0
 
@@ -279,10 +287,10 @@ class BaseTileWidget(QFrame):
         """
         # Perform same action as the property.
         assert spacing >= 0, "Horizontal spacing must be greater than or equal to 0"
-        if self._horizontal_spacing == spacing:
+        if self.__horizontal_spacing == spacing:
             return
 
-        self._horizontal_spacing = spacing
+        self.__horizontal_spacing = spacing
 
         # Need to update size anyway
         self.update_size()
@@ -296,10 +304,10 @@ class BaseTileWidget(QFrame):
         :param spacing: The new vertical spacing.
         """
         assert spacing >= 0, "Vertical spacing must be greater than or equal to 0"
-        if self._vertical_spacing == spacing:
+        if self.__vertical_spacing == spacing:
             return
 
-        self._vertical_spacing = spacing
+        self.__vertical_spacing = spacing
 
         # Update the vertical spacers.
         self.update_size()
@@ -394,7 +402,7 @@ class BaseTileWidget(QFrame):
             if i % 2 == 1:
                 # Add a vertical spacer
                 spacer = QSpacerItem(0,
-                                     self._vertical_spacing,
+                                     self.vertical_spacing,
                                      QSizePolicy.Policy.Expanding,
                                      QSizePolicy.Policy.Expanding)
                 self.vertical_spacers.append(spacer)
@@ -407,7 +415,7 @@ class BaseTileWidget(QFrame):
                 for j in range(number_of_elements):
                     if j % 2 == 1:
                         # Add a horizontal spacer
-                        spacer = QSpacerItem(self._horizontal_spacing,
+                        spacer = QSpacerItem(self.horizontal_spacing,
                                              0,
                                              QSizePolicy.Policy.Expanding,
                                              QSizePolicy.Policy.Expanding)
@@ -426,7 +434,7 @@ class BaseTileWidget(QFrame):
 
                 if number_of_elements < max_col_count:
                     # Add a horizontal spacer
-                    spacer = QSpacerItem(self._horizontal_spacing,
+                    spacer = QSpacerItem(self.horizontal_spacing,
                                          0,
                                          QSizePolicy.Policy.Expanding,
                                          QSizePolicy.Policy.Expanding)
@@ -446,7 +454,7 @@ class BaseTileWidget(QFrame):
         if self.current_row_offset > 0:
             y += cm.top() + self.tile_size
 
-        y += max(0, (self.tile_size + self._vertical_spacing) * (self.current_row_offset - 1))
+        y += max(0, (self.tile_size + self.vertical_spacing) * (self.current_row_offset - 1))
 
         self.logger.debug(f"compute_background_widget_offset: {y}, current_row_offset: {self.current_row_offset}")
         return QPoint(0, -y)
@@ -550,13 +558,13 @@ class BaseTileWidget(QFrame):
         #  becoming -1 i.e. self.min_visible_rows = 0
         min_visible_rows = max(1,
                                1 + math.floor(max(0, rem_height - self.tile_size)
-                                              / (self.tile_size + self._vertical_spacing)))
+                                              / (self.tile_size + self.vertical_spacing)))
 
         # INFO: We're maxing with a 1, in case teh rem_width - self.tile_size < 0,could lead to expression
         #  becoming -1 i.e. self.min_visible_rows = 0
         number_of_columns = max(1,
                                 1 + math.floor(max(0, rem_width - self.tile_size)
-                                               / (self.tile_size + self._horizontal_spacing)))
+                                               / (self.tile_size + self.horizontal_spacing)))
 
         # Abort if the values are the same.
         if self.max_visible_rows == max_visible_rows \
@@ -573,7 +581,7 @@ class BaseTileWidget(QFrame):
         self.logger.debug(f"_recompute_layout_vars: "
                           f"Number of rows: {self.number_of_rows}, Number of columns: {self.number_of_columns}, "
                           f"Max visible rows: {self.max_visible_rows}, Min visible rows: {self.min_visible_rows}, "
-                          f"Size: {self.size()}, hs: {self._horizontal_spacing}, vs: {self._vertical_spacing}, "
+                          f"Size: {self.size()}, hs: {self.horizontal_spacing}, vs: {self.vertical_spacing}, "
                           f"Tile Size: {self.tile_size}, "
                           f"max_widget_count: {self.number_of_generated_rows * self.number_of_columns}")
 
