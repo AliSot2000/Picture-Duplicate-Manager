@@ -144,6 +144,10 @@ class BaseTileWidget(QFrame):
             self.tile_size_changed.emit(value)
             self.set_tile_size_preference()
 
+            cm = self.background_layout.contentsMargins()
+            self.setMinimumWidth(value + cm.left() + cm.right())
+            self.setMinimumHeight(value + cm.top() + cm.bottom())
+
     # ==================================================================================================================
     # Read only properties
     # ==================================================================================================================
@@ -272,6 +276,10 @@ class BaseTileWidget(QFrame):
 
         self.__tile_size = size
         self.tile_size_changed.emit(size)
+
+        cm = self.background_layout.contentsMargins()
+        self.setMinimumWidth(self.tile_size + cm.left() + cm.right())
+        self.setMinimumHeight(self.tile_size + cm.top() + cm.bottom())
 
         # Update the size of all tiles.
         for tile in self.widgets.values():
