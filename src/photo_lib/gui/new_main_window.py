@@ -38,7 +38,8 @@ class BaseMainWindow(QMainWindow):
         result.tgt_widget.pixmap = result.pm
         result.tgt_widget.width_div_height = result.wdh
         result.tgt_widget.file_path = result.file_path
-        result.tgt_widget.repaint()
+        result.tgt_widget.update()
+        result.tgt_widget.updateGeometry()
 
 
 class DeduplicatorMainWindow(BaseMainWindow):
