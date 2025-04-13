@@ -919,7 +919,6 @@ class BaseTileWidget(QFrame):
         """
         super().paintEvent(a0)
         self.background_widget.adjustSize()
-        print(f"Paint Event: ", self.background_widget.size())
 
     def resizeEvent(self, event: QResizeEvent):
         """
