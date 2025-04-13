@@ -98,9 +98,9 @@ class UIConfig(BaseModel):
     )
 
     default_tile_size: int = Field(
-        gt=0,
+        gt=10,
         default=100,
-        description="Default tile size in pixels."
+        description="Default tile size in pixels. (Value is taken, if no preference is set.)"
     )
 
     tile_resize_timeout_ms: int = Field(
