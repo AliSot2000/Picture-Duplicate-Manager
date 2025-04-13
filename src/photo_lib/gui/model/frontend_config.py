@@ -108,3 +108,14 @@ class UIConfig(BaseModel):
         default=200,
         description="Timeout for tiles resize in milliseconds."
     )
+
+    tile_animation: bool = Field(
+        default=True,
+        description="Enable tile animation when loading images."
+    )
+
+    tile_animation_duration_ms: int = Field(
+        gt=50,
+        default=200,
+        description="Duration of tile movement animation in milliseconds."
+    )
