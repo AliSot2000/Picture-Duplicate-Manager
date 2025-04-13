@@ -506,6 +506,24 @@ class BaseTileWidget(QFrame):
     # Main Layout Functions
     # ==================================================================================================================$
 
+    def update_widget(self):
+        """
+        Update the widget after the animation has finished.
+        """
+        # Abort if we don't have anything set
+        if self.new_current_row is None:
+            return
+
+        # Update the
+        self._scroll_to_row(self.new_current_row)
+        self.new_current_row = None
+
+        self.layout_from_data_structure()
+        self.background_widget.move(self.compute_background_widget_offset())
+        self.update()
+        self.updateGeometry()
+        self.current_row_changed.emit(self.current_row)
+
     def resize_layout(self):
         """
         Resize the layout and rebuild the widgets.
