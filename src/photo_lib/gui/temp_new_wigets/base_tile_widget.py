@@ -187,7 +187,7 @@ class BaseTileWidget(QFrame):
         self.__number_of_columns = 0
         self.__max_visible_rows = 0
         self.__min_visible_rows = 0
-        self.__tile_size = self.model.ui_config.default_tile_size # TODO fetch from preferences.
+        self.__tile_size = self.model.ui_config.tile_size_default # TODO fetch from preferences.
         self.__vertical_spacing = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutVerticalSpacing)
         self.__horizontal_spacing = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutHorizontalSpacing)
 

@@ -97,7 +97,7 @@ class UIConfig(BaseModel):
                     "This number can be increased for more snappy performance, but it will also increase the RAM usage."
     )
 
-    default_tile_size: int = Field(
+    tile_size_default: int = Field(
         gt=10,
         default=100,
         description="Default tile size in pixels. (Value is taken, if no preference is set.)"
