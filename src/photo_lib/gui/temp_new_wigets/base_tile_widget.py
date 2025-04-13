@@ -502,7 +502,14 @@ class BaseTileWidget(QFrame):
 
     def update_size(self):
         """
-        update the size of the background widget and
+        Performs:
+        - Updates the size of the background widget
+        - Updates the Lookup table for the ui
+        - Rebuilds the layout
+        - Moves the background widget to the correct position
+        - Triggers update of geometry and update of the widget.
+
+        :return: True if the layout was updated.
         """
         if self._recompute_layout_vars():
             self.resize_layout()
