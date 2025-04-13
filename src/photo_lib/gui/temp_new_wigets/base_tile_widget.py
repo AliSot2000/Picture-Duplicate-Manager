@@ -295,7 +295,17 @@ class BaseTileWidget(QFrame):
         self.__horizontal_spacing = spacing
 
         # Need to update size anyway
-        self.update_size()
+        if not self.update_size():
+            for spacer in self.horizontal_spacers:
+                spacer.changeSize(self.__horizontal_spacing, 0,
+                                  QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+            self.update()
+            self.updateGeometry()
+            return
+        else:
+            # INFO: The update layout was triggered and the spacers were added and updated already.
+            pass
 
     @pyqtSlot(int)
     def set_vertical_spacing(self, spacing: int):
@@ -312,7 +322,17 @@ class BaseTileWidget(QFrame):
         self.__vertical_spacing = spacing
 
         # Update the vertical spacers.
-        self.update_size()
+        if not self.update_size():
+            for spacer in self.vertical_spacers:
+                spacer.changeSize(0, self.__vertical_spacing,
+                                  QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+            self.update()
+            self.updateGeometry()
+            return
+        else:
+            # INFO: The update layout was triggered and the spacers were added and updated already.
+            pass
 
     # ==================================================================================================================
     # Functions that need to be implemented differently for every view
