@@ -471,7 +471,7 @@ class BaseTileWidget(QFrame):
         Determine the position the background widget needs to be moved to, such that current_row is at the top
         """
         cm = self.background_layout.contentsMargins()
-        y = 0
+        y = self.debug_offset
 
         if self.current_row_offset > 0:
             y += cm.top() + self.tile_size
