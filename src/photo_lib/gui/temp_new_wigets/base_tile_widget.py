@@ -167,6 +167,7 @@ class BaseTileWidget(QFrame):
         self.logger = logger
 
         super().__init__(parent=parent)
+        self.setStyleSheet("background-color: palette(base);")
 
         self.model = model
         self.__target_table = target_table
