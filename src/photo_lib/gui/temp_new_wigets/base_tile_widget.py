@@ -484,19 +484,22 @@ class BaseTileWidget(QFrame):
                                                    1, max_col_count - number_of_elements,
                                                    Qt.AlignmentFlag.AlignCenter)
 
-    def compute_background_widget_offset(self) -> QPoint:
+    def compute_background_widget_offset(self, target_offset: int = None) -> QPoint:
         """
         Determine the position the background widget needs to be moved to, such that current_row is at the top
+
+        :param target_offset: (If you want a different offset than the current_row_offset
         """
+        offset = target_offset if target_offset is not None else self.current_row_offset
         cm = self.background_layout.contentsMargins()
         y = self.debug_offset
 
-        if self.current_row_offset > 0:
+        if offset > 0:
             y += cm.top() + self.tile_size
 
-        y += max(0, (self.tile_size + self.vertical_spacing) * (self.current_row_offset - 1))
+        y += max(0, (self.tile_size + self.vertical_spacing) * (offset - 1))
 
-        self.logger.debug(f"compute_background_widget_offset: {y}, current_row_offset: {self.current_row_offset}")
+        self.logger.debug(f"compute_background_widget_offset: {y}, offset: {offset}")
         return QPoint(0, -y)
 
     # ==================================================================================================================
