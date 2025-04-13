@@ -276,6 +276,7 @@ class BaseTileWidget(QFrame):
 
         self.set_tile_size_preference()
         if not self.update_size():
+            self.background_widget.move(self.compute_background_widget_offset())
             self.update()
             self.updateGeometry()
 
@@ -300,6 +301,7 @@ class BaseTileWidget(QFrame):
                 spacer.changeSize(self.__horizontal_spacing, 0,
                                   QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
+            self.background_widget.move(self.compute_background_widget_offset())
             self.update()
             self.updateGeometry()
             return
@@ -327,6 +329,7 @@ class BaseTileWidget(QFrame):
                 spacer.changeSize(0, self.__vertical_spacing,
                                   QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
+            self.background_widget.move(self.compute_background_widget_offset())
             self.update()
             self.updateGeometry()
             return
