@@ -223,10 +223,14 @@ class BaseTileWidget(QFrame):
         self.resize_timer.setInterval(self.model.ui_config.tile_resize_timeout_ms)
         self.resize_timer.timeout.connect(self.update_size)
 
-    def prep_dev(self):
-        print(f"INFO: CAll to prep_cev")
-        self.setMinimumWidth(350)
-        self.setMinimumHeight(350)
+        self.widget_update_timer = QTimer(self)
+        self.widget_update_timer.setSingleShot(True)
+        self.widget_update_timer.setInterval(10)
+        self.widget_update_timer.timeout.connect(self.update_widget)
+
+        self.movement_animation = QPropertyAnimation(self.background_widget, b"pos")
+        self.movement_animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        self.movement_animation.finished.connect(self.widget_update_timer.start)
 
     # ==================================================================================================================
     # Slots
