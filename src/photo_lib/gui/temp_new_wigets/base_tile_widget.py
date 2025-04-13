@@ -3,9 +3,9 @@ Contains the two base classes for all tile widgets.
 """
 import math
 from logging import Logger
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Optional
 
-from PyQt6.QtCore import pyqtSignal, QTimer, QPoint, pyqtSlot, Qt
+from PyQt6.QtCore import pyqtSignal, QTimer, QPoint, pyqtSlot, Qt, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QResizeEvent, QPaintEvent
 from PyQt6.QtWidgets import QFrame, QWidget, QGridLayout, QSpacerItem, QSizePolicy
 
