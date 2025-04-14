@@ -1,10 +1,10 @@
 """
 File contains a Header which is a QFrame containing a QHBoxLayout with a QCheckBox.
 """
-from typing import Callable
+from typing import Callable, Tuple
 
-from PyQt6.QtCore import QRect
-from PyQt6.QtGui import QFont, QRegion
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QCheckBox, QFrame, QHBoxLayout, QWidget
 
 from photo_lib.gui.util.fonts import get_h1_font_size
