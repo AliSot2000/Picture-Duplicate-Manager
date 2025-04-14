@@ -82,7 +82,7 @@ class HeaderWidget(BaseHeaderWidget):
 
         self.check_box.setText(text)
 
-    def test(self):
+    def text(self):
         """
         Get the text of the checkbox.
         """
