@@ -3718,6 +3718,15 @@ class PhotoDB(BaseSQliteDB):
 
         return san_header
 
+    def get_all_headers(self, target_view: TargetViewTable) -> List[int | str | None]:
+        """
+        Get all Headers from the database. (When we want to have the headers stored in memory)
+        """
+        tgt_table = target_view.value
+
+        self.debug_execute(f"SELECT grouping_criterion FROM `{tgt_table}` GROUP BY global_row ORDER BY global_row")
+        results = [k[0] for k in self.sq_cur.fetchall()]
+        return results
 
     def clear_ui_lookup_table(self, target_table: TargetViewTable):
         """
