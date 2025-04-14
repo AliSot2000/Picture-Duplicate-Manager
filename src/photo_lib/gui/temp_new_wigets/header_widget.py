@@ -54,6 +54,21 @@ class HeaderWidget(BaseHeaderWidget):
 
         self.update_font()
 
+        # Connect functions to signals
+        self.check_box.clicked.connect(self.emit_click)
+
+    def emit_click(self):
+        """
+        Emit signal, when checkbox is clicked
+        """
+        self.box_changed.emit(self)
+
+    def click(self):
+        """
+        Wrapper function to dispatch a 'click' event to the nested checkbox
+        """
+        self.check_box.click()
+
     def set_text(self, text: str, font_size: Callable[[], int] = None):
         """
         Set the text of the checkbox.
