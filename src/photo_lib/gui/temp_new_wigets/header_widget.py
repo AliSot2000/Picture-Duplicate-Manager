@@ -105,3 +105,13 @@ class HeaderWidget(BaseHeaderWidget):
         """
         self.update_font()
         super().update()
+
+    def get_height(self):
+        """
+        Get the minimum height of the widget
+        """
+        font_height = self.font_size_getter[0]()
+        return font_height \
+            + self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin) \
+            + self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin) \
+            + self.frameWidth() * 2
