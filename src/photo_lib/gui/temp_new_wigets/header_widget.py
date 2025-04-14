@@ -52,7 +52,7 @@ class HeaderWidget(QFrame):
         :param font_size: A function that returns an int with the font size. I.e. functions in  photo_lib.gui.util.fonts
         """
         if font_size is not None:
-            self.font_size_getter = font_size
+            self.font_size_getter = (font_size,)
             self.update_font()
 
         self.check_box.setText(text)
