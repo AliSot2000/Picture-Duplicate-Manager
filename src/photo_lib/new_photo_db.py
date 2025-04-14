@@ -127,6 +127,10 @@ class PhotoDB(BaseSQliteDB):
         """
         return self.__verified
 
+    @property
+    def last_main_grouping_criterion(self):
+        return self.__last_main_grouping_criterion
+
     # TODO four functions needed
     #   - create new
     #   - attach to existing with verification
