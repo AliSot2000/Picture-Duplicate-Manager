@@ -12,7 +12,7 @@ class UIConfig(BaseModel):
     """
     Contains actually user configurable settings.
     """
-    date_lookup_row_limit: int = Field(
+    header_lookup_limit: int = Field(
         default=1048576,
         description="For performance, the headers of the rows are cached in ram. This only works for sufficiently "
                     "small db. At some point, the header resolution needs to happen via the db. This transition is set "
