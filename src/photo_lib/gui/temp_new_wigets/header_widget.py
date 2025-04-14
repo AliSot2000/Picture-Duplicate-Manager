@@ -14,7 +14,9 @@ class HeaderWidget(QFrame):
     """
     Header widget that contains a QCheckBox and a QHBoxLayout.
     """
-    font_size_getter: Callable[[], int] = get_h1_font_size
+    # INFO: need to do the trick with the tuple cuz python would otherwise try to pass self as an argument to the
+    #   function.
+    font_size_getter: Tuple[Callable[[], int]] = (get_h1_font_size,)
 
     def __init__(self, text: str = None, parent: QWidget = None):
         """
