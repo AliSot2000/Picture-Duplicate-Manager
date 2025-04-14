@@ -68,36 +68,15 @@ class HeaderWidget(QFrame):
         Update the font i.e. the font size using the font size getter.
         """
         font = QFont()
-        font.setPointSize(self.font_size_getter())
+        clb = self.font_size_getter[0]
+
+        font.setPointSize(clb())
+        # self.check_box.setStyleSheet(f"QCheckBox::indicator {{width: {clb()}px; height: {clb()}px; }}")
         self.check_box.setFont(font)
 
-    def repaint(self):
+    def update(self):
         """
-        Catch repaint event to update the font size with the getter
-        (needed in case the user changes the system font size)
-        """
-        self.update_font()
-        super().repaint()
-
-    def repaint_rect(self, rect: QRect):
-        """
-        Catch repaint event to update the font size with the getter
-        (needed in case the user changes the system font size)
+        Update the widget.
         """
         self.update_font()
-        super().repaint(rect)
-
-    def repaint_xywh(self, x: int, y: int, w: int, h: int):
-        """"
-        Catch repaint event to update the font size with the getter
-        (needed in case the user changes the system font size)"""
-        self.update_font()
-        super().repaint(x, y, w, h)
-
-    def repaint_region(self, region: QRegion):
-        """
-        Catch repaint event to update the font size with the getter
-        (needed in case the user changes the system font size)
-        """
-        self.update_font()
-        super().repaint(region)
+        super().update()
