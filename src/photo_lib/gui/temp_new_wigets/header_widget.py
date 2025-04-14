@@ -3,7 +3,7 @@ File contains a Header which is a QFrame containing a QHBoxLayout with a QCheckB
 """
 from typing import Callable, Tuple
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QCheckBox, QFrame, QHBoxLayout, QWidget
 
