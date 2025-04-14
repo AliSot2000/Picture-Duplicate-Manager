@@ -10,13 +10,23 @@ from PyQt6.QtWidgets import QCheckBox, QFrame, QHBoxLayout, QWidget
 from photo_lib.gui.util.fonts import get_h1_font_size
 
 
-class HeaderWidget(QFrame):
+class BaseHeaderWidget(QFrame):
     """
-    Header widget that contains a QCheckBox and a QHBoxLayout.
+    This base class is needed to have a QWidget that I can emit as a signal.
     """
     # INFO: need to do the trick with the tuple cuz python would otherwise try to pass self as an argument to the
     #   function.
     font_size_getter: Tuple[Callable[[], int]] = (get_h1_font_size,)
+
+    basic_layout: QHBoxLayout
+    check_box: QCheckBox
+
+
+class HeaderWidget(BaseHeaderWidget):
+    """
+    Header widget that contains a QCheckBox and a QHBoxLayout.
+    """
+    box_changed = pyqtSignal(BaseHeaderWidget)
 
     def __init__(self, text: str = None, parent: QWidget = None):
         """
