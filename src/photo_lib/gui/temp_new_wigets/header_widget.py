@@ -42,6 +42,8 @@ class HeaderWidget(QFrame):
 
         self.setLayout(self.basic_layout)
 
+        self.update_font()
+
     def set_text(self, text: str, font_size: Callable[[], int] = None):
         """
         Set the text of the checkbox.
