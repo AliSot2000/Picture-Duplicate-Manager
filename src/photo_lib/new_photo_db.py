@@ -3674,43 +3674,6 @@ class PhotoDB(BaseSQliteDB):
         else:  # pragma: no cover
             raise ImplementationError("Unexpected target view from TargetViewTable Enum")
 
-    def clear_ui_lookup_table(self, target_table: TargetViewTable):
-        """
-        Clear a ui table for it to be rebuilt.
-        """
-        table_name = target_table.value
-        self.debug_execute(f"DELETE FROM `{table_name}`")
-
-        self.clear_caches()
-
-    def lookup_row_to_keys(self, row: int, target_view: TargetViewTable) -> List[int]:
-        """
-        Resolve row to list of image metadata
-
-        :param row: Row to resolve
-        :param target_view: View for which to resolve the row to keys.
-
-        :return: List of keys. WARNING: The user needs to know what type of keys are returned (keys unique to the
-            table or keys referenced in the main table)
-        """
-        tgt_table = target_view.value
-
-        # Query cache
-        if self.view_row_cache is not None:
-            res = self.view_row_cache.get(row)
-            if res is not nd:
-                return res
-
-        # Query table and get results
-        self.debug_execute(f"SELECT key FROM `{tgt_table}` WHERE global_row = ? ORDER BY col", (row,))
-        results = [k[0] for k in self.sq_cur.fetchall()]
-
-        # Cache present populate cache
-        if self.view_row_cache is not None:
-            self.view_row_cache.set(row, results)
-
-        return results
-
     def db_lookup_row_to_header_raw(self, row: int, target_view: TargetViewTable) -> Optional[str | int]:
         """
         Get the raw header value. Is intended to be used, if all headers are cached because the row count is low enough.
@@ -3754,6 +3717,44 @@ class PhotoDB(BaseSQliteDB):
             self.view_header_cache.set(row, san_header)
 
         return san_header
+
+
+    def clear_ui_lookup_table(self, target_table: TargetViewTable):
+        """
+        Clear a ui table for it to be rebuilt.
+        """
+        table_name = target_table.value
+        self.debug_execute(f"DELETE FROM `{table_name}`")
+
+        self.clear_caches()
+
+    def lookup_row_to_keys(self, row: int, target_view: TargetViewTable) -> List[int]:
+        """
+        Resolve row to list of image metadata
+
+        :param row: Row to resolve
+        :param target_view: View for which to resolve the row to keys.
+
+        :return: List of keys. WARNING: The user needs to know what type of keys are returned (keys unique to the
+            table or keys referenced in the main table)
+        """
+        tgt_table = target_view.value
+
+        # Query cache
+        if self.view_row_cache is not None:
+            res = self.view_row_cache.get(row)
+            if res is not nd:
+                return res
+
+        # Query table and get results
+        self.debug_execute(f"SELECT key FROM `{tgt_table}` WHERE global_row = ? ORDER BY col", (row,))
+        results = [k[0] for k in self.sq_cur.fetchall()]
+
+        # Cache present populate cache
+        if self.view_row_cache is not None:
+            self.view_row_cache.set(row, results)
+
+        return results
 
     def lookup_key_to_row(self, key: int, target_view: TargetViewTable) -> Optional[int]:
         """
