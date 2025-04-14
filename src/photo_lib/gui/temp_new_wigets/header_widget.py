@@ -34,7 +34,8 @@ class HeaderWidget(QFrame):
         if text is not None:
             self.check_box.setText(text)
 
-        self.check_box.setTristate(True)
+        self.check_box.setTristate(False)
+        self.check_box.setCheckState(Qt.CheckState.PartiallyChecked)
 
         self.basic_layout = QHBoxLayout()
         self.basic_layout.addWidget(self.check_box)
