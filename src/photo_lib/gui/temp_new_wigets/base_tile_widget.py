@@ -548,21 +548,6 @@ class BaseTileWidget(QFrame):
         self.updateGeometry()
         self.current_row_changed.emit(self.current_row)
 
-    def resize_layout(self):
-        """
-        Resize the layout and rebuild the widgets.
-        """
-        # If block needed because of init. We don't know a priori what rows exist and which don't.
-        if len(self.tile_rows) > 0:
-            # Get the targeted key.
-            target_key = self.tile_rows[self.current_row_offset][0].media.element.key
-            self.current_row = self.key_to_row(target_key)
-        else:
-            self.current_row = 0
-
-        self._build_around_row(True)
-        self.sanity_check()
-
     def update_size(self) -> bool:
         """
         Performs:
@@ -574,13 +559,30 @@ class BaseTileWidget(QFrame):
 
         :return: True if the layout was updated.
         """
-        if self._recompute_layout_vars():
-            self.resize_layout()
-            self.layout_from_data_structure()
-            self.background_widget.move(self.compute_background_widget_offset())
-            self.update()
-            self.updateGeometry()
-            return True
+        self.update_header_available_and_type()
+
+        if not self._recompute_layout_vars():
+            return False
+
+        if self.has_displayable_headers:
+            self.rebuild_header_lookup()
+
+        # If block needed because of init. We don't know a priori what rows exist and which don't.
+        if len(self.tile_rows) > 0:
+            # Get the targeted key.
+            target_key = self.tile_rows[self.current_row_offset][0].media.element.key
+            self.current_row = self.key_to_row(target_key)
+        else:
+            self.current_row = 0
+
+        self._build_around_row(True)
+        self.sanity_check()
+
+        self.layout_from_data_structure()
+        self.background_widget.move(self.compute_background_widget_offset())
+        self.update()
+        self.updateGeometry()
+        return True
 
         return False
 
