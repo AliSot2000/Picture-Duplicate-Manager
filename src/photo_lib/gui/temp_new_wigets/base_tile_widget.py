@@ -63,7 +63,7 @@ class BaseTileWidget(QFrame):
     # UI Widgets
     widgets: Dict[int, ClickableTile]  # Dict of all widgets that are currently instantiated
     tile_rows: List[List[ClickableTile]]
-    layout_rows: List[Union[List[Union[QWidget, QSpacerItem]], QSpacerItem]]
+    layout_rows: List[List[ClickableTile] | CheckableHeaderWidget | HeaderWidget]  # List of all rows that are currently instantiated
 
     horizontal_spacers: List[QSpacerItem]
     vertical_spacers: List[QSpacerItem]
