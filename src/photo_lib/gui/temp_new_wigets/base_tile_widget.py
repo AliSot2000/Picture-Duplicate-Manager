@@ -226,6 +226,7 @@ class BaseTileWidget(QFrame):
 
         # Initialize the layout and widgets
         self.widgets = {}
+        self.headers = {}
         self.tile_rows = []
         self.layout_rows = []
 
