@@ -3181,10 +3181,10 @@ class PhotoDB(BaseSQliteDB):
         san_stmt = dedent(stmt)
         self.debug_execute(san_stmt)
 
-    def build_images_table_lookup(self,
-                                  grouping: GroupingCriterion,
-                                  col_width: int,
-                                  partition: MainTileView = MainTileView.MAIN):
+    def build_main_table_lookup(self,
+                                grouping: GroupingCriterion,
+                                col_width: int,
+                                partition: MainTileView = MainTileView.MAIN):
         """
         Build the row lookup table for the images table
 
