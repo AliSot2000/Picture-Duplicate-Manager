@@ -125,49 +125,31 @@ class CheckableHeaderWidget(BaseHeaderWidget):
         self._check_box.click()
 
 
-    def set_text(self, text: str, font_size: Callable[[], int] = None):
+class HeaderWidget(BaseHeaderWidget):
+    def __init__(self, text: str = None, parent: QWidget = None):
         """
-        Set the text of the checkbox.
+        Create a new instance of a HeaderWidget.
 
-        :param text: Text to set.
-        :param font_size: A function that returns an int with the font size. I.e. functions in  photo_lib.gui.util.fonts
+        :param text: Text to display in the checkbox.
+        :param parent: Parent widget.
         """
-        if font_size is not None:
-            self.font_size_getter = (font_size,)
-            self.update_font()
+        super().__init__(parent)
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setLineWidth(1)
 
-        self.check_box.setText(text)
+        self._label = QLabel()
 
-    def text(self):
-        """
-        Get the text of the checkbox.
-        """
-        return self.check_box.text()
+        if text is not None:
+            self._label.setText(text)
 
-    def update_font(self):
-        """
-        Update the font i.e. the font size using the font size getter.
-        """
-        font = QFont()
-        clb = self.font_size_getter[0]
+        self.basic_layout = QHBoxLayout()
+        self.basic_layout.addWidget(self._label)
 
-        font.setPointSize(clb())
-        # self.check_box.setStyleSheet(f"QCheckBox::indicator {{width: {clb()}px; height: {clb()}px; }}")
-        self.check_box.setFont(font)
+        self.setLayout(self.basic_layout)
 
-    def update(self):
-        """
-        Update the widget.
-        """
         self.update_font()
-        super().update()
 
-    def get_height(self):
-        """
-        Get the minimum height of the widget
-        """
-        font_height = self.font_size_getter[0]()
-        return font_height \
-            + self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin) \
-            + self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin) \
-            + self.frameWidth() * 2
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self._label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        self.setStyleSheet("background-color: palette(alternate-base);")
