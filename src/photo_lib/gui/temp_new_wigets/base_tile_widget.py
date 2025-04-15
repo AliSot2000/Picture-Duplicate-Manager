@@ -180,6 +180,18 @@ class BaseTileWidget(QFrame):
     def vertical_spacing(self):
         return self.__vertical_spacing
 
+    @property
+    def add_headers(self):
+        return self.__add_headers
+
+    @property
+    def has_displayable_headers(self):
+        return self.__has_displayable_headers
+
+    @property
+    def checkable_headers(self):
+        return self.__checkable_headers
+
     # ==================================================================================================================
     # Constructor
     # ==================================================================================================================
