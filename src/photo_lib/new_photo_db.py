@@ -57,6 +57,7 @@ class PhotoDB(BaseSQliteDB):
 
     # Internal variable needed for knowing how to generate the header for the Main Table View
     __last_main_grouping_criterion: Optional[GroupingCriterion] = None
+    __last_main_partition: Optional[MainTileView] = None
 
     # Header Format for different grouping criterion of main table
     gc_year_month_day_fmt: str = "%A %d %B %Y"
@@ -130,6 +131,10 @@ class PhotoDB(BaseSQliteDB):
     @property
     def last_main_grouping_criterion(self):
         return self.__last_main_grouping_criterion
+
+    @property
+    def last_main_partition(self):
+        return self.__last_main_partition
 
     # TODO four functions needed
     #   - create new
