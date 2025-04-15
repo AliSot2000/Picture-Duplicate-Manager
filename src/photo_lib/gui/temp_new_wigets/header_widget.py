@@ -1,11 +1,11 @@
 """
 File contains a Header which is a QFrame containing a QHBoxLayout with a QCheckBox.
 """
-from typing import Callable, Tuple
+from typing import Callable, Tuple, Optional
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QCheckBox, QFrame, QHBoxLayout, QWidget
+from PyQt6.QtWidgets import QCheckBox, QFrame, QHBoxLayout, QWidget, QSizePolicy, QLabel
 
 from photo_lib.gui.util.fonts import get_h1_font_size
 
@@ -19,10 +19,54 @@ class BaseHeaderWidget(QFrame):
     font_size_getter: Tuple[Callable[[], int]] = (get_h1_font_size,)
 
     basic_layout: QHBoxLayout
-    check_box: QCheckBox
+    _check_box: Optional[QCheckBox] = None
+    _label: Optional[QLabel] = None
+
+    def set_text(self, text: str, font_size: Callable[[], int] = None):
+        """
+        Set the text of the checkbox.
+
+        :param text: Text to set.
+        :param font_size: A function that returns an int with the font size. I.e. functions in  photo_lib.gui.util.fonts
+        """
+        if font_size is not None:
+            self.font_size_getter = (font_size,)
+            self.update_font()
+
+        if self._check_box is not None:
+            self._check_box.setText(text)
+        else:
+            self._label.setText(text)
+
+    def text(self):
+        """
+        Get the text of the checkbox.
+        """
+        return self._check_box.text()
+
+    def update_font(self):
+        """
+        Update the font i.e. the font size using the font size getter.
+        """
+        font = QFont()
+        clb = self.font_size_getter[0]
+
+        font.setPointSize(clb())
+        # self.check_box.setStyleSheet(f"QCheckBox::indicator {{width: {clb()}px; height: {clb()}px; }}")
+        if self._check_box is not None:
+            self._check_box.setFont(font)
+        else:
+            self._label.setFont(font)
+
+    def update(self):
+        """
+        Update the widget.
+        """
+        self.update_font()
+        super().update()
 
 
-class HeaderWidget(BaseHeaderWidget):
+class CheckableHeaderWidget(BaseHeaderWidget):
     """
     Header widget that contains a QCheckBox and a QHBoxLayout.
     """
