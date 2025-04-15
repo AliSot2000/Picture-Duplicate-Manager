@@ -122,7 +122,8 @@ class CheckableHeaderWidget(BaseHeaderWidget):
         """
         Wrapper function to dispatch a 'click' event to the nested checkbox
         """
-        self.check_box.click()
+        self._check_box.click()
+
 
     def set_text(self, text: str, font_size: Callable[[], int] = None):
         """
