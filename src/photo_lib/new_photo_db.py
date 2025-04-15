@@ -3205,7 +3205,7 @@ class PhotoDB(BaseSQliteDB):
             # No Duplicates, Trash
             filter_clause = "WHERE mod(flags >> 8, 2) = 1 AND mod(flags >> 2, 2) = 0"
 
-        # Partitions which do are union of MAIN, TRASH, DUPLICATES
+        # Partitions which are union of MAIN, TRASH, DUPLICATES
         elif partition == MainTileView.VERIFY:
             # All Verify marked images
             filter_clause = "WHERE mod(flags >> 1, 2) = 1"
