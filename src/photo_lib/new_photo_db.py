@@ -3237,6 +3237,7 @@ class PhotoDB(BaseSQliteDB):
             self._internal_grouped_main_table(column, filter_clause, col_width)
 
         self.__last_main_grouping_criterion = grouping
+        self.__last_main_partition = partition
 
     def __internal_non_grouped_main_table(self, filter_clause: str, col_width: int):
         """
