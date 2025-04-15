@@ -3745,6 +3745,11 @@ class PhotoDB(BaseSQliteDB):
         table_name = target_table.value
         self.debug_execute(f"DELETE FROM `{table_name}`")
 
+        # Resetting the variables on clean
+        if target_table == TargetViewTable.MAIN:
+            self.__last_main_partition = None
+            self.__last_main_grouping_criterion = None
+
         self.clear_caches()
 
     def lookup_row_to_keys(self, row: int, target_view: TargetViewTable) -> List[int]:
