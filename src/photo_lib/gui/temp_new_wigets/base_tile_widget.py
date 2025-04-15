@@ -21,7 +21,6 @@ from photo_lib.gui.temp_new_wigets.new_base_image import BaseImage
 
 
 # TODO:
-#   - HEADER
 #   - SELECTION
 class BaseTileWidget(QFrame):
     """
