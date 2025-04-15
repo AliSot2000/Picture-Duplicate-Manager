@@ -59,7 +59,6 @@ class BaseTileWidget(QFrame):
     current_row_offset: int = 0
     lowest_row: int = 0
     highest_row: int = 0
-    new_current_row: Optional[int] = None
 
     # UI Widgets
     widgets: Dict[int, ClickableTile]  # Dict of all widgets that are currently instantiated
@@ -74,7 +73,10 @@ class BaseTileWidget(QFrame):
 
     # Auxiliary items needed for view
     resize_timer: QTimer
+
     movement_animation: QPropertyAnimation
+    new_current_row: Optional[int] = None
+
     widget_update_timer: QTimer
 
     # ==================================================================================================================
