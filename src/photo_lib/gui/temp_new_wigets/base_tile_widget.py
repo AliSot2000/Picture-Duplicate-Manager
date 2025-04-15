@@ -256,6 +256,16 @@ class BaseTileWidget(QFrame):
         self.movement_animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
         self.movement_animation.finished.connect(self.widget_update_timer.start)
 
+        # Set header properties
+        # TODO need to set these attributes in the child classes that implement this.
+        # self.__checkable_headers: bool
+        # self.__has_displayable_headers: bool
+        # self.__add_headers: bool
+
+        assert hasattr(self, "__checkable_headers"), "Checkable headers not set in child class"
+        assert hasattr(self, "__has_displayable_headers"), "Has displayable headers not set in child class"
+        assert hasattr(self, "__add_headers"), "Add headers not set in child class"
+
     # ==================================================================================================================
     # Slots
     # ==================================================================================================================
