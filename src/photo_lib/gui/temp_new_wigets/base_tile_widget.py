@@ -71,7 +71,15 @@ class BaseTileWidget(QFrame):
     background_widget: QWidget
     background_layout: QGridLayout
 
-    # Auxiliary items needed for view
+    # Headers
+    headers: Optional[Dict[Hashable, CheckableHeaderWidget | HeaderWidget]]
+    header_lookup: Optional[np.ndarray[int] | np.ndarray[str]] = None
+    __checkable_headers: bool = False
+    __has_displayable_headers: bool = False
+    __add_headers: bool = False
+    _header_text_for_row: Optional[Callable[[int], str]] = None
+
+    # Auxiliary items needed for view, resizing, movement animation,
     resize_timer: QTimer
 
     movement_animation: QPropertyAnimation
