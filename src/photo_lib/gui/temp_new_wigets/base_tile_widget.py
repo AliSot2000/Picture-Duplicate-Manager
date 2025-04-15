@@ -380,6 +380,13 @@ class BaseTileWidget(QFrame):
     # Functions that need to be implemented differently for every view
     # ==================================================================================================================
 
+    @pyqtSlot(CheckableHeaderWidget)
+    def header_changed(self, header: CheckableHeaderWidget):
+        """
+        The value of a header changed, capture it here and update the associated tiles.
+        """
+        self.logger.debug(f"Header Changed: {header.text()}")
+
     @pyqtSlot(BaseImage)
     def click(self, tile: BaseImage):
         """
