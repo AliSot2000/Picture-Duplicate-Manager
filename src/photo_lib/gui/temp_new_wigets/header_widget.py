@@ -83,23 +83,34 @@ class CheckableHeaderWidget(BaseHeaderWidget):
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self.setLineWidth(1)
 
-        self.check_box = QCheckBox()
+        self._check_box = QCheckBox()
 
         if text is not None:
-            self.check_box.setText(text)
-
-        self.check_box.setTristate(False)
-        self.check_box.setCheckState(Qt.CheckState.PartiallyChecked)
+            self._check_box.setText(text)
 
         self.basic_layout = QHBoxLayout()
-        self.basic_layout.addWidget(self.check_box)
+        self.basic_layout.addWidget(self._check_box)
 
         self.setLayout(self.basic_layout)
 
         self.update_font()
 
         # Connect functions to signals
-        self.check_box.clicked.connect(self.emit_click)
+        self._check_box.clicked.connect(self.emit_click)
+        self._check_box.clicked.connect(self.update_state)
+
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self._check_box.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        self.setStyleSheet("background-color: palette(alternate-base);")
+
+    def update_state(self):
+        """
+        We want to default to not tristate, tri state is only set by the databse when not all elements are selected.
+        """
+        if self._check_box.checkState() == Qt.CheckState.Checked \
+                or self._check_box.checkState() == Qt.CheckState.Unchecked:
+            self._check_box.setTristate(False)
 
     def emit_click(self):
         """
