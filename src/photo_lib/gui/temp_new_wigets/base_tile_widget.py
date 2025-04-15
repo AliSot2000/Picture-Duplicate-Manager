@@ -74,9 +74,9 @@ class BaseTileWidget(QFrame):
     # Headers
     headers: Optional[Dict[Hashable, CheckableHeaderWidget | HeaderWidget]]
     header_lookup: Optional[np.ndarray[int] | np.ndarray[str]] = None
-    __checkable_headers: bool = False
-    __has_displayable_headers: bool = False
-    __add_headers: bool = False
+    __checkable_headers: bool
+    __has_displayable_headers: bool
+    __add_headers: bool
     _header_text_for_row: Optional[Callable[[int], str]] = None
 
     # Auxiliary items needed for view, resizing, movement animation,
