@@ -1127,6 +1127,15 @@ class BaseTileWidget(QFrame):
         assert self.lowest_row > 0, "PRECONDITION FAILED: Cannot build further up."
 
         self.lowest_row -= 1
+
+        if self.add_headers \
+                and self._header_text_for_row(self.lowest_row) != self._header_text_for_row(self.lowest_row + 1):
+            # Add header between the current lowest row and the new lowest row if they have different headers.
+            header = self._header_factory(row=self.lowest_row + 1)
+            self.headers[header.text()] = header
+            self.layout_rows.insert(0, header)
+
+        # Add the row we want to generate
         row = self._generate_row(row=self.lowest_row)
 
         # Add the row to the layout.
@@ -1136,6 +1145,12 @@ class BaseTileWidget(QFrame):
         # Add the widget to the widget dict
         for widget in row:
             self.widgets[widget.media.element.key] = widget
+
+        # Add the first header if we're at the top
+        if self.add_headers and self.lowest_row == 0:
+            header = self._header_factory(row=0)
+            self.headers[header.text()] = header
+            self.layout_rows.insert(0, header)
 
     def _add_row_bottom(self):
         """
