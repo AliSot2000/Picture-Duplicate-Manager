@@ -1275,6 +1275,11 @@ class BaseTileWidget(QFrame):
         ct.setFixedWidth(self.tile_size)
         ct.setFixedHeight(self.tile_size)
 
+        # ct.setLineWidth(3)
+        # ct.setMidLineWidth(3)
+        # ct.setFrameShape(QFrame.Shape.Box)
+        # ct.setFrameShadow(QFrame.Shadow.Sunken)
+
         # Register the signals
         ct.click.connect(self.click)
         ct.double_click.connect(self.double_click)
