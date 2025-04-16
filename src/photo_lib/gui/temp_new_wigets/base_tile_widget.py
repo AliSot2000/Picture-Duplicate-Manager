@@ -669,6 +669,26 @@ class BaseTileWidget(QFrame):
     # Private Functions that only perform specific actions and need to be called in conjunction with each other
     # ==================================================================================================================
 
+    def _header_text_from_cache(self, row: int) -> str:
+        """
+        Implementation of getting the header string from the lookup array and parsing the compressed value with the
+        header parser of the database
+
+        :param row: Row to get header for
+        """
+        assert 0 <= row < self.number_of_rows, "PRECONDITION FAILED: Row out of bounds"
+        return self.model.api.db.parse_header(self.header_lookup[row], target_view=self.target_table)
+
+    def _header_text_from_db(self, row: int) -> str:
+        """
+        Implementation of getting the header string from the database (which mey or may not have a cache for this)
+        header parser of the database
+
+        :param row: Row to get header for
+        """
+        assert 0 <= row < self.number_of_rows, "PRECONDITION FAILED: Row out of bounds"
+        return self.model.api.db.lookup_row_to_header(row, target_view=self.target_table)
+
     def _scroll_to_row(self, row: int):
         """
         Scroll to a given row using either build or build around functions.
