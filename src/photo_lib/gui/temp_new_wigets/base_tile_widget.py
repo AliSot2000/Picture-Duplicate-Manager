@@ -182,15 +182,15 @@ class BaseTileWidget(QFrame):
 
     @property
     def add_headers(self):
-        return self.__add_headers
+        return self._add_headers
 
     @property
     def has_displayable_headers(self):
-        return self.__has_displayable_headers
+        return self._has_displayable_headers
 
     @property
     def checkable_headers(self):
-        return self.__checkable_headers
+        return self._checkable_headers
 
     # ==================================================================================================================
     # Constructor
