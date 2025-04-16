@@ -619,8 +619,6 @@ class BaseTileWidget(QFrame):
         self.updateGeometry()
         return True
 
-        return False
-
     def scroll_animation(self, row: int) -> bool:
         """
         Perform the scroll animation.
