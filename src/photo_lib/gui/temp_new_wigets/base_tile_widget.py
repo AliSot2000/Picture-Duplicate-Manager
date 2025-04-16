@@ -258,13 +258,13 @@ class BaseTileWidget(QFrame):
 
         # Set header properties
         # TODO need to set these attributes in the child classes that implement this.
-        # self.__checkable_headers: bool
-        # self.__has_displayable_headers: bool
-        # self.__add_headers: bool
+        self._checkable_headers: bool = True
+        self._has_displayable_headers: bool = True
+        self._add_headers: bool = True
 
-        assert hasattr(self, "__checkable_headers"), "Checkable headers not set in child class"
-        assert hasattr(self, "__has_displayable_headers"), "Has displayable headers not set in child class"
-        assert hasattr(self, "__add_headers"), "Add headers not set in child class"
+        assert hasattr(self, "_checkable_headers"), "Checkable headers not set in child class"
+        assert hasattr(self, "_has_displayable_headers"), "Has displayable headers not set in child class"
+        assert hasattr(self, "_add_headers"), "Add headers not set in child class"
 
     # ==================================================================================================================
     # Slots
