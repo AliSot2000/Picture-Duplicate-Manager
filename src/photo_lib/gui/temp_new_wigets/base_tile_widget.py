@@ -935,8 +935,89 @@ class BaseTileWidget(QFrame):
                           f"current_row: {self.current_row}, "
                           f"lowest_row: {self.lowest_row}, "
                           f"highest_row: {self.highest_row}, "
-                          f"curernt_row_offset: {self.current_row_offset}, ")
+                          f"current_row_offset: {self.current_row_offset}, ")
 
+        if self.add_headers:
+            self._build_around_with_header(reuse=reuse)
+
+        else:
+            self._build_around_without_header(reuse=reuse)
+
+    def _build_around_with_header(self, reuse: bool):
+        """
+        Build the rows when we have headers.
+
+        PRECONDITION: No Headers
+        PRECONDITION: self.lowest_row, self.highest_row, self.current_row_offset
+        """
+        # Create new variables.
+        new_headers = {}
+        new_widgets = {}
+        self.tile_rows = []
+        self.layout_rows = []
+
+        # Special case when we're at the bottom (cannot query if the self.lowest_row -1 has a different header than
+        # the current lowest row
+        if self.lowest_row == 0:
+            header = self._header_factory(row=0, reuse=reuse)
+            new_headers[header.text()] = header
+            self.layout_rows.append(header)
+
+            first_row = self._generate_row(row=0, reuse=reuse)
+            # Add the row to the widgets
+
+            for element in first_row:
+                new_widgets[element.media.element.key] = element
+
+            self.tile_rows.append(first_row)
+            self.layout_rows.append(first_row)
+
+            loop_lower_bound = 1
+        else:
+            loop_lower_bound = self.lowest_row
+
+        # Build every subsequent row after the first one
+        for i in range(loop_lower_bound, self.highest_row + 1):
+
+            # Add headers if the rows are different
+            if self._header_text_for_row(i - 1) != self._header_text_for_row(i):
+                header = self._header_factory(row=i, reuse=reuse)
+                new_headers[header.text()] = header
+                self.layout_rows.append(header)
+
+            # Generate the row
+            row = self._generate_row(row=i, reuse=reuse)
+
+            # Add the row to the widget rows
+            self.tile_rows.append(row)
+
+            # Add the row to the layout rows
+            self.layout_rows.append(row)
+
+            # Add the widgets to the dict
+            for widget in row:
+                new_widgets[widget.media.element.key] = widget
+
+        # Get all the rows that aren't in the new rows
+        to_delete_tiles = list(filter(lambda x: x not in new_widgets.values(), self.widgets.values()))
+        for elm in to_delete_tiles:
+            self._destroy_tile(elm)
+
+        # Get all the headers that aren't in the new rows
+        to_delete_headers = list(filter(lambda x: x not in new_headers.values(), self.headers.values()))
+        for elm in to_delete_headers:
+            self._destroy_header(elm)
+
+        self.widgets = new_widgets
+        self.headers = new_headers
+
+    def _build_around_without_header(self, reuse: bool):
+        """
+        Build the rows when we don't have headers.
+
+        PRECONDITION: No headers
+        PRECONDITION: self.lowest_row, self.highest_row, self.current_row_offset
+        """
         # Create new variables.
         new_widgets = {}
         self.tile_rows = []
