@@ -848,18 +848,30 @@ class BaseTileWidget(QFrame):
         # Determine the new maximum number of visible widgets
         max_visible_rows = math.ceil(rem_height / self.tile_size)
 
-        # Determine the minimum number of visible widgets (in this scenario slightly useless. We don't have headers.
-        # INFO: We're maxing with a 1, in case the rem_height - self.tile_size < 0,could lead to expression
-        #  becoming -1 i.e. self.min_visible_rows = 0
-        min_visible_rows = max(1,
-                               1 + math.floor(max(0, rem_height - self.tile_size)
-                                              / (self.tile_size + self.vertical_spacing)))
+        # INFO:
+        #   max(0, rem_width - self.tile_size) >= 0.
+        #   => max(0, rem_width - self.tile_size) / (self.tile_size + self.horizontal_spacing) >= 0
+        #   => math.floor(max(0, rem_width - self.tile_size) / (self.tile_size + self.horizontal_spacing)) >= 0
+        number_of_columns = 1 + math.floor(max(0, rem_width - self.tile_size)
+                                           / (self.tile_size + self.horizontal_spacing))
 
-        # INFO: We're maxing with a 1, in case teh rem_width - self.tile_size < 0,could lead to expression
-        #  becoming -1 i.e. self.min_visible_rows = 0
-        number_of_columns = max(1,
-                                1 + math.floor(max(0, rem_width - self.tile_size)
-                                               / (self.tile_size + self.horizontal_spacing)))
+        if not self.add_headers:
+            # Determine the minimum number of visible widgets (in this scenario slightly useless. We don't have headers.
+            # INFO:
+            #   max(0, rem_height - self.tile_size) >= 0.
+            #   => max(0, rem_height - self.tile_size) / (self.tile_size + self.vertical_spacing) >= 0
+            #   => math.floor(max(0, rem_height - self.tile_size) / (self.tile_size + self.vertical_spacing)) >= 0
+            min_visible_rows = 1 + math.floor(max(0, rem_height - self.tile_size)
+                                              / (self.tile_size + self.vertical_spacing))
+
+        else:
+            row_height = self.tile_size + self.vertical_spacing + CheckableHeaderWidget(text="Some Text").height()
+
+            # INFO:
+            #   max(0, rem_height - row_height) >= 0.
+            #   => max(0, rem_height - row_height) / (row_height + self.vertical_spacing) >= 0
+            #   => math.floor(max(0, rem_height - row_height) / (row_height + self.vertical_spacing)) >= 0
+            min_visible_rows = 1 + math.floor(max(0, rem_height - row_height) / (row_height + self.vertical_spacing))
 
         # Abort if the values are the same.
         if self.max_visible_rows == max_visible_rows \
