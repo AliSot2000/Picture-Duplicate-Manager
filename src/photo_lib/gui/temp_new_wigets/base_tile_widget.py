@@ -1028,7 +1028,7 @@ class BaseTileWidget(QFrame):
         ct.click.connect(self.click)
         ct.double_click.connect(self.double_click)
 
-        self.logger.debug(f"tile_factory: {ct} key: {ct.media.element.key}")
+        # self.logger.debug(f"tile_factory: {ct} key: {ct.media.element.key}")
 
         return ct
 
@@ -1036,7 +1036,7 @@ class BaseTileWidget(QFrame):
         """
         Handle destruction of tile and disconnect the signals.
         """
-        self.logger.debug(f"destroy_tile: {tile}, key: {tile.media.element.key}")
+        # self.logger.debug(f"destroy_tile: {tile}, key: {tile.media.element.key}")
 
         # Remove the tile from the widget dict
         self.widgets.pop(tile.media.element.key)
