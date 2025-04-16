@@ -390,10 +390,10 @@ class BaseTileWidget(QFrame):
         """
         Set whether we are displaying headers or not.
         """
-        if self.__add_headers == add_headers:
+        if self._add_headers == add_headers:
             return
 
-        self.__add_headers = add_headers
+        self._add_headers = add_headers
         self.logger.debug(f"set_headers: {self.add_headers}")
 
         # Rebuild the layout
