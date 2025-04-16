@@ -1191,15 +1191,22 @@ class BaseTileWidget(QFrame):
         PRECONDITION: There's at least one row to remove..
         """
         assert self.lowest_row < self.highest_row, "PRECONDITION FAILED: No Row to Remove."
-        row = self.tile_rows.pop(0)
         self.lowest_row += 1
+
+        row = self.layout_rows.pop(0)
+
+        if isinstance(row, CheckableHeaderWidget):
+            self._destroy_header(row)
+            row = self.layout_rows.pop(0)
+
+        assert isinstance(row, list), "PRECONDITION: At most one header between two rows of ClickableTiles"
 
         # Remove row from dict
         for widget in row:
             self._destroy_tile(widget)
 
         # Now remove the row from the layout
-        self.layout_rows.pop(0)
+        self.tile_rows.pop(0)
 
     def _remove_row_bottom(self):
         """
