@@ -1048,6 +1048,51 @@ class BaseTileWidget(QFrame):
         # Delete the tile
         tile.deleteLater()
 
+    def _header_factory(self, row: int, reuse: bool = False) -> CheckableHeaderWidget:
+        """
+        Produces the header associated with a given row. If reuse is True, attempt to find the header already existing.
+
+        :param row: Row to generate header for
+        :param reuse: Whether to attempt to reuse a header or not
+        """
+        header_text = self._header_text_for_row(row)
+
+        if reuse:
+            header_widget = self.headers.get(header_text, None)
+
+            if header_widget is not None:
+                self.logger.debug(f"Reusing Header: {header_text}")
+
+                if self.checkable_headers:
+                    assert isinstance(header_widget, CheckableHeaderWidget), \
+                        "PRECONDITION FAILLED: Unexpected type of widget"
+
+                return header_widget
+
+        if self.checkable_headers:
+            header_widget = CheckableHeaderWidget(header_text)
+
+            # Connect the signal
+            header_widget.box_changed.connect(self.header_changed)
+        else:
+            header_widget = HeaderWidget(header_text)
+        return header_widget
+
+    def _destroy_header(self, header: CheckableHeaderWidget):
+        """
+        Destroy a header and also remove it from the header dict (reuse dict)
+
+        :param header: Header to destroy
+        """
+        self.logger.debug(f"destroy_header: {header}, text: {header.text()}")
+
+        self.headers.pop(header.text())
+
+        # INFO: Disconnect the signals is done by destructor
+        # self.header_changed.disconnect(header.box_changed)
+
+        header.deleteLater()
+
     # ==================================================================================================================
     # Custom Event Handlers
     # ==================================================================================================================
