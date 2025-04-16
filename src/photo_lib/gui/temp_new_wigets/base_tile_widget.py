@@ -454,65 +454,45 @@ class BaseTileWidget(QFrame):
 
     def update_header_available_and_type(self) -> bool:
         """
-        Set the layout from the data structure.
+        Determine if the given tiles we're rendering have displayable headers or not.
+
+        :returns: bool -> To indicate whether the setting of the add_header state (and associated states) was successful
         """
-        # Empty layout
-        while self.background_layout.count() > 0:
-            self.background_layout.takeAt(0)
-
-        # Bugfix, need to clear the spacers
-        self.vertical_spacers = []
-        self.horizontal_spacers = []
-
-        # Populate layout again
-        row_count = len(self.layout_rows) * 2 - 1
-        max_col_count = self.number_of_columns * 2 - 1
-
-        for i in range(row_count):
-            if i % 2 == 1:
-                # Add a vertical spacer
-                spacer = QSpacerItem(0,
-                                     self.vertical_spacing,
-                                     QSizePolicy.Policy.Expanding,
-                                     QSizePolicy.Policy.Expanding)
-                self.vertical_spacers.append(spacer)
-                self.background_layout.addItem(spacer, i, 0, 1, max_col_count, Qt.AlignmentFlag.AlignCenter)
+        # TODO implement this function for all target views.
+        print("Temporary Implementation!!!")
+        # Update the has_displayable_headers (needed for label with scrollbar)
+        if self.target_table == TargetViewTable.MAIN:
+            if self.model.api.db.last_main_grouping_criterion == GroupingCriterion.NONE:
+                self.__has_displayable_headers = True
+                self.__checkable_headers = False
+                self.__add_headers = False
             else:
-                row = self.layout_rows[i // 2]
+                self.__has_displayable_headers = True
+                self.__checkable_headers = True
+                self.__add_headers = True
+        elif self.target_table == TargetViewTable.IMPORT:
+            self.__has_displayable_headers = True
+            self.__checkable_headers = True
+        elif self.target_table == TargetViewTable.PRESENCE:
+            self.__has_displayable_headers = True
+            self.__checkable_headers = False
+        elif self.target_table == TargetViewTable.HASH:
+            self.__has_displayable_headers = False
+            self.__checkable_headers = False
+        elif self.target_table == TargetViewTable.NAME:
+            self.__has_displayable_headers = True
+            self.__checkable_headers = False
+        elif self.target_table == TargetViewTable.LOCATION:
+            self.__has_displayable_headers = True
+            self.__checkable_headers = False
+        else:  # pragma: no cover
+            raise ImplementationError("Uncovered Target View Table")
 
-                # Add rows to the layout
-                number_of_elements = len(row) * 2 - 1
-                for j in range(number_of_elements):
-                    if j % 2 == 1:
-                        # Add a horizontal spacer
-                        spacer = QSpacerItem(self.horizontal_spacing,
-                                             0,
-                                             QSizePolicy.Policy.Expanding,
-                                             QSizePolicy.Policy.Expanding)
-                        self.horizontal_spacers.append(spacer)
-                        self.background_layout.addItem(spacer,
-                                                       i, j,
-                                                       1, 1,
-                                                       Qt.AlignmentFlag.AlignCenter)
-                    else:
-                        # Add the widget to the layout
-                        widget = row[j // 2]
-                        self.background_layout.addWidget(widget,
-                                                         i, j,
-                                                         1, 1,
-                                                         Qt.AlignmentFlag.AlignCenter)
-
-                if number_of_elements < max_col_count:
-                    # Add a horizontal spacer
-                    spacer = QSpacerItem(self.horizontal_spacing,
-                                         0,
-                                         QSizePolicy.Policy.Expanding,
-                                         QSizePolicy.Policy.Expanding)
-                    self.horizontal_spacers.append(spacer)
-                    self.background_layout.addItem(spacer,
-                                                   i, number_of_elements,
-                                                   1, max_col_count - number_of_elements,
-                                                   Qt.AlignmentFlag.AlignCenter)
+        # We attempted to make a layout with headers, but we don't have headers.
+        if not self.has_displayable_headers and self.add_headers:
+            self.logger.warning("Add Headers was True for ui which doens't have displayable headers")
+            self.__add_headers = False
+            return False
 
         return True
 
