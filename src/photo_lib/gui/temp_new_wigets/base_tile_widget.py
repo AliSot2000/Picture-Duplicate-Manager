@@ -1078,7 +1078,7 @@ class BaseTileWidget(QFrame):
         self.resizeEvent = self._regular_resize
 
         # Check the number of rows. If there are no rows, we don't want to create the view.
-        if self.get_number_of_rows() == 0:
+        if self.get_number_of_rows() == 0:  # pragma: no cover
             raise ImplementationError("View shouldn't be created if no rows are available.")
 
     def _regular_resize(self, event: QResizeEvent):
