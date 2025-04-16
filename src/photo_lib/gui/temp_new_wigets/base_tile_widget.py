@@ -1218,16 +1218,21 @@ class BaseTileWidget(QFrame):
         PRECONDITION: There's at least one row to remove.
         """
         assert self.lowest_row < self.highest_row, "PRECONDITION FAILED: No Row to Remove."
+        self.highest_row -= 1
 
         row = self.tile_rows.pop()
-        self.highest_row -= 1
 
         # Remove row from dict
         for widget in row:
             self._destroy_tile(widget)
 
         # Now remove the row from the layout
-        self.layout_rows.pop()
+        row = self.layout_rows.pop()
+        assert isinstance(row, list), "PRECONDITION: Lowest row is ALWAYS a list of ClickableTiles"
+
+        if isinstance(self.layout_rows[-1], CheckableHeaderWidget):
+            header = self.layout_rows.pop()
+            self._destroy_header(header)
 
     def _generate_row(self, row: int, reuse: bool = False) -> List[ClickableTile]:
         """
