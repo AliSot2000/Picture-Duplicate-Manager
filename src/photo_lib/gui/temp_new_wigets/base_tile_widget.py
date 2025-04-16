@@ -880,11 +880,14 @@ class BaseTileWidget(QFrame):
             return False
 
         # Update the number of rows and columns
+        rebuild_table = self.number_of_columns != number_of_columns
         self.max_visible_rows = max_visible_rows
         self.min_visible_rows = min_visible_rows
         self.number_of_columns = number_of_columns
 
-        self.rebuild_lookup_table()
+        # Optimized call, only rebuild tables if the number of columns changed
+        if rebuild_table:
+            self.rebuild_lookup_table()
 
         self.logger.debug(f"_recompute_layout_vars: "
                           f"Number of rows: {self.number_of_rows}, Number of columns: {self.number_of_columns}, "
