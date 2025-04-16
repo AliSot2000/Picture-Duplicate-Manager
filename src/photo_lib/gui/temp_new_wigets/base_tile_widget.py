@@ -693,7 +693,7 @@ class BaseTileWidget(QFrame):
 
         :param row: The row to scroll to.
         """
-        # We update the layout_rows attribute and update the layout afterwards.
+        # We update the layout_rows attribute and update the layout afterward.
         if self.lowest_row <= row <= self.highest_row:
             while self.current_row < row:
                 self.logger.debug("scroll_to_row: Building Down")
