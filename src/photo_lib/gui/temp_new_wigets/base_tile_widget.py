@@ -446,9 +446,9 @@ class BaseTileWidget(QFrame):
         self.model.api.db.clear_ui_lookup_table(target_table=self.target_table)
 
         # This call should be changed.
-        self.model.api.db.build_images_table_lookup(grouping=GroupingCriterion.NONE,
-                                                    partition=MainTileView.MAIN,
-                                                    col_width=self.number_of_columns)
+        self.model.api.db.build_main_table_lookup(grouping=GroupingCriterion.YEAR,
+                                                  partition=MainTileView.MAIN,
+                                                  col_width=self.number_of_columns)
 
         self.number_of_rows = self.get_number_of_rows()
 
