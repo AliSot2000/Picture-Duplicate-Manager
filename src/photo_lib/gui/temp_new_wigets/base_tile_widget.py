@@ -452,38 +452,7 @@ class BaseTileWidget(QFrame):
 
         self.number_of_rows = self.get_number_of_rows()
 
-    def row_to_media_paths(self, row: int) -> List[MediaPaths]:
-        """
-        Get the keys for a row.
-
-        :param row: The row to get the keys for.
-        :return: The keys for the row.
-        """
-        print("Temporary implementation!!!")
-        row = self.model.api.db.lookup_row_to_keys(row, target_view=self.target_table)
-
-        # Get the media paths objects.
-        media_paths = [self.model.api.db.get_media(MediaElement(key=i, source_table=self.target_table)) for i in row]
-
-        return media_paths
-
-    def key_to_row(self, key: int) -> int:
-        """
-        Get the row for a key.
-
-        :param key: The key to get the row for.
-        :return: The row for the key.
-        """
-        print("Temporary implementation!!!")
-        return self.model.api.db.lookup_key_to_row(key=key, target_view=self.target_table)
-
-    def get_number_of_rows(self):
-        """
-        Get the number of ui rows from the database.
-        """
-        return self.model.api.db.lookup_row_count(self.target_table)
-
-    def layout_from_data_structure(self):
+    def update_header_available_and_type(self) -> bool:
         """
         Set the layout from the data structure.
         """
@@ -545,23 +514,7 @@ class BaseTileWidget(QFrame):
                                                    1, max_col_count - number_of_elements,
                                                    Qt.AlignmentFlag.AlignCenter)
 
-    def compute_background_widget_offset(self, target_offset: int = None) -> QPoint:
-        """
-        Determine the position the background widget needs to be moved to, such that current_row is at the top
-
-        :param target_offset: (If you want a different offset than the current_row_offset
-        """
-        offset = target_offset if target_offset is not None else self.current_row_offset
-        cm = self.background_layout.contentsMargins()
-        y = self.debug_offset
-
-        if offset > 0:
-            y += cm.top() + self.tile_size
-
-        y += max(0, (self.tile_size + self.vertical_spacing) * (offset - 1))
-
-        self.logger.debug(f"compute_background_widget_offset: {y}, offset: {offset}")
-        return QPoint(0, -y)
+        return True
 
     # ==================================================================================================================
     # Main Functions
@@ -660,6 +613,178 @@ class BaseTileWidget(QFrame):
         self.movement_animation.setEndValue(end)
         self.movement_animation.start()
         return False
+
+    def rebuild_header_lookup(self):
+        """
+        Rebuild the header cache and set the get_header function.
+        """
+        if self.number_of_rows < self.model.ui_config.header_lookup_limit:
+            all_headers = self.model.api.db.get_all_headers(self.target_table)
+
+            # Cover TargetView Enum
+            if self.target_table == TargetViewTable.MAIN:
+                self.header_lookup = np.array(all_headers, dtype=str)
+            elif self.target_table == TargetViewTable.IMPORT:
+                self.header_lookup = np.array(all_headers, dtype=int)
+            elif self.target_table == TargetViewTable.PRESENCE:
+                self.header_lookup = np.array(all_headers, dtype=int)
+            elif self.target_table == TargetViewTable.HASH:
+                raise ImplementationError("Hash Table shouldn't have a header.")
+            elif self.target_table == TargetViewTable.NAME:
+                self.header_lookup = np.array(all_headers, dtype=int)
+            elif self.target_table == TargetViewTable.LOCATION:
+                self.header_lookup = np.array(all_headers, dtype=int)
+            else:  # pragma: no cover
+                raise ImplementationError("Uncovered Target View Table")
+
+            self._header_text_for_row = self._header_text_from_cache
+
+        else:
+            # PRECONDITION: We have more rows than our lookup limit
+            self._header_text_for_row = self._header_text_from_db
+
+    def layout_from_data_structure(self):
+        """
+        Set the layout from the data structure.
+        """
+        # Empty layout
+        while self.background_layout.count() > 0:
+            self.background_layout.takeAt(0)
+
+        # Bugfix, need to clear the spacers
+        self.vertical_spacers = []
+        self.horizontal_spacers = []
+
+        # Populate layout again
+        row_count = len(self.layout_rows) * 2 - 1
+        max_col_count = self.number_of_columns * 2 - 1
+
+        for i in range(row_count):
+            if i % 2 == 1:
+                # Add a vertical spacer
+                spacer = QSpacerItem(0,
+                                     self.vertical_spacing,
+                                     QSizePolicy.Policy.Expanding,
+                                     QSizePolicy.Policy.Expanding)
+                self.vertical_spacers.append(spacer)
+                self.background_layout.addItem(spacer, i, 0, 1, max_col_count, Qt.AlignmentFlag.AlignCenter)
+            else:
+                row = self.layout_rows[i // 2]
+
+                # We have a list of ClickableTiles, we're only doing
+                if isinstance(row, list):
+                    # Add rows to the layout
+                    number_of_elements = len(row) * 2 - 1
+                    for j in range(number_of_elements):
+                        if j % 2 == 1:
+                            # Add a horizontal spacer
+                            spacer = QSpacerItem(self.horizontal_spacing,
+                                                 0,
+                                                 QSizePolicy.Policy.Expanding,
+                                                 QSizePolicy.Policy.Expanding)
+                            self.horizontal_spacers.append(spacer)
+                            self.background_layout.addItem(spacer,
+                                                           i, j,
+                                                           1, 1,
+                                                           Qt.AlignmentFlag.AlignCenter)
+                        else:
+                            # Add the widget to the layout
+                            widget = row[j // 2]
+                            self.background_layout.addWidget(widget,
+                                                             i, j,
+                                                             1, 1,
+                                                             Qt.AlignmentFlag.AlignCenter)
+
+                    if number_of_elements < max_col_count:
+                        # Add a horizontal spacer
+                        spacer = QSpacerItem(self.horizontal_spacing,
+                                             0,
+                                             QSizePolicy.Policy.Expanding,
+                                             QSizePolicy.Policy.Expanding)
+                        self.horizontal_spacers.append(spacer)
+                        self.background_layout.addItem(spacer,
+                                                       i, number_of_elements,
+                                                       1, max_col_count - number_of_elements,
+                                                       Qt.AlignmentFlag.AlignCenter)
+                else:
+                    self.background_layout.addWidget(row, i, 0, 1, max_col_count)
+
+    def compute_background_widget_offset(self, target_offset: int = None) -> QPoint:
+        """
+        Determine the position the background widget needs to be moved to, such that current_row is at the top
+
+        :param target_offset: (If you want a different offset than the current_row_offset
+        """
+        offset = target_offset if target_offset is not None else self.current_row_offset
+        cm = self.background_layout.contentsMargins()
+        y = self.debug_offset
+
+        if self.add_headers:
+            if offset > 0:
+                if isinstance(self.layout_rows[0], QWidget):
+                    y += self.layout_rows[0].height() + cm.top()
+                else:
+                    y += self.tile_size + cm.top()
+
+                target_row = self.tile_rows[offset]
+                for i in range(1, len(self.layout_rows)):
+                    row = self.layout_rows[i]
+                    if isinstance(row, CheckableHeaderWidget):
+                        y += row.height() + self.vertical_spacing
+                    else:
+                        assert isinstance(row, list), f"PRECONDITION FAILED: Unexpected row in self.layout_rows: {row}"
+                        y += self.tile_size + self.vertical_spacing
+
+                    # Abort conditiion
+                    if self.layout_rows[i + 1] == target_row:
+                        if isinstance(self.layout_rows[i], CheckableHeaderWidget):
+                            y -= (self.layout_rows[i].height() + self.vertical_spacing)
+
+                        # Break in any case, we've reached our target row
+                        break
+            else:
+                # PRECONDITION: We want row 0
+                pass
+
+        else:
+            if offset > 0:
+                y += cm.top() + self.tile_size
+
+            y += max(0, (self.tile_size + self.vertical_spacing) * (offset - 1))
+
+        self.logger.debug(f"compute_background_widget_offset: {y}, offset: {offset}")
+        return QPoint(0, -y)
+
+    def row_to_media_paths(self, row: int) -> List[MediaPaths]:
+        """
+        Get the keys for a row.
+
+        :param row: The row to get the keys for.
+        :return: The keys for the row.
+        """
+        print("Temporary implementation!!!")
+        row = self.model.api.db.lookup_row_to_keys(row, target_view=self.target_table)
+
+        # Get the media paths objects.
+        media_paths = [self.model.api.db.get_media(MediaElement(key=i, source_table=self.target_table)) for i in row]
+
+        return media_paths
+
+    def key_to_row(self, key: int) -> int:
+        """
+        Get the row for a key.
+
+        :param key: The key to get the row for.
+        :return: The row for the key.
+        """
+        print("Temporary implementation!!!")
+        return self.model.api.db.lookup_key_to_row(key=key, target_view=self.target_table)
+
+    def get_number_of_rows(self):
+        """
+        Get the number of ui rows from the database.
+        """
+        return self.model.api.db.lookup_row_count(self.target_table)
 
     # ==================================================================================================================
     # Private Functions that only perform specific actions and need to be called in conjunction with each other
