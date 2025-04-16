@@ -1162,8 +1162,15 @@ class BaseTileWidget(QFrame):
         PRECONDITION: We aren't at the bottom.
         """
         assert self.highest_row < self.number_of_rows, "PRECONDITION FAILED: Cannot build further down."
-
         self.highest_row += 1
+
+        # Add header if necessary
+        if self.add_headers and \
+                self._header_text_for_row(self.highest_row) != self._header_text_for_row(self.highest_row - 1):
+            header = self._header_factory(row=self.highest_row)
+            self.headers[header.text()] = header
+            self.layout_rows.append(header)
+
         row = self._generate_row(row=self.highest_row)
 
         # Add the row to the layout.
