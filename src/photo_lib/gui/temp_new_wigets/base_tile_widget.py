@@ -596,8 +596,6 @@ class BaseTileWidget(QFrame):
 
         :return: True if the layout was updated.
         """
-        self.update_header_available_and_type()
-
         if not self._recompute_layout_vars():
             return False
 
