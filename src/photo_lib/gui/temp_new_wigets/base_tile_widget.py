@@ -292,7 +292,6 @@ class BaseTileWidget(QFrame):
     def set_current_row(self, row: int):
         """
         Set the current row. This is the top most visible row.
-        INFO: DO NOT CONNECT THE SIGNAL TO current_row. It won't update the widgets
 
         :param row: THe new current row
         """
