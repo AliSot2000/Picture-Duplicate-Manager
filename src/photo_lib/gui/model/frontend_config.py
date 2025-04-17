@@ -137,3 +137,8 @@ class UIConfig(BaseModel):
         default=True,
         description="Wrap around to the next line further down when going go the right. Only has an effect if "
     )
+
+    auto_clear_selection: bool = Field(
+        default=True,
+        description="After performing any action that used a selection, clear the selection automatically."
+    )
