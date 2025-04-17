@@ -22,6 +22,7 @@ from photo_lib.gui.temp_new_wigets.new_base_image import BaseImage
 
 # TODO:
 #   - SELECTION
+#   - Custom Context Menu
 class BaseTileWidget(QFrame):
     """
     Basic Tile Widget. Doesn't contain Headers.
