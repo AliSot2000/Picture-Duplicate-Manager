@@ -8,6 +8,7 @@ Idea for this config - this is what you can modify from a settings pane
 """
 
 # TODO, the settings here should be categorized by config and tunables.
+# TODO, tie colors in with Qt::GlobalColor and Hex color
 class UIConfig(BaseModel):
     """
     Contains actually user configurable settings.
