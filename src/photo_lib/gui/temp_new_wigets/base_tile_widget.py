@@ -721,7 +721,7 @@ class BaseTileWidget(QFrame):
                         assert isinstance(row, list), f"PRECONDITION FAILED: Unexpected row in self.layout_rows: {row}"
                         y += self.tile_size + self.vertical_spacing
 
-                    # Abort conditiion
+                    # Abort condition
                     if self.layout_rows[i + 1] == target_row:
                         if isinstance(self.layout_rows[i], CheckableHeaderWidget):
                             y -= (self.layout_rows[i].height() + self.vertical_spacing)
