@@ -219,7 +219,9 @@ class BaseTileWidget(QFrame):
         self.__number_of_columns = 0
         self.__max_visible_rows = 0
         self.__min_visible_rows = 0
-        self.__tile_size = self.model.ui_config.tile_size_default # TODO fetch from preferences.
+        # TODO fetch from preferences.
+        # TODO update widget min size
+        self.__tile_size = self.model.ui_config.tile_size_default
         self.__vertical_spacing = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutVerticalSpacing)
         self.__horizontal_spacing = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutHorizontalSpacing)
 
@@ -266,6 +268,10 @@ class BaseTileWidget(QFrame):
         assert hasattr(self, "_checkable_headers"), "Checkable headers not set in child class"
         assert hasattr(self, "_has_displayable_headers"), "Has displayable headers not set in child class"
         assert hasattr(self, "_add_headers"), "Add headers not set in child class"
+
+        # TODO move
+        self.setMinimumWidth(200)
+        self.setMinimumHeight(200)
 
     # ==================================================================================================================
     # Slots
