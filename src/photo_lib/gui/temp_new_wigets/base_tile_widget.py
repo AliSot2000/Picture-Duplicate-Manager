@@ -299,7 +299,7 @@ class BaseTileWidget(QFrame):
         assert self.number_of_rows > row >= 0, \
             f"Current row must be greater than or equal to 0 and less than {self.number_of_rows}"
 
-        # INFO: _scroll_to_row handles updating of the current_row
+        # INFO: scroll_animation handles updating of the current_row
         # Update the row.
         if self.scroll_animation(row):
             self.current_row_changed.emit(row)
