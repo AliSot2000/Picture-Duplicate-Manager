@@ -514,7 +514,7 @@ class BaseTileWidget(QFrame):
         if self.new_current_row is None:
             return
 
-        # Update the
+        # Update the current row
         self._scroll_to_row(self.new_current_row)
         self.new_current_row = None
 
