@@ -353,6 +353,8 @@ class BaseTileWidget(QFrame):
         if self.scroll_animation(row):
             self.current_row_changed.emit(row)
 
+        self.dump_focus_info()
+
     @pyqtSlot(int)
     def set_tile_size(self, size: int):
         """
