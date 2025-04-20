@@ -271,7 +271,9 @@ class BaseTileWidget(QFrame):
     # Constructor
     # ==================================================================================================================
 
-    def __init__(self, model: UIModel, target_table: TargetViewTable, logger: Logger, parent: QWidget = None):
+    def __init__(self, model: UIModel, target_table: TargetViewTable, logger: Logger, parent: QWidget = None,
+                 has_checkable_headers: bool = True,
+                 has_displayable_headers: bool = True):
         """
         Initialize the base tile widget. This is the base class for all tile widgets.
         :param model: The UIModel to use.
@@ -335,13 +337,9 @@ class BaseTileWidget(QFrame):
 
         # Set header properties
         # TODO need to set these attributes in the child classes that implement this.
-        self._checkable_headers: bool = True
-        self._has_displayable_headers: bool = True
-        self._add_headers: bool = True
-
-        assert hasattr(self, "_checkable_headers"), "Checkable headers not set in child class"
-        assert hasattr(self, "_has_displayable_headers"), "Has displayable headers not set in child class"
-        assert hasattr(self, "_add_headers"), "Add headers not set in child class"
+        self.__checkable_headers: bool = has_checkable_headers
+        self.__has_displayable_headers: bool = has_displayable_headers
+        self.__add_headers: bool = False
 
         # TODO move
         self.setMinimumWidth(200)
