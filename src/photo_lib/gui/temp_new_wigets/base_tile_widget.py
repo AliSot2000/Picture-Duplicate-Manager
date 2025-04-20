@@ -1800,9 +1800,13 @@ class BaseTileWidget(QFrame):
         row = self.layout_rows.pop(0)
 
         if isinstance(row, CheckableHeaderWidget):
+            # Update focus row for a header
+            self.focus_row = self.focus_row - 1 if self.focus_row is not None else self.focus_row
             self._destroy_header(row)
             row = self.layout_rows.pop(0)
 
+        # Update focus row for a regular row
+        self.focus_row = self.focus_row - 1 if self.focus_row is not None else self.focus_row
         assert isinstance(row, list), "PRECONDITION: At most one header between two rows of ClickableTiles"
 
         # Remove row from dict
