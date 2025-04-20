@@ -1863,6 +1863,11 @@ class BaseTileWidget(QFrame):
                 else:
                     widget = self._tile_factory(mp)
 
+                # Handle case when we've got the focus widget in the row
+                if focus_contained := widget.media.element.key == self.focus_key_or_header:
+                    self.update_focus_info(widget, i)
+
+                result.append(widget)
         else:
             for i, mp in enumerate(media_paths):
                 widget = self._tile_factory(mp)
