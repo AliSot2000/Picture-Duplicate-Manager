@@ -1277,6 +1277,7 @@ class BaseTileWidget(QFrame):
         with the parent.
 
         INFO: Doesn't add to the widget dict.
+        INFO: Doesn't take care of focus.
 
         :param mp: The media paths object to use.
         """
