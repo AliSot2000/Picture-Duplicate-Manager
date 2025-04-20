@@ -260,18 +260,6 @@ class BaseTileWidget(QFrame):
         return self.__vertical_spacing
 
     @property
-    def add_headers(self):
-        return self._add_headers
-
-    @property
-    def has_displayable_headers(self):
-        return self._has_displayable_headers
-
-    @property
-    def checkable_headers(self):
-        return self._checkable_headers
-
-    @property
     def focus_key_or_header(self):
         return self.__focus_key_or_header
 
