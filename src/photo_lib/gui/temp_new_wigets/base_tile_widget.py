@@ -199,6 +199,45 @@ class BaseTileWidget(QFrame):
         if self.__focused_widget is not None:
             self._mark_focus_widget()
 
+    @property
+    def add_headers(self):
+        return self.__add_headers
+
+    @add_headers.setter
+    def add_headers(self, value: bool):
+        if self.__add_headers == value:
+            return
+
+        if value and not self.has_displayable_headers:
+            raise ImplementationError("Cannot add headers of they cannot be displayed.")
+
+        self.__add_headers = value
+        self.logger.debug(f"set_headers: {self.add_headers}")
+
+        self.update_size()
+        self.layout_from_data_structure()
+        self.background_widget.move(self.compute_background_widget_offset())
+        self.update()
+        self.updateGeometry()
+
+    @property
+    def has_displayable_headers(self):
+        return self.__has_displayable_headers
+
+    @property
+    def checkable_headers(self):
+        return self.__checkable_headers
+
+    @checkable_headers.setter
+    def checkable_headers(self, value: bool):
+        if self.__checkable_headers == value:
+            return
+
+        self.__checkable_headers = value
+        self.logger.debug(f"set_checkable_headers: {self.checkable_headers}")
+
+        self.rebuild_layout()
+
     # ==================================================================================================================
     # Read only properties
     # ==================================================================================================================
@@ -1139,6 +1178,28 @@ class BaseTileWidget(QFrame):
         self.update()
         self.updateGeometry()
         return True
+
+    def rebuild_layout(self):
+        """
+        Something in the config has changed necessitating rebuildling the layout without any prior assumptions.
+        """
+        self._recompute_layout_vars()
+        self.rebuild_header_lookup()
+
+        if len(self.tile_rows) > 0:
+            # Get the targeted key.
+            target_key = self.tile_rows[self.current_row_offset][0].media.element.key
+            self.current_row = self.key_to_row(target_key)
+        else:
+            self.current_row = 0
+
+        self._build_around_row(False)
+        self.sanity_check()
+
+        self.layout_from_data_structure()
+        self.background_widget.move(self.compute_background_widget_offset())
+        self.update()
+        self.updateGeometry()
 
     def scroll_animation(self, row: int) -> bool:
         """
