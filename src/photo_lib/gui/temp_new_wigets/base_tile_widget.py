@@ -482,26 +482,6 @@ class BaseTileWidget(QFrame):
             # INFO: The update layout was triggered and the spacers were added and updated already.
             pass
 
-    def set_headers(self, add_headers: bool):
-        """
-        Set whether we are displaying headers or not.
-        """
-        if self._add_headers == add_headers:
-            return
-
-        self._add_headers = add_headers
-        self.logger.debug(f"set_headers: {self.add_headers}")
-
-        # Rebuild the layout
-        if not self.update_header_available_and_type():
-            raise ImplementationError("Attempting to set headers visible in a view that doesn't support it.")
-
-        self.update_size()
-        self.layout_from_data_structure()
-        self.background_widget.move(self.compute_background_widget_offset())
-        self.update()
-        self.updateGeometry()
-
     # ==================================================================================================================
     # Focus Functions
     # ==================================================================================================================
