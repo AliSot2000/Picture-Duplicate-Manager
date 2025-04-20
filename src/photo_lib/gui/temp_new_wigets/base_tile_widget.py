@@ -78,6 +78,7 @@ class BaseTileWidget(QFrame):
     __checkable_headers: bool
     __has_displayable_headers: bool
     __add_headers: bool
+
     _header_text_for_row: Optional[Callable[[int], str]] = None
 
     # Auxiliary items needed for view, resizing, movement animation,
