@@ -1842,7 +1842,7 @@ class BaseTileWidget(QFrame):
             header = self.layout_rows.pop()
             self._destroy_header(header)
 
-    def _generate_row(self, row: int, reuse: bool = False) -> List[ClickableTile]:
+    def _generate_row(self, row: int, reuse: bool = False) -> Tuple[List[ClickableTile], bool]:
         """
         Generate a row of widgets.
 
@@ -1853,22 +1853,27 @@ class BaseTileWidget(QFrame):
 
         # Try to get
         result = []
+        focus_contained = False
 
         # INFO: Not putting if in the for loop for performance
         if reuse:
-            for mp in media_paths:
-                preexisting_widget = self.widgets.get(mp.element.key, None)
-                if preexisting_widget is not None:
-                    self.logger.debug(f"Reusing Widget for: {preexisting_widget.media.element.key}")
-                    result.append(preexisting_widget)
+            for i, mp in enumerate(media_paths):
+                if (widget := self.widgets.get(mp.element.key, None)) is not None:
+                    self.logger.debug(f"Reusing Widget for: {widget}")
                 else:
-                    result.append(self._tile_factory(mp))
+                    widget = self._tile_factory(mp)
 
         else:
-            for mp in media_paths:
-                result.append(self._tile_factory(mp))
+            for i, mp in enumerate(media_paths):
+                widget = self._tile_factory(mp)
 
-        return result
+                # Handle case when we've got the focus widget in the row
+                if focus_contained := widget.media.element.key == self.focus_key_or_header:
+                    self.update_focus_info(widget, i)
+
+                result.append(widget)
+
+        return result, focus_contained
 
     def _tile_factory(self, mp: MediaPaths) -> ClickableTile:
         """
