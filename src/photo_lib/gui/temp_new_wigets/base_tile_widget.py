@@ -1894,7 +1894,7 @@ class BaseTileWidget(QFrame):
         # Delete the tile
         tile.deleteLater()
 
-    def _header_factory(self, row: int, reuse: bool = False) -> CheckableHeaderWidget:
+    def _header_factory(self, row: int, reuse: bool = False) -> Tuple[CheckableHeaderWidget | HeaderWidget, bool]:
         """
         Produces the header associated with a given row. If reuse is True, attempt to find the header already existing.
 
@@ -1904,16 +1904,21 @@ class BaseTileWidget(QFrame):
         header_text = self._header_text_for_row(row)
 
         if reuse:
-            header_widget = self.headers.get(header_text, None)
-
-            if header_widget is not None:
+            if (header_widget := self.headers.get(header_text, None)) is not None:
                 self.logger.debug(f"Reusing Header: {header_text}")
 
-                if self.checkable_headers:
-                    assert isinstance(header_widget, CheckableHeaderWidget), \
-                        "PRECONDITION FAILLED: Unexpected type of widget"
+                if __debug__:  # pragma: no cover
+                    if self.checkable_headers:
+                        assert isinstance(header_widget, CheckableHeaderWidget), \
+                            "PRECONDITION FAILED: Unexpected type of widget"
+                    else:
+                        assert isinstance(header_widget, HeaderWidget), \
+                            "PRECONDITION FAILED: Unexpected type of widget"
 
-                return header_widget
+                if is_focus := header_text == self.focus_key_or_header:
+                    self.update_focus_info(header_widget, 0)
+
+                return header_widget, is_focus
 
         if self.checkable_headers:
             header_widget = CheckableHeaderWidget(header_text)
@@ -1922,7 +1927,12 @@ class BaseTileWidget(QFrame):
             header_widget.box_changed.connect(self.header_changed)
         else:
             header_widget = HeaderWidget(header_text)
-        return header_widget
+
+        # Deal with focus
+        if is_focus := header_text == self.focus_key_or_header:
+            self.update_focus_info(header_widget, 0)
+
+        return header_widget, is_focus
 
     def _destroy_header(self, header: CheckableHeaderWidget):
         """
