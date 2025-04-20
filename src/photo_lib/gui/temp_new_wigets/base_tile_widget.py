@@ -1618,13 +1618,15 @@ class BaseTileWidget(QFrame):
         # Build the new visible rows
         for i in range(self.lowest_row, self.highest_row + 1):
             # Generate the row
-            row = self._generate_row(row=i, reuse=reuse)
+            row, is_focus = self._generate_row(row=i, reuse=reuse)
 
             # Add the row to the widget rows
             self.tile_rows.append(row)
 
             # Add the row to the layout rows
             self.layout_rows.append(row)
+
+            self.focus_row = i if is_focus else self.focus_row
 
             # Add the widgets to the dict
             for widget in row:
