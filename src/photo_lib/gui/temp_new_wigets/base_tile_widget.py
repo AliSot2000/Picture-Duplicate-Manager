@@ -1543,13 +1543,18 @@ class BaseTileWidget(QFrame):
         # Special case when we're at the bottom (cannot query if the self.lowest_row -1 has a different header than
         # the current lowest row
         if self.lowest_row == 0:
-            header = self._header_factory(row=0, reuse=reuse)
+            header, is_focus = self._header_factory(row=0, reuse=reuse)
             new_headers[header.text()] = header
             self.layout_rows.append(header)
 
-            first_row = self._generate_row(row=0, reuse=reuse)
-            # Add the row to the widgets
+            # Set focus row if needed
+            self.focus_row = 0 if is_focus else self.focus_row
 
+            first_row, is_focus = self._generate_row(row=0, reuse=reuse)
+
+            self.focus_row = 1 if is_focus else self.focus_row
+
+            # Add the row to the widgets
             for element in first_row:
                 new_widgets[element.media.element.key] = element
 
@@ -1565,18 +1570,21 @@ class BaseTileWidget(QFrame):
 
             # Add headers if the rows are different
             if self._header_text_for_row(i - 1) != self._header_text_for_row(i):
-                header = self._header_factory(row=i, reuse=reuse)
+                header, is_focus = self._header_factory(row=i, reuse=reuse)
                 new_headers[header.text()] = header
                 self.layout_rows.append(header)
+                self.focus_row = len(self.layout_rows) - 1 if is_focus else self.focus_row
 
             # Generate the row
-            row = self._generate_row(row=i, reuse=reuse)
+            row, is_focus = self._generate_row(row=i, reuse=reuse)
 
             # Add the row to the widget rows
             self.tile_rows.append(row)
 
             # Add the row to the layout rows
             self.layout_rows.append(row)
+
+            self.focus_row = len(self.layout_rows) - 1 if is_focus else self.focus_row
 
             # Add the widgets to the dict
             for widget in row:
