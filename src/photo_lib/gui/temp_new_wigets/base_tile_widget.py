@@ -1933,6 +1933,8 @@ class BaseTileWidget(QFrame):
         self.logger.debug(f"destroy_header: {header}, text: {header.text()}")
 
         self.headers.pop(header.text())
+        if header.text() == self.focus_key_or_header:
+            self.clear_focus_info()
 
         # INFO: Disconnect the signals is done by destructor
         # self.header_changed.disconnect(header.box_changed)
