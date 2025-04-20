@@ -121,18 +121,6 @@ class UIConfig(BaseModel):
         description="Duration of tile movement animation in milliseconds."
     )
 
-    tile_wrap_around_y: bool = Field(
-        default=True,
-        description="Wrap around the tile view when scrolling vertically. (If you go beyond the highest row, it starts "
-                    "back at the bottom"
-    )
-
-    tile_wrap_around_x: bool = Field(
-        default=True,
-        description="Warp around the tile view when scrolling horizontally. Observe that if it wraps around right down "
-                    "or right up is determined by the wrap around direction."
-    )
-
     tile_wrap_around_x_down: bool = Field(
         default=True,
         description="Wrap around to the next line further down when going go the right. Only has an effect if "
