@@ -577,12 +577,16 @@ class BaseTileWidget(QFrame):
         middle_cutoff = self.lowest_row + self.max_visible_rows * (self.model.ui_config.tile_page_preload_count * 2)
         if self.highest_row != self.number_of_rows - 1:
             if not self.lowest_row <= row <= middle_cutoff:
+                self.movement_animation.stop()
+                self.new_current_row = None
                 self._scroll_to_row(row)
                 return True
 
         else:
             # INFO: We're at the top row, use the full range to scroll
             if not self.lowest_row <= row <= self.highest_row:
+                self.movement_animation.stop()
+                self.new_current_row = None
                 self._scroll_to_row(row)
                 return True
 
