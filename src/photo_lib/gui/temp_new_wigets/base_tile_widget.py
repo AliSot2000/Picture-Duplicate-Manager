@@ -1769,15 +1769,17 @@ class BaseTileWidget(QFrame):
         # Add header if necessary
         if self.add_headers and \
                 self._header_text_for_row(self.highest_row) != self._header_text_for_row(self.highest_row - 1):
-            header = self._header_factory(row=self.highest_row)
+            header, is_focus = self._header_factory(row=self.highest_row)
             self.headers[header.text()] = header
             self.layout_rows.append(header)
+            self.focus_row = len(self.layout_rows) - 1 if is_focus else self.focus_row
 
-        row = self._generate_row(row=self.highest_row)
+        row, is_focus = self._generate_row(row=self.highest_row)
 
         # Add the row to the layout.
         self.tile_rows.append(row)
         self.layout_rows.append(row)
+        self.focus_row = len(self.layout_rows) - 1 if is_focus else self.focus_row
 
         # Add the widget to the widget dict
         for widget in row:
