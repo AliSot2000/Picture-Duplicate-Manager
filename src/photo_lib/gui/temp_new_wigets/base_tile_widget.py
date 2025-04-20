@@ -180,6 +180,25 @@ class BaseTileWidget(QFrame):
             self.setMinimumWidth(value + cm.left() + cm.right())
             self.setMinimumHeight(value + cm.top() + cm.bottom())
 
+    @property
+    def focused_widget(self):
+        return self.__focused_widget
+    
+    @focused_widget.setter
+    def focused_widget(self, value: ClickableTile | CheckableHeaderWidget):
+        if self.__focused_widget == value:
+            return
+
+        # Unmark the current focused widget
+        if self.__focused_widget is not None:
+            self._unmark_focus_widget()
+        
+        self.__focused_widget = value
+
+        # Mark the new focused widget
+        if self.__focused_widget is not None:
+            self._mark_focus_widget()
+
     # ==================================================================================================================
     # Read only properties
     # ==================================================================================================================
