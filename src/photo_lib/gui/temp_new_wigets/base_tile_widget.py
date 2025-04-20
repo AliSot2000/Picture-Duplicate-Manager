@@ -1916,6 +1916,10 @@ class BaseTileWidget(QFrame):
         # Remove the tile from the widget dict
         self.widgets.pop(tile.media.element.key)
 
+        # We're destroying a tile that has the focus key, we need to reset the focus
+        if tile.media.element.key == self.focus_key_or_header:
+            self.clear_focus_info()
+
         # INFO: Disconnect the signals is done by destructor
         # self.click.disconnect(tile.click)
         # self.double_click.disconnect(tile.double_click)
