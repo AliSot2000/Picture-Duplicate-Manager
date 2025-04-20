@@ -170,6 +170,7 @@ class MainWindow(QMainWindow):
         Set the frame width for all frames.
         :param width: Width to set.
         """
+        print(f"New LineWidth: {width}")
         self.line_width = width
         for frame in self.frames:
             frame.setLineWidth(width)
@@ -179,6 +180,7 @@ class MainWindow(QMainWindow):
         Set the frame width for all frames.
         :param width: Width to set.
         """
+        print(f"New MidLineWidth: {width}")
         self.mid_line_width = width
         for frame in self.frames:
             frame.setMidLineWidth(width)
