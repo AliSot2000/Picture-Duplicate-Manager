@@ -57,3 +57,22 @@ class DatabaseViews(Enum):
     # Open a given image, with carousel and metadata (has the same metadata like MAIN_BIG_SCREEN with an extra field
     # now present or now missing)
     PRESENCE_UPDATE_BIG_SCREEN = 52
+
+
+class FocusMoveY(Enum):
+    NONE = 0
+    # Move the focus up
+    UP = 1
+    # Move the focus down
+    DOWN = 2
+
+
+class FocusMoveX(Enum):
+    NONE = 0
+    # Move the focus left
+    LEFT = 1
+    # Move the focus right
+    RIGHT = 2
+    # Wrapping Movements
+    LEFT_LIMIT = 3
+    RIGHT_LIMIT = 4
