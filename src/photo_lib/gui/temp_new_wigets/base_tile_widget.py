@@ -22,7 +22,6 @@ from photo_lib.gui.views.enums import FocusMoveY, FocusMoveX
 
 
 # TODO:
-#   - SELECTION
 #   - Custom Context Menu
 class BaseTileWidget(QFrame):
     """
