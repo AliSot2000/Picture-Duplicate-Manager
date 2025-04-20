@@ -232,6 +232,14 @@ class BaseTileWidget(QFrame):
     def checkable_headers(self):
         return self._checkable_headers
 
+    @property
+    def focus_key_or_header(self):
+        return self.__focus_key_or_header
+
+    @property
+    def focus_target_key(self):
+        return self.__focus_target_key
+
     # ==================================================================================================================
     # Constructor
     # ==================================================================================================================
