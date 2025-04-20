@@ -89,6 +89,25 @@ class BaseTileWidget(QFrame):
 
     widget_update_timer: QTimer
 
+    # Focus
+    # Contains the currently focused widget if it is present.
+    __focused_widget: Optional[ClickableTile | CheckableHeaderWidget] = None
+
+    # Contains the value of the key of the header (needed in the factories, will
+    __focus_key_or_header: Optional[int | str] = None
+
+    # first key of a image given a header that is selected
+    __focus_target_key: Optional[int] = None
+
+    # Contains the row index in the layout_widgets list
+    focus_row: Optional[int] = None
+
+    # Contains the column index in the layout_widgets list
+    focus_col: Optional[int] = None
+
+    # Contains the last column if the subsequent layout has less columns than the one before
+    last_focus_col: Optional[int] = None
+
     # ==================================================================================================================
     # Properties
     # We use properties to get and set values. If the value differs from the current value, we emit a signal to notify
