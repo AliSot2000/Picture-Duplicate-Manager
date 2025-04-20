@@ -574,7 +574,9 @@ class BaseTileWidget(QFrame):
             return
 
         # We're at the right end
-        if self.focus_col == len(self.layout_rows[self.focus_row]) - 1:
+        focused_row = self.layout_rows[self.focus_row]
+        focused_row_len = len(focused_row) if isinstance(focused_row, list) else 1
+        if self.focus_col == focused_row_len - 1:
 
             # Guard, we're at the bottom and want to wrap down.
             if self.model.ui_config.tile_wrap_around_x_down and self._focus_row_at_bottom():
