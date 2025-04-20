@@ -562,7 +562,7 @@ class BaseTileWidget(QFrame):
         """
         Perform the scroll animation.
 
-        :param row: Row to scroll to
+        :param row: Row to scroll to (relative to abolute number of rows)
         """
         # Abort if we
         if row == self.current_row:
