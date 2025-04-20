@@ -711,24 +711,23 @@ class BaseTileWidget(QFrame):
 
         if self.add_headers:
             if offset > 0:
-                if isinstance(self.layout_rows[0], QWidget):
-                    y += self.layout_rows[0].height() + cm.top()
-                else:
-                    y += self.tile_size + cm.top()
-
                 target_row = self.tile_rows[offset]
-                for i in range(1, len(self.layout_rows)):
+
+                for i in range(len(self.layout_rows)):
                     row = self.layout_rows[i]
-                    if isinstance(row, CheckableHeaderWidget):
-                        y += row.height() + self.vertical_spacing
+                    v_space = self.vertical_spacing if i > 0 else cm.top()
+                    if isinstance(row, list):
+                        y += self.tile_size + v_space
                     else:
-                        assert isinstance(row, list), f"PRECONDITION FAILED: Unexpected row in self.layout_rows: {row}"
-                        y += self.tile_size + self.vertical_spacing
+                        assert isinstance(row, CheckableHeaderWidget) or isinstance(row, HeaderWidget), \
+                            f"PRECONDITION FAILED: Unexpected row in self.layout_rows: {row}"
+                        y += row.height() + v_space
 
                     # Abort condition
                     if self.layout_rows[i + 1] == target_row:
-                        if isinstance(self.layout_rows[i], CheckableHeaderWidget):
-                            y -= (self.layout_rows[i].height() + self.vertical_spacing)
+                        # Checking not list bc we could have CheckableHeaderWidget or HEaderWidget
+                        if not isinstance(self.layout_rows[i], list):
+                            y -= (self.layout_rows[i].height() + v_space)
 
                         # Break in any case, we've reached our target row
                         break
