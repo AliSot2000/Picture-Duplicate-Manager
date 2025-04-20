@@ -4,7 +4,7 @@ Contains the two base classes for all tile widgets.
 import math
 from collections.abc import Callable
 from logging import Logger
-from typing import List, Dict, Optional, Hashable
+from typing import List, Dict, Optional, Hashable, Tuple
 
 import numpy as np
 from PyQt6.QtCore import pyqtSignal, QTimer, QPoint, pyqtSlot, Qt, QPropertyAnimation, QEasingCurve
@@ -18,6 +18,7 @@ from photo_lib.gui.model.frontend_model import UIModel
 from photo_lib.gui.temp_new_wigets.clickable_tile import ClickableTile
 from photo_lib.gui.temp_new_wigets.header_widget import CheckableHeaderWidget, HeaderWidget
 from photo_lib.gui.temp_new_wigets.new_base_image import BaseImage
+from photo_lib.gui.views.enums import FocusMoveY, FocusMoveX
 
 
 # TODO:
