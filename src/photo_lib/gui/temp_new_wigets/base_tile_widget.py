@@ -466,6 +466,532 @@ class BaseTileWidget(QFrame):
     # ==================================================================================================================
     # Focus Functions
     # ==================================================================================================================
+
+    @pyqtSlot(int)
+    def focus_key(self, target_key: int):
+        """
+        Set the focus to a specific key.
+
+        PRECONDITION: The given key exists in the lot
+
+        :param target_key: The key to focus on.
+        """
+        # Widget isn't loaded, scroll to its location.
+        if self.widgets.get(target_key, None) is None:
+            self._set_focus_target(focus=target_key)
+            self.scroll_animation(self.key_to_row(target_key))
+            return
+
+        self._set_focus_target(target_key)
+        self.focused_widget = self.widgets[target_key]
+        abs_row = self.key_to_row(target_key)
+        focused_tile_row = self.tile_rows[abs_row - self.lowest_row]
+
+        # Determine the focus_row and focus_col
+        self.focus_row = self.layout_rows.index(focused_tile_row)
+        self.focus_col = focused_tile_row.index(self.focused_widget)
+
+        # Unset the last_focused_col
+        self.last_focus_col = None
+
+        self._scroll_focused_widget_into_view()
+        # INFO: Nothing is needed. All variable set
+
+    # INFO:
+    #   WRAP AROUND PROPERTIES:
+    #       Y: NO
+    #       x: yes
+    #       direction: config
+    @pyqtSlot()
+    def move_focus_up(self):
+        """
+        Move the focus up by one row.
+        """
+        if self.focused_widget is None:
+            self._set_focus_to_top_left()
+            return
+
+        # Check limit
+        if self._focus_row_at_top():
+            self.logger.debug("Focus at top, can't move up")
+            return
+
+        self._move_focus(x=FocusMoveX.NONE, y=FocusMoveY.UP)
+
+    @pyqtSlot()
+    def move_focus_down(self):
+        """
+        Move the focus down by one row.
+        """
+        if self.focused_widget is None:
+            self._set_focus_to_top_left()
+            return
+
+        # Abort if we've reached thw bottom, no special determinations, the lowest row will never be a header
+        if self._focus_row_at_bottom():
+            self.logger.debug(f"Focus at bottom, can't move down")
+            return
+
+        self._move_focus(x=FocusMoveX.NONE, y=FocusMoveY.DOWN)
+        self.dump_focus_info()
+    
+    @pyqtSlot()
+    def move_focus_left(self):
+        """
+        Move the focus to the left by one column.
+        """
+        if self.focused_widget is None:
+            self._set_focus_to_top_left()
+            return
+
+        if self.focus_col == 0:
+            # Guard we're at the top and wrap up
+            if self.model.ui_config.tile_wrap_around_x_down and self._focus_row_at_top():
+                self.logger.debug("Move Left wrap around up and at top. Can't move left")
+                return
+
+            # Guard we're at the bottom and wrap down
+            if not self.model.ui_config.tile_wrap_around_x_down and self._focus_row_at_bottom():
+                self.logger.debug("Move Left wrap around down and at bottom. Can't move left")
+                return
+
+            # Move with Wrap
+            self._move_focus(x=FocusMoveX.RIGHT_LIMIT,
+                             y=FocusMoveY.UP if self.model.ui_config.tile_wrap_around_x_down else FocusMoveY.DOWN)
+            self.dump_focus_info()
+            return
+
+        self._move_focus(x=FocusMoveX.LEFT, y=FocusMoveY.NONE)
+        self.dump_focus_info()
+
+    @pyqtSlot()
+    def move_focus_right(self):
+        """
+        Move the focus to the right by one column.
+        """
+        if self.focused_widget is None:
+            self._set_focus_to_top_left()
+            return
+
+        # We're at the right end
+        if self.focus_col == len(self.layout_rows[self.focus_row]) - 1:
+
+            # Guard, we're at the bottom and want to wrap down.
+            if self.model.ui_config.tile_wrap_around_x_down and self._focus_row_at_bottom():
+                self.logger.debug("Move Right wrap around down and at bottom. Can't move right")
+                return
+
+            # Guard we're at the top, and want to wrap up
+            if not self.model.ui_config.tile_wrap_around_x_down and self._focus_row_at_top():
+                self.logger.debug("Move Right wrap around up and at top. Can't move right")
+                return
+
+            # Move with wrap
+            self._move_focus(x=FocusMoveX.LEFT_LIMIT,
+                             y=FocusMoveY.DOWN if self.model.ui_config.tile_wrap_around_x_down else FocusMoveY.UP)
+            self.dump_focus_info()
+            return
+
+        self._move_focus(x=FocusMoveX.RIGHT, y=FocusMoveY.NONE)
+        self.dump_focus_info()
+        
+    def _set_focus_target(self, focus: int | str, target_key: int = None):
+        """
+        Set the focus to a specific widget.
+
+        PRECONDITION: The key exists in the given ui lookup table
+
+        :param focus: The key or header to focus on.
+        :param target_key: The target key to focus on.
+        """
+        if isinstance(focus, str):
+            assert target_key is not None, "Target key must be set if focus is a header."
+            self.__focus_key_or_header = focus
+            self.__focus_target_key = target_key
+        elif isinstance(focus, int):
+            self.__focus_key_or_header = focus
+            self.__focus_target_key = None
+        else:
+            raise ImplementationError("Focus must be either a key or a header.")
+
+    def _scroll_focused_widget_into_view(self) -> bool:
+        """
+        Check if the widget is currently outside the view.
+        If yes, scroll to the widget such that it is in view.
+
+        PRECONDITION: focused_widget is not None
+
+        :returns: True -> Scroll took place, Widget not Visible, False -> No scroll took place. Widget visible.
+        """
+        # self.logger.debug(f"Focused Widget Top Left: {self.focused_widget.mapToGlobal(QPoint(0, 0))}, "
+        #                   f"Tile Widget Top Left: {self.mapToGlobal(QPoint(0, 0))}")
+        # self.logger.debug(f"Focused Widget Bottom Right: {self.focused_widget.mapToGlobal(self.focused_widget.rect().bottomRight())}, "
+        #                   f"Tile Widget Bottom Right: {self.mapToGlobal(self.rect().bottomRight())}")
+        #
+        # self.logger.debug(f"Focus Top: {self.focused_widget.mapToGlobal(QPoint(0, 0)).y()}, "
+        #                   f"Widget Top: {self.mapToGlobal(QPoint(0, 0)).y()}")
+        # self.logger.debug(f"Focused Widget Bottom: {self.focused_widget.mapToGlobal(self.focused_widget.rect().bottomRight()).y()}, "
+        #                   f"Widget Bottom: {self.mapToGlobal(self.rect().bottomRight()).y()}")
+
+        # Test if widget is out of bounds at the top
+        if self.focused_widget.mapToGlobal(QPoint(0, 0)).y() < self.mapToGlobal(QPoint(0, 0)).y():
+            row = self.layout_rows[self.focus_row]
+
+            if not isinstance(row, list):
+                # PRECONDITION: we have a header
+                row = self.layout_rows[self.focus_row + 1]
+                assert isinstance(row, list), "PRECONDITION failed: no two headers after each other"
+
+            # Get the index of that row
+            target_row_offset = self.tile_rows.index(row)
+            absolute_target_row = self.lowest_row + target_row_offset
+
+            self.scroll_animation(absolute_target_row)
+            return True
+
+        elif self.mapToGlobal(self.rect().bottomRight()).y() < self.focused_widget.mapToGlobal(self.focused_widget.rect().bottomRight()).y():
+            row = self.layout_rows[self.focus_row]
+
+            if not isinstance(row, list):
+                # PRECONDITION: we have a header
+                # PRECONDITION: Last row is always a list
+                row = self.layout_rows[self.focus_row + 1]
+                assert isinstance(row, list), "PRECONDITION failed: no two headers after each other"
+
+            target_row_offset = self.tile_rows.index(row)
+            # Determine the absolute row such that we can scroll to it.
+            self.scroll_animation(self._min_offset_for_visibility_of(target_row_offset))
+            return True
+
+        return False
+
+    def _min_offset_for_visibility_of(self, target_offset: int) -> int:
+        """
+        Determine the current_row_offset such that the given target comes into view at the bottom.
+
+        PRECONDITION: the rect().bottom() of the target row is greater than the self.rect().top().
+
+        :param target_offset: The offset of the target row. in the self.tiles
+
+        :returns: absolute row to scroll to for the given target offset to be in view (target offset in
+        """
+        target_widget = self.tile_rows[target_offset][0]
+        target_y = target_widget.mapToGlobal(target_widget.rect().bottomRight()).y()
+        current_y = self.background_widget.mapToGlobal(QPoint(0, 0)).y()
+        cm = self.background_layout.contentsMargins()
+
+        if self.add_headers:
+            for i in range(len(self.layout_rows)):
+                row = self.layout_rows[i]
+                v_space = self.vertical_spacing if i > 0 else cm.top()
+
+                if isinstance(row, list):
+                    current_y += self.tile_size + v_space
+                else:
+                    assert isinstance(row, CheckableHeaderWidget) or isinstance(row, HeaderWidget), \
+                        f"PRECONDITION FAILED: Unexpected row in self.layout_rows: {row}"
+                    current_y += row.height() + v_space
+
+                    # Continue, because we don't want to check the visibility if the current row is a header
+                    continue
+
+                # Abort condition, we've found the correct row
+                if current_y + self.height() > target_y:
+                    offset = self.tile_rows.index(row)
+                    return self.lowest_row + offset + 1
+
+        else:
+            return self.lowest_row + max(0, target_offset - self.min_visible_rows)
+
+    def _move_focus(self, x: FocusMoveX, y: FocusMoveY):
+        """
+        Move the focus to a specific widget AND scroll it into view.
+
+        PRECONDITION:
+        focus_row is not None
+        focus_col is not None
+        focus_widget is not None
+
+        :param x: The x coordinate to move to.
+        :param y: The y coordinate to move to.
+        """
+        assert self.focused_widget is not None, "Focused widget must be set before moving focus."
+
+        # Simple left or right move
+        if y == FocusMoveY.NONE:
+            # We're having an explicit left or right move. Clear the last_focus_col
+            self.last_focus_col = None
+
+            # Handle case when we're simply moving left
+            if x == FocusMoveX.LEFT:
+                new_tgt_widget = self.layout_rows[self.focus_row][self.focus_col - 1]
+                self.focused_widget = new_tgt_widget
+                self.focus_col -= 1
+
+            elif x == FocusMoveX.RIGHT:
+                new_tgt_widget = self.layout_rows[self.focus_row][self.focus_col + 1]
+                self.focused_widget = new_tgt_widget
+                self.focus_col += 1
+            else:
+                raise ImplementationError("PRECONDITION Failed: FocusMoveX must be LEFT or RIGHT for FocusMoveY.NONE")
+
+            self._scroll_focused_widget_into_view()
+            return
+
+        elif y == FocusMoveY.UP:
+            assert x not in (FocusMoveX.LEFT, FocusMoveX.RIGHT), \
+                "PRECONDITION failed: FocusMoveX must be NONE, LEFT_LIMIT or RIGHT_LIMIT for FocusMoveY.UP"
+            if isinstance(self.focus_key_or_header, int):
+                current_abs_focus_row = self.key_to_row(self.focus_key_or_header)
+            else:
+                current_abs_focus_row = self.key_to_row(self.focus_target_key)
+
+            new_abs_focus_row = current_abs_focus_row - 1
+            current_row = self.row_to_media_paths(current_abs_focus_row)
+            new_row = self.row_to_media_paths(new_abs_focus_row)
+
+            if self._move_focus_to_header(cur_abs_f_row=current_abs_focus_row,
+                                          new_abs_f_row=new_abs_focus_row,
+                                          target_key=current_row[0].element.key,
+                                          up=True,
+                                          top_override=new_abs_focus_row == -1):
+                    return
+
+
+            self._move_focus_vertical_to_image(row=new_row, x_action=x, new_abs_f_row=new_abs_focus_row)
+
+        elif y == FocusMoveY.DOWN:
+            assert x not in (FocusMoveX.LEFT, FocusMoveX.RIGHT), \
+                "PRECONDITION failed: FocusMoveX must be NONE, LEFT_LIMIT or RIGHT_LIMIT for FocusMoveY.UP"
+
+            if isinstance(self.focus_key_or_header, int):
+                current_abs_focus_row = self.key_to_row(self.focus_key_or_header)
+                new_abs_focus_row = current_abs_focus_row + 1
+            else:
+                current_abs_focus_row = self.key_to_row(self.focus_target_key)
+                new_abs_focus_row = current_abs_focus_row
+
+            new_row = self.row_to_media_paths(new_abs_focus_row)
+
+            # Check if the next widget is supposed to be a header
+            if self._move_focus_to_header(cur_abs_f_row=current_abs_focus_row,
+                                          new_abs_f_row=new_abs_focus_row,
+                                          target_key=new_row[0].element.key,
+                                          up=False,
+                                          top_override=False):
+                    return
+
+            self._move_focus_vertical_to_image(row=new_row, x_action=x, new_abs_f_row=new_abs_focus_row)
+
+        else:  # pragma: no cover
+            raise ImplementationError("Uncovered Case FocusMoveY")
+
+    def _focus_row_at_top(self) -> bool:
+        """
+        Check if the focused widget is in the lowest possible row.
+        """
+        if self.lowest_row != 0:
+            return False
+
+        if self.add_headers:
+            # Abort with checkable headers and we're at 0
+            if self.checkable_headers and self.focus_row == 0:
+                return True
+
+            # Abort with not checkable headers, but headers present, and we're at 1
+            if not self.checkable_headers and self.focus_row == 1:
+                return True
+
+        else:
+            # PRECONDITION: no headers
+            # Abort without headers and we're at 0
+            if self.focus_row == 0:
+                return True
+
+        return False
+
+    def _focus_row_at_bottom(self) -> bool:
+        """
+        Check if the focused widget is in the highest possible row.
+        """
+        return self.highest_row == self.number_of_rows - 1 and self.focus_row == len(self.layout_rows) - 1
+
+    def _determine_focused_widget(self, row: List[MediaPaths]):
+        """
+        Given a list of media paths, determine the focused widget. Update the focus_row and focus_col if the given
+        widget exists in the self.widgets
+
+        :param row: The row in which to determine the focused widget based on focus_col and last_focus_col
+        """
+        if self.last_focus_col is not None:
+            # The given column exists again, set focus to that column and unset the last_focus_col var
+            if len(row) > self.last_focus_col:
+                focused_mp = row[self.last_focus_col]
+                self.last_focus_col = None
+
+            else:
+                # The given column doesn't exist. Take right most widget
+                focused_mp = row[-1]
+
+        else:
+            # PRECONDITION: last_focus_col is None
+            if len(row) <= self.focus_col:
+                # The given focus column doesn't exist, take the right most widget
+                focused_mp = row[-1]
+                self.last_focus_col = self.focus_col
+
+            else:
+                # The given focus column exists, take that widget
+                focused_mp = row[self.focus_col]
+
+        self._set_focus_target(focus=focused_mp.element.key)
+
+    def _move_focus_to_header(self, cur_abs_f_row: int, new_abs_f_row, target_key: int, up: bool, top_override: bool) \
+            -> bool:
+        """
+        Given the current focus, attempt to move the focus to a header.
+
+        :returns: True, if the next focused element is a header.
+        """
+
+        # Check if the next widget is supposed to be a header
+        if self.add_headers and self.checkable_headers:
+
+            # Get the header of the current row and of the next row
+            current_header_text = self._header_text_for_row(cur_abs_f_row)
+            new_header_text = None if top_override else self._header_text_for_row(new_abs_f_row)
+
+            # If they are different, and we're in a row of images, set the header as next target.
+            if (new_header_text != current_header_text and self.focus_target_key is None) or top_override:
+                assert isinstance(self.focus_key_or_header, int), \
+                    "PRECONDITION failed: focus_key_or_header must be an int"
+                self._set_focus_target(focus=current_header_text if up else new_header_text, target_key=target_key)
+
+                # Either scroll the given header into view or scroll to the new row
+                if (widget := self.headers.get(self.focus_key_or_header, None)) is not None:
+                    self.focused_widget = widget
+                    self.focus_row = self.layout_rows.index(widget)
+
+                    if self.last_focus_col is None and self.focus_col > 0:
+                        self.last_focus_col = self.focus_col
+
+                    self.focus_col = 0
+
+                    self._scroll_focused_widget_into_view()
+                else:
+                    self.scroll_animation(new_abs_f_row)
+
+                return True
+
+        return False
+
+    def _move_focus_vertical_to_image(self, row: List[MediaPaths], x_action: FocusMoveX, new_abs_f_row: int):
+        """
+        Deal with moving the focus up or down to an image.
+
+        :param row: The MediaPaths of the row to move to.
+        :param x_action: The action to take in the x direction.
+        :param new_abs_f_row: The new absolute row to move to.
+        """
+        # PRECONDITION: we move the focus to a row of images
+        if x_action == FocusMoveX.LEFT_LIMIT:
+            self.last_focus_col = None
+            self._set_focus_target(focus=row[0].element.key)
+        elif x_action == FocusMoveX.RIGHT_LIMIT:
+            self.last_focus_col = None
+            self._set_focus_target(focus=row[-1].element.key)
+        elif x_action == FocusMoveX.NONE:
+            self._determine_focused_widget(row)
+        else:
+            raise ImplementationError("PRECONDITION Failed: "
+                                      "FocusMoveX must be LEFT, RIGHT or NONE for FocusMoveY.UP")
+
+        # Widget doesn't exist
+        if (fw := self.widgets.get(self.focus_key_or_header, None)) is None:
+            self.scroll_animation(new_abs_f_row)
+            return
+
+        # PRECONDITION: Widget of the focused key exists.
+        self.focused_widget = fw
+        tile_row = None
+
+        # Determine the focus col and get the pointer to the focused row
+        for i, r in enumerate(self.tile_rows):
+            if self.focused_widget in r:
+                tile_row = r
+                self.focus_col = r.index(self.focused_widget)
+                break
+
+        # Determine  the focus row
+        self.focus_row = self.layout_rows.index(tile_row)
+        self._scroll_focused_widget_into_view()
+
+    def _set_focus_to_top_left(self):
+        """
+        When focus operations are performed but the focused widget is not loaded, set the focus to the image in the top
+        left.
+
+        # PRECONDITION: We have more than row
+        # PRECONDITION: Each row contains at least one widget.
+        """
+        self.logger.debug("Setting focus to top left")
+        tgt_row = self.tile_rows[self.current_row_offset]
+        tgt_widget = tgt_row[0]
+        tgt_key = tgt_widget.media.element.key
+
+        self._set_focus_target(focus=tgt_key)
+        self.focused_widget = tgt_widget
+        self.focus_col = 0
+        self.focus_row = self.layout_rows.index(tgt_row)
+
+    def update_focus_info(self, widget: ClickableTile | CheckableHeaderWidget | HeaderWidget, col: int):
+        """
+        Update the focus information, given that the focus_key_or_header is being constructed in a factory
+
+        :param widget: The widget to update the focus information for.
+        :param col: The column in the layout tables where we find the widget
+        """
+        self.focused_widget = widget
+        self.focus_col = col
+
+    def clear_focus_info(self):
+        """
+        Clear the focus information when the widget is unloaded.
+        """
+        self.focus_row = None
+        self.focus_col = None
+        self.last_focus_col = None
+        self.focused_widget = None
+
+    def _mark_focus_widget(self):
+        """
+        Mark the focus widget.
+
+        PRECONDITION: self.focused_widget is not None
+        """
+        self.focused_widget.setLineWidth(3)
+        self.focused_widget.setMidLineWidth(3)
+        self.focused_widget.setFrameShape(QFrame.Shape.Box)
+        self.focused_widget.setFrameShadow(QFrame.Shadow.Plain)
+
+    def _unmark_focus_widget(self):
+        """
+        Unmarks the currently set focus widget.
+
+        PRECONDITION: self.focused_widget is not None
+        """
+        self.focused_widget.setFrameShape(QFrame.Shape.NoFrame)
+        self.focused_widget.setFrameShadow(QFrame.Shadow.Plain)
+
+    def dump_focus_info(self):
+        self.logger.debug(f"Focused Widget: {self.focused_widget}, "
+                          f"Focus Key or Header: {self.focus_key_or_header}, "
+                          f"Focus Target: {self.focus_target_key}, "
+                          f"Focus Row: {self.focus_row}, "
+                          f"Focus Col: {self.focus_col}, "
+                          f"Last Focus Col: {self.last_focus_col}")
+
+
     # ==================================================================================================================
     # Functions that need to be implemented differently for every view
     # ==================================================================================================================
