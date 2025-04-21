@@ -1828,7 +1828,9 @@ class BaseTileWidget(QFrame):
 
         row = self.layout_rows.pop(0)
 
-        if isinstance(row, CheckableHeaderWidget):
+        if not isinstance(row, list):
+            assert isinstance(row, CheckableHeaderWidget) or isinstance(row, HeaderWidget), \
+                "PRECONDITION: At most one header between two rows of ClickableTiles"
             # Update focus row for a header
             self.focus_row = self.focus_row - 1 if self.focus_row is not None else self.focus_row
             self._destroy_header(row)
@@ -1867,7 +1869,7 @@ class BaseTileWidget(QFrame):
         row = self.layout_rows.pop()
         assert isinstance(row, list), "PRECONDITION: Lowest row is ALWAYS a list of ClickableTiles"
 
-        if isinstance(self.layout_rows[-1], CheckableHeaderWidget):
+        if isinstance(self.layout_rows[-1], CheckableHeaderWidget) or isinstance(self.layout_rows[-1], HeaderWidget):
             header = self.layout_rows.pop()
             self._destroy_header(header)
 
