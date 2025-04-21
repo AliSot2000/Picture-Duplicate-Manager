@@ -465,6 +465,17 @@ class BaseTileWidget(QFrame):
             # INFO: The update layout was triggered and the spacers were added and updated already.
             pass
 
+    def get_header_for_row(self, row: int) -> str:
+        """
+        Get the header for a given row, needed to display the header in the scrollbar.
+
+        PRECONDITION: The row is in range for the given row
+        PRECONDITION: The header text function is set.
+        """
+        assert 0 <= row < self.number_of_rows, "Row out of bounds"
+        assert self._header_text_for_row is not None, "Header text function not set"
+        return self._header_text_for_row(row)
+
     # ==================================================================================================================
     # Focus Functions
     # ==================================================================================================================
