@@ -2115,3 +2115,112 @@ class BaseTileWidget(QFrame):
 
         assert self.number_of_generated_rows > self.current_row_offset >= 0, \
             f"Current row offset is out of bounds, max: {self.number_of_generated_rows}, got: {self.current_row_offset}"
+
+
+class TileViewWithScrollIndicator(QFrame):
+    def __init__(self, tile_view: BaseTileWidget, parent: QWidget = None):
+        super().__init__(parent)
+
+        self.indicator = QLabel("Some really long text so I see something", parent=self)
+        self.indicator.setContentsMargins(10, 10, 10, 10)
+        self.indicator.setVisible(False)
+        self.indicator.setStyleSheet("background-color: palette(dark);")
+        # self.indicator.setVisible(False)
+
+        self.tile_widget = tile_view
+
+        self.scroll_bar = QScrollBar()
+        self.scroll_bar.setOrientation(Qt.Orientation.Vertical)
+        self.scroll_bar.setMinimum(0)
+
+        self.layout = QHBoxLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
+
+        self.tile_widget.num_of_rows_changed.connect(self.scrollbar_needed)
+        self.tile_widget.num_of_rows_changed.connect(self.set_scrollbar_max)
+
+        self.tile_widget.page_size_changed.connect(self.scrollbar_needed)
+        self.tile_widget.page_size_changed.connect(self.scroll_bar.setPageStep)
+
+        self.tile_widget.current_row_changed.connect(self.scroll_bar.setValue)
+
+        self.scroll_bar.sliderReleased.connect(self.set_current_row)
+        self.scroll_bar.valueChanged.connect(self.scroll_pos_update)
+
+        self.setLayout(self.layout)
+        self.layout.addWidget(self.tile_widget)
+        self.layout.addWidget(self.scroll_bar)
+        self.scrollbar_present = True
+
+    @pyqtSlot(int)
+    def scrollbar_needed(self, _: int):
+        """
+        Determine if we need a scroll bar
+        """
+        if self.scrollbar_present and self.tile_widget.number_of_rows <= self.tile_widget.min_visible_rows:
+            while self.layout.count():
+                self.layout.takeAt(0)
+
+            self.layout.addWidget(self.tile_widget)
+            self.scrollbar_present = False
+
+        if not self.scrollbar_present and self.tile_widget.number_of_rows > self.tile_widget.min_visible_rows:
+            while self.layout.count():
+                self.layout.takeAt(0)
+
+            self.layout.addWidget(self.tile_widget)
+            self.layout.addWidget(self.scroll_bar)
+            self.scrollbar_present = True
+
+    @pyqtSlot(int)
+    def set_scrollbar_max(self, value: int):
+        """
+        Set the maximum value of the scroll bar
+        """
+        self.scroll_bar.setMaximum(max(0, value - 1))
+
+    def set_current_row(self):
+        """
+        Set the current row from the scrollbar
+        """
+        self.tile_widget.set_current_row(self.scroll_bar.value())
+        # Also set the visibility of the indicator
+        self.indicator.setVisible(False)
+
+    def scroll_pos_update(self, value: int):
+        """
+        Update the current row based on the scroll bar position
+        """
+        if self.scroll_bar.isSliderDown() and self.tile_widget.has_displayable_headers:
+            sc_top_left = self.scroll_bar.geometry().topLeft()
+            self.indicator.setVisible(True)
+            self.indicator.raise_()
+            self.indicator.setText(self.tile_widget.get_header_for_row(value))
+            self.indicator.resize(self.indicator.sizeHint())
+            v_offset = self.scroll_bar_handle_center_offset_y()
+
+            # move indicator to computed location
+            self.indicator.move(sc_top_left.x() - self.indicator.width(),
+                                sc_top_left.y() + v_offset - self.indicator.height() // 2)
+            return
+
+        self.tile_widget.set_current_row(value)
+
+    def scroll_bar_handle_center_offset_y(self) -> int:
+        """
+        Given the top left of the scroll bar, returns the number of pixel to the scrollbar's handle center.
+        """
+        min_handle_height = self.scroll_bar.style().pixelMetric(QStyle.PixelMetric.PM_ScrollBarSliderMin)
+        no_arrows = self.scroll_bar.height() - self.scroll_bar.width() * 2
+        relative = self.scroll_bar.value() / (self.scroll_bar.maximum() - self.scroll_bar.minimum())
+
+        # Height should be page step / document length
+        handle_height_rel = (self.scroll_bar.pageStep() /
+                          (self.scroll_bar.maximum() - self.scroll_bar.minimum() + self.scroll_bar.pageStep()))
+        handle_height_px = math.floor(handle_height_rel * no_arrows)
+        handle_height = max(min_handle_height, handle_height_px)
+        print(handle_height)
+
+        movement_range = no_arrows - handle_height
+        return int(relative * movement_range + handle_height / 2 + self.scroll_bar.width())
