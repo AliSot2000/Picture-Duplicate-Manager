@@ -2116,6 +2116,11 @@ class BaseTileWidget(QFrame):
 
 
 class TileViewWithScrollIndicator(QFrame):
+    """
+    This class takes a given BaseTileWidget and adds a scroll bar to it, if the number of rows is greater than the
+    minimum number of visible rows. Additionally, if the tile widget has displayable headers, when scrolling, an
+    indicator will be placed besides the scroll bar to give the user an indication where he is.
+    """
     def __init__(self, tile_view: BaseTileWidget, parent: QWidget = None):
         super().__init__(parent)
 
