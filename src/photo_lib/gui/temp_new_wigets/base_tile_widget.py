@@ -22,8 +22,6 @@ from photo_lib.gui.temp_new_wigets.new_base_image import BaseImage
 from photo_lib.gui.views.enums import FocusMoveY, FocusMoveX
 
 
-# TODO:
-#   - Custom Context Menu
 class BaseTileWidget(QFrame):
     """
     Basic Tile Widget. Doesn't contain Headers.
