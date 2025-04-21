@@ -46,13 +46,13 @@ class DatabaseViews(Enum):
     # Open a given image, with carousel and metadata (has current hash and hash according to db).
     HASH_UPDATE_BIG_SCREEN = 32
 
-    # Open a tile view of all files who's name has changed
+    # Open a tile view of all files whose name has changed
     NAME_UPDATE_TILE = 41
     # Open a given image, with carousel and metadata (has current name and name according to db).
     # Using Thumbnails if possible
     NAME_UPDATE_BIG_SCREEN = 42
 
-    # Open a tile view of all files who's presence has changed
+    # Open a tile view of all files whose presence has changed
     PRESENCE_UPDATE_TILE = 51
     # Open a given image, with carousel and metadata (has the same metadata like MAIN_BIG_SCREEN with an extra field
     # now present or now missing)
