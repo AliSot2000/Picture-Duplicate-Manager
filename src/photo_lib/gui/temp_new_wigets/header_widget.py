@@ -42,7 +42,10 @@ class BaseHeaderWidget(QFrame):
         """
         Get the text of the checkbox.
         """
-        return self._check_box.text()
+        if self._check_box is not None:
+            return self._check_box.text()
+        else:
+            return self._label.text()
 
     def update_font(self):
         """
