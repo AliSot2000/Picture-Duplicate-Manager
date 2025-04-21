@@ -9,7 +9,8 @@ from typing import List, Dict, Optional, Hashable, Tuple
 import numpy as np
 from PyQt6.QtCore import pyqtSignal, QTimer, QPoint, pyqtSlot, Qt, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QResizeEvent, QPaintEvent
-from PyQt6.QtWidgets import QFrame, QWidget, QGridLayout, QSpacerItem, QSizePolicy
+from PyQt6.QtWidgets import (QFrame, QWidget, QGridLayout, QSpacerItem, QSizePolicy, QScrollBar, QHBoxLayout, QLabel,
+                             QStyle)
 
 from photo_lib.custom_enum import TargetViewTable, GroupingCriterion, MainTileView
 from photo_lib.data_objects import MediaElement, MediaPaths
