@@ -340,11 +340,9 @@ class BaseTileWidget(QFrame):
         self.__has_displayable_headers: bool = has_displayable_headers
         self.__add_headers: bool = False
 
-        # TODO move
-        self.setMinimumWidth(200)
-        self.setMinimumHeight(200)
-
-        self._set_focus_target(264)
+        # Set the minimum size to avoid bugs
+        self.setMinimumWidth(self.tile_size * 2)
+        self.setMinimumHeight(self.tile_size * 2)
 
     # ==================================================================================================================
     # Slots
