@@ -18,7 +18,7 @@ from photo_lib.errors_and_warnings import ImplementationError
 from photo_lib.gui.model.frontend_model import UIModel
 from photo_lib.gui.temp_new_wigets.clickable_tile import ClickableTile
 from photo_lib.gui.temp_new_wigets.header_widget import CheckableHeaderWidget, HeaderWidget
-from photo_lib.gui.temp_new_wigets.new_base_image import BaseImage
+from photo_lib.gui.temp_new_wigets.base_image import BaseImage
 from photo_lib.gui.views.enums import FocusMoveY, FocusMoveX
 
 

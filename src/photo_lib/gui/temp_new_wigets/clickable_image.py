@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QApplication
 
 from photo_lib.data_objects import MediaPaths
 from photo_lib.gui.model.frontend_model import UIModel
-from photo_lib.gui.temp_new_wigets.new_base_image import BaseImage
+from photo_lib.gui.temp_new_wigets.base_image import BaseImage
 
 
 class ClickableImage(BaseImage):
