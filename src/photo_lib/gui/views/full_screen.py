@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QDialog, QVBoxLayout, QApplication, QMenuBar
 
 from photo_lib.data_objects import MediaPaths
 from photo_lib.gui.model.frontend_model import UIModel
-from photo_lib.gui.temp_new_wigets.new_zoomable_image import ZoomImage
+from photo_lib.gui.temp_new_wigets.zoomable_image import ZoomImage
 
 
 class FullScreenView(QDialog):
