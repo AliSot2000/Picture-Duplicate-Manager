@@ -1039,6 +1039,15 @@ class BaseTileWidget(QFrame):
         self.model.ui_preferences.tile_size_main_main = self.tile_size
         self.model.write_preferences()
 
+    def get_tile_size_from_preferences(self) -> int:
+        """
+        Get the tile size from the preferences.
+        """
+        if (tsm := self.model.ui_preferences.tile_size_main_main) is not None:
+            return tsm
+
+        return self.model.ui_config.tile_size_default
+
     def rebuild_lookup_table(self):
         """
         Rebuild the table for the layout
