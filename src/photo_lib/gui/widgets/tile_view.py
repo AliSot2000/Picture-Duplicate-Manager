@@ -1257,6 +1257,18 @@ class TempRoot(QMainWindow):
         self.scrollbar.setValue(val)
 
 
+# from photo_lib.gui.new_main_window import BaseMainWindow
+
+# class NewTempRoot(BaseMainWindow):
+class NewTempRoot(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.model = Model(folder_path="/home/alisot2000/Desktop/New_DB/")
+        self.model.current_import_table_name = "tbl_-1886740392237389744"
+        self.tiles = DatabaseTileView(self.model)
+        self.setCentralWidget(self.tiles)
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     v = QPixmapCache.setCacheLimit(1024)
@@ -1265,7 +1277,9 @@ if __name__ == "__main__":
     # w = TileWidget(m)
     # w.prep_dev()
     # w.show()
-    w = TempRoot()
+    # w = TempRoot()
+    # w.show()
+    w = NewTempRoot()
     w.show()
 
     sys.exit(app.exec())
