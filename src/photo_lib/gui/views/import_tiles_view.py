@@ -193,8 +193,8 @@ class ImportView(QFrame):
         # Add Block for no match
         if len(self.model.get_import_no_match()) > 0:
             self.no_match_block = CheckNamedPictureBlock(mt=MatchTypes.No_Match,
-                                       tile_infos=self.model.get_import_no_match(),
-                                       title="Media Files without Match in the Database")
+                                                         tile_infos=self.model.get_import_no_match(),
+                                                         title="Media Files without Match in the Database")
             self.inner_layout.addWidget(self.no_match_block)
             self.tiles.extend(self.no_match_block.picture_block.img_tiles)
             self.blocks.append(self.no_match_block)
@@ -202,8 +202,8 @@ class ImportView(QFrame):
         # Add block for binary match
         if len(self.model.get_import_binary_match()) > 0:
             self.binary_match_block= CheckNamedPictureBlock(mt=MatchTypes.Binary_Match_Images,
-                                       tile_infos=self.model.get_import_binary_match(),
-                                       title="Media Files with Binary Match in Database")
+                                                            tile_infos=self.model.get_import_binary_match(),
+                                                            title="Media Files with Binary Match in Database")
             self.inner_layout.addWidget(self.binary_match_block)
             self.tiles.extend(self.binary_match_block.picture_block.img_tiles)
             self.blocks.append(self.binary_match_block)
@@ -211,8 +211,8 @@ class ImportView(QFrame):
         # Add block for binary match in replaced
         if len(self.model.get_import_binary_match_replaced()) > 0:
             self.binary_match_replaced_block = CheckNamedPictureBlock(mt=MatchTypes.Binary_Match_Replaced,
-                                       tile_infos=self.model.get_import_binary_match_replaced(),
-                                       title="Media Files with Binary Match in the known Duplicates")
+                                                                      tile_infos=self.model.get_import_binary_match_replaced(),
+                                                                      title="Media Files with Binary Match in the known Duplicates")
             self.inner_layout.addWidget(self.binary_match_replaced_block)
             self.tiles.extend(self.binary_match_replaced_block.picture_block.img_tiles)
             self.blocks.append(self.binary_match_replaced_block)
@@ -220,26 +220,26 @@ class ImportView(QFrame):
         # Add block for binary match in trash
         if len(self.model.get_import_binary_match_trash()) > 0:
             self.binary_match_trash_block = CheckNamedPictureBlock(mt=MatchTypes.Binary_Match_Trash,
-                                       tile_infos=self.model.get_import_binary_match_trash(),
-                                       title="Media Files with Binary Match in the Trash")
+                                                                   tile_infos=self.model.get_import_binary_match_trash(),
+                                                                   title="Media Files with Binary Match in the Trash")
             self.inner_layout.addWidget(self.binary_match_trash_block)
             self.tiles.extend(self.binary_match_trash_block.picture_block.img_tiles)
             self.blocks.append(self.binary_match_trash_block)
 
         # Add block for hash match in replaced
         if len(self.model.get_import_hash_match_replaced()) > 0:
-            self.hash_match_replaced_block = CheckNamedPictureBlock(mt=MatchTypes.Hash_Match_Replaced,
-                                        tile_infos=self.model.get_import_hash_match_replaced(),
-                                        title="Media Files with matching hash and filesize in the known Duplicates")
+            self.hash_match_replaced_block = CheckNamedPictureBlock(mt=MatchTypes.HASH_MATCH_REPLACED,
+                                                                    tile_infos=self.model.get_import_hash_match_replaced(),
+                                                                    title="Media Files with matching hash and filesize in the known Duplicates")
             self.inner_layout.addWidget(self.hash_match_replaced_block)
             self.tiles.extend(self.hash_match_replaced_block.picture_block.img_tiles)
             self.blocks.append(self.hash_match_replaced_block)
 
         # Add block for hash match in trash
         if len(self.model.get_import_hash_match_trash()) > 0:
-            self.hash_match_trash_block = CheckNamedPictureBlock(mt=MatchTypes.Hash_Match_Trash,
-                                        tile_infos=self.model.get_import_hash_match_trash(),
-                                        title="Media Files with matching hash and filesize in the Trash")
+            self.hash_match_trash_block = CheckNamedPictureBlock(mt=MatchTypes.HASH_MATCH_TRASH,
+                                                                 tile_infos=self.model.get_import_hash_match_trash(),
+                                                                 title="Media Files with matching hash and filesize in the Trash")
             self.inner_layout.addWidget(self.hash_match_trash_block)
             self.tiles.extend(self.hash_match_trash_block.picture_block.img_tiles)
             self.blocks.append(self.hash_match_trash_block)
