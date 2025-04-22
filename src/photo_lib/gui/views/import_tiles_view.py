@@ -45,9 +45,20 @@ class ImportView(QFrame):
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
 
+        top = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutTopMargin)
+        right = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutRightMargin)
+        bottom = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutBottomMargin)
+        left = self.style().pixelMetric(self.style().PixelMetric.PM_LayoutLeftMargin)
+
+        # INFO:
+        #   Info BoxLengths are top, right, bottom, left
+        #   Content Margins are left, top, right, bottom
         self.import_name = QLabel()
+        self.import_name.setContentsMargins(left, top, right, bottom)
 
         self.outer_layout = QVBoxLayout()
+        self.outer_layout.setSpacing(0)
+        self.outer_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.outer_layout)
 
         self.inner_layout = QVBoxLayout()
