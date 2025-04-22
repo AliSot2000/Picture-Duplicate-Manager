@@ -53,7 +53,7 @@ h = handlers.QueueHandler(logging_queue)
 h.setLevel(logging.DEBUG)
 logger.addHandler(h)
 
-fh = logging.FileHandler("parsing.log")
+fh = logging.FileHandler("../parsing.log")
 fmt = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 fh.setFormatter(fmt)
 parsing_logger = logging.getLogger("MetadataAggregator.Parsing")
