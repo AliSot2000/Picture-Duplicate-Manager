@@ -99,6 +99,7 @@ class ImportView(QFrame):
         :return:
         """
         # Tile newly marked, need to set the import checkbox to half checked.
+        # INFO: The title is coming from the checkbox.
         if marked:
             if not tile.allowed:
                 self.not_allowed_block.tile_for_single_import(tile)
