@@ -3821,7 +3821,7 @@ class PhotoDB(BaseSQliteDB):
         tgt_table = target_view.value
 
         self.debug_execute(f"SELECT MAX(global_row) FROM `{tgt_table}`")
-        # INFO: Since we're taking the max, we need to add +1 to get the total.
+        # INFO: Since we're taking the max, we need to add +1 to get the total. (We're zero indexed)
         return self.sq_cur.fetchone()[0] + 1
 
     def lookup_col_count(self, target_view: TargetViewTable):
