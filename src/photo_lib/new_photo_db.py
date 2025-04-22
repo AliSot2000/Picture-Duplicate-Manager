@@ -3812,6 +3812,71 @@ class PhotoDB(BaseSQliteDB):
 
         return row
 
+    def get_key_position(self, key: int, target_view: TargetViewTable) -> Optional[Tuple[int, int]]:
+        """
+        Get a key's row and column for later use
+
+        :param key: Key for which to get the coordinates
+        :param target_view: View from which to get the coordinates
+
+        :returns: global_row, col or None, if no key is found
+        """
+        tgt_table = target_view.value
+
+        self.debug_execute(f"SELECT global_row, col FROM `{tgt_table}` WHERE key = ?", (key,))
+        res = self.sq_cur.fetchone()
+        if res is None:
+            return None
+
+        return res[0], res[1]
+
+    def get_predecessors(self, key: int, target_view: TargetViewTable, max_elm: int = 100) -> List[int]:
+        """
+        Get images in the ui order that are before the given current key.
+
+        :param key: Target Below which the images are supposed to be
+        :param target_view: The targeted view table
+        :param max_elm: Maximum number of elements that are supposed to be loaded
+        """
+        tgt_table = target_view.value
+        global_row, col = self.get_key_position(key, target_view)
+
+        self.debug_execute(f"SELECT key FROM `{tgt_table}` "
+                           f"WHERE global_row = ? and col < ? OR global_row < ? "
+                           f"ORDER BY global_row DESC, col DESC LIMIT ?",
+                           (global_row, col, global_row, max_elm))
+
+        return [row[0] for row in self.sq_cur.fetchall()]
+
+    def get_successors(self, key: int, target_view: TargetViewTable, max_elm: int = 100) -> List[int]:
+        """
+        Get images in the ui order that are after the given current key.
+
+        :param key: Target above which the images are supposed to be
+        :param target_view: The targeted view table
+        :param max_elm: Maximum number of elements that are supposed to be loaded
+        """
+        tgt_table = target_view.value
+        global_row, col = self.get_key_position(key, target_view)
+
+        self.debug_execute(f"SELECT key FROM `{tgt_table}` "
+                           f"WHERE global_row = ? and col > ? OR global_row > ? "
+                           f"ORDER BY global_row DESC, col DESC LIMIT ?",
+                           (global_row, col, global_row, max_elm))
+
+        return [row[0] for row in self.sq_cur.fetchall()]
+
+    def lookup_element_count(self, target_view: TargetViewTable):
+        """
+        Get the number of elements in the table
+
+        :param target_view: Table to query the number of elements for
+        """
+        tgt_table = target_view.value
+
+        self.debug_execute(f"SELECT COUNT(key) FROM `{tgt_table}`")
+        return self.sq_cur.fetchone()[0]
+
     def lookup_row_count(self, target_view: TargetViewTable):
         """
         Get the number of rows in the ui table.
